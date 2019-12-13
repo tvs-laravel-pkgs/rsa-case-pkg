@@ -3,10 +3,20 @@
 namespace Abs\RsaCasePkg\Api;
 use Abs\RsaCasePkg\CaseCancelledReason;
 use Abs\RsaCasePkg\CaseStatus;
+use Abs\RsaCasePkg\Activity;
 use Abs\RsaCasePkg\RsaCase;
+use Abs\RsaCasePkg\CaseStatus;
+use Abs\RsaCasePkg\ActivityAspStatus;
+use Abs\RsaCasePkg\AspActivityRejectedReason;
+use Abs\RsaCasePkg\AspPoRejectedReason;
+use Abs\RsaCasePkg\ActivityPortalStatus;
 use App\CallCenter;
+use App\Dealer;
 use App\Client;
+use App\Config;
+use App\Entity;
 use App\District;
+use App\Asp;
 use App\Http\Controllers\Controller;
 use App\MembershipType;
 use App\ServiceType;
@@ -33,7 +43,7 @@ class CaseController extends Controller {
 				//Description
 				'description' => 'nullable|string|max:255',
 				//Case Status
-				'status' => 'required|string|max:50|exists:case_statuses,name',
+				'status' => 'required|string|max:191|exists:case_statuses,name',
 				//Case Cancel Reason
 				'cancel_reason' => 'nullable|string|max:100|exists:case_cancelled_reasons,name',
 				//Call centre
@@ -129,28 +139,36 @@ class CaseController extends Controller {
 		try {
 			$service_types = ServiceType::pluck('name')->toArray();
 			$validator = Validator::make($request->all(), [
-				//Activity ID
-				'activity_id' => 'required|numeric',
+				//Asp Code
+				'asp_code' => 'required|string|max:24|exists:asps,asp_code',
 				//Ticket No
-				'case_id' => 'required|string|max:32',
+				'case_id' => 'required|string|max:32|exists:cases,number',
 				//Case Status
-				'case_status' => 'required|string|max:50',
+				'case_status' => 'required|string|max:191|exists:case_statuses,name',
+				//Service
+				'service' => 'required|string|max:50|exists:service_groups,name',
+				//Sub Service
+				'sub_service' => [
+					'required',
+					'string',
+					'max:50',
+					Rule::in($service_types),
+				],
+				//ASP Status
+				'asp_status' => 'nullable|string|max:191|exists:activity_asp_statuses,name',
+				'asp_activity_rejected_reason' => 'nullable|string|max:191|exists:asp_activity_rejected_reasons,name',
+				'asp_po_accepted' => 'nullable|string|max:50',
+				'asp_po_rejected_reason' => 'nullable|string|max:191|exists:asp_po_rejected_reasons,name',
+				'status' => 'nullable|string|max:191|exists:activity_portal_statuses,name',
+				'activity_status' => 'nullable|string|max:191|exists:activity_statuses,name',
 				//Service Description
-				'service_description' => 'nullable|string|max:24',
-				//Service Cancel Reason
-				'service_cancel_reason' => 'nullable|string|max:100',
+				'service_description' => 'nullable|string|max:255',
 				//Amount
 				'amount' => 'nullable|numeric',
-				//Payment Mode
-				'payment_mode' => 'nullable|string|max:50',
 				//Remarks
-				'remarks' => 'nullable|string|max:512',
-				//Service Status
-				'service_status' => 'required|string|max:50',
+				'remarks' => 'nullable|string|max:255',
 				//Drop Location Type
 				'drop_location_type' => 'nullable|string|max:24',
-				//Customer Preferred Location Type
-				'customer_preferred_location_type' => 'nullable|string|max:24',
 				//Drop Dealer
 				'drop_dealer' => 'nullable|string|max:64',
 				//Drop Location
@@ -160,17 +178,10 @@ class CaseController extends Controller {
 				//Drop Location Long
 				'drop_location_long' => 'nullable|numeric',
 				//Extra Short Km
-				'extra_short_km' => 'nullable|numeric',
-				//Activity Status
-				'activity_status' => 'required|string|max:50',
-				//Asp Code
-				'asp_code' => 'required|string|max:24',
-				//Asp Accepted/Rejected
-				'asp_accepted_rejected' => 'nullable|string|max:50',
-				//Reject Cancel Reason
-				'reject_cancel_reason' => 'nullable|string|max:256',
+				'excess_km' => 'nullable|numeric',
+				'crm_activity_id' => 'required|numeric',
 				//Asp Reached Datetime
-				'asp_reached_datetime' => 'nullable|date_format:"Y-m-d H:i:s"',
+				'asp_reached_date' => 'nullable|date_format:"Y-m-d H:i:s"',
 				//Asp Start Location
 				'asp_start_location' => 'nullable|string|max:256',
 				//Asp End Location
@@ -189,8 +200,12 @@ class CaseController extends Controller {
 				'return_km' => 'nullable|numeric',
 				//Total Travel Google KM
 				'total_travel_google_km' => 'nullable|numeric',
-				//Total Travel KM
-				'total_travel_km' => 'nullable|numeric',
+				//Paid To
+				'paid_to' => 'nullable|string|max:24|exists:configs,name',
+				//Payment Mode
+				'payment_mode' => 'nullable|string|max:50|exists:entities,name',
+				//Payment Receipt No
+				'payment_receipt_no' => 'nullable|string|max:24',
 				//Service Charges
 				'service_charges' => 'nullable|numeric',
 				//Membership Charges
@@ -201,17 +216,108 @@ class CaseController extends Controller {
 				'green_tax_charges' => 'nullable|numeric',
 				//Border Charges
 				'border_charges' => 'nullable|numeric',
-				//Paid To
-				'paid_to' => 'nullable|string|max:24',
-				//Payment Receipt No
-				'payment_receipt_no' => 'nullable|string|max:24',
 				//Amount Collected From Customer
 				'amount_collected_from_customer' => 'nullable|numeric',
+				//Amount Refused From Customer
+				'amount_refused_by_customer' => 'nullable|numeric',
 			]);
 
 			if ($validator->fails()) {
 				return response()->json(['success' => false, 'message' => 'Validation Error', 'errors' => $validator->errors()->all()], $this->successStatus);
 			}
+
+			$asp = Asp::where('asp_code', $request->asp_code)->first();
+			$case_status = CaseStatus::where('name', $request->case_status)->first();
+			$service_type = ServiceType::where('name', $request->sub_service)->first();
+			$asp_status = ActivityAspStatus::where('name', $request->asp_status)->first();
+			if(!$asp_status){
+				$asp_status_id = NULL;
+			}else{
+				$asp_status_id = $asp_status->id;
+			}
+
+			$asp_activity_rejected_reason = AspActivityRejectedReason::where('name', $request->asp_activity_rejected_reason)->first();
+			if(!$asp_activity_rejected_reason){
+				$asp_activity_rejected_reason_id = NULL;
+			}else{
+				$asp_activity_rejected_reason_id = $asp_activity_rejected_reason->id;
+			}
+
+			$asp_po_rejected_reason = AspPoRejectedReason::where('name', $request->asp_po_rejected_reason)->first();
+			if(!$asp_po_rejected_reason){
+				$asp_po_rejected_reason_id = NULL;
+			}else{
+				$asp_po_rejected_reason_id = $asp_po_rejected_reason->id;
+			}
+
+			$status = ActivityPortalStatus::where('name', $request->status)->first();
+			if(!$status){
+				$status_id = NULL;
+			}else{
+				$status_id = $status->id;
+			}
+
+			$activity_status = ActivityStatus::where('name', $request->activity_status)->first();
+			if(!$activity_status){
+				$activity_status_id = NULL;
+			}else{
+				$activity_status_id = $activity_status->id;
+			}
+
+			$drop_location_type = Entity::where('name', $request->drop_location_type)->first();
+			if(!$drop_location_type){
+				$drop_location_type_id = NULL;
+			}else{
+				$drop_location_type_id = $drop_location_type->id;
+			}
+
+			$drop_dealer = Dealer::where('name', $request->drop_dealer)->first();
+			if(!$drop_dealer){
+				$drop_dealer_id = NULL;
+			}else{
+				$drop_dealer_id = $drop_dealer->id;
+			}
+
+			$paid_to = Config::where('name', $request->paid_to)->first();
+			if(!$paid_to){
+				$paid_to_id = NULL;
+			}else{
+				$paid_to_id = $paid_to->id;
+			}
+
+			$payment_mode = Entity::where('name', $request->payment_mode)->first();
+			if(!$payment_mode){
+				$payment_mode_id = NULL;
+			}else{
+				$payment_mode_id = $payment_mode->id;
+			}
+
+			$case = RsaCase::where('number', $request->case_id)->first();
+			$case->status_id = $case_status->id;
+			$case->save();
+						
+			$activity = Activity::firstOrNew([
+				'crm_activity_id' => $request->crm_activity_id,
+			]);
+			$activity->fill($request->all());
+			$activity->asp_id = $asp->id;
+			$activity->case_id = $case->id;
+			$activity->service_type_id = $service_type->id;
+			$activity->asp_status_id = $asp_status_id;
+			$activity->asp_activity_rejected_reason_id = $asp_activity_rejected_reason_id;
+			if($asp_po_accepted == 'Accepted'){
+				$activity->asp_po_accepted = 1;
+			}else{
+				$activity->asp_po_accepted = 0;
+			}
+			$activity->asp_po_rejected_reason_id = $asp_po_rejected_reason_id;
+			$activity->status_id = $status_id;
+			$activity->activity_status_id = $activity_status_id;
+			$activity->drop_location_type_id = $drop_location_type_id;
+			$activity->drop_dealer_id = $drop_dealer_id;
+			$activity->paid_to_id = $paid_to_id;
+			$activity->payment_mode_id = $payment_mode_id;
+			$activity->save();
 
 			DB::commit();
 			return response()->json(['success' => true, 'message' => 'Activity created successfully'], $this->successStatus);

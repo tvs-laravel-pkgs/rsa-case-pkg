@@ -57,6 +57,9 @@ class Activity extends Model {
 	public function case () {
 		return $this->belongsTo('App\Case', 'case_id');
 	}
+	public function activityStatus () {
+		return $this->belongsTo('App\Case', 'case_id');
+	}
 
 	public function aspStatus() {
 		return $this->belongsTo('App\ActivityAspStatus', 'asp_status_id');

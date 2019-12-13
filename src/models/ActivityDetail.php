@@ -8,19 +8,28 @@ use Abs\HelperPkg\Traits\SeederTrait;
 use App\Company;
 use App\Config;
 
-
-class ActivityStatus extends Model {
+class ActivityDetail extends Model {
+	use SoftDeletes;
 		use SeederTrait;
 
-	use SoftDeletes;
-	protected $table = 'activity_statuses';
+	protected $table = 'activity_details';
 	protected $fillable = [
 		'company_id',
-		'name',
+		'activity_id',
+		'key_id',
+		'value',
 	];
 
 	public function company() {
 		return $this->belongsTo('App\Company', 'company_id');
+	}
+
+	public function activity() {
+		return $this->belongsTo('App\Activity', 'activity_id');
+	}
+
+	public function key() {
+		return $this->belongsTo('App\Config', 'key_id');
 	}
 
 	public function createdBy() {
@@ -34,7 +43,6 @@ class ActivityStatus extends Model {
 	public function deletedBy() {
 		return $this->belongsTo('App\User', 'deleted_by_id');
 	}
-
 	public static function createFromObject($record_data) {
 
 		$errors = [];

@@ -8,77 +8,25 @@ use App\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class RsaCase extends Model {
+class CaseMembership extends Model {
 	use SeederTrait;
 	use SoftDeletes;
-	protected $table = 'cases';
+	protected $table = 'case_memberships';
 	protected $fillable = [
 		'company_id',
-		'number',
-		'date',
-		'data_filled_date',
-		'description',
-		'status_id',
-		'cancel_reason_id',
-		'call_center_id',
-		'client_id',
-		'customer_name',
-		'customer_contact_number',
-		'contact_name',
-		'contact_number',
-		'vehicle_model_id',
-		'vehicle_registration_number',
-		'vin_no',
 		'membership_type_id',
-		'membership_number',
-		'subject_id',
-		'km_during_breakdown',
-		'bd_lat',
-		'bd_long',
-		'bd_location',
-		'bd_city_id',
+		'number',
+		'start_date',
+		'end_date',
 	];
 
+	
 	public function company() {
 		return $this->belongsTo('App\Company', 'company_id');
 	}
-
-	public function callcenter() {
-		return $this->belongsTo('App\CallCenter', 'call_center_id');
+	public function membershipType() {
+		return $this->belongsTo('App\Membership_Type', 'membership_type_id');
 	}
-
-	public function client() {
-		return $this->belongsTo('App\Client', 'client_id');
-	}
-
-	public function eligibilityType() {
-		return $this->belongsTo('App\Entity', 'eligibility_type_id');
-	}
-
-	public function vehicleModel() {
-		return $this->belongsTo('App\VehicleModel', 'vehicle_model_id');
-	}
-
-	public function subject() {
-		return $this->belongsTo('App\Subject', 'subject_id');
-	}
-
-	public function policy() {
-		return $this->belongsTo('App\Policy', 'policy_id');
-	}
-
-	public function status() {
-		return $this->belongsTo('App\CaseStatus', 'status_id');
-	}
-
-	public function city() {
-		return $this->belongsTo('App\District', 'bd_city_id');
-	}
-
-	public function state() {
-		return $this->belongsTo('App\State', 'bd_state_id');
-	}
-
 	public function createdBy() {
 		return $this->belongsTo('App\User', 'created_by_id');
 	}

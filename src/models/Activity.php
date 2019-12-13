@@ -13,25 +13,28 @@ class Activity extends Model {
 	use SoftDeletes;
 	protected $table = 'activities';
 	protected $fillable = [
-		'crm_activity_id',
-		'case_id',
-		'asp_status_id',
+		'number',
 		'asp_id',
+		'case_id',
+		'service_type_id',
+		'asp_status_id',
+		'asp_activity_rejected_reason_id',
+		'asp_po_accepted',
+		'asp_po_rejected_reason_id',
+		'invoice_id',
 		'status_id',
+		'activity_status_id',
 		'service_description',
-		'cancel_reason',
-		'km_during_breakdown',
 		'amount',
-		'payment_mode_id',
 		'remarks',
 		'drop_location_type_id',
 		'drop_dealer_id',
 		'drop_location',
 		'drop_location_lat',
 		'drop_location_long',
-		'asp_accepted_rejected',
-		'reject_cancel_reason',
-		'asp_reached_datetime',
+		'excess_km',
+		'crm_activity_id',
+		'asp_reached_date',
 		'asp_start_location',
 		'asp_end_location',
 		'asp_bd_google_km',
@@ -41,44 +44,61 @@ class Activity extends Model {
 		'bd_dealer_km',
 		'return_km',
 		'total_travel_google_km',
-		'total_travel_km',
-		'service_charges',
-		'membership_charges',
-		'toll_charges',
-		'green_tax_charges',
-		'border_charges',
 		'paid_to_id',
+		'payment_mode_id',
 		'payment_receipt_no',
-		'amount_collected',
-		'amount_refused',
+		'deduction_reason',
+		'bo_comments',
 		'created_by_id',
 		'updated_by_id',
 		'deleted_by_id',
 	];
 
-	public function case () {
-		return $this->belongsTo('App\Case', 'case_id');
-	}
-
-	public function aspStatus() {
-		return $this->belongsTo('App\AspStatus', 'asp_status_id');
-	}
-
 	public function asp() {
 		return $this->belongsTo('App\Asp', 'asp_id');
 	}
 
+	public function case () {
+		return $this->belongsTo('App\Case', 'case_id');
+	}
+
+	public function serviceType () {
+		return $this->belongsTo('App\ServiceType', 'service_type_id');
+	}
+
+	public function aspStatus() {
+		return $this->belongsTo('App\ActivityAspStatus', 'asp_status_id');
+	}
+
+
+	public function aspActivityRejectedReason () {
+		return $this->belongsTo('App\AspActivityRejectedReason', 'asp_activity_rejected_reason_id');
+	}
+
+	public function aspPoRejectedReason () {
+		return $this->belongsTo('App\AspPoRejectedReason', 'asp_po_rejected_reason_id');
+	}
+
+	public function invoice() {
+		return $this->belongsTo('App\Invoice', 'invoice_id');
+	}
+
 	public function status() {
-		return $this->belongsTo('App\ActivityStatus', 'status_id');
+		return $this->belongsTo('App\ActivityPortalStatus', 'status_id');
+	}
+
+	public function activityStatus () {
+		return $this->belongsTo('App\ActivityStatus', 'activity_status_id');
+	}
+
+	public function dropLocationType() {
+		return $this->belongsTo('App\Entity', 'drop_location_type_id');
 	}
 
 	public function paymentMode() {
 		return $this->belongsTo('App\Entity', 'payment_mode_id');
 	}
 
-	public function dropLocationType() {
-		return $this->belongsTo('App\Entity', 'drop_location_type_id');
-	}
 
 	public function dropDealer() {
 		return $this->belongsTo('App\Dealer', 'drop_dealer_id');

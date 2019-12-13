@@ -2,24 +2,38 @@
 
 namespace Abs\RsaCasePkg;
 
-use App\Company;
-use App\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Abs\HelperPkg\Traits\SeederTrait;
+use App\Company;
+use App\Config;
 
-class Invoice extends Model {
+
+class ActivityAspStatus extends Model {
+		use SeederTrait;
+
 	use SoftDeletes;
-	protected $table = 'cases';
+	protected $table = 'activity_asp_statuses';
 	protected $fillable = [
-		'code',
-		'name',
-		'cust_group',
-		'dimension',
-		'mobile_no',
-		'email',
 		'company_id',
+		'name',
 	];
 
+	public function company() {
+		return $this->belongsTo('App\Company', 'company_id');
+	}
+
+	public function createdBy() {
+		return $this->belongsTo('App\User', 'created_by_id');
+	}
+
+	public function updatedBy() {
+		return $this->belongsTo('App\User', 'updated_by_id');
+	}
+
+	public function deletedBy() {
+		return $this->belongsTo('App\User', 'deleted_by_id');
+	}
 	public static function createFromObject($record_data) {
 
 		$errors = [];
@@ -54,18 +68,4 @@ class Invoice extends Model {
 		$record->save();
 		return $record;
 	}
-
-	public static function createFromCollection($records) {
-		foreach ($records as $key => $record_data) {
-			try {
-				if (!$record_data->company) {
-					continue;
-				}
-				$record = self::createFromObject($record_data);
-			} catch (Exception $e) {
-				dd($e);
-			}
-		}
-	}
-
 }

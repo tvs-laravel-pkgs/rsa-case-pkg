@@ -8,12 +8,11 @@ use Abs\HelperPkg\Traits\SeederTrait;
 use App\Company;
 use App\Config;
 
+class AspPoRejectedReason extends Model {
+	use SoftDeletes;	
+	use SeederTrait;
 
-class ActivityStatus extends Model {
-		use SeederTrait;
-
-	use SoftDeletes;
-	protected $table = 'activity_statuses';
+	protected $table = 'asp_po_rejected_reasons';
 	protected $fillable = [
 		'company_id',
 		'name',
@@ -69,4 +68,5 @@ class ActivityStatus extends Model {
 		$record->save();
 		return $record;
 	}
+
 }

@@ -29,7 +29,7 @@ class ActivitiesPoC extends Migration {
 			$table->unsignedInteger('asp_po_rejected_reason_id')->nullable();
 			$table->foreign('asp_po_rejected_reason_id')->references('id')->on('asp_po_rejected_reasons')->onDelete('SET NULL')->onUpdate('cascade');
 			$table->unsignedInteger('invoice_id')->nullable();
-			$table->foreign('invoice_id')->references('id')->on('invoices')->onDelete('SET NULL')->onUpdate('cascade');
+			$table->foreign('invoice_id')->references('id')->on('Invoices')->onDelete('SET NULL')->onUpdate('cascade');
 			$table->unsignedInteger('status_id')->nullable();
 			$table->foreign('status_id')->references('id')->on('activity_portal_statuses')->onDelete('SET NULL')->onUpdate('cascade');
 			$table->unsignedInteger('activity_status_id')->nullable();

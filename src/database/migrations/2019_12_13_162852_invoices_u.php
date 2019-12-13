@@ -11,7 +11,7 @@ class InvoicesU extends Migration {
 	 * @return void
 	 */
 	public function up() {
-		Schema::table('invoices', function (Blueprint $table) {
+		Schema::table('Invoices', function (Blueprint $table) {
 			$table->unsignedInteger('company_id')->nullable()->default(1)->after('id');
 			$table->unsignedInteger('status_id')->nullable()->after('asp_pan_number');
 
@@ -26,7 +26,7 @@ class InvoicesU extends Migration {
 	 * @return void
 	 */
 	public function down() {
-		Schema::table('invoices', function (Blueprint $table) {
+		Schema::table('Invoices', function (Blueprint $table) {
 			$table->dropForeign('invoices_company_id_foreign');
 			$table->dropForeign('invoices_status_id_foreign');
 

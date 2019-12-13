@@ -23,7 +23,6 @@ use App\VehicleMake;
 use App\VehicleModel;
 use DB;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Validator;
 
 class CaseController extends Controller {
@@ -148,12 +147,7 @@ class CaseController extends Controller {
 				//Service
 				'service' => 'required|string|max:50|exists:service_groups,name',
 				//Sub Service
-				'sub_service' => [
-					'required',
-					'string',
-					'max:50',
-					Rule::in($service_types),
-				],
+				'sub_service' => 'required|string|max:50|exists:service_types,name',
 				//ASP Status
 				'asp_status' => 'nullable|string|max:191|exists:activity_asp_statuses,name',
 				'asp_activity_rejected_reason' => 'nullable|string|max:191|exists:asp_activity_rejected_reasons,name',

@@ -23,6 +23,7 @@ use App\VehicleMake;
 use App\VehicleModel;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Validator;
 
 class CaseController extends Controller {

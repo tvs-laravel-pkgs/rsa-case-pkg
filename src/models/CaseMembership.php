@@ -2,23 +2,42 @@
 
 namespace Abs\RsaCasePkg;
 
+use Abs\HelperPkg\Traits\SeederTrait;
 use App\Company;
 use App\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Invoice extends Model {
+class CaseMembership extends Model {
+	use SeederTrait;
 	use SoftDeletes;
-	protected $table = 'cases';
+	protected $table = 'case_memberships';
 	protected $fillable = [
-		'code',
-		'name',
-		'cust_group',
-		'dimension',
-		'mobile_no',
-		'email',
 		'company_id',
+		'membership_type_id',
+		'number',
+		'start_date',
+		'end_date',
 	];
+
+	
+	public function company() {
+		return $this->belongsTo('App\Company', 'company_id');
+	}
+	public function membershipType() {
+		return $this->belongsTo('App\Membership_Type', 'membership_type_id');
+	}
+	public function createdBy() {
+		return $this->belongsTo('App\User', 'created_by_id');
+	}
+
+	public function updatedBy() {
+		return $this->belongsTo('App\User', 'updated_by_id');
+	}
+
+	public function deletedBy() {
+		return $this->belongsTo('App\User', 'deleted_by_id');
+	}
 
 	public static function createFromObject($record_data) {
 
@@ -53,19 +72,6 @@ class Invoice extends Model {
 		$record->created_by_id = $admin->id;
 		$record->save();
 		return $record;
-	}
-
-	public static function createFromCollection($records) {
-		foreach ($records as $key => $record_data) {
-			try {
-				if (!$record_data->company) {
-					continue;
-				}
-				$record = self::createFromObject($record_data);
-			} catch (Exception $e) {
-				dd($e);
-			}
-		}
 	}
 
 }

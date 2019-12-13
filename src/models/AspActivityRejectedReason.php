@@ -5,9 +5,9 @@ namespace Abs\RsaCasePkg;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class AspStatus extends Model {
+class AspActivityRejectedReason extends Model {
 	use SoftDeletes;
-	protected $table = 'asp_statuses';
+	protected $table = 'asp_activity_rejected_reasons';
 	protected $fillable = [
 		'company_id',
 		'name',
@@ -31,4 +31,5 @@ class AspStatus extends Model {
 	public function deletedBy() {
 		return $this->belongsTo('App\User', 'deleted_by_id');
 	}
+
 }

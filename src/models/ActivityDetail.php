@@ -5,12 +5,14 @@ namespace Abs\RsaCasePkg;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class AspStatus extends Model {
+class ActivityDetail extends Model {
 	use SoftDeletes;
-	protected $table = 'asp_statuses';
+	protected $table = 'activity_details';
 	protected $fillable = [
 		'company_id',
-		'name',
+		'activity_id',
+		'key_id',
+		'value',
 		'created_by_id',
 		'updated_by_id',
 		'deleted_by_id',

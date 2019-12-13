@@ -1,22 +1,21 @@
 <?php
 
 namespace Abs\RsaCasePkg\Api;
-use Abs\RsaCasePkg\CaseCancelledReason;
-use Abs\RsaCasePkg\CaseStatus;
 use Abs\RsaCasePkg\Activity;
-use Abs\RsaCasePkg\RsaCase;
-use Abs\RsaCasePkg\CaseStatus;
 use Abs\RsaCasePkg\ActivityAspStatus;
+use Abs\RsaCasePkg\ActivityPortalStatus;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
 use Abs\RsaCasePkg\AspPoRejectedReason;
-use Abs\RsaCasePkg\ActivityPortalStatus;
+use Abs\RsaCasePkg\CaseCancelledReason;
+use Abs\RsaCasePkg\CaseStatus;
+use Abs\RsaCasePkg\RsaCase;
+use App\Asp;
 use App\CallCenter;
-use App\Dealer;
 use App\Client;
 use App\Config;
-use App\Entity;
+use App\Dealer;
 use App\District;
-use App\Asp;
+use App\Entity;
 use App\Http\Controllers\Controller;
 use App\MembershipType;
 use App\ServiceType;
@@ -230,72 +229,72 @@ class CaseController extends Controller {
 			$case_status = CaseStatus::where('name', $request->case_status)->first();
 			$service_type = ServiceType::where('name', $request->sub_service)->first();
 			$asp_status = ActivityAspStatus::where('name', $request->asp_status)->first();
-			if(!$asp_status){
+			if (!$asp_status) {
 				$asp_status_id = NULL;
-			}else{
+			} else {
 				$asp_status_id = $asp_status->id;
 			}
 
 			$asp_activity_rejected_reason = AspActivityRejectedReason::where('name', $request->asp_activity_rejected_reason)->first();
-			if(!$asp_activity_rejected_reason){
+			if (!$asp_activity_rejected_reason) {
 				$asp_activity_rejected_reason_id = NULL;
-			}else{
+			} else {
 				$asp_activity_rejected_reason_id = $asp_activity_rejected_reason->id;
 			}
 
 			$asp_po_rejected_reason = AspPoRejectedReason::where('name', $request->asp_po_rejected_reason)->first();
-			if(!$asp_po_rejected_reason){
+			if (!$asp_po_rejected_reason) {
 				$asp_po_rejected_reason_id = NULL;
-			}else{
+			} else {
 				$asp_po_rejected_reason_id = $asp_po_rejected_reason->id;
 			}
 
 			$status = ActivityPortalStatus::where('name', $request->status)->first();
-			if(!$status){
+			if (!$status) {
 				$status_id = NULL;
-			}else{
+			} else {
 				$status_id = $status->id;
 			}
 
 			$activity_status = ActivityStatus::where('name', $request->activity_status)->first();
-			if(!$activity_status){
+			if (!$activity_status) {
 				$activity_status_id = NULL;
-			}else{
+			} else {
 				$activity_status_id = $activity_status->id;
 			}
 
 			$drop_location_type = Entity::where('name', $request->drop_location_type)->first();
-			if(!$drop_location_type){
+			if (!$drop_location_type) {
 				$drop_location_type_id = NULL;
-			}else{
+			} else {
 				$drop_location_type_id = $drop_location_type->id;
 			}
 
 			$drop_dealer = Dealer::where('name', $request->drop_dealer)->first();
-			if(!$drop_dealer){
+			if (!$drop_dealer) {
 				$drop_dealer_id = NULL;
-			}else{
+			} else {
 				$drop_dealer_id = $drop_dealer->id;
 			}
 
 			$paid_to = Config::where('name', $request->paid_to)->first();
-			if(!$paid_to){
+			if (!$paid_to) {
 				$paid_to_id = NULL;
-			}else{
+			} else {
 				$paid_to_id = $paid_to->id;
 			}
 
 			$payment_mode = Entity::where('name', $request->payment_mode)->first();
-			if(!$payment_mode){
+			if (!$payment_mode) {
 				$payment_mode_id = NULL;
-			}else{
+			} else {
 				$payment_mode_id = $payment_mode->id;
 			}
 
 			$case = RsaCase::where('number', $request->case_id)->first();
 			$case->status_id = $case_status->id;
 			$case->save();
-						
+
 			$activity = Activity::firstOrNew([
 				'crm_activity_id' => $request->crm_activity_id,
 			]);
@@ -305,9 +304,9 @@ class CaseController extends Controller {
 			$activity->service_type_id = $service_type->id;
 			$activity->asp_status_id = $asp_status_id;
 			$activity->asp_activity_rejected_reason_id = $asp_activity_rejected_reason_id;
-			if($asp_po_accepted == 'Accepted'){
+			if ($asp_po_accepted == 'Accepted') {
 				$activity->asp_po_accepted = 1;
-			}else{
+			} else {
 				$activity->asp_po_accepted = 0;
 			}
 			$activity->asp_po_rejected_reason_id = $asp_po_rejected_reason_id;
@@ -320,7 +319,115 @@ class CaseController extends Controller {
 			$activity->save();
 
 			DB::commit();
-			return response()->json(['success' => true, 'message' => 'Activity created successfully'], $this->successStatus);
+			return response()->json(['success' => true, 'message' => 'Activity saved successfully'], $this->successStatus);
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json(['success' => false, 'errors' => [$e->getMessage() . ' Line:' . $e->getLine()]], $this->successStatus);
+		}
+	}
+
+	public function getEligiblePOList(Request $request) {
+		DB::beginTransaction();
+		try {
+			$validator = Validator::make($request->all(), [
+				'asp_code' => 'required|string|exists:asps,asp_code',
+			]);
+
+			if ($validator->fails()) {
+				return response()->json(['success' => false, 'message' => 'Validation Error', 'errors' => $validator->errors()->all()], $this->successStatus);
+			}
+
+			$eligible_pos = [
+				[
+					'asp_code' => 'APF002',
+					'case_id' => 'RE1920111729',
+					'case_status' => 'Closed',
+					'service' => 'Towing',
+					'sub_service' => 'Flat Bed',
+					'asp_status' => 'Closed',
+					'asp_activity_rejected_reason' => 'Closed',
+					'asp_po_accepted' => 'Closed',
+					'asp_po_rejected_reason' => 'Closed',
+					'status' => 'Closed',
+					'activity_status' => 'Closed',
+					'service_description' => '',
+					'amount' => '12000',
+					'remarks' => 'Paid',
+					'drop_location_type' => 'Dealer',
+					'drop_dealer' => 'HYJE-Renault Madhapur (Serv)',
+					'drop_location' => 'PLOT NO.17 TO 20 & 29, SURVEY NO.10, PARVAT NAGAR, NEAR AYYAPPA HOUSING SOCIETY, MADHAPUR',
+					'drop_location_lat' => '17.45266',
+					'drop_location_long' => '78.39663',
+					'excess_km' => '',
+					'crm_activity_id' => '1',
+					'asp_reached_date' => '2019-10-30 20:30:00',
+					'asp_start_location' => '11-3-78 GROUND FLOOR, FOOTBALL GROUND, NEW MALLEPALLY, HYDERABAD, HYDERABAD, 36',
+					'asp_end_location' => '11-3-78 GROUND FLOOR, FOOTBALL GROUND, NEW MALLEPALLY, HYDERABAD, HYDERABAD, 36',
+					'asp_bd_google_km' => '9',
+					'bd_dealer_google_km' => '7',
+					'return_google_km' => '6',
+					'asp_bd_return_empty_km' => '10',
+					'bd_dealer_km' => '4',
+					'return_km' => '2',
+					'total_travel_google_km' => '3',
+					'paid_to' => 'ASP',
+					'payment_mode' => 'PayTm',
+					'payment_receipt_no' => '',
+					'service_charges' => '200',
+					'membership_charges' => '110',
+					'toll_charges' => '10',
+					'green_tax_charges' => '0',
+					'border_charges' => '0',
+					'amount_collected_from_customer' => '400',
+					'amount_refused_by_customer' => '100',
+				],
+				[
+					'asp_code' => 'APF002',
+					'case_id' => 'RE1920111730',
+					'case_status' => 'Closed',
+					'service' => 'Towing',
+					'sub_service' => 'Flat Bed',
+					'asp_status' => 'Closed',
+					'asp_activity_rejected_reason' => 'Closed',
+					'asp_po_accepted' => 'Closed',
+					'asp_po_rejected_reason' => 'Closed',
+					'status' => 'Closed',
+					'activity_status' => 'Closed',
+					'service_description' => '',
+					'amount' => '12000',
+					'remarks' => 'Paid',
+					'drop_location_type' => 'Dealer',
+					'drop_dealer' => 'HYJE-Renault Madhapur (Serv)',
+					'drop_location' => 'PLOT NO.17 TO 20 & 29, SURVEY NO.10, PARVAT NAGAR, NEAR AYYAPPA HOUSING SOCIETY, MADHAPUR',
+					'drop_location_lat' => '17.45266',
+					'drop_location_long' => '78.39663',
+					'excess_km' => '',
+					'crm_activity_id' => '2',
+					'asp_reached_date' => '2019-10-30 20:30:00',
+					'asp_start_location' => '11-3-78 GROUND FLOOR, FOOTBALL GROUND, NEW MALLEPALLY, HYDERABAD, HYDERABAD, 36',
+					'asp_end_location' => '11-3-78 GROUND FLOOR, FOOTBALL GROUND, NEW MALLEPALLY, HYDERABAD, HYDERABAD, 36',
+					'asp_bd_google_km' => '9',
+					'bd_dealer_google_km' => '7',
+					'return_google_km' => '6',
+					'asp_bd_return_empty_km' => '10',
+					'bd_dealer_km' => '4',
+					'return_km' => '2',
+					'total_travel_google_km' => '3',
+					'paid_to' => 'ASP',
+					'payment_mode' => 'PayTm',
+					'payment_receipt_no' => '',
+					'service_charges' => '200',
+					'membership_charges' => '110',
+					'toll_charges' => '10',
+					'green_tax_charges' => '0',
+					'border_charges' => '0',
+					'amount_collected_from_customer' => '400',
+					'amount_refused_by_customer' => '100',
+				],
+			];
+
+			DB::commit();
+			return response()->json(['success' => true, 'eligible_pos' => collect($eligible_pos)], $this->successStatus);
 		} catch (\Exception $e) {
 			DB::rollBack();
 			return response()->json(['success' => false, 'errors' => [$e->getMessage() . ' Line:' . $e->getLine()]], $this->successStatus);

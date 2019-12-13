@@ -2,27 +2,25 @@
 
 namespace Abs\RsaCasePkg;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Abs\HelperPkg\Traits\SeederTrait;
 use App\Company;
 use App\Config;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-
-class ActivityAspStatus extends Model {
-		use SeederTrait;
-
+class InvoiceStatus extends Model {
+	use SeederTrait;
 	use SoftDeletes;
-	protected $table = 'activity_asp_statuses';
+	protected $table = 'invoice_statuses';
 	protected $fillable = [
 		'company_id',
 		'name',
 	];
 
+	
 	public function company() {
 		return $this->belongsTo('App\Company', 'company_id');
 	}
-
 	public function createdBy() {
 		return $this->belongsTo('App\User', 'created_by_id');
 	}
@@ -34,6 +32,7 @@ class ActivityAspStatus extends Model {
 	public function deletedBy() {
 		return $this->belongsTo('App\User', 'deleted_by_id');
 	}
+
 	public static function createFromObject($record_data) {
 
 		$errors = [];
@@ -68,4 +67,5 @@ class ActivityAspStatus extends Model {
 		$record->save();
 		return $record;
 	}
+
 }

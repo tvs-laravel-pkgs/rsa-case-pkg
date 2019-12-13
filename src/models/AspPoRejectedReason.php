@@ -8,12 +8,11 @@ use Abs\HelperPkg\Traits\SeederTrait;
 use App\Company;
 use App\Config;
 
+class AspPoRejectedReason extends Model {
+	use SoftDeletes;	
+	use SeederTrait;
 
-class ActivityAspStatus extends Model {
-		use SeederTrait;
-
-	use SoftDeletes;
-	protected $table = 'activity_asp_statuses';
+	protected $table = 'asp_po_rejected_reasons';
 	protected $fillable = [
 		'company_id',
 		'name',
@@ -34,6 +33,7 @@ class ActivityAspStatus extends Model {
 	public function deletedBy() {
 		return $this->belongsTo('App\User', 'deleted_by_id');
 	}
+
 	public static function createFromObject($record_data) {
 
 		$errors = [];
@@ -68,4 +68,5 @@ class ActivityAspStatus extends Model {
 		$record->save();
 		return $record;
 	}
+
 }

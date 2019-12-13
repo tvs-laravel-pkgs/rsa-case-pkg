@@ -54,32 +54,51 @@ class Activity extends Model {
 		'deleted_by_id',
 	];
 
+	public function asp() {
+		return $this->belongsTo('App\Asp', 'asp_id');
+	}
+
 	public function case () {
 		return $this->belongsTo('App\Case', 'case_id');
 	}
-	public function activityStatus () {
-		return $this->belongsTo('App\Case', 'case_id');
+
+	public function serviceType () {
+		return $this->belongsTo('App\ServiceType', 'service_type_id');
 	}
 
 	public function aspStatus() {
 		return $this->belongsTo('App\ActivityAspStatus', 'asp_status_id');
 	}
 
-	public function asp() {
-		return $this->belongsTo('App\Asp', 'asp_id');
+
+	public function aspActivityRejectedReason () {
+		return $this->belongsTo('App\AspActivityRejectedReason', 'asp_activity_rejected_reason_id');
+	}
+
+	public function aspPoRejectedReason () {
+		return $this->belongsTo('App\AspPoRejectedReason', 'asp_po_rejected_reason_id');
+	}
+
+	public function invoice() {
+		return $this->belongsTo('App\Invoice', 'invoice_id');
 	}
 
 	public function status() {
-		return $this->belongsTo('App\ActivityStatus', 'status_id');
+		return $this->belongsTo('App\ActivityPortalStatus', 'status_id');
+	}
+
+	public function activityStatus () {
+		return $this->belongsTo('App\ActivityStatus', 'activity_status_id');
+	}
+
+	public function dropLocationType() {
+		return $this->belongsTo('App\Entity', 'drop_location_type_id');
 	}
 
 	public function paymentMode() {
 		return $this->belongsTo('App\Entity', 'payment_mode_id');
 	}
 
-	public function dropLocationType() {
-		return $this->belongsTo('App\Entity', 'drop_location_type_id');
-	}
 
 	public function dropDealer() {
 		return $this->belongsTo('App\Dealer', 'drop_dealer_id');

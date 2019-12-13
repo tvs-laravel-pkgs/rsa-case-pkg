@@ -148,6 +148,13 @@ class CaseController extends Controller {
 				'bd_state' => 'nullable|string|max:50|exists:states,name',
 			]);
 
+			$case = RsaCase::firstOrNew([
+				'company_id' => 1,
+				'number' => $request->number,
+			]);
+			$case->fill($request->all());
+			$case->save();
+
 			if ($validator->fails()) {
 				return response()->json(['success' => false, 'message' => 'Validation Error', 'errors' => $validator->errors()->all()], $this->successStatus);
 			}

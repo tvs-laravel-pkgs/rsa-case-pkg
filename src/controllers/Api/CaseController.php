@@ -1,95 +1,23 @@
 <?php
 
-namespace Abs\RsaCasePkg;
+namespace Abs\RsaCasePkg\Api;
+use Abs\RsaCasePkg\CaseCancelledReason;
+use Abs\RsaCasePkg\CaseStatus;
 use Abs\RsaCasePkg\RsaCase;
-use App\Address;
-use App\Country;
+use App\CallCenter;
+use App\Client;
+use App\District;
 use App\Http\Controllers\Controller;
-use Auth;
+use App\MembershipType;
+use App\ServiceType;
+use App\VehicleMake;
+use App\VehicleModel;
 use DB;
 use Illuminate\Http\Request;
 use Validator;
-use Yajra\Datatables\Datatables;
 
 class CaseController extends Controller {
-
-	public function __construct() {
-	}
-
-	public function getRsaCaseList(Request $request) {
-		$case_list = RsaCase::withTrashed()
-			->select(
-				'cases.id',
-				'cases.code',
-				'cases.name',
-				DB::raw('IF(cases.mobile_no IS NULL,"--",cases.mobile_no) as mobile_no'),
-				DB::raw('IF(cases.email IS NULL,"--",cases.email) as email'),
-				DB::raw('IF(cases.deleted_at IS NULL,"Active","Inactive") as status')
-			)
-			->where('cases.company_id', Auth::user()->company_id)
-			->where(function ($query) use ($request) {
-				if (!empty($request->case_code)) {
-					$query->where('cases.code', 'LIKE', '%' . $request->case_code . '%');
-				}
-			})
-			->where(function ($query) use ($request) {
-				if (!empty($request->case_name)) {
-					$query->where('cases.name', 'LIKE', '%' . $request->case_name . '%');
-				}
-			})
-			->where(function ($query) use ($request) {
-				if (!empty($request->mobile_no)) {
-					$query->where('cases.mobile_no', 'LIKE', '%' . $request->mobile_no . '%');
-				}
-			})
-			->where(function ($query) use ($request) {
-				if (!empty($request->email)) {
-					$query->where('cases.email', 'LIKE', '%' . $request->email . '%');
-				}
-			})
-			->orderby('cases.id', 'desc');
-
-		return Datatables::of($case_list)
-			->addColumn('code', function ($case_list) {
-				$status = $case_list->status == 'Active' ? 'green' : 'red';
-				return '<span class="status-indicator ' . $status . '"></span>' . $case_list->code;
-			})
-			->addColumn('action', function ($case_list) {
-				$edit_img = asset('public/theme/img/table/cndn/edit.svg');
-				$delete_img = asset('public/theme/img/table/cndn/delete.svg');
-				return '
-					<a href="#!/case-pkg/case/edit/' . $case_list->id . '">
-						<img src="' . $edit_img . '" alt="View" class="img-responsive">
-					</a>
-					<a href="javascript:;" data-toggle="modal" data-target="#delete_case"
-					onclick="angular.element(this).scope().deleteRsaCase(' . $case_list->id . ')" dusk = "delete-btn" title="Delete">
-					<img src="' . $delete_img . '" alt="delete" class="img-responsive">
-					</a>
-					';
-			})
-			->make(true);
-	}
-
-	public function getRsaCaseFormData($id = NULL) {
-		if (!$id) {
-			$case = new RsaCase;
-			$address = new Address;
-			$action = 'Add';
-		} else {
-			$case = RsaCase::withTrashed()->find($id);
-			$address = Address::where('address_of_id', 24)->where('entity_id', $id)->first();
-			if (!$address) {
-				$address = new Address;
-			}
-			$action = 'Edit';
-		}
-		$this->data['country_list'] = $country_list = Collect(Country::select('id', 'name')->get())->prepend(['id' => '', 'name' => 'Select Country']);
-		$this->data['case'] = $case;
-		$this->data['address'] = $address;
-		$this->data['action'] = $action;
-
-		return response()->json($this->data);
-	}
+	private $successStatus = 200;
 
 	public function saveCase(Request $request) {
 		DB::beginTransaction();
@@ -148,19 +76,48 @@ class CaseController extends Controller {
 				'bd_state' => 'nullable|string|max:50|exists:states,name',
 			]);
 
+			if ($validator->fails()) {
+				return response()->json(['success' => false, 'message' => 'Validation Error', 'errors' => $validator->errors()->all()], $this->successStatus);
+			}
+
+			$status = CaseStatus::where('name', $request->status)->first();
+			$call_center = CallCenter::where('name', $request->call_center)->first();
+			$client = Client::where('name', $request->client)->first();
+			$vehicle_make = VehicleMake::where('name', $request->vehicle_make)->first();
+			$vehicle_model = VehicleModel::where('vehicle_make_id', $vehicle_make->id)->first();
+			$membership_type = MembershipType::where('name', $request->membership_type)->first();
+			$subject = Subject::where('name', $request->subject)->first();
+
+			$bd_city = District::where('name', $request->bd_city)->first();
+			if (!$bd_city) {
+				$bd_city_id = NULL;
+			} else {
+				$bd_city_id = $bd_city->id;
+			}
+
+			$cancel_reason = CaseCancelledReason::where('name', $request->cancel_reason)->first();
+			if (!$cancel_reason) {
+				$cancel_reason_id = NULL;
+			} else {
+				$cancel_reason_id = $cancel_reason->id;
+			}
+
 			$case = RsaCase::firstOrNew([
 				'company_id' => 1,
 				'number' => $request->number,
 			]);
 			$case->fill($request->all());
+			$case->status_id = $status->id;
+			$case->cancel_reason_id = $cancel_reason_id;
+			$case->call_center_id = $call_center->id;
+			$case->vehicle_model_id = $vehicle_model->id;
+			$case->membership_type_id = $membership_type->id;
+			$case->subject_id = $subject->id;
+			$case->bd_city_id = $bd_city_id;
 			$case->save();
 
-			if ($validator->fails()) {
-				return response()->json(['success' => false, 'message' => 'Validation Error', 'errors' => $validator->errors()->all()], $this->successStatus);
-			}
-
 			DB::commit();
-			return response()->json(['success' => true, 'message' => 'Case created successfully'], $this->successStatus);
+			return response()->json(['success' => true, 'message' => 'Case saved successfully'], $this->successStatus);
 		} catch (\Exception $e) {
 			DB::rollBack();
 			return response()->json(['success' => false, 'errors' => [$e->getMessage() . ' Line:' . $e->getLine()]], $this->successStatus);

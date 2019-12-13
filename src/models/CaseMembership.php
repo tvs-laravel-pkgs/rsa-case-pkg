@@ -8,18 +8,24 @@ use App\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class CaseStatus extends Model {
+class CaseMembership extends Model {
 	use SeederTrait;
 	use SoftDeletes;
-	protected $table = 'case_statuses';
+	protected $table = 'case_memberships';
 	protected $fillable = [
 		'company_id',
-		'name',
+		'membership_type_id',
+		'number',
+		'start_date',
+		'end_date',
 	];
 
 	
 	public function company() {
 		return $this->belongsTo('App\Company', 'company_id');
+	}
+	public function membershipType() {
+		return $this->belongsTo('App\Membership_Type', 'membership_type_id');
 	}
 	public function createdBy() {
 		return $this->belongsTo('App\User', 'created_by_id');

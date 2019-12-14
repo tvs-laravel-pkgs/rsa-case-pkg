@@ -3,6 +3,7 @@
 namespace Abs\RsaCasePkg\Api;
 use Abs\RsaCasePkg\Activity;
 use Abs\RsaCasePkg\ActivityAspStatus;
+use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityPortalStatus;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
 use Abs\RsaCasePkg\AspPoRejectedReason;
@@ -31,7 +32,6 @@ class CaseController extends Controller {
 	public function saveCase(Request $request) {
 		DB::beginTransaction();
 		try {
-			$service_types = ServiceType::pluck('name')->toArray();
 			$validator = Validator::make($request->all(), [
 				//Ticket No
 				'number' => 'required|string|max:32',
@@ -136,7 +136,6 @@ class CaseController extends Controller {
 	public function saveActivity(Request $request) {
 		DB::beginTransaction();
 		try {
-			$service_types = ServiceType::pluck('name')->toArray();
 			$validator = Validator::make($request->all(), [
 				//Asp Code
 				'asp_code' => 'required|string|max:24|exists:asps,asp_code',
@@ -286,10 +285,12 @@ class CaseController extends Controller {
 				$payment_mode_id = $payment_mode->id;
 			}
 
+			//CASE STATUS UPDATE
 			$case = RsaCase::where('number', $request->case_id)->first();
 			$case->status_id = $case_status->id;
 			$case->save();
 
+			//ACTIVITY SAVE
 			$activity = Activity::firstOrNew([
 				'crm_activity_id' => $request->crm_activity_id,
 			]);
@@ -312,6 +313,149 @@ class CaseController extends Controller {
 			$activity->paid_to_id = $paid_to_id;
 			$activity->payment_mode_id = $payment_mode_id;
 			$activity->save();
+
+			//ACTIVITY FIELDS SAVE
+			//UPDATE
+			if ($activity->exists) {
+				$asp_km_travelled = new ActivityDetail;
+				$asp_km_travelled->company_id = 1;
+				$asp_km_travelled->activity_id = $activity->id;
+				$asp_km_travelled->key_id = 154;
+				$asp_km_travelled->value = $request->total_travel_google_km;
+				$asp_km_travelled->created_by_id = 72;
+				$asp_km_travelled->updated_by_id = 72;
+				$asp_km_travelled->save();
+
+				$asp_collected = new ActivityDetail;
+				$asp_collected->company_id = 1;
+				$asp_collected->activity_id = $activity->id;
+				$asp_collected->key_id = 155;
+				$asp_collected->value = $request->amount_collected_from_customer;
+				$asp_collected->created_by_id = 72;
+				$asp_collected->updated_by_id = 72;
+				$asp_collected->save();
+
+				$asp_not_collected = new ActivityDetail;
+				$asp_not_collected->company_id = 1;
+				$asp_not_collected->activity_id = $activity->id;
+				$asp_not_collected->key_id = 156;
+				$asp_not_collected->value = $request->amount_refused_by_customer;
+				$asp_not_collected->created_by_id = 72;
+				$asp_not_collected->updated_by_id = 72;
+				$asp_not_collected->save();
+
+				$asp_service_type = new ActivityDetail;
+				$asp_service_type->company_id = 1;
+				$asp_service_type->activity_id = $activity->id;
+				$asp_service_type->key_id = 157;
+				$asp_service_type->value = $service_type->id;
+				$asp_service_type->created_by_id = 72;
+				$asp_service_type->updated_by_id = 72;
+				$asp_service_type->save();
+
+			} else {
+				//NEW
+				$cc_km_travelled = new ActivityDetail;
+				$cc_km_travelled->company_id = 1;
+				$cc_km_travelled->activity_id = $activity->id;
+				$cc_km_travelled->key_id = 150;
+				$cc_km_travelled->value = $request->total_travel_google_km;
+				$cc_km_travelled->created_by_id = 72;
+				$cc_km_travelled->updated_by_id = 72;
+				$cc_km_travelled->save();
+
+				$cc_collected = new ActivityDetail;
+				$cc_collected->company_id = 1;
+				$cc_collected->activity_id = $activity->id;
+				$cc_collected->key_id = 151;
+				$cc_collected->value = $request->amount_collected_from_customer;
+				$cc_collected->created_by_id = 72;
+				$cc_collected->updated_by_id = 72;
+				$cc_collected->save();
+
+				$cc_not_collected = new ActivityDetail;
+				$cc_not_collected->company_id = 1;
+				$cc_not_collected->activity_id = $activity->id;
+				$cc_not_collected->key_id = 152;
+				$cc_not_collected->value = $request->amount_refused_by_customer;
+				$cc_not_collected->created_by_id = 72;
+				$cc_not_collected->updated_by_id = 72;
+				$cc_not_collected->save();
+
+				$cc_service_type = new ActivityDetail;
+				$cc_service_type->company_id = 1;
+				$cc_service_type->activity_id = $activity->id;
+				$cc_service_type->key_id = 153;
+				$cc_service_type->value = $service_type->id;
+				$cc_service_type->created_by_id = 72;
+				$cc_service_type->updated_by_id = 72;
+				$cc_service_type->save();
+			}
+
+			$service_charges = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $activity->id,
+				'key_id' => 162,
+			]);
+			$service_charges->company_id = 1;
+			$service_charges->activity_id = $activity->id;
+			$service_charges->key_id = 162;
+			$service_charges->value = $request->service_charges;
+			$service_charges->created_by_id = 72;
+			$service_charges->updated_by_id = 72;
+			$service_charges->save();
+
+			$membership_charges = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $activity->id,
+				'key_id' => 163,
+			]);
+			$membership_charges->company_id = 1;
+			$membership_charges->activity_id = $activity->id;
+			$membership_charges->key_id = 163;
+			$membership_charges->value = $request->membership_charges;
+			$membership_charges->created_by_id = 72;
+			$membership_charges->updated_by_id = 72;
+			$membership_charges->save();
+
+			$toll_charges = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $activity->id,
+				'key_id' => 165,
+			]);
+			$toll_charges->company_id = 1;
+			$toll_charges->activity_id = $activity->id;
+			$toll_charges->key_id = 165;
+			$toll_charges->value = $request->toll_charges;
+			$toll_charges->created_by_id = 72;
+			$toll_charges->updated_by_id = 72;
+			$toll_charges->save();
+
+			$green_tax_charges = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $activity->id,
+				'key_id' => 166,
+			]);
+			$green_tax_charges->company_id = 1;
+			$green_tax_charges->activity_id = $activity->id;
+			$green_tax_charges->key_id = 166;
+			$green_tax_charges->value = $request->green_tax_charges;
+			$green_tax_charges->created_by_id = 72;
+			$green_tax_charges->updated_by_id = 72;
+			$green_tax_charges->save();
+
+			$border_charges = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $activity->id,
+				'key_id' => 167,
+			]);
+			$border_charges->company_id = 1;
+			$border_charges->activity_id = $activity->id;
+			$border_charges->key_id = 167;
+			$border_charges->value = $request->border_charges;
+			$border_charges->created_by_id = 72;
+			$border_charges->updated_by_id = 72;
+			$border_charges->save();
 
 			DB::commit();
 			return response()->json(['success' => true, 'message' => 'Activity saved successfully'], $this->successStatus);

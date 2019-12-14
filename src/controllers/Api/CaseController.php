@@ -5,6 +5,7 @@ use Abs\RsaCasePkg\Activity;
 use Abs\RsaCasePkg\ActivityAspStatus;
 use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityPortalStatus;
+use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
 use Abs\RsaCasePkg\AspPoRejectedReason;
 use Abs\RsaCasePkg\CaseCancelledReason;
@@ -292,17 +293,23 @@ class CaseController extends Controller {
 			$case->status_id = $case_status->id;
 			$case->save();
 
+			$is_activity_detail_new = true;
 			//ACTIVITY SAVE
 			$activity = Activity::firstOrNew([
 				'crm_activity_id' => $request->crm_activity_id,
 			]);
+			if ($activity->exists) {
+				$is_activity_detail_new = false;
+			}
+
 			$activity->fill($request->all());
 			$activity->asp_id = $asp->id;
 			$activity->case_id = $case->id;
 			$activity->service_type_id = $service_type->id;
 			$activity->asp_status_id = $asp_status_id;
 			$activity->asp_activity_rejected_reason_id = $asp_activity_rejected_reason_id;
-			if ($asp_po_accepted == 'Accepted') {
+
+			if ($request->asp_po_accepted == 'Accepted') {
 				$activity->asp_po_accepted = 1;
 			} else {
 				$activity->asp_po_accepted = 0;
@@ -315,11 +322,17 @@ class CaseController extends Controller {
 			$activity->paid_to_id = $paid_to_id;
 			$activity->payment_mode_id = $payment_mode_id;
 			$activity->save();
+			$activity->number = 'ACT' . $activity->id;
+			$activity->save();
 
 			//ACTIVITY FIELDS SAVE
 			//UPDATE
-			if ($activity->exists) {
-				$asp_km_travelled = new ActivityDetail;
+			if (!$is_activity_detail_new) {
+				$asp_km_travelled = ActivityDetail::firstOrNew([
+					'company_id' => 1,
+					'activity_id' => $activity->id,
+					'key_id' => 154,
+				]);
 				$asp_km_travelled->company_id = 1;
 				$asp_km_travelled->activity_id = $activity->id;
 				$asp_km_travelled->key_id = 154;
@@ -328,7 +341,11 @@ class CaseController extends Controller {
 				$asp_km_travelled->updated_by_id = 72;
 				$asp_km_travelled->save();
 
-				$asp_collected = new ActivityDetail;
+				$asp_collected = ActivityDetail::firstOrNew([
+					'company_id' => 1,
+					'activity_id' => $activity->id,
+					'key_id' => 155,
+				]);
 				$asp_collected->company_id = 1;
 				$asp_collected->activity_id = $activity->id;
 				$asp_collected->key_id = 155;
@@ -337,7 +354,11 @@ class CaseController extends Controller {
 				$asp_collected->updated_by_id = 72;
 				$asp_collected->save();
 
-				$asp_not_collected = new ActivityDetail;
+				$asp_not_collected = ActivityDetail::firstOrNew([
+					'company_id' => 1,
+					'activity_id' => $activity->id,
+					'key_id' => 156,
+				]);
 				$asp_not_collected->company_id = 1;
 				$asp_not_collected->activity_id = $activity->id;
 				$asp_not_collected->key_id = 156;
@@ -346,7 +367,11 @@ class CaseController extends Controller {
 				$asp_not_collected->updated_by_id = 72;
 				$asp_not_collected->save();
 
-				$asp_service_type = new ActivityDetail;
+				$asp_service_type = ActivityDetail::firstOrNew([
+					'company_id' => 1,
+					'activity_id' => $activity->id,
+					'key_id' => 157,
+				]);
 				$asp_service_type->company_id = 1;
 				$asp_service_type->activity_id = $activity->id;
 				$asp_service_type->key_id = 157;
@@ -358,7 +383,11 @@ class CaseController extends Controller {
 				//ACTIVITY STATUS SUCCESSFUL OR ASSIGNED OR CANCELLED
 				if ($activity->activity_status_id == 7 || $activity->activity_status_id == 2 || $activity->activity_status_id == 4) {
 					//PAYOUT AMOUNT
-					$asp_po_amount = new ActivityDetail;
+					$asp_po_amount = ActivityDetail::firstOrNew([
+						'company_id' => 1,
+						'activity_id' => $activity->id,
+						'key_id' => 171,
+					]);
 					$asp_po_amount->company_id = 1;
 					$asp_po_amount->activity_id = $activity->id;
 					$asp_po_amount->key_id = 171;
@@ -370,7 +399,11 @@ class CaseController extends Controller {
 					//NET AMOUNT (PAYOUT AMOUNT - AMOUNT COLLECTED FROM CUSTOMER)
 					$asp_net_amount_val = ((!empty($request->amount) ? $request->amount : 0) - (!empty($request->amount_collected_from_customer) ? $request->amount_collected_from_customer : 0));
 
-					$asp_net_amount = new ActivityDetail;
+					$asp_net_amount = ActivityDetail::firstOrNew([
+						'company_id' => 1,
+						'activity_id' => $activity->id,
+						'key_id' => 175,
+					]);
 					$asp_net_amount->company_id = 1;
 					$asp_net_amount->activity_id = $activity->id;
 					$asp_net_amount->key_id = 175;
@@ -382,7 +415,11 @@ class CaseController extends Controller {
 					//INVOICE AMOUNT (NET AMOUNT + AMOUNT NOT COLLECTED FROM CUSTOMER)
 					$asp_invoice_amount_val = ((!empty($asp_net_amount_val) ? $asp_net_amount_val : 0) + (!empty($request->amount_refused_by_customer) ? $request->amount_refused_by_customer : 0));
 
-					$asp_amount = new ActivityDetail;
+					$asp_amount = ActivityDetail::firstOrNew([
+						'company_id' => 1,
+						'activity_id' => $activity->id,
+						'key_id' => 181,
+					]);
 					$asp_amount->company_id = 1;
 					$asp_amount->activity_id = $activity->id;
 					$asp_amount->key_id = 181;
@@ -394,7 +431,11 @@ class CaseController extends Controller {
 
 			} else {
 				//NEW
-				$cc_km_travelled = new ActivityDetail;
+				$cc_km_travelled = ActivityDetail::firstOrNew([
+					'company_id' => 1,
+					'activity_id' => $activity->id,
+					'key_id' => 150,
+				]);
 				$cc_km_travelled->company_id = 1;
 				$cc_km_travelled->activity_id = $activity->id;
 				$cc_km_travelled->key_id = 150;
@@ -403,7 +444,11 @@ class CaseController extends Controller {
 				$cc_km_travelled->updated_by_id = 72;
 				$cc_km_travelled->save();
 
-				$cc_collected = new ActivityDetail;
+				$cc_collected = ActivityDetail::firstOrNew([
+					'company_id' => 1,
+					'activity_id' => $activity->id,
+					'key_id' => 151,
+				]);
 				$cc_collected->company_id = 1;
 				$cc_collected->activity_id = $activity->id;
 				$cc_collected->key_id = 151;
@@ -412,7 +457,11 @@ class CaseController extends Controller {
 				$cc_collected->updated_by_id = 72;
 				$cc_collected->save();
 
-				$cc_not_collected = new ActivityDetail;
+				$cc_not_collected = ActivityDetail::firstOrNew([
+					'company_id' => 1,
+					'activity_id' => $activity->id,
+					'key_id' => 152,
+				]);
 				$cc_not_collected->company_id = 1;
 				$cc_not_collected->activity_id = $activity->id;
 				$cc_not_collected->key_id = 152;
@@ -421,7 +470,11 @@ class CaseController extends Controller {
 				$cc_not_collected->updated_by_id = 72;
 				$cc_not_collected->save();
 
-				$cc_service_type = new ActivityDetail;
+				$cc_service_type = ActivityDetail::firstOrNew([
+					'company_id' => 1,
+					'activity_id' => $activity->id,
+					'key_id' => 153,
+				]);
 				$cc_service_type->company_id = 1;
 				$cc_service_type->activity_id = $activity->id;
 				$cc_service_type->key_id = 153;
@@ -433,7 +486,11 @@ class CaseController extends Controller {
 				//ACTIVITY STATUS SUCCESSFUL OR ASSIGNED OR CANCELLED
 				if ($activity->activity_status_id == 7 || $activity->activity_status_id == 2 || $activity->activity_status_id == 4) {
 					//PAYOUT AMOUNT
-					$cc_po_amount = new ActivityDetail;
+					$cc_po_amount = ActivityDetail::firstOrNew([
+						'company_id' => 1,
+						'activity_id' => $activity->id,
+						'key_id' => 170,
+					]);
 					$cc_po_amount->company_id = 1;
 					$cc_po_amount->activity_id = $activity->id;
 					$cc_po_amount->key_id = 170;
@@ -445,7 +502,11 @@ class CaseController extends Controller {
 					//NET AMOUNT (PAYOUT AMOUNT - AMOUNT COLLECTED FROM CUSTOMER)
 					$cc_net_amount_val = ((!empty($request->amount) ? $request->amount : 0) - (!empty($request->amount_collected_from_customer) ? $request->amount_collected_from_customer : 0));
 
-					$cc_net_amount = new ActivityDetail;
+					$cc_net_amount = ActivityDetail::firstOrNew([
+						'company_id' => 1,
+						'activity_id' => $activity->id,
+						'key_id' => 174,
+					]);
 					$cc_net_amount->company_id = 1;
 					$cc_net_amount->activity_id = $activity->id;
 					$cc_net_amount->key_id = 174;
@@ -457,7 +518,11 @@ class CaseController extends Controller {
 					//INVOICE AMOUNT (NET AMOUNT + AMOUNT NOT COLLECTED FROM CUSTOMER)
 					$cc_invoice_amount_val = ((!empty($cc_net_amount_val) ? $cc_net_amount_val : 0) + (!empty($request->amount_refused_by_customer) ? $request->amount_refused_by_customer : 0));
 
-					$cc_amount = new ActivityDetail;
+					$cc_amount = ActivityDetail::firstOrNew([
+						'company_id' => 1,
+						'activity_id' => $activity->id,
+						'key_id' => 180,
+					]);
 					$cc_amount->company_id = 1;
 					$cc_amount->activity_id = $activity->id;
 					$cc_amount->key_id = 180;

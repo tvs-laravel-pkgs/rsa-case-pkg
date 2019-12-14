@@ -70,4 +70,49 @@ class ActivityController extends Controller {
 		return response()->json(['success' => true]);
 	}
 
+	public function getVerificationList(Request $request) {
+		$activities = Activity::select(
+			'activities.id',
+			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			'cases.number',
+			'asps.asp_code',
+			'service_types.name as sub_service',
+			'activity_asp_statuses.name as asp_status',
+			'activity_portal_statuses.name as status',
+			'activity_statuses.name as activity_status',
+			'clients.name as client',
+			'call_centers.name as call_center'
+		)
+			->leftjoin('asps', 'asps.id', 'activities.asp_id')
+			->leftjoin('users', 'users.id', 'asps.user_id')
+			->leftjoin('cases', 'cases.id', 'activities.case_id')
+			->leftjoin('clients', 'clients.id', 'cases.client_id')
+			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
+			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
+			->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
+			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
+			->where('activities.asp_po_accepted', 0)
+			->orderBy('cases.date', 'DESC')
+			->groupBy('activities.id')
+		;
+
+		if (!Entrust::can('verify-all-activities')) {
+			if (Entrust::can('verify-mapped-activities')) {
+				$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
+				$activities->whereIn('asps.state_id', $states);
+			}
+		}
+		return Datatables::of($activities)
+			->addColumn('action', function ($activity) {
+				$action = '<div class="dataTable-actions">
+								<a href="#!/rsa-case-pkg/activity-status/view/' . $activity->id . '">
+					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
+					            </a>
+					            </div>';
+				return $action;
+			})
+			->make(true);
+	}
+
 }

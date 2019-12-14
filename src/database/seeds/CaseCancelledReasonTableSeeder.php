@@ -55,8 +55,7 @@ class CaseCancelledReasonTableSeeder extends Seeder {
 				'company_id' => $case_cancelled_reason_val['company_id'],
 				'name' => $case_cancelled_reason_val['name'],
 			]);
-			$case_cancelled_reason->company_id = $case_cancelled_reason_val['company_id'];
-			$case_cancelled_reason->name = $case_cancelled_reason_val['name'];
+			$case_cancelled_reason->fill($case_cancelled_reason_val);
 			$case_cancelled_reason->created_by_id = 72;
 			$case_cancelled_reason->updated_by_id = 72;
 			$case_cancelled_reason->save();

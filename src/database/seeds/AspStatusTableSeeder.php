@@ -39,8 +39,7 @@ class AspStatusTableSeeder extends Seeder {
 				'company_id' => $asp_status_val['company_id'],
 				'name' => $asp_status_val['name'],
 			]);
-			$asp_status->company_id = $asp_status_val['company_id'];
-			$asp_status->name = $asp_status_val['name'];
+			$asp_status->fill($asp_status_val);
 			$asp_status->created_by_id = 72;
 			$asp_status->updated_by_id = 72;
 			$asp_status->save();

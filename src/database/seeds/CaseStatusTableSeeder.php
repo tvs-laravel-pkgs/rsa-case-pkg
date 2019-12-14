@@ -35,8 +35,7 @@ class CaseStatusTableSeeder extends Seeder {
 				'company_id' => $case_status_val['company_id'],
 				'name' => $case_status_val['name'],
 			]);
-			$case_status->company_id = $case_status_val['company_id'];
-			$case_status->name = $case_status_val['name'];
+			$case_status->fill($case_status_val);
 			$case_status->created_by_id = 72;
 			$case_status->updated_by_id = 72;
 			$case_status->save();

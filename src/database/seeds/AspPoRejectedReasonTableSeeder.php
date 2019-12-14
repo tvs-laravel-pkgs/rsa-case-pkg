@@ -27,8 +27,7 @@ class AspPoRejectedReasonTableSeeder extends Seeder {
 				'company_id' => $asp_po_rejected_reason_val['company_id'],
 				'name' => $asp_po_rejected_reason_val['name'],
 			]);
-			$asp_po_rejected_reason->company_id = $asp_po_rejected_reason_val['company_id'];
-			$asp_po_rejected_reason->name = $asp_po_rejected_reason_val['name'];
+			$asp_po_rejected_reason->fill($asp_po_rejected_reason_val);
 			$asp_po_rejected_reason->created_by_id = 72;
 			$asp_po_rejected_reason->updated_by_id = 72;
 			$asp_po_rejected_reason->save();

@@ -71,8 +71,7 @@ class AspActivityRejectedReasonTableSeeder extends Seeder {
 				'company_id' => $asp_activity_rejected_reason_val['company_id'],
 				'name' => $asp_activity_rejected_reason_val['name'],
 			]);
-			$asp_activity_rejected_reason->company_id = $asp_activity_rejected_reason_val['company_id'];
-			$asp_activity_rejected_reason->name = $asp_activity_rejected_reason_val['name'];
+			$asp_activity_rejected_reason->fill($asp_activity_rejected_reason_val);
 			$asp_activity_rejected_reason->created_by_id = 72;
 			$asp_activity_rejected_reason->updated_by_id = 72;
 			$asp_activity_rejected_reason->save();

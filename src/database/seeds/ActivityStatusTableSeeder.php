@@ -47,8 +47,7 @@ class ActivityStatusTableSeeder extends Seeder {
 				'company_id' => $activity_status_val['company_id'],
 				'name' => $activity_status_val['name'],
 			]);
-			$activity_status->company_id = $activity_status_val['company_id'];
-			$activity_status->name = $activity_status_val['name'];
+			$activity_status->fill($activity_status_val);
 			$activity_status->created_by_id = 72;
 			$activity_status->updated_by_id = 72;
 			$activity_status->save();

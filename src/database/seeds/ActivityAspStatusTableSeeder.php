@@ -67,8 +67,7 @@ class ActivityAspStatusTableSeeder extends Seeder {
 				'company_id' => $activity_asp_status_val['company_id'],
 				'name' => $activity_asp_status_val['name'],
 			]);
-			$activity_asp_status->company_id = $activity_asp_status_val['company_id'];
-			$activity_asp_status->name = $activity_asp_status_val['name'];
+			$activity_asp_status->fill($activity_asp_status_val);
 			$activity_asp_status->created_by_id = 72;
 			$activity_asp_status->updated_by_id = 72;
 			$activity_asp_status->save();

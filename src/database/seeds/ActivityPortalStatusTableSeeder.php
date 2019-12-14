@@ -75,8 +75,7 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 				'company_id' => $activity_portal_status_val['company_id'],
 				'name' => $activity_portal_status_val['name'],
 			]);
-			$activity_portal_status->company_id = $activity_portal_status_val['company_id'];
-			$activity_portal_status->name = $activity_portal_status_val['name'];
+			$activity_portal_status->fill($activity_portal_status_val);
 			$activity_portal_status->created_by_id = 72;
 			$activity_portal_status->updated_by_id = 72;
 			$activity_portal_status->save();

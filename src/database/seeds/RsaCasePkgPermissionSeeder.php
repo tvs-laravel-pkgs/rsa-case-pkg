@@ -35,8 +35,8 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 			[
 				'display_order' => 2,
 				'parent' => 'activity-status',
-				'name' => 'delete-activities',
-				'display_name' => 'Delete',
+				'name' => 'view-activities',
+				'display_name' => 'View',
 			],
 			[
 				'display_order' => 3,
@@ -57,13 +57,13 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'View All',
 			],
 			[
-				'display_order' => 5,
+				'display_order' => 6,
 				'parent' => 'activity-status',
 				'name' => 'view-mapped-state-activities',
 				'display_name' => 'Only Mapped States',
 			],
 			[
-				'display_order' => 5,
+				'display_order' => 6,
 				'parent' => 'activity-status',
 				'name' => 'view-own-activities',
 				'display_name' => 'View Only Own',

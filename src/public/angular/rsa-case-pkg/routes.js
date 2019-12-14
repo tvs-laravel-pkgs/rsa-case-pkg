@@ -24,6 +24,10 @@ app.config(['$routeProvider', function($routeProvider) {
         template: '<activity-status-view></activity-status-view>',
         title: 'Activity Status View',
     }).
+    when('/rsa-case-pkg/activity-status/delete/:id', {
+        template: '<activity-status-delete></activity-status-delete>',
+        title: 'Activity Status Delete',
+    }).
 
     //ACTIVITY VERIFICATION
     when('/rsa-case-pkg/activity-verification/list', {

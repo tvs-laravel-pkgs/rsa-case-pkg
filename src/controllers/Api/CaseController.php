@@ -20,6 +20,7 @@ use App\Entity;
 use App\Http\Controllers\Controller;
 use App\MembershipType;
 use App\ServiceType;
+use App\Subject;
 use App\VehicleMake;
 use App\VehicleModel;
 use DB;
@@ -119,6 +120,7 @@ class CaseController extends Controller {
 			$case->status_id = $status->id;
 			$case->cancel_reason_id = $cancel_reason_id;
 			$case->call_center_id = $call_center->id;
+			$case->client_id = $client->id;
 			$case->vehicle_model_id = $vehicle_model->id;
 			$case->membership_type_id = $membership_type->id;
 			$case->subject_id = $subject->id;

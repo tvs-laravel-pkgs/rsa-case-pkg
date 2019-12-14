@@ -13,19 +13,31 @@ class ActivityStatusTableSeeder extends Seeder {
 	public function run() {
 		$activity_statuses = [
 			1 => [
-				'name' => 'Accepted',
+				'name' => 'Open',
 				'company_id' => 1,
 			],
 			2 => [
-				'name' => 'Started To BD',
+				'name' => 'Assigned',
 				'company_id' => 1,
 			],
 			3 => [
-				'name' => 'Reached BD',
+				'name' => 'In Progress',
 				'company_id' => 1,
 			],
 			4 => [
-				'name' => 'Reached Garage',
+				'name' => 'Cancelled',
+				'company_id' => 1,
+			],
+			5 => [
+				'name' => 'Failure',
+				'company_id' => 1,
+			],
+			6 => [
+				'name' => 'Re-Assigned',
+				'company_id' => 1,
+			],
+			7 => [
+				'name' => 'Successful',
 				'company_id' => 1,
 			],
 		];

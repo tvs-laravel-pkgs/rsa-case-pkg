@@ -617,97 +617,114 @@ class CaseController extends Controller {
 				return response()->json(['success' => false, 'message' => 'Validation Error', 'errors' => $validator->errors()->all()], $this->successStatus);
 			}
 
-			$eligible_pos = [
-				[
-					'asp_code' => 'APF002',
-					'case_id' => 'RE1920111729',
-					'case_status' => 'Closed',
-					'service' => 'Towing',
-					'sub_service' => 'Flat Bed',
-					'asp_status' => 'Closed',
-					'asp_activity_rejected_reason' => 'Closed',
-					'asp_po_accepted' => 'Closed',
-					'asp_po_rejected_reason' => 'Closed',
-					'status' => 'Closed',
-					'activity_status' => 'Closed',
-					'service_description' => '',
-					'amount' => '12000',
-					'remarks' => 'Paid',
-					'drop_location_type' => 'Dealer',
-					'drop_dealer' => 'HYJE-Renault Madhapur (Serv)',
-					'drop_location' => 'PLOT NO.17 TO 20 & 29, SURVEY NO.10, PARVAT NAGAR, NEAR AYYAPPA HOUSING SOCIETY, MADHAPUR',
-					'drop_location_lat' => '17.45266',
-					'drop_location_long' => '78.39663',
-					'excess_km' => '',
-					'crm_activity_id' => '1',
-					'asp_reached_date' => '2019-10-30 20:30:00',
-					'asp_start_location' => '11-3-78 GROUND FLOOR, FOOTBALL GROUND, NEW MALLEPALLY, HYDERABAD, HYDERABAD, 36',
-					'asp_end_location' => '11-3-78 GROUND FLOOR, FOOTBALL GROUND, NEW MALLEPALLY, HYDERABAD, HYDERABAD, 36',
-					'asp_bd_google_km' => '9',
-					'bd_dealer_google_km' => '7',
-					'return_google_km' => '6',
-					'asp_bd_return_empty_km' => '10',
-					'bd_dealer_km' => '4',
-					'return_km' => '2',
-					'total_travel_google_km' => '3',
-					'paid_to' => 'ASP',
-					'payment_mode' => 'PayTm',
-					'payment_receipt_no' => '',
-					'service_charges' => '200',
-					'membership_charges' => '110',
-					'toll_charges' => '10',
-					'green_tax_charges' => '0',
-					'border_charges' => '0',
-					'amount_collected_from_customer' => '400',
-					'amount_refused_by_customer' => '100',
-				],
-				[
-					'asp_code' => 'APF002',
-					'case_id' => 'RE1920111730',
-					'case_status' => 'Closed',
-					'service' => 'Towing',
-					'sub_service' => 'Flat Bed',
-					'asp_status' => 'Closed',
-					'asp_activity_rejected_reason' => 'Closed',
-					'asp_po_accepted' => 'Closed',
-					'asp_po_rejected_reason' => 'Closed',
-					'status' => 'Closed',
-					'activity_status' => 'Closed',
-					'service_description' => '',
-					'amount' => '12000',
-					'remarks' => 'Paid',
-					'drop_location_type' => 'Dealer',
-					'drop_dealer' => 'HYJE-Renault Madhapur (Serv)',
-					'drop_location' => 'PLOT NO.17 TO 20 & 29, SURVEY NO.10, PARVAT NAGAR, NEAR AYYAPPA HOUSING SOCIETY, MADHAPUR',
-					'drop_location_lat' => '17.45266',
-					'drop_location_long' => '78.39663',
-					'excess_km' => '',
-					'crm_activity_id' => '2',
-					'asp_reached_date' => '2019-10-30 20:30:00',
-					'asp_start_location' => '11-3-78 GROUND FLOOR, FOOTBALL GROUND, NEW MALLEPALLY, HYDERABAD, HYDERABAD, 36',
-					'asp_end_location' => '11-3-78 GROUND FLOOR, FOOTBALL GROUND, NEW MALLEPALLY, HYDERABAD, HYDERABAD, 36',
-					'asp_bd_google_km' => '9',
-					'bd_dealer_google_km' => '7',
-					'return_google_km' => '6',
-					'asp_bd_return_empty_km' => '10',
-					'bd_dealer_km' => '4',
-					'return_km' => '2',
-					'total_travel_google_km' => '3',
-					'paid_to' => 'ASP',
-					'payment_mode' => 'PayTm',
-					'payment_receipt_no' => '',
-					'service_charges' => '200',
-					'membership_charges' => '110',
-					'toll_charges' => '10',
-					'green_tax_charges' => '0',
-					'border_charges' => '0',
-					'amount_collected_from_customer' => '400',
-					'amount_refused_by_customer' => '100',
-				],
-			];
+			$eligible_pos = Activity::select(
+				'asps.asp_code',
+				'cases.number as case_id',
+				'case_statuses.name as case_status',
+				'service_types.name as sub_service',
+				'service_groups.name as service',
+				'activity_asp_statuses.name as asp_status',
+				'asp_activity_rejected_reasons.name as asp_activity_rejected_reason',
+				DB::raw('IF(activities.asp_po_accepted = 1,"Accepted","Rejected") as asp_po_accepted'),
+				'asp_po_rejected_reasons.name as asp_po_rejected_reason',
+				'activity_portal_statuses.name as status',
+				'activity_statuses.name as activity_status',
+				'activities.service_description',
+				DB::raw('IF(asp_invoice_amounts.value,asp_invoice_amounts.value,cc_invoice_amounts.value) as amount'),
+				'activities.remarks',
+				'drop_location_types.name as drop_location_type',
+				'dealers.name as drop_dealer',
+				'activities.drop_location',
+				'activities.drop_location_lat',
+				'activities.drop_location_long',
+				'activities.excess_km',
+				'activities.crm_activity_id',
+				'activities.asp_reached_date',
+				'activities.asp_start_location',
+				'activities.asp_end_location',
+				'activities.asp_bd_google_km',
+				'activities.bd_dealer_google_km',
+				'activities.return_google_km',
+				'activities.asp_bd_return_empty_km',
+				'activities.bd_dealer_km',
+				'activities.return_km',
+				'activities.total_travel_google_km',
+				'activities.asp_bd_google_km',
+				'paidto.name as paid_to',
+				'payment_modes.name as payment_mode',
+				'activities.payment_receipt_no',
+				'service_c.value as service_charges',
+				'membership_c.value as membership_charges',
+				'toll_c.value as toll_charges',
+				'green_tax_c.value as green_tax_charges',
+				'border_c.value as border_charges',
+				DB::raw('IF(asp_not_collected.value,asp_not_collected.value,cc_not_collected.value) as amount_refused_by_customer'),
+				DB::raw('IF(asp_collected.value,asp_collected.value,cc_collected.value) as amount_collected_from_customer')
+			)
+				->leftjoin('asps', 'asps.id', 'activities.asp_id')
+				->leftjoin('cases', 'cases.id', 'activities.case_id')
+				->leftjoin('case_statuses', 'case_statuses.id', 'cases.status_id')
+				->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
+				->leftjoin('service_groups', 'service_groups.id', 'service_types.service_group_id')
+				->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
+				->leftjoin('asp_activity_rejected_reasons', 'asp_activity_rejected_reasons.id', 'activities.asp_activity_rejected_reason_id')
+				->leftjoin('asp_po_rejected_reasons', 'asp_po_rejected_reasons.id', 'activities.asp_po_rejected_reason_id')
+				->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+				->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
+				->leftjoin('activity_details as cc_invoice_amounts', function ($join) {
+					$join->on('cc_invoice_amounts.activity_id', 'activities.id')
+						->where('cc_invoice_amounts.key_id', 180); //CC AMOUNT
+				})
+				->leftjoin('activity_details as asp_invoice_amounts', function ($join) {
+					$join->on('asp_invoice_amounts.activity_id', 'activities.id')
+						->where('asp_invoice_amounts.key_id', 181); //ASP AMOUNT
+				})
+				->leftjoin('entities as drop_location_types', 'drop_location_types.id', 'activities.drop_location_type_id')
+				->leftjoin('dealers', 'dealers.id', 'activities.drop_dealer_id')
+				->leftjoin('configs as paidto', 'paidto.id', 'activities.paid_to_id')
+				->leftjoin('entities as payment_modes', 'payment_modes.id', 'activities.payment_mode_id')
+				->leftjoin('activity_details as service_c', function ($join) {
+					$join->on('service_c.activity_id', 'activities.id')
+						->where('service_c.key_id', 162); //SERVICE CHARGES
+				})
+				->leftjoin('activity_details as membership_c', function ($join) {
+					$join->on('membership_c.activity_id', 'activities.id')
+						->where('membership_c.key_id', 163); //MEMBERSHIP CHARGES
+				})
+				->leftjoin('activity_details as toll_c', function ($join) {
+					$join->on('toll_c.activity_id', 'activities.id')
+						->where('toll_c.key_id', 165); //TOLL CHARGES
+				})
+				->leftjoin('activity_details as green_tax_c', function ($join) {
+					$join->on('green_tax_c.activity_id', 'activities.id')
+						->where('green_tax_c.key_id', 166); //GREEN TAX CHARGES
+				})
+				->leftjoin('activity_details as border_c', function ($join) {
+					$join->on('border_c.activity_id', 'activities.id')
+						->where('border_c.key_id', 167); //BORDER CHARGES
+				})
+				->leftjoin('activity_details as cc_collected', function ($join) {
+					$join->on('cc_collected.activity_id', 'activities.id')
+						->where('cc_collected.key_id', 151); //CC COLLECTED
+				})
+				->leftjoin('activity_details as cc_not_collected', function ($join) {
+					$join->on('cc_not_collected.activity_id', 'activities.id')
+						->where('cc_not_collected.key_id', 152); //CC NOT COLLECTED
+				})
+				->leftjoin('activity_details as asp_collected', function ($join) {
+					$join->on('asp_collected.activity_id', 'activities.id')
+						->where('asp_collected.key_id', 155); //ASP COLLECTED
+				})
+				->leftjoin('activity_details as asp_not_collected', function ($join) {
+					$join->on('asp_not_collected.activity_id', 'activities.id')
+						->where('asp_not_collected.key_id', 156); //ASP NOT COLLECTED
+				})
+				->where('activities.asp_po_accepted', 1) //ASP ACCEPTED
+				->groupBy('activities.id')
+				->get();
 
 			DB::commit();
-			return response()->json(['success' => true, 'eligible_pos' => collect($eligible_pos)], $this->successStatus);
+			return response()->json(['success' => true, 'eligible_pos' => $eligible_pos], $this->successStatus);
 		} catch (\Exception $e) {
 			DB::rollBack();
 			return response()->json(['success' => false, 'errors' => [$e->getMessage() . ' Line:' . $e->getLine()]], $this->successStatus);

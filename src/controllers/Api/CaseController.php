@@ -353,6 +353,43 @@ class CaseController extends Controller {
 				$asp_service_type->updated_by_id = 72;
 				$asp_service_type->save();
 
+				//ACTIVITY STATUS SUCCESSFUL OR ASSIGNED OR CANCELLED
+				if ($activity->activity_status_id == 7 || $activity->activity_status_id == 2 || $activity->activity_status_id == 4) {
+					//PAYOUT AMOUNT
+					$asp_po_amount = new ActivityDetail;
+					$asp_po_amount->company_id = 1;
+					$asp_po_amount->activity_id = $activity->id;
+					$asp_po_amount->key_id = 171;
+					$asp_po_amount->value = $request->amount;
+					$asp_po_amount->created_by_id = 72;
+					$asp_po_amount->updated_by_id = 72;
+					$asp_po_amount->save();
+
+					//NET AMOUNT (PAYOUT AMOUNT - AMOUNT COLLECTED FROM CUSTOMER)
+					$asp_net_amount_val = ((!empty($request->amount) ? $request->amount : 0) - (!empty($request->amount_collected_from_customer) ? $request->amount_collected_from_customer : 0));
+
+					$asp_net_amount = new ActivityDetail;
+					$asp_net_amount->company_id = 1;
+					$asp_net_amount->activity_id = $activity->id;
+					$asp_net_amount->key_id = 175;
+					$asp_net_amount->value = $asp_net_amount_val;
+					$asp_net_amount->created_by_id = 72;
+					$asp_net_amount->updated_by_id = 72;
+					$asp_net_amount->save();
+
+					//INVOICE AMOUNT (NET AMOUNT + AMOUNT NOT COLLECTED FROM CUSTOMER)
+					$asp_invoice_amount_val = ((!empty($asp_net_amount_val) ? $asp_net_amount_val : 0) + (!empty($request->amount_refused_by_customer) ? $request->amount_refused_by_customer : 0));
+
+					$asp_amount = new ActivityDetail;
+					$asp_amount->company_id = 1;
+					$asp_amount->activity_id = $activity->id;
+					$asp_amount->key_id = 181;
+					$asp_amount->value = $asp_invoice_amount_val;
+					$asp_amount->created_by_id = 72;
+					$asp_amount->updated_by_id = 72;
+					$asp_amount->save();
+				}
+
 			} else {
 				//NEW
 				$cc_km_travelled = new ActivityDetail;
@@ -390,6 +427,43 @@ class CaseController extends Controller {
 				$cc_service_type->created_by_id = 72;
 				$cc_service_type->updated_by_id = 72;
 				$cc_service_type->save();
+
+				//ACTIVITY STATUS SUCCESSFUL OR ASSIGNED OR CANCELLED
+				if ($activity->activity_status_id == 7 || $activity->activity_status_id == 2 || $activity->activity_status_id == 4) {
+					//PAYOUT AMOUNT
+					$cc_po_amount = new ActivityDetail;
+					$cc_po_amount->company_id = 1;
+					$cc_po_amount->activity_id = $activity->id;
+					$cc_po_amount->key_id = 170;
+					$cc_po_amount->value = $request->amount;
+					$cc_po_amount->created_by_id = 72;
+					$cc_po_amount->updated_by_id = 72;
+					$cc_po_amount->save();
+
+					//NET AMOUNT (PAYOUT AMOUNT - AMOUNT COLLECTED FROM CUSTOMER)
+					$cc_net_amount_val = ((!empty($request->amount) ? $request->amount : 0) - (!empty($request->amount_collected_from_customer) ? $request->amount_collected_from_customer : 0));
+
+					$cc_net_amount = new ActivityDetail;
+					$cc_net_amount->company_id = 1;
+					$cc_net_amount->activity_id = $activity->id;
+					$cc_net_amount->key_id = 174;
+					$cc_net_amount->value = $cc_net_amount_val;
+					$cc_net_amount->created_by_id = 72;
+					$cc_net_amount->updated_by_id = 72;
+					$cc_net_amount->save();
+
+					//INVOICE AMOUNT (NET AMOUNT + AMOUNT NOT COLLECTED FROM CUSTOMER)
+					$cc_invoice_amount_val = ((!empty($cc_net_amount_val) ? $cc_net_amount_val : 0) + (!empty($request->amount_refused_by_customer) ? $request->amount_refused_by_customer : 0));
+
+					$cc_amount = new ActivityDetail;
+					$cc_amount->company_id = 1;
+					$cc_amount->activity_id = $activity->id;
+					$cc_amount->key_id = 180;
+					$cc_amount->value = $cc_invoice_amount_val;
+					$cc_amount->created_by_id = 72;
+					$cc_amount->updated_by_id = 72;
+					$cc_amount->save();
+				}
 			}
 
 			$service_charges = ActivityDetail::firstOrNew([

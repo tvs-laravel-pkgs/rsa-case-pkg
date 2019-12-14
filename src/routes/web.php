@@ -6,6 +6,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	Route::post('/case/save', 'CaseController@saveCase')->name('saveCase');
 	Route::get('/case/delete/{id}', 'CaseController@deleteCase')->name('deleteCase');
 
+	Route::get('/activity-status/get-filter-data', 'ActivityController@getFilterData')->name('getActivityStatusFilterData');
 	Route::get('/activity-status/get-list', 'ActivityController@getList')->name('getActivityStatusList');
 	Route::get('/activity-status/delete/{id}', 'ActivityController@delete')->name('deleteActivity');
 

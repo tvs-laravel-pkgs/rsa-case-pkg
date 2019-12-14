@@ -22,6 +22,70 @@
                         <ul class="dataTable-top--right_group list-inline">
                             <li><input class="filterTable" type="text" placeholder="Search"></li>
                             <li><a href="javascript:void(0)" class="btn btn-md" ng-click="refresh()">Refresh</a></li>
+                            <li>
+                                <img src="<% $ctrl.filter_img_url %>" class="filterToggle">
+                                <div class="filter-wrapper" id='filterticket'>
+                                    <div class="filter-overlay"></div>
+                                    <div class="filter-content">
+                                        <div class="filter-header">
+                                            <h2>Ticket Filter</h2>
+                                        </div>
+                                        <div class="filter-body">
+                                            <div class="form-group">
+                                                <input id="ticket_date" class="form-control filter-input date-picker" type="text" placeholder="Date" autocomplete="off">
+                                            </div>
+                                            <div class="form-group">
+                                                <md-select ng-model="$ctrl.call_center_id">
+                                                    <md-option ng-repeat="val in $ctrl.extras.call_center_list" value="{{val.id}}">{{val.name}}</md-option>
+                                                </md-select>
+                                                <input type="hidden" name="call_center_id" value="{{$ctrl.call_center_id}}" id="call_center_id">
+                                            </div>
+                                            <div class="form-group">
+                                                <input id="case_number" class="form-control filter-input" type="text" placeholder="Case Number" autocomplete="off">
+                                            </div>
+                                            <div class="form-group">
+                                                <input id="asp_code" class="form-control filter-input" type="text" placeholder="ASP Code" autocomplete="off">
+                                            </div>
+                                            <div class="form-group">
+                                                <md-select ng-model="$ctrl.service_type_id">
+                                                    <md-option ng-repeat="val in $ctrl.extras.service_type_list" value="{{val.id}}">{{val.name}}</md-option>
+                                                </md-select>
+                                                <input type="hidden" name="service_type_id" value="{{$ctrl.service_type_id}}" id="service_type_id">
+                                            </div>
+                                            <div class="form-group">
+                                                <md-select ng-model="$ctrl.asp_status_id">
+                                                    <md-option ng-repeat="val in $ctrl.extras.asp_status_list" value="{{val.id}}">{{val.name}}</md-option>
+                                                </md-select>
+                                                <input type="hidden" name="asp_status_id" value="{{$ctrl.asp_status_id}}" id="asp_status_id">
+                                            </div>
+                                            <div class="form-group">
+                                                <md-select ng-model="$ctrl.status_id">
+                                                    <md-option ng-repeat="val in $ctrl.extras.status_list" value="{{val.id}}">{{val.name}}</md-option>
+                                                </md-select>
+                                                <input type="hidden" name="status_id" value="{{$ctrl.status_id}}" id="status_id">
+                                            </div>
+                                            <div class="form-group">
+                                                <md-select ng-model="$ctrl.activity_status_id">
+                                                    <md-option ng-repeat="val in $ctrl.extras.activity_status_list" value="{{val.id}}">{{val.name}}</md-option>
+                                                </md-select>
+                                                <input type="hidden" name="activity_status_id" value="{{$ctrl.activity_status_id}}" id="activity_status_id">
+                                            </div>
+                                            <div class="form-group">
+                                                <md-select ng-model="$ctrl.client_id">
+                                                    <md-option ng-repeat="val in $ctrl.extras.client_list" value="{{val.id}}">{{val.name}}</md-option>
+                                                </md-select>
+                                                <input type="hidden" name="client_id" value="{{$ctrl.client_id}}" id="client_id">
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="filter-btns">
+                                                    <a href="javascript:;" class="reset-filter  btn btn-primary yellow reset-filter1">RESET</a>
+                                                    <a href="javascript:;" class="close-filter btn btn-primary">CLOSE</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
                         </ul>
                     </div>
                 </div>

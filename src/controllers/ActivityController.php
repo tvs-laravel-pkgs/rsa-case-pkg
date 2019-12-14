@@ -2,7 +2,13 @@
 
 namespace Abs\RsaCasePkg;
 use Abs\RsaCasePkg\Activity;
+use Abs\RsaCasePkg\ActivityAspStatus;
+use Abs\RsaCasePkg\ActivityPortalStatus;
+use Abs\RsaCasePkg\ActivityStatus;
+use App\CallCenter;
+use App\Client;
 use App\Http\Controllers\Controller;
+use App\ServiceType;
 use App\StateUser;
 use DB;
 use Entrust;
@@ -10,6 +16,18 @@ use Illuminate\Http\Request;
 use Yajra\Datatables\Datatables;
 
 class ActivityController extends Controller {
+
+	public function getFilterData() {
+		$this->data['extras'] = [
+			'call_center_list' => collect(CallCenter::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Call Center']),
+			'sub_service_list' => collect(ServiceType::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Sub Service']),
+			'asp_status_list' => collect(ActivityAspStatus::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select ASP Status']),
+			'status_list' => collect(ActivityPortalStatus::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Status']),
+			'activity_status_list' => collect(ActivityStatus::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Activity Status']),
+			'client_list' => collect(Client::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Client']),
+		];
+		return response()->json($this->data);
+	}
 
 	public function getList(Request $request) {
 		$activities = Activity::select(

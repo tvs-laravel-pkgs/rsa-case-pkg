@@ -30,7 +30,7 @@ class ActivityController extends Controller {
 				//Asp Code
 				'asp_code' => 'required|string|max:24|exists:asps,asp_code',
 				//Ticket No
-				'case_id' => 'required|string|max:32|exists:cases,number',
+				'case_number' => 'required|string|max:32|exists:cases,number',
 				//Case Status
 				'case_status' => 'required|string|max:191|exists:case_statuses,name',
 				//Service
@@ -176,7 +176,7 @@ class ActivityController extends Controller {
 			}
 
 			//CASE STATUS UPDATE
-			$case = RsaCase::where('number', $request->case_id)->first();
+			$case = RsaCase::where('number', $request->case_number)->first();
 			$case->status_id = $case_status->id;
 			$case->save();
 
@@ -506,7 +506,7 @@ class ActivityController extends Controller {
 
 			$eligible_pos = Activity::select(
 				'asps.asp_code',
-				'cases.number as case_id',
+				'cases.number as case_number',
 				'case_statuses.name as case_status',
 				'service_types.name as sub_service',
 				'service_groups.name as service',
@@ -549,7 +549,7 @@ class ActivityController extends Controller {
 				DB::raw('IF(asp_collected.value,asp_collected.value,cc_collected.value) as amount_collected_from_customer')
 			)
 				->leftjoin('asps', 'asps.id', 'activities.asp_id')
-				->leftjoin('cases', 'cases.id', 'activities.case_id')
+				->leftjoin('cases', 'cases.id', 'activities.case_number')
 				->leftjoin('case_statuses', 'case_statuses.id', 'cases.status_id')
 				->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
 				->leftjoin('service_groups', 'service_groups.id', 'service_types.service_group_id')

@@ -45,7 +45,17 @@ app.component('activityStatusList', {
                     },
                     ajax: {
                         url: activity_status_get_list_url,
-                        data: function(d) {}
+                        data: function(d) {
+                            d.ticket_date = $('#ticket_date').val();
+                            d.call_center_id = $('#call_center_id').val();
+                            d.case_number = $('#case_number').val();
+                            d.asp_code = $('#asp_code').val();
+                            d.service_type_id = $('#service_type_id').val();
+                            d.asp_status_id = $('#asp_status_id').val();
+                            d.status_id = $('#status_id').val();
+                            d.activity_status_id = $('#activity_status_id').val();
+                            d.client_id = $('#client_id').val();
+                        }
                     },
                     infoCallback: function(settings, start, end, max, total, pre) {
                         $('.count').html(total + ' / ' + max + ' listings')

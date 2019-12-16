@@ -614,6 +614,7 @@ class ActivityController extends Controller {
 						->where('asp_not_collected.key_id', 156); //ASP NOT COLLECTED
 				})
 				->where('activities.asp_po_accepted', 1) //ASP ACCEPTED
+				->whereNull('activities.invoice_id')
 				->groupBy('activities.id')
 				->get();
 

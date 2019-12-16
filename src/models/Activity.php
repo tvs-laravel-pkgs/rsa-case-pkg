@@ -62,7 +62,7 @@ class Activity extends Model {
 		return $this->belongsTo('App\Case', 'case_id');
 	}
 
-	public function serviceType () {
+	public function serviceType() {
 		return $this->belongsTo('App\ServiceType', 'service_type_id');
 	}
 
@@ -70,12 +70,11 @@ class Activity extends Model {
 		return $this->belongsTo('App\ActivityAspStatus', 'asp_status_id');
 	}
 
-
-	public function aspActivityRejectedReason () {
+	public function aspActivityRejectedReason() {
 		return $this->belongsTo('App\AspActivityRejectedReason', 'asp_activity_rejected_reason_id');
 	}
 
-	public function aspPoRejectedReason () {
+	public function aspPoRejectedReason() {
 		return $this->belongsTo('App\AspPoRejectedReason', 'asp_po_rejected_reason_id');
 	}
 
@@ -87,7 +86,7 @@ class Activity extends Model {
 		return $this->belongsTo('App\ActivityPortalStatus', 'status_id');
 	}
 
-	public function activityStatus () {
+	public function activityStatus() {
 		return $this->belongsTo('App\ActivityStatus', 'activity_status_id');
 	}
 
@@ -98,7 +97,6 @@ class Activity extends Model {
 	public function paymentMode() {
 		return $this->belongsTo('App\Entity', 'payment_mode_id');
 	}
-
 
 	public function dropDealer() {
 		return $this->belongsTo('App\Dealer', 'drop_dealer_id');

@@ -172,8 +172,8 @@ class ActivityController extends Controller {
 			$case->status_id = $case_status->id;
 			$case->save();
 
-			$is_activity_detail_new = true;
 			//ACTIVITY SAVE
+			$is_activity_detail_new = true;
 			$activity = Activity::firstOrNew([
 				'crm_activity_id' => $request->crm_activity_id,
 			]);
@@ -617,7 +617,10 @@ class ActivityController extends Controller {
 				->get();
 
 			DB::commit();
-			return response()->json(['success' => true, 'eligible_pos' => $eligible_pos], $this->successStatus);
+			return response()->json([
+				'success' => true,
+				'eligible_pos' => $eligible_pos,
+			], $this->successStatus);
 		} catch (\Exception $e) {
 			DB::rollBack();
 			return response()->json(['success' => false, 'errors' => [$e->getMessage() . ' Line:' . $e->getLine()]], $this->successStatus);

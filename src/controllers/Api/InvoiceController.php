@@ -79,4 +79,33 @@ class InvoiceController extends Controller {
 			return response()->json(['success' => false, 'errors' => ['Exception Error' => $e->getMessage()]]);
 		}
 	}
+
+	public function getDetails(Request $request) {
+		DB::beginTransaction();
+		try {
+			$validator = Validator::make($request->all(), [
+				'asp_code' => 'required|string|exists:asps,asp_code',
+				'invoice_no' => 'required|string|exists:Invoices,invoice_no',
+			]);
+
+			if ($validator->fails()) {
+				return response()->json(['success' => false, 'message' => 'Validation Error', 'errors' => $validator->errors()->all()], $this->successStatus);
+			}
+
+			//GET ASP
+			$asp = Asp::where('asp_code', $request->asp_code)->first();
+
+			//GET INVOICE DETAIL
+			$invoices = Invoices::with('asp')
+				->where('invoice_no', $request->invoice_no)
+				->where('asp_id', $asp->id)
+				->first();
+
+			DB::commit();
+			return response()->json(['success' => true, 'invoices' => $invoices], $this->successStatus);
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json(['success' => false, 'errors' => [$e->getMessage() . ' Line:' . $e->getLine()]], $this->successStatus);
+		}
+	}
 }

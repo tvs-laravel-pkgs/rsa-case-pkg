@@ -80,6 +80,46 @@ class InvoiceController extends Controller {
 		}
 	}
 
+	public function getList(Request $request) {
+		DB::beginTransaction();
+		try {
+			$validator = Validator::make($request->all(), [
+				'asp_code' => 'required|string|exists:asps,asp_code',
+			]);
+
+			if ($validator->fails()) {
+				return response()->json(['success' => false, 'message' => 'Validation Error', 'errors' => $validator->errors()->all()], $this->successStatus);
+			}
+
+			//GET ASP
+			$asp = Asp::where('asp_code', $request->asp_code)->first();
+
+			$invoices = Invoices::
+				select(
+				'invoices.id as id',
+				DB::raw("CONCAT(invoices.invoice_no,'-',invoices.id) as invoice_no"),
+				DB::raw("date_format(invoices.created_at,'%d-%m-%Y') as invoice_date"),
+				DB::raw("COUNT(activities.id) as no_of_tickets"),
+				// DB::raw("ROUND(SUM(activities.bo_invoice_amount),2) as invoice_amount"),
+				DB::raw("ROUND(invoices.invoice_amount,2) as invoice_amount"),
+				'asps.workshop_name as workshop_name',
+				'asps.asp_code as asp_code'
+			)
+				->where('activities.asp_id', '=', $asp->id)
+				->where('invoices.flow_current_status', 'Waiting for Batch Generation')
+				->join('asps', 'invoices.asp_id', '=', 'asps.id')
+				->join('activities', 'invoices.id', '=', 'activities.invoice_id')
+				->groupBy('invoices.id')
+				->get();
+
+			DB::commit();
+			return response()->json(['success' => true, 'invoices' => $invoices], $this->successStatus);
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json(['success' => false, 'errors' => [$e->getMessage() . ' Line:' . $e->getLine()]], $this->successStatus);
+		}
+	}
+
 	public function getDetails(Request $request) {
 		DB::beginTransaction();
 		try {
@@ -99,6 +139,7 @@ class InvoiceController extends Controller {
 			$invoices = Invoices::with('asp')
 				->where('invoice_no', $request->invoice_no)
 				->where('asp_id', $asp->id)
+				->where('invoices.flow_current_status', 'Waiting for Batch Generation')
 				->first();
 
 			DB::commit();

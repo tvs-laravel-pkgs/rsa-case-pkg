@@ -94,12 +94,10 @@ class ActivityController extends Controller {
 		}
 		return Datatables::of($activities)
 			->addColumn('action', function ($activity) {
-				$action = '<div class="dataTable-actions">';
-				if (Entrust::can('view-activities')) {
-					$action .= '<a href="#!/rsa-case-pkg/activity-status/view/' . $activity->id . '">
+				$action = '<div class="dataTable-actions">
+				<a href="#!/rsa-case-pkg/activity-status/view/' . $activity->id . '">
 					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
 					            </a>';
-				}
 				if (Entrust::can('delete-activities')) {
 					$action .= '<a onclick="angular.element(this).scope().deleteConfirm(' . $activity->id . ')" href="javascript:void(0)">
 						                <i class="fa fa-trash dataTable-icon--trash cl-delete" data-cl-id =' . $activity->id . ' aria-hidden="true"></i>

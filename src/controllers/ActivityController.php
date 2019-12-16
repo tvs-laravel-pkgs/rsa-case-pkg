@@ -55,6 +55,34 @@ class ActivityController extends Controller {
 			->groupBy('activities.id')
 		;
 
+		if ($request->get('ticket_date')) {
+			$mis_infos->whereRaw('DATE_FORMAT(cases.date,"%d-%m-%Y") =  "' . $request->get('ticket_date') . '"');
+		}
+		if ($request->get('call_center_id')) {
+			$mis_infos->where('cases.call_center_id', $request->get('call_center_id'));
+		}
+		if ($request->get('case_number')) {
+			$mis_infos->where('cases.number', 'LIKE', '%' . $request->get('ticket_number') . '%');
+		}
+		if ($request->get('asp_code')) {
+			$mis_infos->where('asps.asp_code', 'LIKE', '%' . $request->get('asp_code') . '%');
+		}
+		if ($request->get('service_type_id')) {
+			$mis_infos->where('activities.service_type_id', $request->get('service_type_id'));
+		}
+		if ($request->get('asp_status_id')) {
+			$mis_infos->where('activities.status_id', $request->get('asp_status_id'));
+		}
+		if ($request->get('status_id')) {
+			$mis_infos->where('activities.status_id', $request->get('status_id'));
+		}
+		if ($request->get('activity_status_id')) {
+			$mis_infos->where('activities.activity_status_id', $request->get('activity_status_id'));
+		}
+		if ($request->get('client_id')) {
+			$mis_infos->where('cases.client_id', $request->get('client_id'));
+		}
+
 		if (!Entrust::can('view-all-activities')) {
 			if (Entrust::can('view-mapped-state-activities')) {
 				$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();

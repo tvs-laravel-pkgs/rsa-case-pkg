@@ -117,7 +117,11 @@ class CaseController extends Controller {
 			$case->save();
 
 			DB::commit();
-			return response()->json(['success' => true, 'message' => 'Case saved successfully'], $this->successStatus);
+			return response()->json([
+				'success' => true,
+				'message' => 'Case saved successfully',
+				'case' => $case,
+			], $this->successStatus);
 		} catch (\Exception $e) {
 			DB::rollBack();
 			return response()->json(['success' => false, 'errors' => [$e->getMessage() . ' Line:' . $e->getLine()]], $this->successStatus);

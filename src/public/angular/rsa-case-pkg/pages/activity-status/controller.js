@@ -70,6 +70,18 @@ app.component('activityStatusList', {
                 dataTable.fnFilter(this.value);
             });
 
+            $('#ticket_date').on('change', function() {
+                dataTable.fnFilter();
+            });
+
+            $('#case_number,#asp_code').on('keyup', function() {
+                dataTable.fnFilter();
+            });
+
+            $scope.changeCommonFilter = function() {
+                dataTable.fnFilter();
+            };
+
             $scope.refresh = function() {
                 $('#activities_status_table').DataTable().ajax.reload();
             };

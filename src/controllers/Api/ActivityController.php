@@ -198,6 +198,7 @@ class ActivityController extends Controller {
 				}
 			} else {
 				$status_id = 1; //WAITING FOR WORK COMPLETION
+				$asp_po_accepted = 0;
 			}
 
 			$activity->fill($request->all());

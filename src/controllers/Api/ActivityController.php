@@ -4,7 +4,6 @@ namespace Abs\RsaCasePkg\Api;
 use Abs\RsaCasePkg\Activity;
 use Abs\RsaCasePkg\ActivityAspStatus;
 use Abs\RsaCasePkg\ActivityDetail;
-use Abs\RsaCasePkg\ActivityPortalStatus;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
 use Abs\RsaCasePkg\AspPoRejectedReason;
@@ -110,44 +109,37 @@ class ActivityController extends Controller {
 			}
 
 			$asp = Asp::where('asp_code', $request->asp_code)->first();
-			$case_status = CaseStatus::where('name', $request->case_status)->first();
+			$case_status = CaseStatus::where('name', $request->case_status)->where('company_id', 1)->first();
 			$service_type = ServiceType::where('name', $request->sub_service)->first();
-			$asp_status = ActivityAspStatus::where('name', $request->asp_status)->first();
+			$asp_status = ActivityAspStatus::where('name', $request->asp_status)->where('company_id', 1)->first();
 			if (!$asp_status) {
 				$asp_status_id = NULL;
 			} else {
 				$asp_status_id = $asp_status->id;
 			}
 
-			$asp_activity_rejected_reason = AspActivityRejectedReason::where('name', $request->asp_activity_rejected_reason)->first();
+			$asp_activity_rejected_reason = AspActivityRejectedReason::where('name', $request->asp_activity_rejected_reason)->where('company_id', 1)->first();
 			if (!$asp_activity_rejected_reason) {
 				$asp_activity_rejected_reason_id = NULL;
 			} else {
 				$asp_activity_rejected_reason_id = $asp_activity_rejected_reason->id;
 			}
 
-			$asp_po_rejected_reason = AspPoRejectedReason::where('name', $request->asp_po_rejected_reason)->first();
+			$asp_po_rejected_reason = AspPoRejectedReason::where('name', $request->asp_po_rejected_reason)->where('company_id', 1)->first();
 			if (!$asp_po_rejected_reason) {
 				$asp_po_rejected_reason_id = NULL;
 			} else {
 				$asp_po_rejected_reason_id = $asp_po_rejected_reason->id;
 			}
 
-			$status = ActivityPortalStatus::where('name', $request->status)->first();
-			if (!$status) {
-				$status_id = NULL;
-			} else {
-				$status_id = $status->id;
-			}
-
-			$activity_status = ActivityStatus::where('name', $request->activity_status)->first();
+			$activity_status = ActivityStatus::where('name', $request->activity_status)->where('company_id', 1)->first();
 			if (!$activity_status) {
 				$activity_status_id = NULL;
 			} else {
 				$activity_status_id = $activity_status->id;
 			}
 
-			$drop_location_type = Entity::where('name', $request->drop_location_type)->first();
+			$drop_location_type = Entity::where('name', $request->drop_location_type)->where('company_id', 1)->first();
 			if (!$drop_location_type) {
 				$drop_location_type_id = NULL;
 			} else {
@@ -168,7 +160,7 @@ class ActivityController extends Controller {
 				$paid_to_id = $paid_to->id;
 			}
 
-			$payment_mode = Entity::where('name', $request->payment_mode)->first();
+			$payment_mode = Entity::where('name', $request->payment_mode)->where('company_id', 1)->first();
 			if (!$payment_mode) {
 				$payment_mode_id = NULL;
 			} else {
@@ -189,18 +181,32 @@ class ActivityController extends Controller {
 				$is_activity_detail_new = false;
 			}
 
+			//ACTIVITY STATUS SUCCESSFUL
+			if ($activity_status_id == 7) {
+				$status_id = 2; //INVOICE AMOUNT CALCULATED - WAITING FOR ASP INVOICE AMOUNT CONFIRMATION
+				//ASP PO ACCEPTED EXIST
+				if ($request->asp_po_accepted) {
+					if ($request->asp_po_accepted == 'Accepted') {
+						$asp_po_accepted = 1;
+						$status_id = 3; //ASP ACCEPTED INVOICE AMOUNT - WAITING FOR INVOICE GENERATION BY ASP
+					} else {
+						$asp_po_accepted = 0;
+						$status_id = 4; //ASP REJECTED INVOICE AMOUNT - WAITING FOR ASP DATA ENTRY
+					}
+				} else {
+					$asp_po_accepted = 0;
+				}
+			} else {
+				$status_id = 1; //WAITING FOR WORK COMPLETION
+			}
+
 			$activity->fill($request->all());
 			$activity->asp_id = $asp->id;
 			$activity->case_id = $case->id;
 			$activity->service_type_id = $service_type->id;
 			$activity->asp_status_id = $asp_status_id;
 			$activity->asp_activity_rejected_reason_id = $asp_activity_rejected_reason_id;
-
-			if ($request->asp_po_accepted == 'Accepted') {
-				$activity->asp_po_accepted = 1;
-			} else {
-				$activity->asp_po_accepted = 0;
-			}
+			$activity->asp_po_accepted = $asp_po_accepted;
 			$activity->asp_po_rejected_reason_id = $asp_po_rejected_reason_id;
 			$activity->status_id = $status_id;
 			$activity->activity_status_id = $activity_status_id;
@@ -549,7 +555,7 @@ class ActivityController extends Controller {
 				DB::raw('IF(asp_collected.value,asp_collected.value,cc_collected.value) as amount_collected_from_customer')
 			)
 				->leftjoin('asps', 'asps.id', 'activities.asp_id')
-				->leftjoin('cases', 'cases.id', 'activities.case_number')
+				->leftjoin('cases', 'cases.id', 'activities.case_id')
 				->leftjoin('case_statuses', 'case_statuses.id', 'cases.status_id')
 				->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
 				->leftjoin('service_groups', 'service_groups.id', 'service_types.service_group_id')

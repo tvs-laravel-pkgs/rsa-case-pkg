@@ -79,7 +79,7 @@ class CaseController extends Controller {
 				return response()->json(['success' => false, 'message' => 'Validation Error', 'errors' => $validator->errors()->all()], $this->successStatus);
 			}
 
-			$status = CaseStatus::where('name', $request->status)->first();
+			$status = CaseStatus::where('name', $request->status)->where('company_id', 1)->first();
 			$call_center = CallCenter::where('name', $request->call_center)->first();
 			$client = Client::where('name', $request->client)->first();
 			$vehicle_make = VehicleMake::where('name', $request->vehicle_make)->first();
@@ -94,7 +94,7 @@ class CaseController extends Controller {
 				$bd_city_id = $bd_city->id;
 			}
 
-			$cancel_reason = CaseCancelledReason::where('name', $request->cancel_reason)->first();
+			$cancel_reason = CaseCancelledReason::where('name', $request->cancel_reason)->where('company_id', 1)->first();
 			if (!$cancel_reason) {
 				$cancel_reason_id = NULL;
 			} else {

@@ -22,90 +22,61 @@ use Validator;
 class ActivityController extends Controller {
 	private $successStatus = 200;
 
-	public function save(Request $request) {
+	public function createActivity(Request $request) {
 		DB::beginTransaction();
 		try {
 			$validator = Validator::make($request->all(), [
-				//Asp Code
+				'crm_activity_id' => 'required|numeric|unique:activities',
+				'data_src' => 'required|string',
 				'asp_code' => 'required|string|max:24|exists:asps,asp_code',
-				//Ticket No
 				'case_number' => 'required|string|max:32|exists:cases,number',
-				//Case Status
-				'case_status' => 'required|string|max:191|exists:case_statuses,name',
-				//Service
-				'service' => 'required|string|max:50|exists:service_groups,name',
-				//Sub Service
 				'sub_service' => 'required|string|max:50|exists:service_types,name',
-				//ASP Status
-				'asp_status' => 'nullable|string|max:191|exists:activity_asp_statuses,name',
-				'asp_activity_rejected_reason' => 'nullable|string|max:191|exists:asp_activity_rejected_reasons,name',
+				'asp_accepted_cc_details' => 'required',
+				'reason_for_asp_rejected_cc_details' => 'nullable|string',
 				'asp_po_accepted' => 'nullable|string|max:50',
 				'asp_po_rejected_reason' => 'nullable|string|max:191|exists:asp_po_rejected_reasons,name',
-				'status' => 'nullable|string|max:191|exists:activity_portal_statuses,name',
+				'asp_activity_status' => 'nullable|string|max:191|exists:activity_asp_statuses,name',
+				'asp_activity_rejected_reason' => 'nullable|string|max:191|exists:asp_activity_rejected_reasons,name',
 				'activity_status' => 'nullable|string|max:191|exists:activity_statuses,name',
-				//Service Description
-				'service_description' => 'nullable|string|max:255',
-				//Amount
-				'amount' => 'nullable|numeric',
-				//Remarks
+				'description' => 'nullable|string|max:255',
 				'remarks' => 'nullable|string|max:255',
-				//Drop Location Type
-				'drop_location_type' => 'nullable|string|max:24',
-				//Drop Dealer
-				'drop_dealer' => 'nullable|string|max:64',
-				//Drop Location
-				'drop_location' => 'nullable|string|max:512',
-				//Drop Location Lat
-				'drop_location_lat' => 'nullable|numeric',
-				//Drop Location Long
-				'drop_location_long' => 'nullable|numeric',
-				//Extra Short Km
-				'excess_km' => 'nullable|numeric',
-				'crm_activity_id' => 'required|numeric',
-				//Asp Reached Datetime
 				'asp_reached_date' => 'nullable|date_format:"Y-m-d H:i:s"',
-				//Asp Start Location
 				'asp_start_location' => 'nullable|string|max:256',
-				//Asp End Location
 				'asp_end_location' => 'nullable|string|max:256',
-				//Asp BD Google KM
 				'asp_bd_google_km' => 'nullable|numeric',
-				//BD Dealer Google KM
 				'bd_dealer_google_km' => 'nullable|numeric',
-				//Return Google KM
 				'return_google_km' => 'nullable|numeric',
-				//Asp BD Return Empty KM
 				'asp_bd_return_empty_km' => 'nullable|numeric',
-				//BD Dealer KM
 				'bd_dealer_km' => 'nullable|numeric',
-				//Return KM
 				'return_km' => 'nullable|numeric',
-				//Total Travel Google KM
+				'excess_km' => 'nullable|numeric',
 				'total_travel_google_km' => 'nullable|numeric',
-				//Paid To
+				'drop_location_type' => 'nullable|string|max:24',
+				'drop_dealer' => 'nullable|string|max:64',
+				'drop_location' => 'nullable|string|max:512',
+				'drop_location_lat' => 'nullable|numeric',
+				'drop_location_long' => 'nullable|numeric',
+				'amount' => 'nullable|numeric',
 				'paid_to' => 'nullable|string|max:24|exists:configs,name',
-				//Payment Mode
 				'payment_mode' => 'nullable|string|max:50|exists:entities,name',
-				//Payment Receipt No
 				'payment_receipt_no' => 'nullable|string|max:24',
-				//Service Charges
 				'service_charges' => 'nullable|numeric',
-				//Membership Charges
 				'membership_charges' => 'nullable|numeric',
-				//Toll Charges
+				'eatable_items_charges' => 'nullable|numeric',
 				'toll_charges' => 'nullable|numeric',
-				//Green Tax Charges
 				'green_tax_charges' => 'nullable|numeric',
-				//Border Charges
 				'border_charges' => 'nullable|numeric',
-				//Amount Collected From Customer
+				'octroi_charges' => 'nullable|numeric',
 				'amount_collected_from_customer' => 'nullable|numeric',
-				//Amount Refused From Customer
 				'amount_refused_by_customer' => 'nullable|numeric',
 			]);
 
 			if ($validator->fails()) {
-				return response()->json(['success' => false, 'message' => 'Validation Error', 'errors' => $validator->errors()->all()], $this->successStatus);
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => $validator->errors()->all(),
+				], $this->successStatus);
 			}
 
 			$asp = Asp::where('asp_code', $request->asp_code)->first();
@@ -167,13 +138,9 @@ class ActivityController extends Controller {
 				$payment_mode_id = $payment_mode->id;
 			}
 
-			//CASE STATUS UPDATE
 			$case = RsaCase::where('number', $request->case_number)->first();
-			$case->status_id = $case_status->id;
-			$case->save();
 
 			//ACTIVITY SAVE
-			$is_activity_detail_new = true;
 			$activity = Activity::firstOrNew([
 				'crm_activity_id' => $request->crm_activity_id,
 			]);
@@ -220,19 +187,12 @@ class ActivityController extends Controller {
 			$activity->save();
 
 			//ACTIVITY FIELDS SAVE
-			//UPDATE
-			if (!$is_activity_detail_new) {
 				$asp_km_travelled = ActivityDetail::firstOrNew([
 					'company_id' => 1,
 					'activity_id' => $activity->id,
 					'key_id' => 154,
 				]);
-				$asp_km_travelled->company_id = 1;
-				$asp_km_travelled->activity_id = $activity->id;
-				$asp_km_travelled->key_id = 154;
 				$asp_km_travelled->value = $request->total_travel_google_km;
-				$asp_km_travelled->created_by_id = 72;
-				$asp_km_travelled->updated_by_id = 72;
 				$asp_km_travelled->save();
 
 				$asp_collected = ActivityDetail::firstOrNew([
@@ -323,7 +283,6 @@ class ActivityController extends Controller {
 					$asp_amount->save();
 				}
 
-			} else {
 				//NEW
 				$cc_km_travelled = ActivityDetail::firstOrNew([
 					'company_id' => 1,

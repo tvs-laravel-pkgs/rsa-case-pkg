@@ -72,7 +72,7 @@ class ActivityDc extends Migration {
 
 			$table->foreign('asp_activity_status_id')->references('id')->on('activity_asp_statuses')->onDelete('SET NULL')->onUpdate('cascade');
 			$table->foreign('asp_activity_rejected_reason_id')->references('id')->on('asp_activity_rejected_reasons')->onDelete('SET NULL')->onUpdate('cascade');
-			$table->foreign('invoice_id')->references('id')->on('invoices')->onDelete('SET NULL')->onUpdate('cascade');
+			$table->foreign('invoice_id')->references('id')->on('Invoices')->onDelete('SET NULL')->onUpdate('cascade');
 			$table->foreign('activity_status_id')->references('id')->on('activity_statuses')->onDelete('SET NULL')->onUpdate('cascade');
 
 			$table->foreign('created_by_id')->references('id')->on('users')->onDelete('SET NULL')->onUpdate('cascade');

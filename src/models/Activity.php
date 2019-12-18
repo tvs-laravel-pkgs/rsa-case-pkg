@@ -51,7 +51,7 @@ class Activity extends Model {
 	}
 
 	public function case () {
-		return $this->belongsTo('App\Case', 'case_id');
+		return $this->belongsTo('Abs\RsaCasePkg\RsaCase', 'case_id');
 	}
 
 	public function serviceType() {
@@ -59,15 +59,15 @@ class Activity extends Model {
 	}
 
 	public function aspStatus() {
-		return $this->belongsTo('App\ActivityAspStatus', 'asp_status_id');
+		return $this->belongsTo('Abs\RsaCasePkg\ActivityAspStatus', 'asp_status_id');
 	}
 
 	public function aspActivityRejectedReason() {
-		return $this->belongsTo('App\AspActivityRejectedReason', 'asp_activity_rejected_reason_id');
+		return $this->belongsTo('Abs\RsaCasePkg\AspActivityRejectedReason', 'asp_activity_rejected_reason_id');
 	}
 
 	public function aspPoRejectedReason() {
-		return $this->belongsTo('App\AspPoRejectedReason', 'asp_po_rejected_reason_id');
+		return $this->belongsTo('Abs\RsaCasePkg\AspPoRejectedReason', 'asp_po_rejected_reason_id');
 	}
 
 	public function invoice() {
@@ -75,11 +75,11 @@ class Activity extends Model {
 	}
 
 	public function status() {
-		return $this->belongsTo('App\ActivityPortalStatus', 'status_id');
+		return $this->belongsTo('Abs\RsaCasePkg\ActivityPortalStatus', 'status_id');
 	}
 
 	public function activityStatus() {
-		return $this->belongsTo('App\ActivityStatus', 'activity_status_id');
+		return $this->belongsTo('Abs\RsaCasePkg\ActivityStatus', 'activity_status_id');
 	}
 
 	public function dropLocationType() {

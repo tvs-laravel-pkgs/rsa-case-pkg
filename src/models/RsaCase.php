@@ -68,7 +68,7 @@ class RsaCase extends Model {
 	}
 
 	public function status() {
-		return $this->belongsTo('App\CaseStatus', 'status_id');
+		return $this->belongsTo('Abs\RsaCasePkg\CaseStatus', 'status_id');
 	}
 
 	public function city() {

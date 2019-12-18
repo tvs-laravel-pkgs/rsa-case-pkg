@@ -28,11 +28,10 @@ class InvoiceController extends Controller {
 			}
 
 			//CHECK ACTIVITY IS ACCEPTED OR NOT
-			$activities_with_accepted = Activity::select('crm_activity_id', 'asp_po_accepted')->whereIn('crm_activity_id', $request->activity_id)->get();
-
+			$activities_with_accepted = Activity::select('crm_activity_id', 'status_id')->whereIn('crm_activity_id', $request->activity_id)->get();
 			if (!empty($activities_with_accepted)) {
 				foreach ($activities_with_accepted as $key => $activity_accepted) {
-					if ($activity_accepted->asp_po_accepted != 1) {
+					if ($activity_accepted->status_id != 1) {
 						return response()->json([
 							'success' => false,
 							'message' => 'Validation Error',

@@ -13,46 +13,38 @@ class Activity extends Model {
 	use SoftDeletes;
 	protected $table = 'activities';
 	protected $fillable = [
+		'crm_activity_id',
 		'number',
+		'data_src_id',
 		'asp_id',
 		'case_id',
 		'service_type_id',
-		'asp_status_id',
-		'asp_activity_rejected_reason_id',
+		'status_id',
+		'asp_accepted_cc_details',
+		'reason_for_asp_rejected_cc_details',
 		'asp_po_accepted',
 		'asp_po_rejected_reason_id',
+		'asp_activity_status_id',
+		'asp_activity_rejected_reason_id',
 		'invoice_id',
-		'status_id',
 		'activity_status_id',
-		'service_description',
-		'amount',
+		'description',
 		'remarks',
-		'drop_location_type_id',
-		'drop_dealer_id',
-		'drop_location',
-		'drop_location_lat',
-		'drop_location_long',
-		'excess_km',
-		'crm_activity_id',
-		'asp_reached_date',
-		'asp_start_location',
-		'asp_end_location',
-		'asp_bd_google_km',
-		'bd_dealer_google_km',
-		'return_google_km',
-		'asp_bd_return_empty_km',
-		'bd_dealer_km',
-		'return_km',
-		'total_travel_google_km',
-		'paid_to_id',
-		'payment_mode_id',
-		'payment_receipt_no',
 		'deduction_reason',
 		'bo_comments',
-		'created_by_id',
-		'updated_by_id',
-		'deleted_by_id',
 	];
+
+	public function financeStatus() {
+		return $this->belongsTo('Abs\RsaCasePkg\ActivityFinanceStatus', 'finance_status_id');
+	}
+
+	public function details() {
+		return $this->hasMany('Abs\RsaCasePkg\ActivityDetail', 'activity_id');
+	}
+
+	public function detail($key_id) {
+		return $this->details()->where('key_id', $key_id)->first();
+	}
 
 	public function asp() {
 		return $this->belongsTo('App\Asp', 'asp_id');
@@ -151,6 +143,76 @@ class Activity extends Model {
 		$record->created_by_id = $admin->id;
 		$record->save();
 		return $record;
+	}
+
+	public function calculatePayoutAmount($data_src) {
+		if ($this->financeStatus->po_eligibility_type_id == 342) {
+			//No Payout
+			return [
+				'success' => true,
+				'error' => 'Not Eligible for Payout',
+			];
+		}
+
+		if ($data_src == 'CC') {
+			$response = getKMPrices($this->serviceType, $this->asp);
+			if (!$response['success']) {
+				return [
+					'success' => false,
+					'error' => $response['error'],
+				];
+			}
+
+			$total_km = $this->detail(280)->value; //cc_total_km
+			$collected = $this->detail(281)->value; //cc_colleced_amount
+			$not_collected = $this->detail(282)->value; //cc_not_collected_amount
+
+			$km_charge = $this->calculateKMCharge($response['asp_service_price'], $total_km);
+			$payout_amount = $km_charge + $not_collected - $collected;
+
+			$cc_km_charge = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $this->id,
+				'key_id' => 150,
+			]);
+			$cc_km_charge->value = $km_charge;
+			$cc_km_charge->save();
+
+			$cc_po_amount = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $this->id,
+				'key_id' => 170,
+			]);
+			$cc_po_amount->value = $payout_amount;
+			$cc_po_amount->save();
+			return [
+				'success' => true,
+			];
+
+		}
+
+	}
+
+	private function calculateKMCharge($price, $km) {
+		if ($this->financeStatus->po_eligibility_type_id == 341) {
+			// Empty Return Payout
+			$below_range_price = $km == 0 ? 0 : $price->empty_return_range_price;
+		} else {
+			$below_range_price = $km == 0 ? 0 : $price->below_range_price;
+		}
+
+		$above_range_price = ($km > $price->range_limit) ? ($km - $price->range_limit) * $price->above_range_price : 0;
+		$km_charge = $below_range_price + $above_range_price;
+
+		if ($price->adjustment_type == 1) {
+			//'Percentage'
+			$adjustment = ($km_charge * $price->adjustment) / 100;
+			$km_charge = $km_charge + $adjustment;
+		} else {
+			$adjustment = $price->adjustment;
+			$km_charge = $km_charge + $adjustment;
+		}
+		return $km_charge;
 	}
 
 }

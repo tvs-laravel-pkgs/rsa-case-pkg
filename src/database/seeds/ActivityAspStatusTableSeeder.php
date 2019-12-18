@@ -17,19 +17,19 @@ class ActivityAspStatusTableSeeder extends Seeder {
 				'company_id' => 1,
 			],
 			2 => [
-				'name' => 'Activity Ended',
-				'company_id' => 1,
-			],
-			3 => [
 				'name' => 'Activity Started',
 				'company_id' => 1,
 			],
+			3 => [
+				'name' => 'Started To BD',
+				'company_id' => 1,
+			],
 			4 => [
-				'name' => 'Cancel',
+				'name' => 'Reached BD',
 				'company_id' => 1,
 			],
 			5 => [
-				'name' => 'Reached BD',
+				'name' => 'Started To Dealer',
 				'company_id' => 1,
 			],
 			6 => [
@@ -37,27 +37,27 @@ class ActivityAspStatusTableSeeder extends Seeder {
 				'company_id' => 1,
 			],
 			7 => [
-				'name' => 'Reached Garage',
+				'name' => 'Started To Garage',
 				'company_id' => 1,
 			],
 			8 => [
-				'name' => 'Rejected',
+				'name' => 'Reached Garage',
 				'company_id' => 1,
 			],
 			9 => [
-				'name' => 'Returned Empty',
+				'name' => 'Activity Ended',
 				'company_id' => 1,
 			],
 			10 => [
-				'name' => 'Started To BD',
+				'name' => 'Cancel',
 				'company_id' => 1,
 			],
 			11 => [
-				'name' => 'Started To Dealer',
+				'name' => 'Rejected',
 				'company_id' => 1,
 			],
 			12 => [
-				'name' => 'Started To Garage',
+				'name' => 'Returned Empty',
 				'company_id' => 1,
 			],
 		];

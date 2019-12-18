@@ -1,6 +1,6 @@
 app.component('activityVerificationList', {
     templateUrl: activity_verification_list_template_url,
-    controller: function($http, $location, $window, HelperService, $scope, $routeParams, $rootScope, $location) {
+    controller: function($http, $window, HelperService, $scope, $rootScope, $route) {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;

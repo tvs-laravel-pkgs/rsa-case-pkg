@@ -53,12 +53,6 @@
                                                 <input type="hidden" name="service_type_id" value="{{$ctrl.service_type_id}}" id="service_type_id">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.asp_status_id" ng-change="changeCommonFilter()">
-                                                    <md-option ng-repeat="val in $ctrl.extras.asp_status_list" value="{{val.id}}">{{val.name}}</md-option>
-                                                </md-select>
-                                                <input type="hidden" name="asp_status_id" value="{{$ctrl.asp_status_id}}" id="asp_status_id">
-                                            </div>
-                                            <div class="form-group">
                                                 <md-select ng-model="$ctrl.status_id" ng-change="changeCommonFilter()">
                                                     <md-option ng-repeat="val in $ctrl.extras.status_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
@@ -99,7 +93,7 @@
                             <th>Case Number</th>
                             <th>ASP Code</th>
                             <th>Service</th>
-                            <th>ASP Status</th>
+                            <!-- <th>ASP Status</th> -->
                             <th>Status</th>
                             <th>Activity Status</th>
                             <th>Client</th>

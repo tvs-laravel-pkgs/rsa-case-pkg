@@ -16,7 +16,7 @@ app.component('activityStatusList', {
                 { data: 'number', name: 'cases.number', searchable: true },
                 { data: 'asp_code', name: 'asps.asp_code', searchable: true },
                 { data: 'sub_service', name: 'service_types.name', searchable: true },
-                { data: 'asp_status', name: 'activity_asp_statuses.name', searchable: true },
+                // { data: 'asp_status', name: 'activity_asp_statuses.name', searchable: true },
                 { data: 'status', name: 'activity_portal_statuses.name', searchable: true },
                 { data: 'activity_status', name: 'activity_statuses.name', searchable: true },
                 { data: 'client', name: 'clients.name', searchable: true },

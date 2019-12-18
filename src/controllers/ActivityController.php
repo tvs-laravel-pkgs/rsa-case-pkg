@@ -2,7 +2,6 @@
 
 namespace Abs\RsaCasePkg;
 use Abs\RsaCasePkg\Activity;
-use Abs\RsaCasePkg\ActivityAspStatus;
 use Abs\RsaCasePkg\ActivityPortalStatus;
 use Abs\RsaCasePkg\ActivityStatus;
 use App\CallCenter;
@@ -21,7 +20,7 @@ class ActivityController extends Controller {
 		$this->data['extras'] = [
 			'call_center_list' => collect(CallCenter::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Call Center']),
 			'sub_service_list' => collect(ServiceType::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Sub Service']),
-			'asp_status_list' => collect(ActivityAspStatus::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select ASP Status']),
+			// 'asp_status_list' => collect(ActivityAspStatus::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select ASP Status']),
 			'status_list' => collect(ActivityPortalStatus::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Status']),
 			'activity_status_list' => collect(ActivityStatus::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Activity Status']),
 			'client_list' => collect(Client::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Client']),
@@ -36,7 +35,7 @@ class ActivityController extends Controller {
 			'cases.number',
 			'asps.asp_code',
 			'service_types.name as sub_service',
-			'activity_asp_statuses.name as asp_status',
+			// 'activity_asp_statuses.name as asp_status',
 			'activity_portal_statuses.name as status',
 			'activity_statuses.name as activity_status',
 			'clients.name as client',
@@ -48,7 +47,7 @@ class ActivityController extends Controller {
 			->leftjoin('clients', 'clients.id', 'cases.client_id')
 			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
-			->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
+		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 			->orderBy('cases.date', 'DESC')
@@ -70,9 +69,9 @@ class ActivityController extends Controller {
 		if ($request->get('service_type_id')) {
 			$activities->where('activities.service_type_id', $request->get('service_type_id'));
 		}
-		if ($request->get('asp_status_id')) {
-			$activities->where('activities.status_id', $request->get('asp_status_id'));
-		}
+		// if ($request->get('asp_status_id')) {
+		// 	$activities->where('activities.status_id', $request->get('asp_status_id'));
+		// }
 		if ($request->get('status_id')) {
 			$activities->where('activities.status_id', $request->get('status_id'));
 		}
@@ -121,7 +120,7 @@ class ActivityController extends Controller {
 			'cases.number',
 			'asps.asp_code',
 			'service_types.name as sub_service',
-			'activity_asp_statuses.name as asp_status',
+			// 'activity_asp_statuses.name as asp_status',
 			'activity_portal_statuses.name as status',
 			'activity_statuses.name as activity_status',
 			'clients.name as client',
@@ -133,7 +132,7 @@ class ActivityController extends Controller {
 			->leftjoin('clients', 'clients.id', 'cases.client_id')
 			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
-			->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
+		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 			->where('activities.asp_po_accepted', 0)

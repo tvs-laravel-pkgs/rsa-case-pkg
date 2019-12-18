@@ -142,3 +142,26 @@ app.component('activityStatusDelete', {
         });
     }
 });
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+
+app.component('activityStatusView', {
+    templateUrl: activity_status_view_template_url,
+    controller: function($http, $location, $window, HelperService, $scope, $routeParams, $rootScope, $location) {
+        $scope.loading = true;
+        var self = this;
+        self.hasPermission = HelperService.hasPermission;
+        self.filter_img_url = filter_img_url;
+        console.log($routeParams.id);
+        console.log(activity_status_view_data_url);
+        get_view_data_url = typeof($routeParams.id) == 'undefined' ? activity_status_view_data_url : activity_status_view_data_url + '/' + $routeParams.id;
+        $http.get(
+            get_view_data_url 
+        ).then(function(response) {
+            console.log(response);
+            self.data = response.data.data.activities;
+            console.log(self.data);
+            $rootScope.loading = false;
+        });
+    }
+});

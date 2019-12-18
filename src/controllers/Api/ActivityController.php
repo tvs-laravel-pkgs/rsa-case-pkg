@@ -104,7 +104,7 @@ class ActivityController extends Controller {
 
 			$asp = Asp::where('asp_code', $request->asp_code)->first();
 			$service_type = ServiceType::where('name', $request->sub_service)->first();
-			$asp_status = ActivityAspStatus::where('name', $request->asp_activity_status_id)->where('company_id', 1)->first();
+			$asp_status = ActivityAspStatus::where('name', $request->asp_activity_status)->where('company_id', 1)->first();
 			if (!$asp_status) {
 				$asp_activity_status_id = NULL;
 			} else {

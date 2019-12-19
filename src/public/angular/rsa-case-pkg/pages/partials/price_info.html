@@ -1,0 +1,44 @@
+<h3 class="mt-30 mb-20">Price Info</h3>
+<div class="table-responsive">
+<table class="table  table-bordered table-wide style-normal">
+    <thead>
+        <tr class="warning">
+            <th>Below {{ $prices['asp_service_price']->range_limit }}</th>
+            <th>Above {{ $prices['asp_service_price']->range_limit }} (for every KM)</th>
+            <th>Waiting Charge</th>
+            <th>Empty Return Charge</th>
+            <th>Adjustment Type</th>
+            <th>Adjustment</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr class="active"> 
+            <th>
+                {{$prices['asp_service_price']->below_range_price}}
+                <input class="form-control viewData-input below_40 hide_temp" disabled="disabled" type="text" value="{{$prices['asp_service_price']->below_range_price}}">
+                <input class="form-control viewData-input limit hide_temp" disabled="disabled" type="text" value="{{$prices['asp_service_price']->range_limit}}">
+            </th>
+            <td>
+                {{$prices['asp_service_price']->above_range_price}}
+                <input class="form-control viewData-input  above_40 hide_temp" disabled="disabled" type="text" value="{{$prices['asp_service_price']->above_range_price}}">
+            </td>
+            <td>
+                {{$prices['asp_service_price']->waiting_charge_per_hour}}
+                <input class="form-control viewData-input waiting_charge hide_temp" disabled="disabled" type="text" value="{{$prices['asp_service_price']->waiting_charge_per_hour}}">
+            </td>
+            <td>
+                {{$prices['asp_service_price']->empty_return_range_price }}
+                <input class="form-control viewData-input mt_return_price hide_temp" disabled="disabled" type="text" value="{{$prices['asp_service_price']->empty_return_range_price}}">
+            </td>
+            <td>
+                {{$prices['asp_service_price']->adjustment_type == 1 ? 'Percentage' : 'Amount'}}
+                <input class="form-control viewData-input adjustment_type hide_temp" disabled="disabled" type="text" value="{{$prices['asp_service_price']->adjustment_type == 1 ? 'Percentage' : 'Amount'}}">
+            </td>
+            <td>
+                {{$prices['asp_service_price']->adjustment}}
+                <input class="form-control viewData-input adjustment hide_temp" disabled="disabled" type="text" value="{{ $prices['asp_service_price']->adjustment }}">
+            </td>
+        </tr>
+    </tbody>
+</table>
+</div>

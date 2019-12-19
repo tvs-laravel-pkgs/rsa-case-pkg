@@ -160,6 +160,7 @@ app.component('activityStatusView', {
         ).then(function(response) {
             console.log(response);
             self.data = response.data.data.activities;
+            
             console.log(self.data);
             $rootScope.loading = false;
         });

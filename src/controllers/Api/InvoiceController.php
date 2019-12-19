@@ -125,23 +125,44 @@ class InvoiceController extends Controller {
 		try {
 			$validator = Validator::make($request->all(), [
 				'asp_code' => 'required|string|exists:asps,asp_code',
-				'invoice_no' => 'required|string|exists:Invoices,invoice_no',
+				'invoice_no' => 'required|string',
 			]);
 
 			if ($validator->fails()) {
-				return response()->json(['success' => false, 'message' => 'Validation Error', 'errors' => $validator->errors()->all()], $this->successStatus);
+				return response()->json([
+					'success' => false,
+					'message' => 'Validation Error',
+					'errors' => $validator->errors()->all(),
+				], $this->successStatus);
+			}
+
+			$invoice = Invoices::whereRaw("CONCAT(invoice_no,'-',id) like ?", ["%$request->invoice_no%"])->first();
+
+			if (!$invoice) {
+				return response()->json([
+					'success' => false,
+					'message' => 'Validation Error',
+					'errors' => [
+						'Selected invoice no is invalid',
+					],
+				], $this->successStatus);
+
 			}
 
 			//GET ASP
 			$asp = Asp::where('asp_code', $request->asp_code)->first();
 
 			//GET INVOICE DETAIL
-			$invoices = Invoices::with('asp')
-				->where('invoice_no', $request->invoice_no)
+			$invoices = Invoices::select(
+				'Invoices.*',
+				DB::raw("CONCAT(invoice_no,'-',id) as invoice_no")
+			)
+				->whereRaw("CONCAT(invoice_no,'-',id) like ?", ["%$request->invoice_no%"])
 				->where('asp_id', $asp->id)
-				->where('Invoices.flow_current_status', 'Waiting for Batch Generation')
+				->where('flow_current_status', 'Waiting for Batch Generation')
 				->first();
 
+			$invoices->asp = $asp;
 			DB::commit();
 			return response()->json(['success' => true, 'invoices' => $invoices], $this->successStatus);
 		} catch (\Exception $e) {

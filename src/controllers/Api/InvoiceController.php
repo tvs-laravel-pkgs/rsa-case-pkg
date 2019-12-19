@@ -96,20 +96,20 @@ class InvoiceController extends Controller {
 
 			$invoices = Invoices::
 				select(
-				'invoices.id',
-				DB::raw("CONCAT(invoices.invoice_no,'-',invoices.id) as invoice_no"),
-				DB::raw("date_format(invoices.created_at,'%d-%m-%Y') as invoice_date"),
+				'Invoices.id',
+				DB::raw("CONCAT(Invoices.invoice_no,'-',Invoices.id) as invoice_no"),
+				DB::raw("date_format(Invoices.created_at,'%d-%m-%Y') as invoice_date"),
 				DB::raw("COUNT(activities.id) as no_of_tickets"),
 				// DB::raw("ROUND(SUM(activities.bo_invoice_amount),2) as invoice_amount"),
-				DB::raw("ROUND(invoices.invoice_amount,2) as invoice_amount"),
+				DB::raw("ROUND(Invoices.invoice_amount,2) as invoice_amount"),
 				'asps.workshop_name as workshop_name',
 				'asps.asp_code as asp_code'
 			)
 				->where('activities.asp_id', '=', $asp->id)
-				->where('invoices.flow_current_status', 'Waiting for Batch Generation')
-				->join('asps', 'invoices.asp_id', '=', 'asps.id')
-				->join('activities', 'invoices.id', '=', 'activities.invoice_id')
-				->groupBy('invoices.id')
+				->where('Invoices.flow_current_status', 'Waiting for Batch Generation')
+				->join('asps', 'Invoices.asp_id', '=', 'asps.id')
+				->join('activities', 'Invoices.id', '=', 'activities.invoice_id')
+				->groupBy('Invoices.id')
 				->get();
 
 			DB::commit();
@@ -139,7 +139,7 @@ class InvoiceController extends Controller {
 			$invoices = Invoices::with('asp')
 				->where('invoice_no', $request->invoice_no)
 				->where('asp_id', $asp->id)
-				->where('invoices.flow_current_status', 'Waiting for Batch Generation')
+				->where('Invoices.flow_current_status', 'Waiting for Batch Generation')
 				->first();
 
 			DB::commit();

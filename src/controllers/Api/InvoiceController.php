@@ -96,7 +96,7 @@ class InvoiceController extends Controller {
 
 			$invoices = Invoices::
 				select(
-				'invoices.id as id',
+				'invoices.id',
 				DB::raw("CONCAT(invoices.invoice_no,'-',invoices.id) as invoice_no"),
 				DB::raw("date_format(invoices.created_at,'%d-%m-%Y') as invoice_date"),
 				DB::raw("COUNT(activities.id) as no_of_tickets"),

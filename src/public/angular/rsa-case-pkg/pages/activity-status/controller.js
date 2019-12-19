@@ -16,6 +16,7 @@ app.component('activityStatusList', {
                 { data: 'number', name: 'cases.number', searchable: true },
                 { data: 'asp_code', name: 'asps.asp_code', searchable: true },
                 { data: 'sub_service', name: 'service_types.name', searchable: true },
+                { data: 'finance_status', name: 'activity_finance_statuses.name', searchable: true },
                 // { data: 'asp_status', name: 'activity_asp_statuses.name', searchable: true },
                 { data: 'status', name: 'activity_portal_statuses.name', searchable: true },
                 { data: 'activity_status', name: 'activity_statuses.name', searchable: true },
@@ -156,7 +157,7 @@ app.component('activityStatusView', {
         console.log(activity_status_view_data_url);
         get_view_data_url = typeof($routeParams.id) == 'undefined' ? activity_status_view_data_url : activity_status_view_data_url + '/' + $routeParams.id;
         $http.get(
-            get_view_data_url 
+            get_view_data_url
         ).then(function(response) {
             console.log(response);
             self.data = response.data.data.activities;

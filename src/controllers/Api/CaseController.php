@@ -42,11 +42,11 @@ class CaseController extends Controller {
 				//Customer Name
 				'customer_name' => 'required|string|max:128',
 				//Customer Phone Number
-				'customer_contact_number' => 'required|string|max:10',
+				'customer_contact_number' => 'required|string|min:10|max:10',
 				//Case Contact Name
 				'contact_name' => 'nullable|string|max:128',
 				//Case Contact Number
-				'contact_number' => 'nullable|string|max:10',
+				'contact_number' => 'nullable|string|min:10|max:10',
 				//Vehicle Make
 				'vehicle_make' => 'required|string|max:191|exists:vehicle_makes,name',
 				//Vehicle Model
@@ -54,7 +54,7 @@ class CaseController extends Controller {
 				//Vehicle Registration Number
 				'vehicle_registration_number' => 'required|string|max:191',
 				//VIN
-				'vin_no' => 'nullable|string|max:191',
+				'vin_no' => 'nullable|string|min:17|max:24',
 				//Membership Type
 				'membership_type' => 'required|string|max:255|exists:membership_types,name',
 				//Membership Number

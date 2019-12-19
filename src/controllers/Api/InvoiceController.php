@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Invoices;
 use DB;
 use Illuminate\Http\Request;
+use URL;
 use Validator;
 
 class InvoiceController extends Controller {
@@ -111,6 +112,12 @@ class InvoiceController extends Controller {
 				->join('activities', 'Invoices.id', '=', 'activities.invoice_id')
 				->groupBy('Invoices.id')
 				->get();
+
+			if (count($invoices) > 0) {
+				foreach ($invoices as $key => $invoice) {
+					$invoice->pdf_view_url = URL::asset('storage/app/public/invoices/' . $invoice->id . '.pdf');
+				}
+			}
 
 			DB::commit();
 			return response()->json(['success' => true, 'invoices' => $invoices], $this->successStatus);

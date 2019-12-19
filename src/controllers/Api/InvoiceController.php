@@ -27,6 +27,20 @@ class InvoiceController extends Controller {
 				], $this->successStatus);
 			}
 
+			//CHECK IF INVOICE ALREADY CREATED FOR ACTIVITY
+			$activities = Activity::select('invoice_id', 'crm_activity_id')->whereIn('crm_activity_id', $request->activity_id)->get();
+			if (!empty($activities)) {
+				foreach ($activities as $key => $activity) {
+					if (!empty($activity->invoice_id)) {
+						return response()->json([
+							'success' => false,
+							'message' => 'Validation Error',
+							'errors' => 'Invoice already created for activity ID ' . $activity->crm_activity_id,
+						], $this->successStatus);
+					}
+				}
+			}
+
 			//CHECK ACTIVITY IS ACCEPTED OR NOT
 			$activities_with_accepted = Activity::select('crm_activity_id', 'status_id')->whereIn('crm_activity_id', $request->activity_id)->get();
 			if (!empty($activities_with_accepted)) {
@@ -41,19 +55,6 @@ class InvoiceController extends Controller {
 				}
 			}
 
-			//CHECK IF INVOICE ALREADY CREATED FOR ACTIVITY
-			$activities = Activity::select('invoice_id', 'crm_activity_id')->whereIn('crm_activity_id', $request->activity_id)->get();
-			if (!empty($activities)) {
-				foreach ($activities as $key => $activity) {
-					if (!empty($activity->invoice_id)) {
-						return response()->json([
-							'success' => false,
-							'message' => 'Validation Error',
-							'errors' => 'Invoice already created for activity ID ' . $activity->crm_activity_id,
-						], $this->successStatus);
-					}
-				}
-			}
 			//GET ASP
 			$asp = ASP::where('asp_code', $request->asp_code)->first();
 

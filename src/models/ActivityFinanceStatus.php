@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ActivityFinanceStatus extends Model {
 	use SeederTrait;
-
 	use SoftDeletes;
 	protected $table = 'activity_finance_statuses';
 	protected $fillable = [

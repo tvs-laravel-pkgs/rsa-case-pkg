@@ -8,19 +8,19 @@
 									<span class="viewData-toggle--btn pull-right"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
 									<div class="clearfix"></div>
 									<ul>
-										<li>ASP Code : <span>{{$ctrl.data.asp_code}}</span></li>
+										<li>ASP Code : <span>{{$ctrl.data.asp.asp_code}}</span></li>
 										<!-- @if(isset($mis_info)) -->
 											<li>ASP Type : 
-												<span ng-show="$ctrl.data.is_self">'Self'</span>
-												<span ng-show="!($ctrl.data.is_self)">'Non Self'</span>
+												<span ng-show="$ctrl.data.asp.is_self">'Self'</span>
+												<span ng-show="!($ctrl.data.asp.is_self)">'Non Self'</span>
 											</li>
 											<li>ASP has GST : 
-												<span ng-show="$ctrl.data.has_gst">'Self'</span>
-												<span ng-show="!($ctrl.data.has_gst)">'Non Self'</span>
+												<span ng-show="$ctrl.data.asp.has_gst">'Self'</span>
+												<span ng-show="!($ctrl.data.asp.has_gst)">'Non Self'</span>
 											</li>
-											<li ng-show="$ctrl.data.has_gst && $ctrl.data.is_self" >Auto Invoice : 
-												<span ng-show="$ctrl.data.is_auto_invoice">'Self'</span>
-												<span ng-show="!($ctrl.data.is_auto_invoice)">'Non Self'</span>
+											<li ng-show="$ctrl.data.asp.has_gst && $ctrl.data.asp.is_self" >Auto Invoice : 
+												<span ng-show="$ctrl.data.asp.is_auto_invoice">'Self'</span>
+												<span ng-show="!($ctrl.data.asp.is_auto_invoice)">'Non Self'</span>
 											</li>
 										<!-- @else
 											<li>ASP Type : 

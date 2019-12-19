@@ -58,52 +58,43 @@
 				        	<!-- @else -->
 					            <service-details data="$ctrl.data"></service-details>
 				        	<!-- @endif -->
+							<?php $prices = getKMPrices($service, $asp);?>
+	               			 <price-info data="$ctrl.data"></price-info>
 
-
-
-
-				        	</div><!-- tab-pane -->
-        
-    </div><!-- tab-content -->
-
-    <!-- Tab panes -->
-    <!-- 
-
-
-			<div class="pricing-table-data">
-        	@if(!empty($approved_view))
-	                <price-comparison data="$ctrl.data"></price-comparison>
-        	@else
-	                <service-details data="$ctrl.data"></service-details>
-        	@endif
-
-			<?php $prices = getKMPrices($service, $asp);?>
-	                <price-info data="$ctrl.data"></price-info>
-
-        	@include('partials.price_info',[$prices])
-
-			@if($mis_info->is_self && isset($info['asp']))
-				<?php $attachments = [];?>
-				@foreach($info['asp'] as $field_name => $value)
-					@if(strpos($field_name,'attachment') AND !empty($value))
-						<?php $attachments[] = [
-	'file_name' => $value,
-	'display_name' => ucfirst(str_replace('_', ' ', $field_name)),
-	'url' => aspTicketAttachmentImage($value, $mis_info->id, $asp->id, $service->id),
-];?>
-					@endif
-      			@endforeach
-				@include('partials.attachments',['attachment_title' => 'ASP Attachments', 'attachments' => $attachments])
-			@endif
-			@if(!empty($approved_view))
+<!-- @if(!empty($approved_view)) -->
 			
 	                <service-total-summary-view data="$ctrl.data"></service-total-summary-view>
 
-			@else
+			<!-- @else
 	                <service-total-summary data="$ctrl.data"></service-total-summary>
 
-			@endif
+			@endif -->
 
-			</div><!-- pricing-table-data -->
+				        	</div><!-- tab-pane -->
+				        	<!-- @if(!empty($approved_view)) -->
+	                <ticket-total-summary-view data="$ctrl.data"></ticket-total-summary-view>
+			<!-- @else -->
+	               <!--  <ticket-total-summary data="$ctrl.data"></ticket-total-summary> -->
+
+			<!-- @endif -->
+
+	                <activity-details data="$ctrl.data"></activity-details>
+	                <location-details data="$ctrl.data"></location-details>
+	                <km-details data="$ctrl.data"></km-details>
+	                <invoice-details data="$ctrl.data"></invoice-details>
+	                <financial-details data="$ctrl.data"></financial-details>
+	                <case-details data="$ctrl.data"></case-details>
+        
+    </div><!-- tab-content -->
+</div><!-- pricing-table-data -->
+    <?php echo Form::close(); ?>
+        
+
+
+
+
+			
+
+			
         
    

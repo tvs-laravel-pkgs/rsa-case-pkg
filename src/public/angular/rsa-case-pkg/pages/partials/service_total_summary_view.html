@@ -10,22 +10,22 @@
 		<tr>
 			<td>Payout (+)</td>
 			<td>
-				<div>{{number_format($mis_info->payout_amount,2)}}</div>
+				<div>{{$ctrl.data.payout}}</div>
 			</td>
 		</tr>
 		<tr>
 			<td>Charges Not Collected From Customer (+) </td>
 			<td>
-				<div>{{number_format($mis_info->bo_other_charges,2)}}</div>
+				<div>{{$ctrl.data.cc_not_collected_amount}}</div>
 			</td>
 		</tr>
 		<tr>
 			<td>Charges Collected From Customer (-)</td>
 			<td>
-				<div>{{number_format($mis_info->bo_collected_charges,2)}}</div>
+				<div>{{$ctrl.data.cc_colleced_amount}}</div>
 			</td>
 		</tr>
-		<tr>
+		<!-- <tr>
 			<td>Tax Calculation Method</td>
 			<td>
 				<div class="">
@@ -40,8 +40,8 @@
 			<td>
 				<div>{{number_format($mis_info->deduction,2)}}</div>
 			</td>
-		</tr>
-		<tr>
+		</tr> -->
+		<!-- <tr>
 			<td>Deduction Reason</td>
 			<td colspan="2">
 				{{ Form::textarea('bo_info['.$index.'][cancelled_reason]',$mis_info->cancelled_reason,['class' => 'form-control',  "placeholder" => "Enter comments", 'readonly' => 'readonly']) }}
@@ -52,7 +52,7 @@
 			<td colspan="2">
 				{{ Form::textarea('bo_info['.$index.'][comments]',$mis_info->Comments,['class' => 'form-control',  "placeholder" => "Enter comments", 'readonly' => 'readonly']) }}
 			</td>
-		</tr>
+		</tr> -->
 
 	</tbody>
 </table>

@@ -8,6 +8,7 @@ use Abs\RsaCasePkg\ActivityDetail;
 use App\CallCenter;
 use App\Client;
 use App\Config;
+use App\AspServiceType;
 use App\Http\Controllers\Controller;
 use App\ServiceType;
 use App\StateUser;
@@ -161,26 +162,47 @@ class ActivityController extends Controller {
 
 	public function viewActivityStatus($activity_status_id) {
 		$activity_status_id = 1;
-		$this->data['activities'] = $activity = Activity::select(
+		$this->data['activities'] = $activity = Activity::with([
+			'asp',
+			'serviceType',
+			'case',
+			'case.callcenter',
+			'finance',
+
+		])->select(
 			'activities.id',
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			'cases.number',
+			'activities.asp_po_accepted as asp_po_accepted',
 			'cases.vehicle_registration_number',
 			'case_statuses.name as case_status',
 			'vehicle_models.name as vehicle_model',
 			'vehicle_makes.name as vehicle_make',
 			'asps.asp_code',
-			'asps.name',
+			'activities.asp_id as asp_id',
+			'activities.service_type_id as service_type_id',
+			//'asps.name',
 			'service_types.name as service',
 			'activity_finance_statuses.name as asp_status',
+			'asp_activity_rejected_reasons.name as asp_activity_rejected_reason',
 			//'activity_asp_statuses.name as asp_status',
 			//'activity_portal_statuses.name as status',
 			'activity_statuses.name as activity_status',
 			'clients.name as client',
-			'call_centers.name as call_center'
+			'call_centers.name as call_center',
+			'asp_po_rejected_reason',
+			'activities.description as description',
+			'activities.remarks as remarks',
+			'cases.*',
+			'invoices.invoice_no as invoice_no',
+			'invoices.invoice_amount as invoice_amount',
+			'invoices.flow_current_status as flow_current_status',
+			DB::raw('DATE_FORMAT(invoices.start_date,"%d-%m-%Y %H:%i:%s") as invoice_date'),
+
 		)
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
+			->leftjoin('invoices', 'activities.invoice_id', 'invoices.id')
 			->leftjoin('users', 'users.id', 'asps.user_id')
 			->leftjoin('cases', 'cases.id', 'activities.case_id')
 			->leftjoin('case_statuses', 'case_statuses.id', 'cases.status_id')
@@ -189,6 +211,7 @@ class ActivityController extends Controller {
 			->leftjoin('clients', 'clients.id', 'cases.client_id')
 			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
+			->leftjoin('asp_activity_rejected_reasons', 'asp_activity_rejected_reasons.id', 'activities.asp_activity_rejected_reason_id')
 		//->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
 		//->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
@@ -200,11 +223,51 @@ class ActivityController extends Controller {
 				//$key_name = str_replace(" ","_",$keyw);
 				$var_key = Config::where('name',$keyw)->first();
 				$var_key_val = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',$var_key->id)->first();
-				$this->data['activities'][$keyw] = $var_key_val->value;
+				$this->data['activities'][$keyw] = preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($var_key_val->value,2)));
 			}
+			$this->data['activities']['asp_service_type_data'] = AspServiceType::where('asp_id',$activity->asp_id)->where('service_type_id',$activity->service_type_id)->first();
+			 $payout_value = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',170)->first();
+			 $this->data['activities']['payout']=preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($payout_value->value,2)));
+			 $amount = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',298)->first();
+			 $this->data['activities']['amount']=preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($amount->value,2)));
+			 $paid_to = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',299)->first();
+			 $this->data['activities']['paid_to']=$paid_to->value;
+			 $payment_mode = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',300)->first();
+			 $this->data['activities']['payment_mode']=$payment_mode->value;
+			 $drop_location_lat = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',296)->first();
+			 $this->data['activities']['drop_location_lat']=$drop_location_lat->value;
+			 $drop_location_long = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',297)->first();
+			 $this->data['activities']['drop_location_long']=$drop_location_long->value;
+				$asp_start_location = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',284)->first();
+			 $this->data['activities']['asp_start_location']=$asp_start_location->value;
+			 $asp_end_location = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',285)->first();
+			 $this->data['activities']['asp_end_location']=$asp_end_location->value;
+			 $asp_reached_date = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',283)->first();
+			 $this->data['activities']['asp_reached_date']=$asp_reached_date->value;
+			 $asp_bd_google_km = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',286)->first();
+			 $this->data['activities']['asp_bd_google_km']=$asp_bd_google_km->value;
+			 $bd_dealer_google_km = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',287)->first();
+			 $this->data['activities']['bd_dealer_google_km']=$bd_dealer_google_km->value;
+			 $asp_bd_return_empty_km = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',289)->first();
+			 $this->data['activities']['asp_bd_return_empty_km']=$asp_bd_return_empty_km->value;
+			 $return_google_km = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',288)->first();
+			 $this->data['activities']['return_google_km']=$return_google_km->value;
+			 $return_km = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',291)->first();
+			 $this->data['activities']['return_km']=$return_km->value;
+			 $cc_total_km = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',280)->first();
+			 $this->data['activities']['cc_total_km']=$cc_total_km->value;
+			 $eatable_items_charges = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',304)->first();
+			 $this->data['activities']['eatable_items_charges']=$eatable_items_charges->value;
+			 $membership_charges = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',303)->first();
+			 $this->data['activities']['membership_charges']=$membership_charges->value;
+			 $service_charges = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',302)->first();
+			 $this->data['activities']['service_charges']=$service_charges->value;
 			//$this->data['finance_status'] = $activity->financeStatus;
 			//$this->data['finance_status'] = $activity->financeStatus;
 		//dd($this->data);
+			 $act = Activity::find(1);
+		//dd($this->data);
+		//dd($act->case);
 		if (!$activity) {
 			return response()->json(['success' => false, 'data' => "Activity not Found!!!"]);
 		}

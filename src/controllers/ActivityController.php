@@ -20,7 +20,6 @@ class ActivityController extends Controller {
 		$this->data['extras'] = [
 			'call_center_list' => collect(CallCenter::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Call Center']),
 			'sub_service_list' => collect(ServiceType::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Sub Service']),
-			// 'asp_status_list' => collect(ActivityAspStatus::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select ASP Status']),
 			'status_list' => collect(ActivityPortalStatus::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Status']),
 			'activity_status_list' => collect(ActivityStatus::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Activity Status']),
 			'client_list' => collect(Client::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Client']),
@@ -158,10 +157,9 @@ class ActivityController extends Controller {
 			->make(true);
 	}
 
-
 	public function viewActivityStatus($activity_status_id) {
-		$activity_status_id =1;
-		$this->data['activities'] =$activities =  Activity::select(
+		$activity_status_id = 1;
+		$this->data['activities'] = $activities = Activity::select(
 			'activities.id',
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			'cases.number',
@@ -170,64 +168,64 @@ class ActivityController extends Controller {
 			//'activity_asp_statuses.name as asp_status',
 			//'activity_portal_statuses.name as status',
 			'activity_statuses.name as activity_status',
-			'clients.name as client',
+			'clients.name as client'
 			//'call_centers.name as call_center'
 		)
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('users', 'users.id', 'asps.user_id')
 			->leftjoin('cases', 'cases.id', 'activities.case_id')
 			->leftjoin('clients', 'clients.id', 'cases.client_id')
-			//->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
+		//->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
-			//->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
-			//->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+		//->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
+		//->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 			->groupBy('activities.id')
-			->where('activities.id',$activity_status_id)
+			->where('activities.id', $activity_status_id)
 			->first();
-		;
-		//dd($this->data['activities']);
-		if(!$activities){
-			return response()->json(['success' => false,'data' => "Activity not Found!!!"]);
-		}
-		return response()->json(['success' => true,'data' => $this->data]);
-		/*if ($request->get('ticket_date')) {
-			$activities->whereRaw('DATE_FORMAT(cases.date,"%d-%m-%Y") =  "' . $request->get('ticket_date') . '"');
-		}
-		if ($request->get('call_center_id')) {
-			$activities->where('cases.call_center_id', $request->get('call_center_id'));
-		}
-		if ($request->get('case_number')) {
-			$activities->where('cases.number', 'LIKE', '%' . $request->get('case_number') . '%');
-		}
-		if ($request->get('asp_code')) {
-			$activities->where('asps.asp_code', 'LIKE', '%' . $request->get('asp_code') . '%');
-		}
-		if ($request->get('service_type_id')) {
-			$activities->where('activities.service_type_id', $request->get('service_type_id'));
-		}
-		if ($request->get('asp_status_id')) {
-			$activities->where('activities.status_id', $request->get('asp_status_id'));
-		}
-		if ($request->get('status_id')) {
-			$activities->where('activities.status_id', $request->get('status_id'));
-		}
-		if ($request->get('activity_status_id')) {
-			$activities->where('activities.activity_status_id', $request->get('activity_status_id'));
-		}
-		if ($request->get('client_id')) {
-			$activities->where('cases.client_id', $request->get('client_id'));
-		}
 
-		if (!Entrust::can('view-all-activities')) {
-			if (Entrust::can('view-mapped-state-activities')) {
-				$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
-				$activities->whereIn('asps.state_id', $states);
+		//dd($this->data['activities']);
+		if (!$activities) {
+			return response()->json(['success' => false, 'data' => "Activity not Found!!!"]);
+		}
+		return response()->json(['success' => true, 'data' => $this->data]);
+		/*if ($request->get('ticket_date')) {
+				$activities->whereRaw('DATE_FORMAT(cases.date,"%d-%m-%Y") =  "' . $request->get('ticket_date') . '"');
 			}
-			if (Entrust::can('view-own-activities')) {
-				$activities->where('users.id', Auth::id());
+			if ($request->get('call_center_id')) {
+				$activities->where('cases.call_center_id', $request->get('call_center_id'));
 			}
-		}*/
+			if ($request->get('case_number')) {
+				$activities->where('cases.number', 'LIKE', '%' . $request->get('case_number') . '%');
+			}
+			if ($request->get('asp_code')) {
+				$activities->where('asps.asp_code', 'LIKE', '%' . $request->get('asp_code') . '%');
+			}
+			if ($request->get('service_type_id')) {
+				$activities->where('activities.service_type_id', $request->get('service_type_id'));
+			}
+			if ($request->get('asp_status_id')) {
+				$activities->where('activities.status_id', $request->get('asp_status_id'));
+			}
+			if ($request->get('status_id')) {
+				$activities->where('activities.status_id', $request->get('status_id'));
+			}
+			if ($request->get('activity_status_id')) {
+				$activities->where('activities.activity_status_id', $request->get('activity_status_id'));
+			}
+			if ($request->get('client_id')) {
+				$activities->where('cases.client_id', $request->get('client_id'));
+			}
+
+			if (!Entrust::can('view-all-activities')) {
+				if (Entrust::can('view-mapped-state-activities')) {
+					$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
+					$activities->whereIn('asps.state_id', $states);
+				}
+				if (Entrust::can('view-own-activities')) {
+					$activities->where('users.id', Auth::id());
+				}
+		*/
 	}
 
 }

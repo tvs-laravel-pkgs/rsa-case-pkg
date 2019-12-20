@@ -211,7 +211,7 @@ class ActivityController extends Controller {
 			'serviceType',
 			'case',
 			'case.callcenter',
-			'finance',
+			'financeStatus',
 		])->select(
 			'activities.id',
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),

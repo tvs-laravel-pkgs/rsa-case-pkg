@@ -91,7 +91,7 @@ app.component('invoiceList', {
     }
 });
 
-app.component('activityStatusView', {
+app.component('activityStatusView1', {
     templateUrl: activity_status_view_template_url,
     controller: function($http, $location, $window, HelperService, $scope, $routeParams, $rootScope, $location) {
         $scope.loading = true;

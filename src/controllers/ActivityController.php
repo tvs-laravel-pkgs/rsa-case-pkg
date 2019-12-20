@@ -254,7 +254,6 @@ class ActivityController extends Controller {
 			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
 			->leftjoin('asp_activity_rejected_reasons', 'asp_activity_rejected_reasons.id', 'activities.asp_activity_rejected_reason_id')
-			//->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 			->groupBy('activities.id')

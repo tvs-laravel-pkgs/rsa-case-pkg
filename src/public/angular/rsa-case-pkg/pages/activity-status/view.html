@@ -1,38 +1,30 @@
+<div class="container-fluid dataTable-content--wrapper">
+	<asp-activities-header data="$ctrl.data"></asp-activities-header>
+    <div class="tab-content">
+	    <div id="billfewdf" class="tab-pane fade in active">
+		<!-- <?php echo Form::open(['route' => 'boApprove', 'id' => 'approve-form']); ?>
+			<?php echo Form::hidden('ticket_id', $ctrl.data.id); ?>
+			<?php echo Form::hidden('is_exceptional', 0, ['id' => 'is_exceptional']); ?>
+			<?php echo Form::hidden('exceptional_reason', '', ['id' => 'exceptional_reason']); ?> -->
 
-
-	<div class="container-fluid dataTable-content--wrapper">
-	    <asp-activities-header data="$ctrl.data"></asp-activities-header>
-	    <div class="tab-content">
-		    <div id="bill" class="tab-pane fade in active">
-			<!-- <?php echo Form::open(['route' => 'boApprove', 'id' => 'approve-form']); ?>
-				<?php echo Form::hidden('ticket_id', $ctrl.data.id); ?>
-				<?php echo Form::hidden('is_exceptional', 0, ['id' => 'is_exceptional']); ?>
-				<?php echo Form::hidden('exceptional_reason', '', ['id' => 'exceptional_reason']); ?> -->
-
-		      <div class="viewData-wrapper">
-	                <ticket-header data="$ctrl.data"></ticket-header>
-					<!-- @if($mis_info->claim_status == 1)
-					<div class="differedTicket-reason">
-						<label>Reply from ASP/CC for defer</label>
-						<p>{{$mis_info->reason}}</p>
-					</div>
-	        		@endif -->
-
-
-				    <!-- Nav tabs -->
-				   	<?php $index = 0?>
-				    <ul class="nav nav-tabs" role="tablist">
-				       
-				        <li role="presentation" class=" {{ ++$index ==1 ? 'active' : ''}}">
-				            <a href="#info-{{$index}}" aria-controls="home" role="tab" data-toggle="tab">
-				                {{$ctrl.data.service}}
-				            </a>
-				            <input type="text" name="bo_info" class="hide services_ids" data-count="{{$index}}" value="">
-				        </li>
-				       				       		
-				    </ul>
-				    <div class="tab-content boxed-tab">
-        				<div role="tabpanel" class="tab-pane active" id="info-{{$index}}">
+	      	<div class="viewData-wrapper">
+            	<ticket-header data="$ctrl.data"></ticket-header>
+				<!-- @if($mis_info->claim_status == 1)
+				<div class="differedTicket-reason">
+					<label>Reply from ASP/CC for defer</label>
+					<p>{{$mis_info->reason}}</p>
+				</div>
+	    		@endif -->
+			    <ul class="nav nav-tabs" role="tablist">
+			        <li role="presentation" class=" {{ ++$index ==1 ? 'active' : ''}}">
+			            <a href="#info-{{$index}}" aria-controls="home" role="tab" data-toggle="tab">
+			                {{$ctrl.data.service}}
+			            </a>
+			            <input type="text" name="bo_info" class="hide services_ids" data-count="{{$index}}" value="">
+			        </li>	       		
+			    </ul>
+			    <div class="tab-content boxed-tab">
+					<div role="tabpanel" class="tab-pane active" id="info-{{$index}}">
 						<div class="viewData-form--row">
 							<label>ASP Status</label>
 							<div class="clearfix"></div>
@@ -61,33 +53,35 @@
 							<?php $prices = getKMPrices($service, $asp);?>
 	               			 <price-info data="$ctrl.data"></price-info>
 
-<!-- @if(!empty($approved_view)) -->
-			
-	                <service-total-summary-view data="$ctrl.data"></service-total-summary-view>
+								<!-- @if(!empty($approved_view)) -->
+										
+								<service-total-summary-view data="$ctrl.data"></service-total-summary-view>
 
-			<!-- @else
-	                <service-total-summary data="$ctrl.data"></service-total-summary>
+										<!-- @else
+								                <service-total-summary data="$ctrl.data"></service-total-summary>
 
-			@endif -->
+										@endif -->
 
-				        	</div><!-- tab-pane -->
-				        	<!-- @if(!empty($approved_view)) -->
-	                <ticket-total-summary-view data="$ctrl.data"></ticket-total-summary-view>
-			<!-- @else -->
-	               <!--  <ticket-total-summary data="$ctrl.data"></ticket-total-summary> -->
+				        </div><!-- tab-pane -->
 
-			<!-- @endif -->
-
-	                <activity-details data="$ctrl.data"></activity-details>
-	                <location-details data="$ctrl.data"></location-details>
-	                <km-details data="$ctrl.data"></km-details>
-	                <invoice-details data="$ctrl.data"></invoice-details>
-	                <financial-details data="$ctrl.data"></financial-details>
-	                <case-details data="$ctrl.data"></case-details>
-        
-    </div><!-- tab-content -->
+			        	<!-- @if(!empty($approved_view)) -->
+	            			<ticket-total-summary-view data="$ctrl.data"></ticket-total-summary-view>
+								<!-- @else -->
+						               <!--  <ticket-total-summary data="$ctrl.data"></ticket-total-summary> -->
+								<!-- @endif -->
+					</div><!-- tab-content -->
+				</div>
+			</div>
+		</div>
+        <activity-details data="$ctrl.data"></activity-details>
+        <location-details data="$ctrl.data"></location-details>
+        <km-details data="$ctrl.data"></km-details>
+        <invoice-details data="$ctrl.data"></invoice-details>
+        <financial-details data="$ctrl.data"></financial-details>
+        <case-details data="$ctrl.data"></case-details>
+    
+	</div>
 </div><!-- pricing-table-data -->
-    <?php echo Form::close(); ?>
         
 
 

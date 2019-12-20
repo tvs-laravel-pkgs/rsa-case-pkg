@@ -225,7 +225,7 @@ class ActivityController extends Controller {
 			'activity_finance_statuses.name as asp_status',
 			'asp_activity_rejected_reasons.name as asp_activity_rejected_reason',
 			//'activity_asp_statuses.name as asp_status',
-			//'activity_portal_statuses.name as status',
+			'activity_portal_statuses.name as activity_portal_status',
 			'activity_statuses.name as activity_status',
 			'clients.name as client',
 			'call_centers.name as call_center',
@@ -251,25 +251,32 @@ class ActivityController extends Controller {
 			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
 			->leftjoin('asp_activity_rejected_reasons', 'asp_activity_rejected_reasons.id', 'activities.asp_activity_rejected_reason_id')
-		//->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
-		//->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+			//->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
+			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 			->groupBy('activities.id')
 			->where('activities.id', $activity_status_id)
 			->first();
-			$key_list = [ 'cc_total_km','cc_colleced_amount','cc_not_collected_amount',];
+			$key_list = [ 'BO KM Travelled','BO Collected','BO Not Collected','ASP KM Travelled','ASP Collected','ASP Not Collected','CC PO Amount','CC Net Amount','CC Amount','amount'];
 			foreach($key_list as $keyw){
-				//$key_name = str_replace(" ","_",$keyw);
+				$key_name = str_replace(" ","_",strtolower($keyw));
 				$var_key = Config::where('name',$keyw)->first();
 				$var_key_val = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',$var_key->id)->first();
-				$this->data['activities'][$keyw] = preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($var_key_val->value,2)));
+				/*dump($keyw);
+				dump($var_key);
+				dump($var_key_val);*/
+				if(strpos($key_name, 'amount') || strpos($key_name, 'collected')){
+					$this->data['activities'][$key_name] = $var_key_val ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($var_key_val->value,2))) : '0.00';
+				}else{
+					$this->data['activities'][$key_name] = $var_key_val ? $var_key_val->value :0;
+				}
 			}
 			$this->data['activities']['asp_service_type_data'] = AspServiceType::where('asp_id',$activity->asp_id)->where('service_type_id',$activity->service_type_id)->first();
-			 $payout_value = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',170)->first();
+			 /*$payout_value = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',170)->first();
 			 $this->data['activities']['payout']=preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($payout_value->value,2)));
 			 $amount = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',298)->first();
-			 $this->data['activities']['amount']=preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($amount->value,2)));
-			 $paid_to = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',299)->first();
+			 $this->data['activities']['amount']=preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($amount->value,2)));*/
+			 /*$paid_to = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',299)->first();
 			 $this->data['activities']['paid_to']=$paid_to->value;
 			 $payment_mode = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',300)->first();
 			 $this->data['activities']['payment_mode']=$payment_mode->value;
@@ -300,13 +307,13 @@ class ActivityController extends Controller {
 			 $membership_charges = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',303)->first();
 			 $this->data['activities']['membership_charges']=$membership_charges->value;
 			 $service_charges = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',302)->first();
-			 $this->data['activities']['service_charges']=$service_charges->value;
-			//$this->data['finance_status'] = $activity->financeStatus;
-			//$this->data['finance_status'] = $activity->financeStatus;
-		//dd($this->data);
-			 $act = Activity::find(1);
-		//dd($this->data);
-		//dd($act->case);
+			 $this->data['activities']['service_charges']=$service_charges->value;*/
+			 $config_ids = [302,303,300,304,296,297,284,285,283,286,287,289,288,291,280,299,281,280,282,305,306,307,308,];
+			 foreach($config_ids as $config_id){
+			 	$config = Config::where('id',$config_id)->first();
+				$detail = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',$config_id)->first();
+			 	$this->data['activities'][$config->name]=$detail->value;
+			 }
 		if (!$activity) {
 			return response()->json(['success' => false, 'data' => "Activity not Found!!!"]);
 		}

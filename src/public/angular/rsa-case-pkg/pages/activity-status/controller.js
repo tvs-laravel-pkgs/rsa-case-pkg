@@ -15,7 +15,9 @@ app.component('activityStatusList', {
                 { data: 'case_date', searchable: false },
                 { data: 'number', name: 'cases.number', searchable: true },
                 { data: 'asp_code', name: 'asps.asp_code', searchable: true },
+                { data: 'crm_activity_id', searchable: false },
                 { data: 'sub_service', name: 'service_types.name', searchable: true },
+                { data: 'finance_status', name: 'activity_finance_statuses.name', searchable: true },
                 // { data: 'asp_status', name: 'activity_asp_statuses.name', searchable: true },
                 { data: 'status', name: 'activity_portal_statuses.name', searchable: true },
                 { data: 'activity_status', name: 'activity_statuses.name', searchable: true },
@@ -51,7 +53,7 @@ app.component('activityStatusList', {
                             d.case_number = $('#case_number').val();
                             d.asp_code = $('#asp_code').val();
                             d.service_type_id = $('#service_type_id').val();
-                            d.asp_status_id = $('#asp_status_id').val();
+                            d.finance_status_id = $('#finance_status_id').val();
                             d.status_id = $('#status_id').val();
                             d.activity_status_id = $('#activity_status_id').val();
                             d.client_id = $('#client_id').val();
@@ -78,7 +80,8 @@ app.component('activityStatusList', {
                 dataTable.fnFilter();
             });
 
-            $scope.changeCommonFilter = function() {
+            $scope.changeCommonFilter = function(val, id) {
+                $('#' + id).val(val);
                 dataTable.fnFilter();
             };
 
@@ -114,6 +117,11 @@ app.component('activityStatusList', {
 
             $('.close-filter, .filter-overlay').click(function() {
                 $(this).parents('.filter-wrapper').removeClass('open');
+            });
+
+            $('.date-picker').datepicker({
+                format: 'dd-mm-yyyy',
+                autoclose: true,
             });
 
             $rootScope.loading = false;
@@ -156,7 +164,7 @@ app.component('activityStatusView', {
         console.log(activity_status_view_data_url);
         get_view_data_url = typeof($routeParams.id) == 'undefined' ? activity_status_view_data_url : activity_status_view_data_url + '/' + $routeParams.id;
         $http.get(
-            get_view_data_url 
+            get_view_data_url
         ).then(function(response) {
             console.log(response);
             self.data = response.data.data.activities;

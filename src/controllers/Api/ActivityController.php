@@ -97,7 +97,7 @@ class ActivityController extends Controller {
 					'success' => false,
 					'error' => 'Validation Error',
 					'errors' => [
-						'Invalid Data Srouce',
+						'Invalid Data Source',
 					],
 				], $this->successStatus);
 			}
@@ -151,7 +151,8 @@ class ActivityController extends Controller {
 			$activity->asp_activity_status_id = $asp_activity_status_id;
 			$activity->asp_activity_rejected_reason_id = $asp_activity_rejected_reason_id;
 
-			if ($request->asp_accepted_cc_details) {
+			//ASP ACCEPTED CC DETAILS == 1 AND ACTIVITY STATUS SUCCESSFUL
+			if ($request->asp_accepted_cc_details && $activity_status_id == 7) {
 				//Invoice Amount Calculated - Waiting for ASP to Confirm Invoice Amount
 				$activity->status_id = 1;
 			} else {
@@ -194,7 +195,6 @@ class ActivityController extends Controller {
 					], $this->successStatus);
 
 				}
-
 			}
 
 			//MARKING AS OWN PATROL ACTIVITY

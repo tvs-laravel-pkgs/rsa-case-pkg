@@ -168,7 +168,81 @@ class Activity extends Model {
 			$not_collected = $this->detail(282)->value; //cc_not_collected_amount
 
 			$km_charge = $this->calculateKMCharge($response['asp_service_price'], $total_km);
-			$payout_amount = $km_charge + $not_collected - $collected;
+			$payout_amount = $km_charge;
+			$net_amount = $payout_amount - $collected;
+			$invoice_amount = $net_amount + $not_collected;
+
+			$cc_service_type = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $this->id,
+				'key_id' => 153,
+			]);
+			$cc_service_type->value = $this->serviceType->name;
+			$cc_service_type->save();
+
+			$asp_service_type = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $this->id,
+				'key_id' => 157,
+			]);
+			$asp_service_type->value = $this->serviceType->name;
+			$asp_service_type->save();
+
+			$bo_service_type = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $this->id,
+				'key_id' => 161,
+			]);
+			$bo_service_type->value = $this->serviceType->name;
+			$bo_service_type->save();
+
+			$asp_km_travelled = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $this->id,
+				'key_id' => 154,
+			]);
+			$asp_km_travelled->value = $total_km;
+			$asp_km_travelled->save();
+
+			$bo_km_travelled = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $this->id,
+				'key_id' => 158,
+			]);
+			$bo_km_travelled->value = $total_km;
+			$bo_km_travelled->save();
+
+			$asp_collected = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $this->id,
+				'key_id' => 155,
+			]);
+			$asp_collected->value = $collected;
+			$asp_collected->save();
+
+			$bo_collected = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $this->id,
+				'key_id' => 159,
+			]);
+			$bo_collected->value = $collected;
+			$bo_collected->save();
+
+			$asp_not_collected = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $this->id,
+				'key_id' => 156,
+			]);
+			$asp_not_collected->value = $not_collected;
+			$asp_not_collected->save();
+
+			$bo_not_collected = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $this->id,
+				'key_id' => 160,
+			]);
+			$bo_not_collected->value = $not_collected;
+			$bo_not_collected->save();
 
 			$cc_km_charge = ActivityDetail::firstOrNew([
 				'company_id' => 1,
@@ -178,6 +252,10 @@ class Activity extends Model {
 			$cc_km_charge->value = $km_charge;
 			$cc_km_charge->save();
 
+			$payout_amount = $km_charge;
+			$net_amount = $payout_amount - $collected;
+			$invoice_amount = $net_amount + $not_collected;
+
 			$cc_po_amount = ActivityDetail::firstOrNew([
 				'company_id' => 1,
 				'activity_id' => $this->id,
@@ -185,6 +263,23 @@ class Activity extends Model {
 			]);
 			$cc_po_amount->value = $payout_amount;
 			$cc_po_amount->save();
+
+			$cc_net_amount = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $this->id,
+				'key_id' => 174,
+			]);
+			$cc_net_amount->value = $net_amount;
+			$cc_net_amount->save();
+
+			$cc_invoice_amount = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $this->id,
+				'key_id' => 180,
+			]);
+			$cc_invoice_amount->value = $invoice_amount;
+			$cc_invoice_amount->save();
+
 			return [
 				'success' => true,
 			];

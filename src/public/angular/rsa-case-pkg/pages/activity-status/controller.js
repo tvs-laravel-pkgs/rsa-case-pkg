@@ -160,6 +160,8 @@ app.component('activityStatusView', {
         var self = this;
         self.hasPermission = HelperService.hasPermission;
         self.filter_img_url = filter_img_url;
+       // self.style_dot_image_url = style_dot_image_url;
+        console.log(style_dot_image_url);
         console.log($routeParams.id);
         console.log(activity_status_view_data_url);
         get_view_data_url = typeof($routeParams.id) == 'undefined' ? activity_status_view_data_url : activity_status_view_data_url + '/' + $routeParams.id;
@@ -168,6 +170,9 @@ app.component('activityStatusView', {
         ).then(function(response) {
             console.log(response);
             self.data = response.data.data.activities;
+            self.data.style_dot_image_url = style_dot_image_url;
+            self.data.style_service_type_image_url = style_service_type_image_url;
+            self.data.style_car_image_url = style_car_image_url;
             console.log(self.data);
             $rootScope.loading = false;
         });

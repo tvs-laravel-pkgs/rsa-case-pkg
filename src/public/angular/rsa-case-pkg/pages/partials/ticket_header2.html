@@ -1,0 +1,28 @@
+							<div class="viewData-threeColumn--wrapper">
+								<div class="row">
+									<div class="col-xs-12 col-sm-4">
+										<ul class="viewData-threeColumn--group">
+											<!-- <li><img src="{{$ctr.data.style_car_image_url}}"></li> -->
+											<li><img src="{{$ctrl.data.style_dot_image_url}}"></li>
+											<li>
+												<p>Vehicle Details</p>
+												<h3>
+													{{$ctrl.data.vehicle_registration_number}}   |   
+													{{$ctrl.data.vehicle_model}} - {{$ctrl.data.vehicle_make}}
+												</h3>
+											</li>
+										</ul>
+									</div>
+									
+									<div class="col-xs-12 col-sm-4">
+										<ul class="viewData-threeColumn--group">
+											<li><img src="{{$ctrl.data.style_dot_image_url}}"></li>
+											<!-- <li><img src="{{$ctr.data.style_service_type_image_url}}"></li> -->
+											<li>
+												<p>Ticket Status</p>
+												<h3>{{$ctrl.data.case_status}}</h3>
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>

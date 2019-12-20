@@ -1,0 +1,63 @@
+<h3 class="mt-30 mb-20">Price  Comparision</h3>
+<div class="table-responsive">
+<table class="table table-responsive table-bordered table-wide style-normal">
+	<thead>
+		<tr>
+			<th>Title</th>
+			<th>CC Data</th>
+			<th>ASP Data</th>
+			<th>BO Data</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<th scope="row">Service</th>
+			<td>{{$ctrl.data.service}}</td>
+			<td class="">{{$ctrl.data.service}}</td>
+			<td style="text-align:left">{{$ctrl.data.service}}</td>
+		</tr>
+
+		<tr>
+			<th scope="row">KM Travelled</th>
+			<td class="">{{$ctrl.data.cc_total_km}}</td>
+			<td class="" >{{$ctrl.data.asp_km_travelled}}</td>
+			<td style="text-align:left" class="">{{$ctrl.data.bo_km_travelled}}</td>
+		</tr>
+
+
+		<tr>
+			<th scope="row">Charges Not Collected From Customer </th>
+			<td class="">{{$ctrl.data.cc_not_collected_amount}}</td>
+			<td class="">{{$ctrl.data.asp_not_collected}}</td>
+			<td style="text-align:left" class="">{{$ctrl.data.bo_not_collected}}</td>
+		</tr>
+
+
+		<tr>
+			<th scope="row">Charges Collected From Customer </th>
+			<td class="">{{$ctrl.data.cc_colleced_amount}}</td>
+			<td class="">{{$ctrl.data.asp_collected}}</td>
+			<td style="text-align:left" class="">{{$ctrl.data.bo_collected}}</td>
+		</tr>
+		<!-- @if(!empty($ctrl.remarks_not_collected)) -->
+		<!-- <tr>
+			<th scope="row">Remarks Comments for not collected charges</th>
+			<td>
+				{{ $ctrl.remarks_not_collected }}
+			</td>
+		</tr> -->
+		<!-- @endif
+
+		@if($ctrl.claim_status == 1) -->
+		<!-- <tr>
+			<th scope="row" class="alert-danger">Resolved Comments from ASP</th>
+			<td class="alert-danger">
+				{{ $ctrl.comments }}
+			</td>
+		</tr> -->
+		<!-- @endif -->
+
+
+	</tbody>
+</table>
+</div>

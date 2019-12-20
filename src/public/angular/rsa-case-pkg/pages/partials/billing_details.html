@@ -1,0 +1,72 @@
+
+		<!-- <?php echo Form::open(['route' => 'boApprove', 'id' => 'approve-form']); ?>
+			<?php echo Form::hidden('ticket_id', $ctrl.data.id); ?>
+			<?php echo Form::hidden('is_exceptional', 0, ['id' => 'is_exceptional']); ?>
+			<?php echo Form::hidden('exceptional_reason', '', ['id' => 'exceptional_reason']); ?> -->
+
+	      	<div class="viewData-wrapper">
+            	<ticket-header data="$ctrl.data"></ticket-header>
+				<!-- @if($mis_info->claim_status == 1)
+				<div class="differedTicket-reason">
+					<label>Reply from ASP/CC for defer</label>
+					<p>{{$mis_info->reason}}</p>
+				</div>
+	    		@endif -->
+			    <ul class="nav nav-tabs" role="tablist">
+			        <li role="presentation" class=" {{ ++$index ==1 ? 'active' : ''}}">
+			            <a href="#info-{{$index}}" aria-controls="home" role="tab" data-toggle="tab">
+			                {{$ctrl.data.service}}
+			            </a>
+			            <input type="text" name="bo_info" class="hide services_ids" data-count="{{$index}}" value="">
+			        </li>	       		
+			    </ul>
+			    <div class="tab-content boxed-tab">
+					<div role="tabpanel" class="tab-pane active" id="info-{{$index}}">
+						<div class="viewData-form--row">
+							<label>ASP Status</label>
+							<div class="clearfix"></div>
+								<div class="row">
+									<div class="col-xs-12 col-sm-6">
+										<div class="viewData-form--group">
+											<div class="form-group">
+												<input class="form-control viewData-input mis-serv-km" name="label" type="text" value="{{$ctrl.data.asp_status}}" readonly>
+											</div>
+										</div>
+									</div>
+
+							        <div class="col-xs-12 col-sm-6">
+							            <div class="form-group">
+							                <input type="hidden" name="bo_info[{{$index}}][is_payment_eligible]" class="payment_eligible" value="1">
+							            </div>
+							        </div>
+								</div>
+						</div>
+						<div class="pricing-table-data">
+				        	<!-- @if(!empty($approved_view)) -->
+					                <!-- <price-comparison data="$ctrl.data"></price-comparison> -->
+				        	<!-- @else -->
+					            <service-details data="$ctrl.data"></service-details>
+				        	<!-- @endif -->
+							<?php $prices = getKMPrices($service, $asp);?>
+	               			 <price-info data="$ctrl.data"></price-info>
+
+								<!-- @if(!empty($approved_view)) -->
+										
+								<service-total-summary-view data="$ctrl.data"></service-total-summary-view>
+
+										<!-- @else
+								                <service-total-summary data="$ctrl.data"></service-total-summary>
+
+										@endif -->
+
+				        </div><!-- tab-pane -->
+
+			        	<!-- @if(!empty($approved_view)) -->
+	            			<ticket-total-summary-view data="$ctrl.data"></ticket-total-summary-view>
+								<!-- @else -->
+						               <!--  <ticket-total-summary data="$ctrl.data"></ticket-total-summary> -->
+								<!-- @endif -->
+					</div><!-- tab-content -->
+				</div>
+			</div>
+		

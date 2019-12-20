@@ -208,7 +208,6 @@ class ActivityController extends Controller {
 			'case',
 			'case.callcenter',
 			'finance',
-
 		])->select(
 			'activities.id',
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
@@ -259,10 +258,10 @@ class ActivityController extends Controller {
 			->groupBy('activities.id')
 			->where('activities.id', $activity_status_id)
 			->first();
-			$key_list = [ 'BO KM Travelled','BO Collected','BO Not Collected','ASP KM Travelled','ASP Collected','ASP Not Collected','CC PO Amount','CC Net Amount','CC Amount','amount'];
+			$key_list = [ 158,159,160,154,155,156,170,174,180,298,];
 			foreach($key_list as $keyw){
-				$key_name = str_replace(" ","_",strtolower($keyw));
-				$var_key = Config::where('name',$keyw)->first();
+				$var_key = Config::where('id',$keyw)->first();
+				$key_name = str_replace(" ","_",strtolower($var_key->name));
 				$var_key_val = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',$var_key->id)->first();
 				if(strpos($key_name, 'amount') || strpos($key_name, 'collected') || strcmp("amount",$key_name)==0){
 					$this->data['activities'][$key_name] = $var_key_val ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($var_key_val->value,2))) : '0.00';
@@ -271,11 +270,11 @@ class ActivityController extends Controller {
 				}
 			}
 			$this->data['activities']['asp_service_type_data'] = AspServiceType::where('asp_id',$activity->asp_id)->where('service_type_id',$activity->service_type_id)->first();
-			 
-			 $config_ids = [302,303,300,304,296,297,284,285,283,286,287,289,290,288,291,280,299,281,280,282,305,306,307,308];
-			 foreach($config_ids as $config_id){
-			 	$config = Config::where('id',$config_id)->first();
-				$detail = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',$config_id)->first();
+			/* 
+			 $config_ids = [302,303,300,304,296,297,284,285,283,286,287,289,290,288,291,280,299,281,280,282,305,306,307,308];*/
+			$configs = Config::where('entity_type_id',23)->get();
+			 foreach($configs as $config){
+				$detail = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',$config->id)->first();
 				if(strpos($config->name, '_charges') || strpos($config->name, '_amount')){
 					
 					$this->data['activities'][$config->name] = $detail->value ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($detail->value,2))) : '0.00';

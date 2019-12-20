@@ -174,7 +174,13 @@ app.component('activityStatusView', {
             self.data.style_service_type_image_url = style_service_type_image_url;
             self.data.style_car_image_url = style_car_image_url;
             console.log(self.data);
+             $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();   
+    $('.viewData-toggle--btn').click(function(){
+        $(this).toggleClass('viewData-toggle--btn_reverse');
+        $('.viewData-toggle--inner .viewData-threeColumn--wrapper').slideToggle();
+    });
             $rootScope.loading = false;
         });
+
     }
 });

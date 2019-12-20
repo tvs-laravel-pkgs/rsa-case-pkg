@@ -35,7 +35,7 @@
                                                 <input id="ticket_date" class="form-control filter-input date-picker" type="text" placeholder="Date" autocomplete="off">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.call_center_id" ng-change="changeCommonFilter($ctrl.call_center_id, 'call_center_id')">
+                                                <md-select ng-model="$ctrl.call_center_id" ng-change="changeCommonFilter($ctrl.call_center_id, 'call_center_id')" placeholder="Select Call Center">
                                                     <md-option ng-repeat="val in $ctrl.extras.call_center_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="call_center_id" value="" id="call_center_id">

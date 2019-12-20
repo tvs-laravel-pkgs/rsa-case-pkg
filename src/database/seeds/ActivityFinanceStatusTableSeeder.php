@@ -14,35 +14,24 @@ class ActivityFinanceStatusTableSeeder extends Seeder {
 		$statuses = [
 			1 => [
 				'company_id' => 1,
-				'name' => 'ASP cancelled his assignment',
-				'po_eligibility_type_id' => 342, //No Payout
+				'name' => 'Matured',
+				'po_eligibility_type_id' => 340, //Normal Payout
 			],
 			2 => [
 				'company_id' => 1,
-				'name' => 'ASP cancelled while on garage as ticket cancelled',
-				'po_eligibility_type_id' => 342, //No Payout
+				'name' => 'Matured - Empty Return',
+				'po_eligibility_type_id' => 341, //Empty Return Payout
 			],
 			3 => [
 				'company_id' => 1,
-				'name' => 'Empty return as Ticket cancelled',
-				'po_eligibility_type_id' => 341, //Empty Return Payout
-			],
-			4 => [
-				'company_id' => 1,
-				'name' => 'Work Completed',
-				'po_eligibility_type_id' => 340, //Normal Payout
-			],
-			5 => [
-				'company_id' => 1,
-				'name' => 'Work not completed, vehicle need to be towed',
-				'po_eligibility_type_id' => 341, //Empty Return Payout
+				'name' => 'Not Matured',
+				'po_eligibility_type_id' => 342, //No Payout
 			],
 		];
 
-		foreach ($statuses as $key => $status_val) {
+		foreach ($statuses as $id => $status_val) {
 			$asp_status = ActivityFinanceStatus::firstOrNew([
-				'company_id' => $status_val['company_id'],
-				'name' => $status_val['name'],
+				'id' => $id,
 			]);
 			$asp_status->fill($status_val);
 			$asp_status->save();

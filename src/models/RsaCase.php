@@ -29,14 +29,14 @@ class RsaCase extends Model {
 		'vehicle_model_id',
 		'vehicle_registration_number',
 		'vin_no',
-		'membership_type_id',
+		'membership_type',
 		'membership_number',
 		'subject_id',
 		'km_during_breakdown',
 		'bd_lat',
 		'bd_long',
 		'bd_location',
-		'bd_city_id',
+		'bd_city',
 	];
 
 	public function company() {
@@ -69,6 +69,10 @@ class RsaCase extends Model {
 
 	public function status() {
 		return $this->belongsTo('Abs\RsaCasePkg\CaseStatus', 'status_id');
+	}
+
+	public function activities() {
+		return $this->belongsTo('Abs\RsaCasePkg\Activity', 'case_id');
 	}
 
 	public function city() {

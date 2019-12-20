@@ -96,6 +96,29 @@ class CaseController extends Controller {
 			$case->subject_id = $subject->id;
 			$case->save();
 
+			if ($case->status_id == 3) {
+				//CANCELLED
+				$case
+					->activities()
+					->update([
+						// Not Eligible for Payout
+						'status_id' => 15,
+					]);
+			}
+			if ($case->status_id == 4) {
+				//CLOSED
+				$case
+					->activities()
+					->where([
+						// Invoice Amount Calculated - Waiting for Case Closure
+						'status_id' => 10,
+					])
+					->update([
+						// Case Closed - Waiting for ASP to Generate Invoice
+						'status_id' => 15,
+					]);
+			}
+
 			DB::commit();
 			return response()->json([
 				'success' => true,

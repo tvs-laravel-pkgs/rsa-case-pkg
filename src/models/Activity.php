@@ -46,6 +46,10 @@ class Activity extends Model {
 		return $this->details()->where('key_id', $key_id)->first();
 	}
 
+	public function activityDetail() {
+		return $this->hasOne('Abs\RsaCasePkg\ActivityDetail', 'activity_id');
+	}
+
 	public function asp() {
 		return $this->belongsTo('App\Asp', 'asp_id');
 	}

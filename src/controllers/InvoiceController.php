@@ -1,7 +1,9 @@
 <?php
 
 namespace Abs\RsaCasePkg;
+use Abs\RsaCasePkg\Activity;
 use App\Asp;
+use App\Attachment;
 use App\Http\Controllers\Controller;
 use App\Invoices;
 use App\StateUser;
@@ -45,7 +47,7 @@ class InvoiceController extends Controller {
 		return Datatables::of($invoices)
 			->addColumn('action', function ($invoices) {
 				$action = '<div class="dataTable-actions">
-				<a href="#!/rsa-case-pkg/invoice/view/' . $invoices->id . '">
+				<a href="#!/rsa-case-pkg/asp-invoice/view/' . $invoices->id . '">
 					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
 					            </a>';
 				$action .= '</div>';
@@ -63,25 +65,72 @@ class InvoiceController extends Controller {
 			'asps.bank_account_number',
 			'asps.bank_name', 'asps.bank_branch_name',
 			'asps.bank_ifsc_code',
-			DB::raw("COUNT(mis_informations.id) as no_of_tickets"),
-			DB::raw("SUM(mis_informations.bo_invoice_amount) as amount"),
-			DB::raw("DATE_FORMAT(MIN(mis_informations.ticket_date_time),'%d-%m-%Y') as startdate,DATE_FORMAT(MAX(mis_informations.ticket_date_time),'%d-%m-%Y') as enddate")
+			'Invoices.invoice_amount as amount',
+			DB::raw("COUNT(activities.id) as no_of_tickets"),
+			DB::raw("DATE_FORMAT(MIN(Invoices.start_date),'%d-%m-%Y') as startdate,DATE_FORMAT(MAX(Invoices.end_date),'%d-%m-%Y') as enddate")
 		)
-			->join('mis_informations', 'mis_informations.invoice_id', '=', 'Invoices.id')
+			->join('activities', 'activities.invoice_id', '=', 'Invoices.id')
 			->join('asps', 'asps.id', '=', 'Invoices.asp_id')
 			->groupBy('Invoices.id')
 			->first();
 
-		$this->data['tickets'] = $invoice->tickets;
-		$this->data['sum_invoice_amount'] = $invoice->amount;
+		// $activities = Activity::with([
+		// 	'case',
+		// 	'case.callcenter',
+		// 	'serviceType',
+		// 	'aspStatus',
+		// 	'activityDetail' => function ($q) {
+		// 		$q->where('activity_details.key_id', 150);
+		// 	},
+		// ])->where('invoice_id', $invoice_id)->get();
+
+		$activities = Activity::join('cases', 'cases.id', 'activities.case_id')
+			->join('call_centers', 'call_centers.id', 'cases.call_center_id')
+			->join('service_types', 'service_types.id', 'activities.service_type_id')
+			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+			->leftJoin('activity_details as km_charge', function ($join) {
+				$join->on('km_charge.activity_id', 'activities.id')
+					->where('km_charge.key_id', 158); //KM Charge
+			})
+			->leftJoin('activity_details as net_amount', function ($join) {
+				$join->on('net_amount.activity_id', 'activities.id')
+					->where('net_amount.key_id', 176); //NET AMOUNT
+			})
+			->leftJoin('activity_details as collect_amount', function ($join) {
+				$join->on('collect_amount.activity_id', 'activities.id')
+					->where('collect_amount.key_id', 159); //COLLECT AMOUNT
+			})
+			->leftJoin('activity_details as not_collected_amount', function ($join) {
+				$join->on('not_collected_amount.activity_id', 'activities.id')
+					->where('not_collected_amount.key_id', 160); //NOT COLLECT AMOUNT
+			})
+
+			->leftJoin('activity_details as total_amount', function ($join) {
+				$join->on('total_amount.activity_id', 'activities.id')
+					->where('total_amount.key_id', 182); //TOTAL AMOUNT
+			})
+			->select('activities.number', DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'), 'activity_portal_statuses.name as status', 'call_centers.name as callcenter', 'cases.vehicle_registration_number', 'service_types.name as service_type', 'km_charge.value as km_value', 'not_collected_amount.value as not_collect_value', 'net_amount.value as net_value', 'collect_amount.value as collect_value', 'total_amount.value as total_value')
+			->where('invoice_id', $invoice_id)
+			->groupBy('activities.id')
+			->get();
+
+		$this->data['activities'] = $activities;
+		$this->data['sum_invoice_amount'] = number_format($invoice->amount, 2);
 		$this->data['mis_infos'] = $invoice->tickets;
 		$this->data['mis_info'] = $invoice->tickets;
-		$this->data['asp'] = $invoice->asp;
+		$asp = $invoice->asp;
+		$asp->rm = $invoice->asp->rm;
 		$this->data['period'] = $invoice->startdate . ' to ' . $invoice->enddate;
 		$this->data['inv_no'] = $invoice->invoice_no . '-' . $invoice->id;
 		$this->data['inv_date'] = $invoice->created_at;
 		$this->data['batch'] = "";
-		$this->data['signature_attachment'] = Attachment::where('entity_id', Auth::user()->asp->id)->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))->first();
+		$this->data['asp'] = $asp;
+		$this->data['rsa_address'] = config('rsa.INVOICE_ADDRESS');
+
+		$this->data['signature_attachment'] = Attachment::where('entity_id', $asp->id)->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))->first();
+
+		$this->data['attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
+		// dd($this->data['attachment_path']);
 
 		if ($invoice->asp_gst_registration_number != NULL) {
 			$this->data['gst'] = $invoice->asp_gst_registration_number;
@@ -114,9 +163,7 @@ class InvoiceController extends Controller {
 			$this->data['bank_ifsc_code'] = $invoice->bank_ifsc_code;
 		}
 
-		//dd($this->data['period']->startdate);
-		//return view('admin.invoices.view')->with($this->data);
-		return view('asp.Invoiced_asp_view')->with($this->data);
+		return response()->json($this->data);
 	}
 
 }

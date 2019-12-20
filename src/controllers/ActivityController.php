@@ -233,11 +233,10 @@ class ActivityController extends Controller {
 			'activities.description as description',
 			'activities.remarks as remarks',
 			'cases.*',
-			'invoices.invoice_no as invoice_no',
+			//DB::RAW('invoices.invoice_no) as invoice_no',
 			'invoices.invoice_amount as invoice_amount',
 			'invoices.flow_current_status as flow_current_status',
-			DB::raw('DATE_FORMAT(invoices.start_date,"%d-%m-%Y %H:%i:%s") as invoice_date'),
-
+			DB::raw('DATE_FORMAT(invoices.start_date,"%d-%m-%Y %H:%i:%s") as invoice_date')
 		)
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')

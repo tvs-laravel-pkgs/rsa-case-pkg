@@ -49,7 +49,7 @@ class CaseController extends Controller {
 				'vehicle_make' => 'required|string|max:191|exists:vehicle_makes,name',
 				'vehicle_model' => 'nullable|string|max:191|exists:vehicle_models,name',
 				'vehicle_registration_number' => 'required|string|max:191',
-				'vin_no' => 'nullable|string|min:17|max:24',
+				'vin_no' => 'nullable|string|min:17|max:17',
 				'membership_type' => 'required|string|max:255',
 				'membership_number' => 'nullable|string|max:255',
 				'subject' => 'required|string|max:191|exists:subjects,name',

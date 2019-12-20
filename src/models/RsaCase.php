@@ -72,7 +72,7 @@ class RsaCase extends Model {
 	}
 
 	public function activities() {
-		return $this->belongsTo('Abs\RsaCasePkg\Activity', 'case_id');
+		return $this->hasMany('Abs\RsaCasePkg\Activity', 'case_id');
 	}
 
 	public function city() {

@@ -115,7 +115,7 @@ class CaseController extends Controller {
 					])
 					->update([
 						// Case Closed - Waiting for ASP to Generate Invoice
-						'status_id' => 15,
+						'status_id' => 1,
 					]);
 			}
 

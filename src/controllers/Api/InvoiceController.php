@@ -58,7 +58,7 @@ class InvoiceController extends Controller {
 			$activities_with_accepted = Activity::select('crm_activity_id', 'status_id')->whereIn('crm_activity_id', $request->activity_id)->get();
 			if (!empty($activities_with_accepted)) {
 				foreach ($activities_with_accepted as $key => $activity_accepted) {
-					if ($activity_accepted->status_id != 1) {
+					if ($activity_accepted->status_id != 10) {
 						return response()->json([
 							'success' => false,
 							'message' => 'Validation Error',
@@ -123,6 +123,8 @@ class InvoiceController extends Controller {
 		try {
 			$validator = Validator::make($request->all(), [
 				'asp_code' => 'required|string|exists:asps,asp_code',
+				'offset' => 'nullable|numeric',
+				'limit' => 'nullable|numeric',
 			]);
 
 			if ($validator->fails()) {
@@ -146,13 +148,20 @@ class InvoiceController extends Controller {
 				->where('activities.asp_id', '=', $asp->id)
 				->where('Invoices.flow_current_status', 'Waiting for Batch Generation')
 				->join('asps', 'Invoices.asp_id', '=', 'asps.id')
-				->join('activities', 'Invoices.id', '=', 'activities.invoice_id')
-				->groupBy('Invoices.id')
-				->get();
+				->join('activities', 'Invoices.id', '=', 'activities.invoice_id');
+
+			if ($request->offset && $request->limit) {
+				$invoices->offset($request->offset);
+			}
+			if ($request->limit) {
+				$invoices->limit($request->limit);
+			}
+
+			$invoices = $invoices->groupBy('Invoices.id')->get();
 
 			if (count($invoices) > 0) {
 				foreach ($invoices as $key => $invoice) {
-					$invoice->pdf_view_url = URL::asset('storage/app/public/invoices/' . $invoice->id . '.pdf');
+					$invoice->invoice_copy = URL::asset('storage/app/public/invoices/' . $invoice->id . '.pdf');
 				}
 			}
 

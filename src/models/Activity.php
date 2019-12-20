@@ -34,7 +34,7 @@ class Activity extends Model {
 		'bo_comments',
 	];
 
-	public function finance() {
+	public function financeStatus() {
 		return $this->belongsTo('Abs\RsaCasePkg\ActivityFinanceStatus', 'finance_status_id');
 	}
 

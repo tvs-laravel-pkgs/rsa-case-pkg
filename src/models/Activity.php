@@ -280,6 +280,54 @@ class Activity extends Model {
 			$cc_invoice_amount->value = $invoice_amount;
 			$cc_invoice_amount->save();
 
+			$asp_po_amount = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $this->id,
+				'key_id' => 171,
+			]);
+			$asp_po_amount->value = $payout_amount;
+			$asp_po_amount->save();
+
+			$bo_po_amount = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $this->id,
+				'key_id' => 172,
+			]);
+			$bo_po_amount->value = $payout_amount;
+			$bo_po_amount->save();
+
+			$asp_net_amount = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $this->id,
+				'key_id' => 175,
+			]);
+			$asp_net_amount->value = $net_amount;
+			$asp_net_amount->save();
+
+			$bo_net_amount = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $this->id,
+				'key_id' => 176,
+			]);
+			$bo_net_amount->value = $net_amount;
+			$bo_net_amount->save();
+
+			$asp_invoice_amount = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $this->id,
+				'key_id' => 181,
+			]);
+			$asp_invoice_amount->value = $invoice_amount;
+			$asp_invoice_amount->save();
+
+			$bo_invoice_amount = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $this->id,
+				'key_id' => 182,
+			]);
+			$bo_invoice_amount->value = $invoice_amount;
+			$bo_invoice_amount->save();
+
 			return [
 				'success' => true,
 			];

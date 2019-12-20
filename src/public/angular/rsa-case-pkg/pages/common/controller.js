@@ -216,3 +216,18 @@ app.component('caseDetails', {
 
     }
 });
+
+//----------------------------------------------------------------------------------------------------------------------------
+
+app.component('billingDetails', {
+    templateUrl: activity_status_view_billing_details_view_template_url,
+    bindings: {
+        data: '<',
+    },
+    controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
+        $scope.loading = true;
+        var self = this;
+        //self.data = activity;
+
+    }
+});

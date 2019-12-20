@@ -200,7 +200,8 @@ class ActivityController extends Controller {
 	}
 
 	public function viewActivityStatus($activity_status_id) {
-		$activity_status_id = 1;
+		//$activity_status_id = 1;
+		//dd($activity_status_id);
 		$this->data['activities'] = $activity = Activity::with([
 			'asp',
 			'serviceType',
@@ -231,12 +232,15 @@ class ActivityController extends Controller {
 			'call_centers.name as call_center',
 			'asp_po_rejected_reason',
 			'activities.description as description',
-			'activities.remarks as remarks',
+			DB::raw('IF(activities.remarks IS NULL,"activities.remarks","-") as remarks'),
+
+			//'activities.remarks as remarks',
 			'cases.*',
+			DB::raw('IF(invoices.invoice_no IS NULL,"-","invoices.invoice_no") as invoice_no'),
 			//DB::RAW('invoices.invoice_no) as invoice_no',
-			'invoices.invoice_amount as invoice_amount',
-			'invoices.flow_current_status as flow_current_status',
-			DB::raw('DATE_FORMAT(invoices.start_date,"%d-%m-%Y %H:%i:%s") as invoice_date')
+			DB::raw('IF(invoices.invoice_amount IS NULL,"-",format(invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
+			DB::raw('IF(invoices.flow_current_status IS NULL,"-",invoices.flow_current_status) as flow_current_status'),
+			DB::raw('IF(invoices.start_date IS NULL,"-",DATE_FORMAT(invoices.start_date,"%d-%m-%Y %H:%i:%s")) as invoice_date')
 		)
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
@@ -261,57 +265,24 @@ class ActivityController extends Controller {
 				$key_name = str_replace(" ","_",strtolower($keyw));
 				$var_key = Config::where('name',$keyw)->first();
 				$var_key_val = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',$var_key->id)->first();
-				/*dump($keyw);
-				dump($var_key);
-				dump($var_key_val);*/
-				if(strpos($key_name, 'amount') || strpos($key_name, 'collected')){
+				if(strpos($key_name, 'amount') || strpos($key_name, 'collected') || strcmp("amount",$key_name)==0){
 					$this->data['activities'][$key_name] = $var_key_val ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($var_key_val->value,2))) : '0.00';
 				}else{
 					$this->data['activities'][$key_name] = $var_key_val ? $var_key_val->value :0;
 				}
 			}
 			$this->data['activities']['asp_service_type_data'] = AspServiceType::where('asp_id',$activity->asp_id)->where('service_type_id',$activity->service_type_id)->first();
-			 /*$payout_value = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',170)->first();
-			 $this->data['activities']['payout']=preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($payout_value->value,2)));
-			 $amount = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',298)->first();
-			 $this->data['activities']['amount']=preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($amount->value,2)));*/
-			 /*$paid_to = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',299)->first();
-			 $this->data['activities']['paid_to']=$paid_to->value;
-			 $payment_mode = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',300)->first();
-			 $this->data['activities']['payment_mode']=$payment_mode->value;
-			 $drop_location_lat = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',296)->first();
-			 $this->data['activities']['drop_location_lat']=$drop_location_lat->value;
-			 $drop_location_long = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',297)->first();
-			 $this->data['activities']['drop_location_long']=$drop_location_long->value;
-				$asp_start_location = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',284)->first();
-			 $this->data['activities']['asp_start_location']=$asp_start_location->value;
-			 $asp_end_location = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',285)->first();
-			 $this->data['activities']['asp_end_location']=$asp_end_location->value;
-			 $asp_reached_date = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',283)->first();
-			 $this->data['activities']['asp_reached_date']=$asp_reached_date->value;
-			 $asp_bd_google_km = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',286)->first();
-			 $this->data['activities']['asp_bd_google_km']=$asp_bd_google_km->value;
-			 $bd_dealer_google_km = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',287)->first();
-			 $this->data['activities']['bd_dealer_google_km']=$bd_dealer_google_km->value;
-			 $asp_bd_return_empty_km = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',289)->first();
-			 $this->data['activities']['asp_bd_return_empty_km']=$asp_bd_return_empty_km->value;
-			 $return_google_km = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',288)->first();
-			 $this->data['activities']['return_google_km']=$return_google_km->value;
-			 $return_km = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',291)->first();
-			 $this->data['activities']['return_km']=$return_km->value;
-			 $cc_total_km = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',280)->first();
-			 $this->data['activities']['cc_total_km']=$cc_total_km->value;
-			 $eatable_items_charges = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',304)->first();
-			 $this->data['activities']['eatable_items_charges']=$eatable_items_charges->value;
-			 $membership_charges = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',303)->first();
-			 $this->data['activities']['membership_charges']=$membership_charges->value;
-			 $service_charges = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',302)->first();
-			 $this->data['activities']['service_charges']=$service_charges->value;*/
-			 $config_ids = [302,303,300,304,296,297,284,285,283,286,287,289,288,291,280,299,281,280,282,305,306,307,308,];
+			 
+			 $config_ids = [302,303,300,304,296,297,284,285,283,286,287,289,288,291,280,299,281,280,282,305,306,307,308,298];
 			 foreach($config_ids as $config_id){
 			 	$config = Config::where('id',$config_id)->first();
 				$detail = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',$config_id)->first();
-			 	$this->data['activities'][$config->name]=$detail->value;
+				if(strpos($config->name, '_charges') || strpos($config->name, '_amount')){
+					
+					$this->data['activities'][$config->name] = $detail->value ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($detail->value,2))) : '0.00';
+				}else{
+					$this->data['activities'][$config->name]= $detail->value ?$detail->value :'-';
+				}
 			 }
 		if (!$activity) {
 			return response()->json(['success' => false, 'data' => "Activity not Found!!!"]);

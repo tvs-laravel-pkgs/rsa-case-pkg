@@ -2,6 +2,7 @@
 
 namespace Abs\RsaCasePkg;
 use Abs\RsaCasePkg\Activity;
+use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityPortalStatus;
 use Abs\RsaCasePkg\ActivityStatus;
 use App\CallCenter;
@@ -19,9 +20,10 @@ class ActivityController extends Controller {
 	public function getFilterData() {
 		$this->data['extras'] = [
 			'call_center_list' => collect(CallCenter::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Call Center']),
-			'sub_service_list' => collect(ServiceType::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Sub Service']),
-			'status_list' => collect(ActivityPortalStatus::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Status']),
-			'activity_status_list' => collect(ActivityStatus::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Activity Status']),
+			'service_type_list' => collect(ServiceType::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Sub Service']),
+			'finance_status_list' => collect(ActivityFinanceStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Status']),
+			'status_list' => collect(ActivityPortalStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Status']),
+			'activity_status_list' => collect(ActivityStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Activity Status']),
 			'client_list' => collect(Client::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Client']),
 		];
 		return response()->json($this->data);
@@ -30,6 +32,7 @@ class ActivityController extends Controller {
 	public function getList(Request $request) {
 		$activities = Activity::select(
 			'activities.id',
+			'activities.crm_activity_id',
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			'cases.number',
 			'asps.asp_code',
@@ -73,6 +76,9 @@ class ActivityController extends Controller {
 		// if ($request->get('asp_status_id')) {
 		// 	$activities->where('activities.status_id', $request->get('asp_status_id'));
 		// }
+		if ($request->get('finance_status_id')) {
+			$activities->where('activities.finance_status_id', $request->get('finance_status_id'));
+		}
 		if ($request->get('status_id')) {
 			$activities->where('activities.status_id', $request->get('status_id'));
 		}
@@ -117,11 +123,13 @@ class ActivityController extends Controller {
 	public function getVerificationList(Request $request) {
 		$activities = Activity::select(
 			'activities.id',
+			'activities.crm_activity_id',
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			'cases.number',
 			'asps.asp_code',
 			'service_types.name as sub_service',
 			// 'activity_asp_statuses.name as asp_status',
+			'activity_finance_statuses.name as finance_status',
 			'activity_portal_statuses.name as status',
 			'activity_statuses.name as activity_status',
 			'clients.name as client',
@@ -134,12 +142,41 @@ class ActivityController extends Controller {
 			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
 		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
+			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
-			->where('activities.asp_po_accepted', 0)
+			->where('activities.asp_accepted_cc_details', '!=', 1)
 			->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
 		;
+
+		if ($request->get('ticket_date')) {
+			$activities->whereRaw('DATE_FORMAT(cases.date,"%d-%m-%Y") =  "' . $request->get('ticket_date') . '"');
+		}
+		if ($request->get('call_center_id')) {
+			$activities->where('cases.call_center_id', $request->get('call_center_id'));
+		}
+		if ($request->get('case_number')) {
+			$activities->where('cases.number', 'LIKE', '%' . $request->get('case_number') . '%');
+		}
+		if ($request->get('asp_code')) {
+			$activities->where('asps.asp_code', 'LIKE', '%' . $request->get('asp_code') . '%');
+		}
+		if ($request->get('service_type_id')) {
+			$activities->where('activities.service_type_id', $request->get('service_type_id'));
+		}
+		if ($request->get('finance_status_id')) {
+			$activities->where('activities.finance_status_id', $request->get('finance_status_id'));
+		}
+		if ($request->get('status_id')) {
+			$activities->where('activities.status_id', $request->get('status_id'));
+		}
+		if ($request->get('activity_status_id')) {
+			$activities->where('activities.activity_status_id', $request->get('activity_status_id'));
+		}
+		if ($request->get('client_id')) {
+			$activities->where('cases.client_id', $request->get('client_id'));
+		}
 
 		if (!Entrust::can('verify-all-activities')) {
 			if (Entrust::can('verify-mapped-activities')) {

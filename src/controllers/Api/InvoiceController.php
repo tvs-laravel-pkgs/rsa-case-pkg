@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Invoices;
 use DB;
 use Illuminate\Http\Request;
+use URL;
 use Validator;
 
 class InvoiceController extends Controller {
@@ -96,21 +97,27 @@ class InvoiceController extends Controller {
 
 			$invoices = Invoices::
 				select(
-				'invoices.id as id',
-				DB::raw("CONCAT(invoices.invoice_no,'-',invoices.id) as invoice_no"),
-				DB::raw("date_format(invoices.created_at,'%d-%m-%Y') as invoice_date"),
+				'Invoices.id',
+				DB::raw("CONCAT(Invoices.invoice_no,'-',Invoices.id) as invoice_no"),
+				DB::raw("date_format(Invoices.created_at,'%d-%m-%Y') as invoice_date"),
 				DB::raw("COUNT(activities.id) as no_of_tickets"),
 				// DB::raw("ROUND(SUM(activities.bo_invoice_amount),2) as invoice_amount"),
-				DB::raw("ROUND(invoices.invoice_amount,2) as invoice_amount"),
+				DB::raw("ROUND(Invoices.invoice_amount,2) as invoice_amount"),
 				'asps.workshop_name as workshop_name',
 				'asps.asp_code as asp_code'
 			)
 				->where('activities.asp_id', '=', $asp->id)
-				->where('invoices.flow_current_status', 'Waiting for Batch Generation')
-				->join('asps', 'invoices.asp_id', '=', 'asps.id')
-				->join('activities', 'invoices.id', '=', 'activities.invoice_id')
-				->groupBy('invoices.id')
+				->where('Invoices.flow_current_status', 'Waiting for Batch Generation')
+				->join('asps', 'Invoices.asp_id', '=', 'asps.id')
+				->join('activities', 'Invoices.id', '=', 'activities.invoice_id')
+				->groupBy('Invoices.id')
 				->get();
+
+			if (count($invoices) > 0) {
+				foreach ($invoices as $key => $invoice) {
+					$invoice->pdf_view_url = URL::asset('storage/app/public/invoices/' . $invoice->id . '.pdf');
+				}
+			}
 
 			DB::commit();
 			return response()->json(['success' => true, 'invoices' => $invoices], $this->successStatus);
@@ -125,23 +132,44 @@ class InvoiceController extends Controller {
 		try {
 			$validator = Validator::make($request->all(), [
 				'asp_code' => 'required|string|exists:asps,asp_code',
-				'invoice_no' => 'required|string|exists:Invoices,invoice_no',
+				'invoice_no' => 'required|string',
 			]);
 
 			if ($validator->fails()) {
-				return response()->json(['success' => false, 'message' => 'Validation Error', 'errors' => $validator->errors()->all()], $this->successStatus);
+				return response()->json([
+					'success' => false,
+					'message' => 'Validation Error',
+					'errors' => $validator->errors()->all(),
+				], $this->successStatus);
+			}
+
+			$invoice = Invoices::whereRaw("CONCAT(invoice_no,'-',id) like ?", ["%$request->invoice_no%"])->first();
+
+			if (!$invoice) {
+				return response()->json([
+					'success' => false,
+					'message' => 'Validation Error',
+					'errors' => [
+						'Selected invoice no is invalid',
+					],
+				], $this->successStatus);
+
 			}
 
 			//GET ASP
 			$asp = Asp::where('asp_code', $request->asp_code)->first();
 
 			//GET INVOICE DETAIL
-			$invoices = Invoices::with('asp')
-				->where('invoice_no', $request->invoice_no)
+			$invoices = Invoices::select(
+				'Invoices.*',
+				DB::raw("CONCAT(invoice_no,'-',id) as invoice_no")
+			)
+				->whereRaw("CONCAT(invoice_no,'-',id) like ?", ["%$request->invoice_no%"])
 				->where('asp_id', $asp->id)
-				->where('invoices.flow_current_status', 'Waiting for Batch Generation')
+				->where('flow_current_status', 'Waiting for Batch Generation')
 				->first();
 
+			$invoices->asp = $asp;
 			DB::commit();
 			return response()->json(['success' => true, 'invoices' => $invoices], $this->successStatus);
 		} catch (\Exception $e) {

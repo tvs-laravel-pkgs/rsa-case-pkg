@@ -19,7 +19,7 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 		// 6,	11|7,
 		$activity_portal_statuses = [
 			1 => [
-				'name' => 'Invoice Amount Calculated - Waiting for ASP to Generate Invoice',
+				'name' => 'Case Closed - Waiting for ASP to Generate Invoice',
 				'company_id' => 1,
 			],
 			2 => [
@@ -50,10 +50,10 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 				'name' => 'ASP Data Re-Entry Completed - Waiting for BO Individual Verification',
 				'company_id' => 1,
 			],
-			// 10 => [
-			// 	'name' => 'Pending Invoice Generation',
-			// 	'company_id' => 1,
-			// ],
+			10 => [
+				'name' => 'Invoice Amount Calculated - Waiting for Case Closure',
+				'company_id' => 1,
+			],
 			11 => [
 				'name' => 'BO Approved - Waiting for Invoice Generation by ASP',
 				'company_id' => 1,

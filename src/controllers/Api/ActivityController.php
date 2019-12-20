@@ -58,7 +58,6 @@ class ActivityController extends Controller {
 				'asp_bd_return_empty_km' => 'nullable|numeric',
 				'bd_dealer_km' => 'nullable|numeric',
 				'return_km' => 'nullable|numeric',
-				'excess_km' => 'nullable|numeric',
 				'total_travel_google_km' => 'nullable|numeric',
 				'drop_location_type' => 'nullable|string|max:24',
 				'drop_dealer' => 'nullable|string|max:64',
@@ -153,8 +152,8 @@ class ActivityController extends Controller {
 
 			//ASP ACCEPTED CC DETAILS == 1 AND ACTIVITY STATUS SUCCESSFUL
 			if ($request->asp_accepted_cc_details && $activity_status_id == 7) {
-				//Invoice Amount Calculated - Waiting for ASP to Confirm Invoice Amount
-				$activity->status_id = 1;
+				//Invoice Amount Calculated - Invoice Amount Calculated - Waiting for Case Closure
+				$activity->status_id = 10;
 			} else {
 				//ASP Rejected CC Details - Waiting for ASP Data Entry
 				$activity->status_id = 2;

@@ -204,6 +204,10 @@ class ActivityController extends Controller {
 		//dd($activity_status_id);
 		$this->data['activities'] = $activity = Activity::with([
 			'asp',
+			'asp.rms',
+			'asp.state',
+			'asp.district',
+			'asp.location',
 			'serviceType',
 			'case',
 			'case.callcenter',
@@ -211,6 +215,7 @@ class ActivityController extends Controller {
 		])->select(
 			'activities.id',
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			//DB::raw('DATE_FORMAT(asps.asp_reached_date,"%d-%m-%Y %H:%i:%s") as asp_r_date'),
 			'cases.number',
 			'activities.asp_po_accepted as asp_po_accepted',
 			'cases.vehicle_registration_number',
@@ -237,6 +242,7 @@ class ActivityController extends Controller {
 			'cases.*',
 			DB::raw('IF(invoices.invoice_no IS NULL,"-","invoices.invoice_no") as invoice_no'),
 			//DB::RAW('invoices.invoice_no) as invoice_no',
+			DB::raw('IF(invoices.invoice_amount IS NULL,"-",format(invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
 			DB::raw('IF(invoices.invoice_amount IS NULL,"-",format(invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
 			DB::raw('IF(invoices.flow_current_status IS NULL,"-",invoices.flow_current_status) as flow_current_status'),
 			DB::raw('IF(invoices.start_date IS NULL,"-",DATE_FORMAT(invoices.start_date,"%d-%m-%Y %H:%i:%s")) as invoice_date')

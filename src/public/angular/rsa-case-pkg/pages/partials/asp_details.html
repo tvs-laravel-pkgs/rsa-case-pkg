@@ -42,29 +42,29 @@
 											@endif
 										@endif -->
 									</ul>
-									<!-- <div class="clearfix"></div>
+									<div class="clearfix"></div>
 									<div class="viewData-threeColumn--wrapper">
 										<div class="row">
 											<div class="col-xs-12 col-sm-4">
 												<ul class="viewData-threeColumn--group">
 													<li><img src="{{ asset('resources/assets/images/ic-location.svg') }}"></li>
-													<li><p><?php echo $ctrl.name_address ?></p></li>
+													<li><p>{{$ctrl.data.asp.district.name}},{{$ctrl.data.asp.state.name}},{{$ctrl.data.asp.location.name}}.</p></li>
 												</ul>
 											</div>
 											<div class="col-xs-12 col-sm-4">
 												<ul class="viewData-threeColumn--group">
 													<li><img src="{{ asset('resources/assets/images/ic-phone.svg') }}"></li>
-													<li><p>{{$ctrl.contact_number1}}<br><a href="javascript:;">{{$ctrl.email}}</a></p></li>
+													<li><p>{{$ctrl.data.asp.contact_number1}}<br><a href="javascript:;">{{$ctrl.data.asp.email}}</a></p></li>
 												</ul>
 											</div>
 											<div class="col-xs-12 col-sm-4">
 												<ul class="viewData-threeColumn--group">
 													<li><img src="{{ asset('resources/assets/images/ic-profile.svg') }}"></li>
-													<li><p>RM: {{$ctrl.rm.name}}<br> RM Mobile: {{$ctrl.rm.contact_number}} </p></li>
+													<li><p>RM: {{$ctrl.data.asp.rms.name}}<br> RM Mobile: {{$ctrl.data.asp.rms.contact_number}} </p></li>
 												</ul>
 											</div>
 										</div>
-									</div> -->
+									</div>
 								</div>
 
 							</div>	

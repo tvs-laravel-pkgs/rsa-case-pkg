@@ -8,11 +8,15 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 
 	//ACTIVITY STATUS
 	Route::get('/activity-status/get-filter-data', 'ActivityController@getFilterData')->name('getActivityStatusFilterData');
-	
+
 	Route::get('/activity-status/get-list', 'ActivityController@getList')->name('getActivityStatusList');
 	Route::get('/activity-status/delete/{id}', 'ActivityController@delete')->name('deleteActivity');
-Route::get('/activity-status/view/{activity_status_id?}', 'ActivityController@viewActivityStatus')->name('viewActivityStatus');
+	Route::get('/activity-status/view/{activity_status_id?}', 'ActivityController@viewActivityStatus')->name('viewActivityStatus');
 
 	//ACTIVITY VERIFICATION
 	Route::get('/activity-verification/get-list', 'ActivityController@getVerificationList')->name('getActivityVerificationList');
+
+	//INVOICE
+	Route::get('/invoice/get-filter-data', 'InvoiceController@getFilterData')->name('getFilterData');
+	Route::get('/invoice/get-list', 'InvoiceController@getList')->name('getListData');
 });

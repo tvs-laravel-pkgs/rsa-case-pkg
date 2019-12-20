@@ -224,7 +224,7 @@ class ActivityController extends Controller {
 			//'asps.name',
 			'service_types.name as service',
 			'activity_finance_statuses.name as asp_status',
-			'asp_activity_rejected_reasons.name as asp_activity_rejected_reason',
+			DB::raw('IF(activities.asp_activity_rejected_reason_id IS NULL,"-",asp_activity_rejected_reasons.name) as asp_activity_rejected_reason'),
 			//'activity_asp_statuses.name as asp_status',
 			'activity_portal_statuses.name as activity_portal_status',
 			'activity_statuses.name as activity_status',
@@ -272,7 +272,7 @@ class ActivityController extends Controller {
 			}
 			$this->data['activities']['asp_service_type_data'] = AspServiceType::where('asp_id',$activity->asp_id)->where('service_type_id',$activity->service_type_id)->first();
 			 
-			 $config_ids = [302,303,300,304,296,297,284,285,283,286,287,289,288,291,280,299,281,280,282,305,306,307,308,298];
+			 $config_ids = [302,303,300,304,296,297,284,285,283,286,287,289,290,288,291,280,299,281,280,282,305,306,307,308];
 			 foreach($config_ids as $config_id){
 			 	$config = Config::where('id',$config_id)->first();
 				$detail = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',$config_id)->first();

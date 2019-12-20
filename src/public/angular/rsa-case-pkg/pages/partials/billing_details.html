@@ -13,8 +13,8 @@
 				</div>
 	    		@endif -->
 			    <ul class="nav nav-tabs" role="tablist">
-			        <li role="presentation" class=" {{ ++$index ==1 ? 'active' : ''}}">
-			            <a href="#info-{{$index}}" aria-controls="home" role="tab" data-toggle="tab">
+			        <li role="presentation" class="  {{ ++$index ==1 ? 'active' : ''}}">
+			            <a href="#info-{{$index}}" class="blue-btnn" aria-controls="home" role="tab" data-toggle="tab">
 			                {{$ctrl.data.service}}
 			            </a>
 			            <input type="text" name="bo_info" class="hide services_ids" data-count="{{$index}}" value="">

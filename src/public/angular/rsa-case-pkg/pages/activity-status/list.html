@@ -3,7 +3,7 @@
         <ul class="mobile-breadcrumbs-group list-inline">
             <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
             <li><a href="#">ASP Activities</a></li>
-            <li><a href="#">Status</a></li>
+            <li><a href="#!/rsa-case-pkg/activity-status/list">Status</a></li>
         </ul>
     </div>
 </div>
@@ -47,31 +47,31 @@
                                                 <input id="asp_code" class="form-control filter-input" type="text" placeholder="ASP Code" autocomplete="off">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.service_type_id" ng-change="changeCommonFilter($ctrl.service_type_id,'service_type_id')">
+                                                <md-select ng-model="$ctrl.service_type_id" ng-change="changeCommonFilter($ctrl.service_type_id,'service_type_id')" placeholder="Select Service Type">
                                                     <md-option ng-repeat="val in $ctrl.extras.service_type_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="service_type_id" value="" id="service_type_id">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.finance_status_id" ng-change="changeCommonFilter($ctrl.finance_status_id,'finance_status_id')">
+                                                <md-select ng-model="$ctrl.finance_status_id" ng-change="changeCommonFilter($ctrl.finance_status_id,'finance_status_id')" placeholder="Select Finance Status">
                                                     <md-option ng-repeat="val in $ctrl.extras.finance_status_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="finance_status_id" value="" id="finance_status_id">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.status_id" ng-change="changeCommonFilter($ctrl.status_id,'status_id')">
+                                                <md-select ng-model="$ctrl.status_id" ng-change="changeCommonFilter($ctrl.status_id,'status_id')" placeholder="Select Status">
                                                     <md-option ng-repeat="val in $ctrl.extras.status_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="status_id" value="" id="status_id">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.activity_status_id" ng-change="changeCommonFilter($ctrl.activity_status_id,'activity_status_id')">
+                                                <md-select ng-model="$ctrl.activity_status_id" ng-change="changeCommonFilter($ctrl.activity_status_id,'activity_status_id')" placeholder="Select Activity Status">
                                                     <md-option ng-repeat="val in $ctrl.extras.activity_status_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="activity_status_id" value="" id="activity_status_id">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.client_id" ng-change="changeCommonFilter($ctrl.client_id,'client_id')">
+                                                <md-select ng-model="$ctrl.client_id" ng-change="changeCommonFilter($ctrl.client_id,'client_id')" placeholder="Select Client">
                                                     <md-option ng-repeat="val in $ctrl.extras.client_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="client_id" value="" id="client_id">

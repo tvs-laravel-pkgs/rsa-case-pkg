@@ -2,14 +2,14 @@
 
 namespace Abs\RsaCasePkg;
 use Abs\RsaCasePkg\Activity;
+use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityPortalStatus;
 use Abs\RsaCasePkg\ActivityStatus;
-use Abs\RsaCasePkg\ActivityDetail;
+use App\AspServiceType;
 use App\CallCenter;
 use App\Client;
 use App\Config;
-use App\AspServiceType;
 use App\Http\Controllers\Controller;
 use App\ServiceType;
 use App\StateUser;
@@ -240,16 +240,16 @@ class ActivityController extends Controller {
 
 			//'activities.remarks as remarks',
 			'cases.*',
-			DB::raw('IF(invoices.invoice_no IS NULL,"-","invoices.invoice_no") as invoice_no'),
+			DB::raw('IF(Invoices.invoice_no IS NULL,"-","Invoices.invoice_no") as invoice_no'),
 			//DB::RAW('invoices.invoice_no) as invoice_no',
-			DB::raw('IF(invoices.invoice_amount IS NULL,"-",format(invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
-			DB::raw('IF(invoices.invoice_amount IS NULL,"-",format(invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
-			DB::raw('IF(invoices.flow_current_status IS NULL,"-",invoices.flow_current_status) as flow_current_status'),
-			DB::raw('IF(invoices.start_date IS NULL,"-",DATE_FORMAT(invoices.start_date,"%d-%m-%Y %H:%i:%s")) as invoice_date')
+			DB::raw('IF(Invoices.invoice_amount IS NULL,"-",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
+			DB::raw('IF(Invoices.invoice_amount IS NULL,"-",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
+			DB::raw('IF(Invoices.flow_current_status IS NULL,"-",Invoices.flow_current_status) as flow_current_status'),
+			DB::raw('IF(Invoices.start_date IS NULL,"-",DATE_FORMAT(Invoices.start_date,"%d-%m-%Y %H:%i:%s")) as invoice_date')
 		)
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
-			->leftjoin('invoices', 'activities.invoice_id', 'invoices.id')
+			->leftjoin('Invoices', 'activities.invoice_id', 'Invoices.id')
 			->leftjoin('users', 'users.id', 'asps.user_id')
 			->leftjoin('cases', 'cases.id', 'activities.case_id')
 			->leftjoin('case_statuses', 'case_statuses.id', 'cases.status_id')
@@ -264,35 +264,35 @@ class ActivityController extends Controller {
 			->groupBy('activities.id')
 			->where('activities.id', $activity_status_id)
 			->first();
-			$key_list = [ 158,159,160,154,155,156,170,174,180,298,];
-			foreach($key_list as $keyw){
-				$var_key = Config::where('id',$keyw)->first();
-				$key_name = str_replace(" ","_",strtolower($var_key->name));
-				$var_key_val = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',$var_key->id)->first();
-				if(strpos($key_name, 'amount') || strpos($key_name, 'collected') || strcmp("amount",$key_name)==0){
-					$this->data['activities'][$key_name] = $var_key_val ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($var_key_val->value,2))) : '0.00';
-				}else{
-					$this->data['activities'][$key_name] = $var_key_val ? $var_key_val->value :0;
-				}
+		$key_list = [158, 159, 160, 154, 155, 156, 170, 174, 180, 298];
+		foreach ($key_list as $keyw) {
+			$var_key = Config::where('id', $keyw)->first();
+			$key_name = str_replace(" ", "_", strtolower($var_key->name));
+			$var_key_val = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $var_key->id)->first();
+			if (strpos($key_name, 'amount') || strpos($key_name, 'collected') || strcmp("amount", $key_name) == 0) {
+				$this->data['activities'][$key_name] = $var_key_val ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($var_key_val->value, 2))) : '0.00';
+			} else {
+				$this->data['activities'][$key_name] = $var_key_val ? $var_key_val->value : 0;
 			}
-			$this->data['activities']['asp_service_type_data'] = AspServiceType::where('asp_id',$activity->asp_id)->where('service_type_id',$activity->service_type_id)->first();
-			/* 
+		}
+		$this->data['activities']['asp_service_type_data'] = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();
+		/*
 			 $config_ids = [302,303,300,304,296,297,284,285,283,286,287,289,290,288,291,280,299,281,280,282,305,306,307,308];*/
-			$configs = Config::where('entity_type_id',23)->get();
-			 foreach($configs as $config){
-				$detail = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',$config->id)->first();
-				if(strpos($config->name, '_charges') || strpos($config->name, '_amount')){
-					
-					$this->data['activities'][$config->name] = $detail->value ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($detail->value,2))) : '0.00';
-				}else{
-					$this->data['activities'][$config->name]= $detail->value ?$detail->value :'-';
-				}
-			 }
+		$configs = Config::where('entity_type_id', 23)->get();
+		foreach ($configs as $config) {
+			$detail = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $config->id)->first();
+			if (strpos($config->name, '_charges') || strpos($config->name, '_amount')) {
+
+				$this->data['activities'][$config->name] = $detail->value ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '0.00';
+			} else {
+				$this->data['activities'][$config->name] = $detail->value ? $detail->value : '-';
+			}
+		}
 		if (!$activity) {
 			return response()->json(['success' => false, 'data' => "Activity not Found!!!"]);
 		}
 		return response()->json(['success' => true, 'data' => $this->data]);
-		
+
 	}
 
 }

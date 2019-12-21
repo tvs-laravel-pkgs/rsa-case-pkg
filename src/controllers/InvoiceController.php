@@ -129,8 +129,8 @@ class InvoiceController extends Controller {
 
 		$this->data['signature_attachment'] = Attachment::where('entity_id', $asp->id)->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))->first();
 
-		$this->data['attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
-		// dd($this->data['attachment_path']);
+		$this->data['signature_attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
+		$this->data['invoice_attachment_path'] = config('rsa.asp_invoice_attachment_url');
 
 		if ($invoice->asp_gst_registration_number != NULL) {
 			$this->data['gst'] = $invoice->asp_gst_registration_number;

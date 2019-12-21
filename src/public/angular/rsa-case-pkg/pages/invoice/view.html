@@ -210,7 +210,7 @@
                                                                 <p class=" pull-left"> Bank Details:<br />
                                                                     Name : {{$ctrl.asp.workshop_name}} | Acc Number : {{$ctrl.asp.bank_account_number}} | Bank : {{$ctrl.asp.bank_name}} | Branch : {{$ctrl.asp.bank_branch_name}} | Ifsc : {{$ctrl.asp.bank_ifsc_code}}
                                                                 </p>
-                                                                <p class="pull-right" ng-if="$ctrl.signature_attachment != NULL"><img src="{{$ctrl.attachment_path}}/{{$asp.id}}/{{$ctrl.signature_attachment.attachment_file_name}}" weight="80px" height="50px" align="right"></p>
+                                                                <p class="pull-right" ng-if="$ctrl.signature_attachment != NULL"><img src="{{$ctrl.signature_attachment_path}}/{{$asp.id}}/{{$ctrl.signature_attachment.attachment_file_name}}" weight="80px" height="50px" align="right"></p>
                                                                 <div class="clearfix"></div>
                                                             </div>
                                                         </div>
@@ -228,6 +228,15 @@
                             </div>
                             
                             
+                            <div  ng-show="$ctrl.invoice.filename != ''" class="ccdv_btn multiUpload-wrapper" style="overflow: hidden; color: #333333; display: inline-grid; font-weight: 700; font-size: 20px; margin-top: 10px;">
+                                Download Uploaded Invoice
+                                <a href="{{$ctrl.invoice_attachment_path}}{{$ctrl.invoice.id}}" download>{{$ctrl.invoice.filename}}</a>
+                            </div>
+                            
+                            <div ng-show="$ctrl.invoice.filename == ''" class="ccdv_btn multiUpload-wrapper" style="overflow: hidden; color: #333333; display: inline-grid; font-weight: 700; font-size: 20px; margin-top: 10px; margin-left:50px;">
+                                Download System Invoice
+                                <a href="{{$ctrl.invoice_pdf_generate_url}}/{{$ctrl.invoice.id}}" class="approve-btn pull-left preview-batch">Invoice</a>
+                            </div>
                         </div>
                     </div>
                 </div>

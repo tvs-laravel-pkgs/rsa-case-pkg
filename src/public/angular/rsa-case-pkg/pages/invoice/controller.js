@@ -98,6 +98,7 @@ app.component('invoiceView', {
         var self = this;
         self.hasPermission = HelperService.hasPermission;
         self.filter_img_url = filter_img_url;
+        self.invoice_pdf_generate_url = invoice_pdf_generate_url;
         get_view_data_url = typeof($routeParams.id) == 'undefined' ? invoice_view_data_url : invoice_view_data_url + '/' + $routeParams.id;
         $http.get(
             get_view_data_url
@@ -113,7 +114,9 @@ app.component('invoiceView', {
             self.activities = response.data.activities;
             self.sum_invoice_amount = response.data.sum_invoice_amount;
             self.signature_attachment = response.data.signature_attachment;
-            self.attachment_path = response.data.attachment_path;
+            self.signature_attachment_path = response.data.signature_attachment_path;
+            self.invoice_attachment_path = response.data.invoice_attachment_path;
+            self.invoice = response.data.invoice;
             $rootScope.loading = false;
         });
 

@@ -47,18 +47,20 @@ class ActivityController extends Controller {
 				'asp_activity_status' => 'nullable|string|max:191|exists:activity_asp_statuses,name',
 				'asp_activity_rejected_reason' => 'nullable|string|max:191|exists:asp_activity_rejected_reasons,name',
 				'activity_status' => 'nullable|string|max:191|exists:activity_statuses,name',
+				'cc_colleced_amount' => 'nullable|numeric',
+				'cc_not_collected_amount' => 'nullable|numeric',
+				'cc_total_km' => 'nullable|numeric',
 				'description' => 'nullable|string|max:255',
 				'remarks' => 'nullable|string|max:255',
 				'asp_reached_date' => 'nullable|date_format:"Y-m-d H:i:s"',
 				'asp_start_location' => 'nullable|string|max:256',
 				'asp_end_location' => 'nullable|string|max:256',
-				'asp_bd_google_km' => 'nullable|numeric',
-				'bd_dealer_google_km' => 'nullable|numeric',
+				'onward_google_km' => 'nullable|numeric',
+				'dealer_google_km' => 'nullable|numeric',
 				'return_google_km' => 'nullable|numeric',
-				'asp_bd_return_empty_km' => 'nullable|numeric',
-				'bd_dealer_km' => 'nullable|numeric',
+				'onward_km' => 'nullable|numeric',
+				'dealer_km' => 'nullable|numeric',
 				'return_km' => 'nullable|numeric',
-				'total_travel_google_km' => 'nullable|numeric',
 				'drop_location_type' => 'nullable|string|max:24',
 				'drop_dealer' => 'nullable|string|max:64',
 				'drop_location' => 'nullable|string|max:512',
@@ -152,7 +154,7 @@ class ActivityController extends Controller {
 
 			//ASP ACCEPTED CC DETAILS == 1 AND ACTIVITY STATUS SUCCESSFUL
 			if ($request->asp_accepted_cc_details && $activity_status_id == 7) {
-				//Invoice Amount Calculated - Invoice Amount Calculated - Waiting for Case Closure
+				//Invoice Amount Calculated - Waiting for Case Closure
 				$activity->status_id = 10;
 			} else {
 				//ASP Rejected CC Details - Waiting for ASP Data Entry
@@ -251,6 +253,7 @@ class ActivityController extends Controller {
 				'cc_po_amount.value as payout_amount'
 			)
 				->join('asps', 'asps.id', 'activities.asp_id')
+				->join('cases', 'cases.id', 'activities.case_id')
 				->leftJoin('activity_details as cc_km_charge', function ($join) {
 					$join->on('cc_km_charge.activity_id', 'activities.id')
 						->where('cc_km_charge.key_id', 150); //CC KM Charge
@@ -267,8 +270,8 @@ class ActivityController extends Controller {
 					$join->on('cc_po_amount.activity_id', 'activities.id')
 						->where('cc_po_amount.key_id', 170); //CC PO AMOUNT
 				})
-			//Invoice Amount Calculated - Waiting for ASP Invoice Amount Confirmation
-				->where('activities.status_id', 1)
+				->where('activities.status_id', 1) //Case Closed - Waiting for ASP to Generate Invoice
+				->where('cases.status_id', 4) //case closed
 				->where('activities.asp_id', $asp->id)
 				->get();
 

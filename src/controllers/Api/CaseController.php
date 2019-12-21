@@ -49,7 +49,7 @@ class CaseController extends Controller {
 				'vehicle_make' => 'required|string|max:191|exists:vehicle_makes,name',
 				'vehicle_model' => 'nullable|string|max:191|exists:vehicle_models,name',
 				'vehicle_registration_number' => 'required|string|max:191',
-				'vin_no' => 'nullable|string|min:17|max:24',
+				'vin_no' => 'nullable|string|min:17|max:17',
 				'membership_type' => 'required|string|max:255',
 				'membership_number' => 'nullable|string|max:255',
 				'subject' => 'required|string|max:191|exists:subjects,name',
@@ -73,7 +73,32 @@ class CaseController extends Controller {
 			$call_center = CallCenter::where('name', $request->call_center)->first();
 			$client = Client::where('name', $request->client)->first();
 			$vehicle_make = VehicleMake::where('name', $request->vehicle_make)->first();
-			$vehicle_model = VehicleModel::where('vehicle_make_id', $vehicle_make->id)->first();
+
+			//VEHICLE MODEL GOT BY VEHICLE MAKE
+			$vehicle_model_by_make = VehicleModel::where('vehicle_make_id', $vehicle_make->id)->first();
+			if (!$vehicle_model_by_make) {
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						'Selected vehicle model is invalid',
+					],
+				], $this->successStatus);
+			}
+			//GIVEN VEHICLE MODEL
+			$vehicle_model = VehicleModel::where('name', $request->vehicle_model)->first();
+
+			//CHECK SAME OR NOT
+			if ($vehicle_model_by_make->id != $vehicle_model->id) {
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						"Selected vehicle make doesn't matches with vehicle model",
+					],
+				], $this->successStatus);
+			}
+
 			$subject = Subject::where('name', $request->subject)->first();
 
 			$cancel_reason = CaseCancelledReason::where('name', $request->cancel_reason)->where('company_id', 1)->first();
@@ -95,6 +120,29 @@ class CaseController extends Controller {
 			$case->vehicle_model_id = $vehicle_model->id;
 			$case->subject_id = $subject->id;
 			$case->save();
+
+			if ($case->status_id == 3) {
+				//CANCELLED
+				$case
+					->activities()
+					->update([
+						// Not Eligible for Payout
+						'status_id' => 15,
+					]);
+			}
+			if ($case->status_id == 4) {
+				//CLOSED
+				$case
+					->activities()
+					->where([
+						// Invoice Amount Calculated - Waiting for Case Closure
+						'status_id' => 10,
+					])
+					->update([
+						// Case Closed - Waiting for ASP to Generate Invoice
+						'status_id' => 1,
+					]);
+			}
 
 			DB::commit();
 			return response()->json([

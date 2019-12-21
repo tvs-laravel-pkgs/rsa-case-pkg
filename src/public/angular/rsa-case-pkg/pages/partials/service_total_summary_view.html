@@ -1,0 +1,59 @@
+<div class="table-responsive">
+<table class="table table-bordered table-wide style-normal">
+	<thead>
+		<tr>
+			<th>Price Calculation</th>
+			<th>Amount in INR</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Payout (+)</td>
+			<td>
+				<div>{{$ctrl.data.cc_po_amount}}</div>
+			</td>
+		</tr>
+		<tr>
+			<td>Charges Not Collected From Customer (+) </td>
+			<td>
+				<div>{{$ctrl.data.cc_not_collected_amount}}</div>
+			</td>
+		</tr>
+		<tr>
+			<td>Charges Collected From Customer (-)</td>
+			<td>
+				<div>{{$ctrl.data.cc_colleced_amount}}</div>
+			</td>
+		</tr>
+		<!-- <tr>
+			<td>Tax Calculation Method</td>
+			<td>
+				<div class="">
+					<span class="alert alert-danger">
+						{{$asp->tax_calculation_method == 0 ? 'Calculate Tax without Not Collected Amount' : 'Calculate Tax with Not Collected Amount'}}
+					</span>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td>Deduction (-)</td>
+			<td>
+				<div>{{number_format($mis_info->deduction,2)}}</div>
+			</td>
+		</tr> -->
+		<!-- <tr>
+			<td>Deduction Reason</td>
+			<td colspan="2">
+				{{ Form::textarea('bo_info['.$index.'][cancelled_reason]',$mis_info->cancelled_reason,['class' => 'form-control',  "placeholder" => "Enter comments", 'readonly' => 'readonly']) }}
+			</td>
+		</tr>
+		<tr>
+			<td>Comments</td>
+			<td colspan="2">
+				{{ Form::textarea('bo_info['.$index.'][comments]',$mis_info->Comments,['class' => 'form-control',  "placeholder" => "Enter comments", 'readonly' => 'readonly']) }}
+			</td>
+		</tr> -->
+
+	</tbody>
+</table>
+</div>

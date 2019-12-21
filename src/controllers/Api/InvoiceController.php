@@ -5,6 +5,7 @@ use Abs\RsaCasePkg\Activity;
 use App\Asp;
 use App\Http\Controllers\Controller;
 use App\Invoices;
+use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
 use URL;
@@ -19,12 +20,23 @@ class InvoiceController extends Controller {
 			$validator = Validator::make($request->all(), [
 				'activity_id.*' => 'required|numeric|exists:activities,crm_activity_id',
 				'asp_code' => 'required|string|exists:asps,asp_code',
+				'invoice_number' => 'nullable|string',
+				'invoice_date' => 'nullable|string|date_format:"Y-m-d"',
+				'invoice_copy' => 'nullable',
 			]);
 			if ($validator->fails()) {
 				return response()->json([
 					'success' => false,
 					'message' => 'Validation Error',
 					'errors' => $validator->errors()->all(),
+				], $this->successStatus);
+			}
+
+			if (!isset($request->activity_id)) {
+				return response()->json([
+					'success' => false,
+					'message' => 'Validation Error',
+					'errors' => 'Activity ID is required',
 				], $this->successStatus);
 			}
 
@@ -58,8 +70,33 @@ class InvoiceController extends Controller {
 
 			//GET ASP
 			$asp = ASP::where('asp_code', $request->asp_code)->first();
+			//SELF INVOICE
+			if (!$asp->is_auto_invoice) {
+				if (!$request->invoice_number) {
+					return response()->json([
+						'success' => false,
+						'message' => 'Validation Error',
+						'errors' => 'Invoice number is required',
+					], $this->successStatus);
+				}
+				if (!$request->invoice_date) {
+					return response()->json([
+						'success' => false,
+						'message' => 'Validation Error',
+						'errors' => 'Invoice date is required',
+					], $this->successStatus);
+				}
 
-			$invoice_c = Invoices::createInvoice($asp, $request->activity_id);
+				$invoice_no = $request->invoice_number;
+				$invoice_date = date('Y-m-d H:i:s', strtotime($request->invoice_date));
+			} else {
+				//SYSTEM
+
+				//GENERATE INVOICE NUMBER
+				$invoice_no = generateInvoiceNumber();
+				$invoice_date = new Carbon();
+			}
+			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $invoice_date);
 
 			DB::commit();
 			if ($invoice_c) {
@@ -86,6 +123,8 @@ class InvoiceController extends Controller {
 		try {
 			$validator = Validator::make($request->all(), [
 				'asp_code' => 'required|string|exists:asps,asp_code',
+				'offset' => 'nullable|numeric',
+				'limit' => 'nullable|numeric',
 			]);
 
 			if ($validator->fails()) {
@@ -109,13 +148,20 @@ class InvoiceController extends Controller {
 				->where('activities.asp_id', '=', $asp->id)
 				->where('Invoices.flow_current_status', 'Waiting for Batch Generation')
 				->join('asps', 'Invoices.asp_id', '=', 'asps.id')
-				->join('activities', 'Invoices.id', '=', 'activities.invoice_id')
-				->groupBy('Invoices.id')
-				->get();
+				->join('activities', 'Invoices.id', '=', 'activities.invoice_id');
+
+			if ($request->offset && $request->limit) {
+				$invoices->offset($request->offset);
+			}
+			if ($request->limit) {
+				$invoices->limit($request->limit);
+			}
+
+			$invoices = $invoices->groupBy('Invoices.id')->get();
 
 			if (count($invoices) > 0) {
 				foreach ($invoices as $key => $invoice) {
-					$invoice->pdf_view_url = URL::asset('storage/app/public/invoices/' . $invoice->id . '.pdf');
+					$invoice->invoice_copy = URL::asset('storage/app/public/invoices/' . $invoice->id . '.pdf');
 				}
 			}
 

@@ -1,29 +1,34 @@
+<div class="row">
+	<div class="col-xs-12 col-sm-12">
 		<div class="row">
-			<div class="col-xs-12 col-sm-12">
-				<div class="row">
-					<div class="col-xs-12 col-sm-4">
-						<div class="dataTable--left_wrapper">
-							<h2 class="dataTable-title">{{$ctrl.data.number}}</h2>
-							<p><span class="orange-txt">{{ $ctrl.data.case_date }}</span></p>
-						</div>
-					</div>
-					<!-- <div class="col-xs-12 col-sm-4 col-sm-push-4">
-						<div class="dataTable-top--right_wrapper">
-							<h2 class="pull-right viewTop-heading">
-							</h2>
-						</div>
-					</div> -->
-					<div class="col-xs-12 col-sm-8 col-md-6 col-lg-4 text-center">
-						<ul class="nav nav-tabs customTab-group nav-custom-group">
-						    <li class="active"><a data-toggle="tab" href="#bill">Billing Details</a></li>
-						    <li><a data-toggle="tab" href="#Activity">Activity Details</a></li>
-						    <li><a data-toggle="tab" href="#Location">Location Details</a></li>
-						    <li><a data-toggle="tab" href="#KM">KM Details</a></li>
-						    <li><a data-toggle="tab" href="#invoice">Invoice Details</a></li>
-						    <li><a data-toggle="tab" href="#financial">Financial Details</a></li>
-						    <li><a data-toggle="tab" href="#case">Case Details</a></li>
-						  </ul>
-					</div>
+			<div class="col-xs-12 col-sm-4 col-lg-2">
+				<div class="dataTable--left_wrapper">
+					<h2 class="dataTable-title">{{$ctrl.data.number}}</h2>
+					<p><span class="orange-txt">{{$ctrl.data.case_date}}</span> | {{$ctrl.data.call_center}}</p> 
 				</div>
-
-
+			</div>
+			<!-- <div class="col-xs-12 col-sm-4 col-sm-push-4">
+				<div class="dataTable-top--right_wrapper">
+					<h2 class="pull-right viewTop-heading">
+					</h2>
+				</div>
+			</div> -->
+			<div class="col-xs-12 col-sm-8 col-md-6 col-lg-10 text-center">
+				<ul class="nav nav-tabs customTab-group nav-custom-group">
+				    <li class="active wid-14"><a data-toggle="tab" data-target="#bill">Billing Details</a></li>
+				    <li class="wid-14"><a data-toggle="tab" data-target="#activity" aria-expanded="false">Activity Details</a></li>
+				    <li class="wid-14"><a data-toggle="tab" data-target="#location" aria-expanded="false">Location Details</a></li>
+				    <li class="wid-14"><a data-toggle="tab" data-target="#km" aria-expanded="false">KM Details</a></li>
+				    <li class="wid-14"><a data-toggle="tab" data-target="#invoice" aria-expanded="false">Invoice Details</a></li>
+				    <li class="wid-14"><a data-toggle="tab" data-target="#financial" aria-expanded="false">Financial Details</a></li>
+				    <li class="wid-14"><a data-toggle="tab" data-target="#case" aria-expanded="false">Case Details</a></li>
+				  </ul>
+			</div>
+		</div>
+		<div class="viewData-wrapper">
+			<div class="viewData-toggle--wrapper">
+	 			<asp-details data="$ctrl.data"></asp-details>
+			</div>
+		</div>
+	</div>
+</div>

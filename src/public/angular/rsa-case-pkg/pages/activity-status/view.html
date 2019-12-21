@@ -1,11 +1,37 @@
-
-
-	<div class="container-fluid dataTable-content--wrapper">
-	    <asp-activities-header po="$ctrl.po" activity="$ctrl.data" po_base_url="$ctrl.po_base_url"></asp-activities-header>
-		<div class="viewData-wrapper">
-			<div class="viewData-toggle--wrapper">
-	 		<asp-details po="$ctrl.po" po_supplier_batch_process="$ctrl.po_supplier_batch_process" po_base_url="$ctrl.po_base_url"></asp-details>
-
-			</div>
+<div class="container-fluid dataTable-content--wrapper">
+	<asp-activities-header data="$ctrl.data"></asp-activities-header>
+    <div class="tab-content">
+	    
+        <div id="bill" class="tab-pane fade in active">
+        	<billing-details data="$ctrl.data"></billing-details>
+        </div>
+		<div id="activity" class="tab-pane fade">
+			<activity-details data="$ctrl.data"></activity-details>
 		</div>
-		
+        <div id="location" class="tab-pane fade">
+        	<location-details data="$ctrl.data"></location-details>
+        </div>
+        <div id="km" class="tab-pane fade">
+        	<km-details data="$ctrl.data"></km-details>
+        </div>
+        <div id="invoice" class="tab-pane fade">
+       		<invoice-details data="$ctrl.data"></invoice-details>
+    	</div>
+    	<div id="financial" class="tab-pane fade">
+        	<financial-details data="$ctrl.data"></financial-details>
+        </div>
+		<div id="case" class="tab-pane fade">
+        	<case-details data="$ctrl.data"></case-details>
+    	</div>
+	</div>
+</div><!-- pricing-table-data -->
+        
+
+
+
+
+			
+
+			
+        
+   

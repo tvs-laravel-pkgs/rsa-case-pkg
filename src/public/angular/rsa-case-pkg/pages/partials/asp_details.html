@@ -3,31 +3,26 @@
 
 								<div class="viewData-toggle--inner">
 									<h2 class="viewData-toggle--title pull-left">
-										{{$asp.title_name}}
+										{{$ctrl.data.asp.name}}
 									</h2>
 									<span class="viewData-toggle--btn pull-right"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
 									<div class="clearfix"></div>
 									<ul>
-										<li>ASP Code : <span>{{$asp.asp_code}}</span></li>
-										@if(isset($mis_info))
+										<li>ASP Code : <span>{{$ctrl.data.asp.asp_code}}</span></li>
+										<!-- @if(isset($mis_info)) -->
 											<li>ASP Type : 
-												<span>
-													{{$asp.is_self ? 'Self' : 'Non Self'}}
-												</span>
+												<span ng-show="$ctrl.data.asp.is_self">Self</span>
+												<span ng-show="!($ctrl.data.asp.is_self)">Non Self</span>
 											</li>
 											<li>ASP has GST : 
-												<span>
-													{{$asp.has_gst ? 'Yes' : 'No'}}
-												</span>
+												<span ng-show="$ctrl.data.asp.has_gst">Self</span>
+												<span ng-show="!($ctrl.data.asp.has_gst)">Non Self</span>
 											</li>
-											@if($asp.is_self && $asp.has_gst)
-												<li>Auto Invoice : 
-													<span>
-														{{$asp.is_auto_invoice ? 'Yes' : 'No'}}
-													</span>
-												</li>
-											@endif
-										@else
+											<li ng-show="$ctrl.data.asp.has_gst && $ctrl.data.asp.is_self" >Auto Invoice : 
+												<span ng-show="$ctrl.data.asp.is_auto_invoice">Self</span>
+												<span ng-show="!($ctrl.data.asp.is_auto_invoice)">Non Self</span>
+											</li>
+										<!-- @else
 											<li>ASP Type : 
 												<span>
 													{{$batch.is_self ? 'Self' : 'Non Self'}}
@@ -45,27 +40,27 @@
 													</span>
 												</li>
 											@endif
-										@endif
+										@endif -->
 									</ul>
 									<div class="clearfix"></div>
 									<div class="viewData-threeColumn--wrapper">
 										<div class="row">
 											<div class="col-xs-12 col-sm-4">
 												<ul class="viewData-threeColumn--group">
-													<li><img src="{{ asset('resources/assets/images/ic-location.svg') }}"></li>
-													<li><p><?php echo $asp.name_address ?></p></li>
+													<li><img src="{{ $ctrl.data.style_location_image_url}}"></li>
+													<li><p>{{$ctrl.data.asp.district.name}},{{$ctrl.data.asp.state.name}},{{$ctrl.data.asp.location.name}}.</p></li>
 												</ul>
 											</div>
 											<div class="col-xs-12 col-sm-4">
 												<ul class="viewData-threeColumn--group">
-													<li><img src="{{ asset('resources/assets/images/ic-phone.svg') }}"></li>
-													<li><p>{{$asp.contact_number1}}<br><a href="javascript:;">{{$asp.email}}</a></p></li>
+													<li><img src="{{ $ctrl.data.style_phone_image_url}}"></li>
+													<li><p>{{$ctrl.data.asp.contact_number1}}<br><a href="javascript:;">{{$ctrl.data.asp.email}}</a></p></li>
 												</ul>
 											</div>
 											<div class="col-xs-12 col-sm-4">
 												<ul class="viewData-threeColumn--group">
-													<li><img src="{{ asset('resources/assets/images/ic-profile.svg') }}"></li>
-													<li><p>RM: {{$asp.rm.name}}<br> RM Mobile: {{$asp.rm.contact_number}} </p></li>
+													<li><img src="{{ $ctrl.data.style_profile_image_url}}"></li>
+													<li><p>RM: {{$ctrl.data.asp.rms.name}}<br> RM Mobile: {{$ctrl.data.asp.rms.contact_number}} </p></li>
 												</ul>
 											</div>
 										</div>

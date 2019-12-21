@@ -197,22 +197,22 @@
                                                                                     {{activity.service_type}}
                                                                                 </td>
                                                                                 <td>
-                                                                                    {{activity.km_value ? activity.km_value : '0' }}
+                                                                                    {{activity.km_value | number : 2}}
                                                                                 </td>
                                                                                 <td class="text-right">
-                                                                                    {{activity.net_value ? activity.net_value : '0'}}
+                                                                                    {{activity.net_value | number : 2}}
                                                                                 </td>
                                                                                 <td class="text-right">
-                                                                                    {{activity.collect_value ? activity.collect_value : '0'}}
+                                                                                    {{activity.collect_value | number : 2}}
                                                                                 </td>
                                                                                 <td class="text-right">
                                                                                     0
                                                                                 </td>
                                                                                 <td class="text-right">
-                                                                                    {{activity.not_collect_value ? activity.not_collect_value : '0'}}
+                                                                                    {{activity.not_collect_value | number : 2}}
                                                                                 </td>
                                                                                 <td class="text-right">
-                                                                                    {{activity.total_value ? activity.total_value : '0'}}
+                                                                                    {{activity.total_value | number : 2}}
                                                                                 </td>
                                                                             </tr>
                                                                         </tbody>

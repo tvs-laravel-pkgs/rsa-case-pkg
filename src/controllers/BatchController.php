@@ -71,7 +71,7 @@ class BatchController extends Controller {
 				return response()->json(['success' => false, 'error' => 'Something went wrong!.Please Try Again']);
 			}
 		} else {
-			return response()->json(['success' => false, 'error' => 'No Invoice selected,Select atleast one invoice']);
+			return response()->json(['success' => false, 'error' => 'No Invoice selected, select atleast one invoice']);
 		}
 
 	}

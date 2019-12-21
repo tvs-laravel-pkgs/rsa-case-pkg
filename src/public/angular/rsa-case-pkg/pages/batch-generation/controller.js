@@ -82,7 +82,7 @@ app.component('batchGenerationList', {
         });
 
         $scope.refresh = function() {
-            $('#invoice_table').DataTable().ajax.reload();
+            $('#batch_generation_table').DataTable().ajax.reload();
         };
 
         $('.filterToggle').click(function() {

@@ -89,6 +89,26 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Only Mapped',
 			],
 
+			//BATCH GENERATION
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'invoices-batch-generation',
+				'display_name' => 'Batch Generation',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'invoices-batch-generation',
+				'name' => 'view-all-invoices-batch-generation',
+				'display_name' => 'View All',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'invoices-batch-generation',
+				'name' => 'view-only-state-mapped-invoices-batch-generation',
+				'display_name' => 'Only State Mapped',
+			],
+
 			//ASP INVOICES
 			[
 				'display_order' => 99,

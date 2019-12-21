@@ -148,7 +148,8 @@ class ActivityController extends Controller {
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
-			->where('activities.asp_accepted_cc_details', '!=', 1)
+		// ->where('activities.asp_accepted_cc_details', '!=', 1)
+			->whereIn('activities.status_id', [5, 6, 8, 9])
 			->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
 		;

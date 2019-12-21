@@ -15,7 +15,8 @@ class BatchController extends Controller {
 
 	public function getList(Request $request) {
 
-		$invoices = Invoices::select('Invoices.id', 'Invoices.invoice_no', DB::raw("date_format(Invoices.created_at,'%d-%m-%Y') as invoice_date"), DB::raw("ROUND(SUM(Invoices.invoice_amount),2) as invoice_amount"), 'asps.asp_code as asp_code',
+		$invoices = Invoices::select('Invoices.id', DB::raw("CONCAT(Invoices.invoice_no,'-',Invoices.id) as invoice_no"), DB::raw("date_format(Invoices.created_at,'%d-%m-%Y') as invoice_date"), DB::raw("ROUND(SUM(Invoices.invoice_amount),2) as invoice_amount"), 'asps.asp_code as asp_code', 'Invoices.start_date as start_date',
+			'Invoices.end_date as end_date',
 			'asps.workshop_name as workshop_name', DB::raw("COUNT(activities.id) as no_of_tickets"))
 			->join('asps', 'Invoices.asp_id', '=', 'asps.id')
 			->join('users', 'users.id', 'asps.user_id')
@@ -55,6 +56,9 @@ class BatchController extends Controller {
 					return route('angular') . '/#!/rsa-case-pkg/invoice/view/' . $invoices->id . '/2';
 				},
 			])
+			->addColumn('period', function ($invoices) {
+				return $invoices->start_date . " - " . $invoices->end_date;
+			})
 			->addColumn('action', function ($invoices) {
 				return '<input type="checkbox" class="ticket_id no-link child_select_all" name="invoice_ids[]" value="' . $invoices->id . '">';
 			})

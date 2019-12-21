@@ -10,6 +10,7 @@ app.component('batchGenerationList', {
             { data: 'action', orderable: false, targets: 0, searchable: false },
             { data: 'invoice_no', name: 'Invoices.invoice_no', searchable: true },
             { data: 'invoice_date', searchable: false },
+            { data: 'period', searchable: false },
             { data: 'asp_code', name: 'asps.asp_code', searchable: true },
             { data: 'workshop_name', name: 'asps.workshop_name', searchable: true },
             { data: 'no_of_tickets', searchable: false },

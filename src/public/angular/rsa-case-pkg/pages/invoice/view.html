@@ -1,3 +1,11 @@
+<div class="col-xs-12 col-sm-12">
+    <div class="mobile-breadcrumbs-wrapper">
+        <ul class="mobile-breadcrumbs-group list-inline">
+            <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
+            <li><a href="#!/rsa-case-pkg/asp-invoice/list">Invoice</a></li>
+        </ul>
+    </div>
+</div>
 <div class="container-fluid dataTable-content--wrapper">
     <div class="row">
         <div class="col-xs-12 col-sm-12">
@@ -221,10 +229,8 @@
                                                                     <p class=" pull-left"> Bank Details:<br />
                                                                         Name : {{$ctrl.asp.workshop_name}} | Acc Number : {{$ctrl.asp.bank_account_number}} | Bank : {{$ctrl.asp.bank_name}} | Branch : {{$ctrl.asp.bank_branch_name}} | Ifsc : {{$ctrl.asp.bank_ifsc_code}}
                                                                     </p>
-                                                                   
-                                                                    <p ng-show="$ctrl.signature_attachment != ''" class="pull-right" ><img src="{{$ctrl.signature_attachment_path}}/{{$ctrl.asp.id}}/{{$ctrl.signature_attachment.attachment_file_name}}" weight="80px" height="50px" align="right"></p>
+                                                                    <p ng-show="$ctrl.signature_attachment != ''" class="pull-right"><img src="{{$ctrl.signature_attachment_path}}/{{$ctrl.asp.id}}/{{$ctrl.signature_attachment.attachment_file_name}}" weight="80px" height="50px" align="right"></p>
                                                                     <div class="clearfix"></div>
-
                                                                 </div>
                                                             </div>
                                                         </div>

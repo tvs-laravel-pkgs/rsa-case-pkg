@@ -52,7 +52,7 @@ class BatchController extends Controller {
 		return Datatables::of($invoices)
 			->setRowAttr([
 				'id' => function ($invoices) {
-					return route('angular') . '/#!/rsa-case-pkg/asp-invoice/view/' . $invoices->id . '/2';
+					return route('angular') . '/#!/rsa-case-pkg/invoice/view/' . $invoices->id . '/2';
 				},
 			])
 			->addColumn('action', function ($invoices) {

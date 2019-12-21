@@ -48,7 +48,7 @@ class InvoiceController extends Controller {
 		return Datatables::of($invoices)
 			->addColumn('action', function ($invoices) {
 				$action = '<div class="dataTable-actions">
-				<a href="#!/rsa-case-pkg/asp-invoice/view/' . $invoices->id . '">
+				<a href="#!/rsa-case-pkg/invoice/view/' . $invoices->id . '">
 					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
 					            </a>';
 				$action .= '</div>';

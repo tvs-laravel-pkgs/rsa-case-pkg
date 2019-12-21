@@ -44,9 +44,15 @@ app.config(['$routeProvider', function($routeProvider) {
         template: '<invoice-list></invoice-list>',
         title: 'Invoices',
     }).
-    when('/rsa-case-pkg/asp-invoice/view/:id', {
+    when('/rsa-case-pkg/asp-invoice/view/:id/:type_id?', {
         template: '<invoice-view></invoice-view>',
         title: 'Invoice View',
+    }).
+
+    //ASP BATCH GENERATION
+    when('/rsa-case-pkg/batch-generation/list', {
+        template: '<batch-generation-list></batch-generation-list>',
+        title: 'Invoices',
     })
 
     ;

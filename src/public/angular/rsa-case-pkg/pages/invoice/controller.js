@@ -98,6 +98,7 @@ app.component('invoiceView', {
         var self = this;
         self.hasPermission = HelperService.hasPermission;
         self.filter_img_url = filter_img_url;
+        self.type_id = $routeParams.type_id;
         self.invoice_pdf_generate_url = invoice_pdf_generate_url;
         get_view_data_url = typeof($routeParams.id) == 'undefined' ? invoice_view_data_url : invoice_view_data_url + '/' + $routeParams.id;
         $http.get(

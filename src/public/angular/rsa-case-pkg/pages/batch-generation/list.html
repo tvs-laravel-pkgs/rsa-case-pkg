@@ -1,0 +1,85 @@
+<div class="col-xs-12 col-sm-12">
+    <div class="mobile-breadcrumbs-wrapper">
+        <ul class="mobile-breadcrumbs-group list-inline">
+            <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
+            <li><a href="#!/rsa-case-pkg/batch-generation/list">Batch Generation</a></li>
+        </ul>
+    </div>
+</div>
+<div class="container-fluid dataTable-content--wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12">
+            <div class="row">
+                <div class="col-xs-12 col-sm-6">
+                    <div class="dataTable--left_wrapper">
+                        <h2 class="dataTable-title">Invoice</h2>
+                        <p>Total - <span class="orange-txt"><span class="count">0</span></span></p>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-6">
+                    <div class="dataTable-top--right_wrapper">
+                        <ul class="dataTable-top--right_group list-inline">
+                            <li><input class="filterTable" type="text" placeholder="Search"></li>
+                            <li><a href="javascript:void(0)" class="btn btn-md" ng-click="refresh()">Refresh</a></li>
+                            <li>
+                                <img src="<% $ctrl.filter_img_url %>" class="filterToggle">
+                                <div class="filter-wrapper" id='filterticket'>
+                                    <div class="filter-overlay"></div>
+                                    <div class="filter-content">
+                                        <div class="filter-header">
+                                            <h2>Invoice Filter</h2>
+                                        </div>
+                                        <div class="filter-body">
+                                            <div class="form-group">
+                                                <input name="date" id="date" class="form-control filter-input date-picker" type="text" placeholder="Date" readonly autocomplete="off">
+                                            </div>
+                                            <div class="form-group">
+                                                <input name="invoice_number" id="invoice_number" class="form-control filter-input" type="text" placeholder="Invoice Number" autocomplete="off">
+                                            </div>
+                                            <div class="form-group">
+                                                <input name="asp_code" id="asp_code" class="form-control filter-input" type="text" placeholder="ASP Code" autocomplete="off">
+                                            </div>
+                                            <div class="form-group">
+                                                <input name="work_shop" id="work_shop" class="form-control filter-input" type="text" placeholder="Workshop Name" autocomplete="off">
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="filter-btns">
+                                                    <a href="javascript:;" class="reset-filter  btn btn-primary yellow reset-filter1">RESET</a>
+                                                    <a href="javascript:;" class="close-filter btn btn-primary">CLOSE</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <div class="customTab-content">
+                    <div class="tab-content">
+                        <div id="about40" class="tab-pane fade in active">
+                            <form id="batch_generation" method="post">
+                                <table id="batch_generation_table" class="display table dataTable row_linked_table">
+                                    <thead>
+                                        <tr>
+                                            <th><input type="checkbox" class="check_all" id="select_all_checkbox" autocomplete="off"></th>
+                                            <th>Invoice Number</th>
+                                            <th>Invoice Date</th>
+                                            <th>ASP Code</th>
+                                            <th>Workshop Name</th>
+                                            <th>No of Tickets</th>
+                                            <th>Invoice Amount</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                                <button type="submit" id="submit" class="approve-btn pull-right preview-batch">Generate Batch</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

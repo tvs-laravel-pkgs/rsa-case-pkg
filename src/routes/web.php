@@ -26,4 +26,8 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	Route::get('/batch-generation/get-list', 'BatchController@getList')->name('getListData');
 	Route::post('/batch-generation/generate-batch', 'BatchController@generateBatch')->name('generateBatch');
 
+	//PAID BATCHES
+	Route::get('/paid-batches/get-filter-data', 'BatchController@getPaidBatchFilterData')->name('getPaidBatchFilterData');
+	Route::get('/paid-batches/get-list', 'BatchController@getPaidBatchList')->name('getPaidBatch');
+
 });

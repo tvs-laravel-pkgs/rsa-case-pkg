@@ -39,21 +39,42 @@ app.config(['$routeProvider', function($routeProvider) {
         title: 'Activity Verification View',
     }).
 
-    //ASP INVOICES
+    //INVOICES
     when('/rsa-case-pkg/invoice/list', {
         template: '<invoice-list></invoice-list>',
         title: 'Invoices',
     }).
+
+    //INVOICE VIEW
     when('/rsa-case-pkg/invoice/view/:id/:type_id?', {
         template: '<invoice-view></invoice-view>',
         title: 'Invoice View',
     }).
 
-    //ASP BATCH GENERATION
+    //BATCH GENERATION
     when('/rsa-case-pkg/batch-generation/list', {
         template: '<batch-generation-list></batch-generation-list>',
         title: 'Invoices',
+    }).
+
+    //PAID BATCHES
+    when('/rsa-case-pkg/paid-batches/list', {
+        template: '<paid-batches-list></paid-batches-list>',
+        title: 'Paid Batches',
+    }).
+
+    //UNPAID BATCHES
+    when('/rsa-case-pkg/unpaid-batches/list', {
+        template: '<unpaid-batches-list></unpaid-batches-list>',
+        title: 'Unpaid Batches',
+    }).
+
+    //BATCH VIEW
+    when('/rsa-case-pkg/batch-view/:id', {
+        template: '<batch-view></unpaid-batches-list>',
+        title: 'Batch View',
     })
+
 
     ;
 }]);

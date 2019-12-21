@@ -1,6 +1,7 @@
 <?php
 
 namespace Abs\RsaCasePkg;
+use App\Asp;
 use App\Batch;
 use App\Http\Controllers\Controller;
 use App\Invoices;
@@ -78,6 +79,64 @@ class BatchController extends Controller {
 			return response()->json(['success' => false, 'error' => 'No Invoice selected, select atleast one invoice']);
 		}
 
+	}
+
+	public function getPaidBatchFilterData() {
+		$this->data['extras'] = [
+			'asp_list' => collect(Asp::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select ASP']),
+		];
+		return response()->json($this->data);
+	}
+
+	public function getPaidBatchList(Request $request) {
+		$batches = Batch::where('status', '=', "Payment Confirmed")
+			->join('Invoices', 'Invoices.batch_id', '=', 'batches.id')
+			->join('activities', 'activities.invoice_id', '=', 'Invoices.id')
+			->join('asps', 'asps.id', '=', 'batches.asp_id')
+			->selectRaw("
+                    batches.id as batchid,
+                    batches.batch_number,
+                    batches.created_at as created_at,
+                    batches.tds as tds,
+                    FORMAT(batches.paid_amount,2) as paid_amount,
+                    asps.asp_code as asp_code,
+                    asps.name as asp_name,
+                    asps.workshop_name as workshop_name,
+                    IF(asps.is_self = 1,'SELF','NON-SELF') as asp_type,
+                    CONCAT(DATE_FORMAT(min(Invoices.start_date), '%d/%m/%Y'),' - ',DATE_FORMAT(max(Invoices.end_date), '%d/%m/%Y')) as date_period,
+                    COUNT(activities.id) as tickets_count")
+			->groupBy('batches.id')
+		// ->get()
+		;
+
+		// dd($batches);
+		if (Auth::user()->role_id == 6) {
+			$batches->whereIn('asps.state_id', $statesid);
+		}
+
+		if ($request->get('batch_date')) {
+			$batches->whereRaw('DATE_FORMAT(batches.created_at,"%d-%m-%Y") =  "' . $request->get('batch_date') . '"');
+		}
+
+		if ($request->get('batch_number')) {
+			$batches->where('batches.batch_number', 'LIKE', '%' . $request->get('batch_number') . '%');
+		}
+
+		if ($request->get('asp_name')) {
+			$batches->where('asps.workshop_name', 'LIKE', '%' . $request->get('asp_name') . '%');
+		}
+
+		if ($request->get('asp_code')) {
+			$batches->where('asps.asp_code', 'LIKE', '%' . $request->get('asp_code') . '%');
+		}
+
+		return Datatables::of($batches)
+		// ->setRowAttr([
+		// 	'id' => function ($batch) {
+		// 		return route('adminCompletedBatchView', ['batch' => $batch->batchid]);
+		// 	},
+		// ])
+			->make(true);
 	}
 
 }

@@ -6,9 +6,6 @@ app.component('aspActivitiesHeader', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
-        //self.data = activity;
-        //end
-
     }
 });
 
@@ -22,8 +19,6 @@ app.component('aspDetails', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
-        //self.data = activity;
-
     }
 });
 //----------------------------------------------------------------------------------------------------------------------------
@@ -35,8 +30,6 @@ app.component('ticketHeader', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
-        //self.data = activity;
-
     }
 });
 //----------------------------------------------------------------------------------------------------------------------------
@@ -49,8 +42,6 @@ app.component('serviceDetails', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
-        //self.data = activity;
-
     }
 });
 
@@ -64,8 +55,6 @@ app.component('priceInfo', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
-        //self.data = activity;
-
     }
 });
 
@@ -79,8 +68,6 @@ app.component('serviceTotalSummaryView', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
-        //self.data = activity;
-
     }
 });
 
@@ -94,8 +81,6 @@ app.component('serviceTotalSummary', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
-        //self.data = activity;
-
     }
 });
 
@@ -110,8 +95,6 @@ app.component('ticketTotalSummaryView', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
-        //self.data = activity;
-
     }
 });
 
@@ -125,8 +108,6 @@ app.component('ticketTotalSummary', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
-        //self.data = activity;
-
     }
 });
 
@@ -141,8 +122,6 @@ app.component('activityDetails', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
-        //self.data = activity;
-
     }
 });
 
@@ -156,8 +135,6 @@ app.component('locationDetails', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
-        //self.data = activity;
-
     }
 });
 //----------------------------------------------------------------------------------------------------------------------------
@@ -170,8 +147,6 @@ app.component('kmDetails', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
-        //self.data = activity;
-
     }
 });
 //----------------------------------------------------------------------------------------------------------------------------
@@ -184,8 +159,6 @@ app.component('invoiceDetails', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
-        //self.data = activity;
-
     }
 });
 //----------------------------------------------------------------------------------------------------------------------------
@@ -198,8 +171,6 @@ app.component('financialDetails', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
-        //self.data = activity;
-
     }
 });
 //----------------------------------------------------------------------------------------------------------------------------
@@ -212,8 +183,6 @@ app.component('caseDetails', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
-        //self.data = activity;
-
     }
 });
 
@@ -227,7 +196,5 @@ app.component('billingDetails', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
-        //self.data = activity;
-
     }
 });

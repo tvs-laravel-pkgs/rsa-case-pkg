@@ -11,6 +11,7 @@ use Auth;
 use DB;
 use Entrust;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
 use Yajra\Datatables\Datatables;
 
 class InvoiceController extends Controller {
@@ -56,7 +57,16 @@ class InvoiceController extends Controller {
 			->make(true);
 	}
 
+	public function downloadInvoice($invoice_id) {
+
+		$pdf = Invoices::generatePDF($invoice_id);
+		$filepath = 'storage/app/public/invoices/' . $invoice_id . '.pdf';
+		$response = Response::download($filepath);
+		ob_end_clean();
+		return $response;
+	}
 	public function viewInvoice($invoice_id) {
+
 		$this->data['invoice'] = $invoice = Invoices::where('Invoices.id', $invoice_id)->
 			select(
 			'Invoices.*', 'asps.gst_registration_number',
@@ -74,40 +84,30 @@ class InvoiceController extends Controller {
 			->groupBy('Invoices.id')
 			->first();
 
-		// $activities = Activity::with([
-		// 	'case',
-		// 	'case.callcenter',
-		// 	'serviceType',
-		// 	'aspStatus',
-		// 	'activityDetail' => function ($q) {
-		// 		$q->where('activity_details.key_id', 150);
-		// 	},
-		// ])->where('invoice_id', $invoice_id)->get();
-
 		$activities = Activity::join('cases', 'cases.id', 'activities.case_id')
 			->join('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->join('service_types', 'service_types.id', 'activities.service_type_id')
 			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftJoin('activity_details as km_charge', function ($join) {
 				$join->on('km_charge.activity_id', 'activities.id')
-					->where('km_charge.key_id', 158); //KM Charge
+					->where('km_charge.key_id', 158); //BO KM TRAVELLED
 			})
 			->leftJoin('activity_details as net_amount', function ($join) {
 				$join->on('net_amount.activity_id', 'activities.id')
-					->where('net_amount.key_id', 176); //NET AMOUNT
+					->where('net_amount.key_id', 176); //BO NET AMOUNT
 			})
 			->leftJoin('activity_details as collect_amount', function ($join) {
 				$join->on('collect_amount.activity_id', 'activities.id')
-					->where('collect_amount.key_id', 159); //COLLECT AMOUNT
+					->where('collect_amount.key_id', 159); //BO COLLECT AMOUNT
 			})
 			->leftJoin('activity_details as not_collected_amount', function ($join) {
 				$join->on('not_collected_amount.activity_id', 'activities.id')
-					->where('not_collected_amount.key_id', 160); //NOT COLLECT AMOUNT
+					->where('not_collected_amount.key_id', 160); //BO NOT COLLECT AMOUNT
 			})
 
 			->leftJoin('activity_details as total_amount', function ($join) {
 				$join->on('total_amount.activity_id', 'activities.id')
-					->where('total_amount.key_id', 182); //TOTAL AMOUNT
+					->where('total_amount.key_id', 182); //BO TOTAL AMOUNT
 			})
 			->select('activities.number', DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'), 'activity_portal_statuses.name as status', 'call_centers.name as callcenter', 'cases.vehicle_registration_number', 'service_types.name as service_type', 'km_charge.value as km_value', 'not_collected_amount.value as not_collect_value', 'net_amount.value as net_value', 'collect_amount.value as collect_value', 'total_amount.value as total_value')
 			->where('invoice_id', $invoice_id)
@@ -115,7 +115,7 @@ class InvoiceController extends Controller {
 			->get();
 
 		$this->data['activities'] = $activities;
-		$this->data['sum_invoice_amount'] = number_format($invoice->amount, 2);
+		$this->data['invoice_amount'] = number_format($invoice->amount, 2);
 		$this->data['mis_infos'] = $invoice->tickets;
 		$this->data['mis_info'] = $invoice->tickets;
 		$asp = $invoice->asp;
@@ -130,17 +130,14 @@ class InvoiceController extends Controller {
 		$this->data['signature_attachment'] = Attachment::where('entity_id', $asp->id)->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))->first();
 
 		$this->data['signature_attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
-		$this->data['invoice_attachment_path'] = config('rsa.asp_invoice_attachment_url');
 
-		if ($invoice->asp_gst_registration_number != NULL) {
-			$this->data['gst'] = $invoice->asp_gst_registration_number;
+		$directoryPath = storage_path('app/public/invoices/' . $invoice_id . '.pdf');
+		if (file_exists($directoryPath)) {
+			$this->data['invoice_availability'] = $invoice_availability = "yes";
+			$this->data['invoice_attachment_file'] = url('storage/app/public/invoices/' . $invoice_id . '.pdf');
 		} else {
-			$this->data['gst'] = $invoice->gst_registration_number;
-		}
-		if ($invoice->asp_pan_number != NULL) {
-			$this->data['pan'] = $invoice->asp_pan_number;
-		} else {
-			$this->data['pan'] = $invoice->pan_number;
+			$this->data['invoice_availability'] = $invoice_availability = "no";
+			$this->data['invoice_attachment_file'] = "";
 		}
 		if ($invoice->asp_bank_account_number != NULL) {
 			$this->data['bank_account_number'] = $invoice->asp_bank_account_number;

@@ -107,18 +107,23 @@ app.component('invoiceView', {
             self.period = response.data.period;
             self.asp = response.data.asp;
             self.rsa_address = response.data.rsa_address;
-            self.inv_no = response.data.inv_no;
-            self.inv_date = response.data.inv_date;
-            self.gst = response.data.gst;
-            self.pan = response.data.pan;
             self.activities = response.data.activities;
-            self.sum_invoice_amount = response.data.sum_invoice_amount;
+            self.invoice_amount = response.data.invoice_amount;
             self.signature_attachment = response.data.signature_attachment;
             self.signature_attachment_path = response.data.signature_attachment_path;
-            self.invoice_attachment_path = response.data.invoice_attachment_path;
+            self.invoice_attachment_file = response.data.invoice_attachment_file;
             self.invoice = response.data.invoice;
+            self.invoice_availability = response.data.invoice_availability;
             $rootScope.loading = false;
         });
+
+        setTimeout(function() {
+            $('#aspLogin-table').DataTable({
+                "bLengthChange": false,
+                "paginate": false,
+                "oLanguage": {"sZeroRecords": "", "sEmptyTable": ""},
+            });
+        }, 10);
 
         $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
         $('.viewData-toggle--btn').click(function() {

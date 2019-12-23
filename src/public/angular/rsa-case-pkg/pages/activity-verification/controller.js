@@ -148,69 +148,61 @@ app.component('activityVerificationView', {
             
         self.data.cc_net_amount = self.data.cc_po_amount - self.data.bo_not_collected;
         
-        var v = jQuery("#defer_form").validate({
-        rules: {
-            reason: {
-                        required: true,
-                    },
-        },
-        submitHandler: function(form) {
-                let formData = new FormData($(form_id)[0]);
-                $('#submit').button('loading');
-                $.ajax({
-                        url: laravel_routes['saveActivityDifferewqw'],
-                        method: "POST",
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                    })
-                    .done(function(res) {
-                        if (res.success == true) {
-                            $noty = new Noty({
-                                type: 'success',
-                                layout: 'topRight',
-                                text: res.message,
-                            }).show();
-                            setTimeout(function() {
-                                $noty.close();
-                            }, 3000);
-                            $location.path('/customer-pkg/customer/list');
-                            $scope.$apply();
-                        } else {
-                            if (!res.success == true) {
-                                $('#submit').button('reset');
-                                var errors = '';
-                                for (var i in res.errors) {
-                                    errors += '<li>' + res.errors[i] + '</li>';
-                                }
-                                $noty = new Noty({
-                                    type: 'error',
-                                    layout: 'topRight',
-                                    text: errors
-                                }).show();
-                                setTimeout(function() {
-                                    $noty.close();
-                                }, 3000);
-                            } else {
-                                $('#submit').button('reset');
-                                $location.path('/customer-pkg/customer/list');
-                                $scope.$apply();
-                            }
+       $scope.differ = function(){
+        alert('sss');
+        $http.post(
+                    laravel_routes['saveActivityDiffer'], {
+                        activity_id : self.data.activity_id,
+                        /*bo_km_travelled : self.data.bo_km_travelled,
+                        raw_bo_collected : self.data.raw_bo_collected,
+                        raw_bo_not_collected : self.data.raw_bo_not_collected,
+                        bo_deduction : self.data.bo_deduction,
+                        bo_po_amount : self.data.bo_po_amount,
+                        bo_net_amount : self.data.bo_net_amount,
+                        bo_amount : self.data.bo_amount,*/
+
+                    }
+                ).then(function(response) {
+                    $('.save').button('reset');
+                    $("#reject-modal").modal("hide");
+
+                    if (!response.data.data.success) {
+                        var errors = '';
+                        for (var i in response.data.data.errors) {
+                            errors += '<li>' + response.data.errors[i] + '</li>';
                         }
-                    })
-                    .fail(function(xhr) {
-                        $('#submit').button('reset');
                         $noty = new Noty({
                             type: 'error',
-                            layout: 'topRight',
-                            text: 'Something went wrong at server',
+                            layout: 'bottomRight',
+                            text: errors,
+                            animation: {
+                                speed: 500 // unavailable - no need
+                            },
+
                         }).show();
                         setTimeout(function() {
                             $noty.close();
-                        }, 3000);
-                    });
-                }
-        });
+                        }, 1000);
+                        return;
+                    }
+                    $noty = new Noty({
+                        type: 'success',
+                        layout: 'bottomRight',
+                        text: response.data.data.message,
+                        animation: {
+                            speed: 500
+                        }
+                    }).show();
+                    setTimeout(function() {
+                        $noty.close();
+                    }, 1000);
+
+                    item.selected = false;
+                    //$scope.getChannelDiscountAmounts();
+
+                });
+
+    }
         });
         
     }

@@ -14,6 +14,7 @@ use App\Http\Controllers\Controller;
 use App\ServiceType;
 use App\StateUser;
 use DB;
+use Auth;
 use Entrust;
 use Illuminate\Http\Request;
 use Yajra\Datatables\Datatables;
@@ -200,8 +201,6 @@ class ActivityController extends Controller {
 	}
 
 	public function viewActivityStatus($activity_status_id) {
-		//$activity_status_id = 1;
-		//dd($activity_status_id);
 		$this->data['activities'] = $activity = Activity::with([
 			'asp',
 			'asp.rms',
@@ -215,7 +214,7 @@ class ActivityController extends Controller {
 			'case.callcenter',
 			'financeStatus',
 		])->select(
-			'activities.id',
+			'activities.id as activity_id',
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			//DB::raw('DATE_FORMAT(asps.asp_reached_date,"%d-%m-%Y %H:%i:%s") as asp_r_date'),
 			'cases.number',
@@ -266,6 +265,7 @@ class ActivityController extends Controller {
 			->groupBy('activities.id')
 			->where('activities.id', $activity_status_id)
 			->first();
+			//dd($activity);
 			$key_list = [ 158,159,160,154,155,156,170,174,180,298,179,176,172,173,179,];
 			foreach($key_list as $keyw){
 				$var_key = Config::where('id',$keyw)->first();
@@ -300,23 +300,24 @@ class ActivityController extends Controller {
 		return response()->json(['success' => true, 'data' => $this->data]);
 		
 	}
-	public function saveActivityDiffer(Request $request){
-
-
-	}
+	
 
 	public function approveActivity(Request $request){
+		//dd($request->all());
+		//dd('dd');
 		DB::beginTransaction();
 		try {
 			$activty = Activity::findOrFail($request->activity_id);
 			if (!$activty) {
-				return redirect()->back()->with(['error' => 'Activity not found']);
+				$this->data['success'] = true;
+			$this->data['errors'][] = 'Activity not found.';
+				return response()->json(['data' => $this->data]);
 			}
 
 			//CHECK BO KM > ASP KM
-			if ($request->bo_km_travelled > $activty->asp_km) {
+			/*if ($request->bo_km_travelled > $activty->asp_km) {
 				return redirect()->back()->with(['error' => 'Final KM should be less than or equal to ASP KM']);
-			}
+			}*/
 			//old code to clarify
 			/*if ($activty->is_self) {
 				$activty->flow_current_status = "Waiting for Invoice Generation";
@@ -339,39 +340,16 @@ class ActivityController extends Controller {
 			//     return redirect()->back()->with(['error' => $prices['error']]);
 			// }
 			// $mis_service_total = ($payout+$not_collected_by_asp)-$collected_by_asp;
-
-			if ($activty->asp->tax_calculation_method == 0) {
-				$mis_ticket_total = $payout - ($collected_by_asp + $deduction);
-			} else {
-				$mis_ticket_total = ($payout + $not_collected_by_asp) - ($collected_by_asp + $deduction);
+			//dd(Auth::user());
+			$key_list = [ 158,159,160,176,172,173,179,182,];
+			foreach($key_list as $keyw){
+				$var_key = Config::where('id',$keyw)->first();
+				$key_name = str_replace(" ","_",strtolower($var_key->name));
+				$value = $request->$key_name ? str_replace(",","",$request->$key_name) : 0;
+				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $request->activity_id, 'key_id' => $keyw,'company_id' =>1], ['value' => $value]);
 			}
 
-			//cadd($request->net_amount);
-			if ($activty->has_gst && $activty->asp->tax_group_id) {
-				$taxes = Tax::where('tax_group_id', $activty->asp->tax_group_id)->pluck('tax_rate', 'id')->toArray();
-				$tax_total = 0;
-				foreach ($taxes as $k => $tax) {
-					$tax_total += ($mis_ticket_total * $tax) / 100;
-				}
-				$mis_ticket_total += $tax_total;
-			} else { $tax_total = 0;}
-
-			if ($activty->asp->tax_calculation_method == 0) {
-				$mis_ticket_total += $not_collected_by_asp;
-			}
-
-			$activty->fill($request->all());
-			$activty->bo_invoice_amount = $mis_ticket_total;
-			$activty->bo_net_amount = $request->net_amount;
-			$activty->deduction = $deduction;
-			$activty->payout_amount = $request->bo_info[1]['payout'];
-			$activty->bo_km = $request->bo_km_travelled;
-			$activty->bo_other_charges = $not_collected_by_asp;
-			$activty->bo_collected_charges = $collected_by_asp;
-			$activty->bo_service_type_id = $activty->asp_service_type_id;
-			$activty->tax = $tax_total;
-			if (!empty($request->bo_info[1]['comments'])) {$activty->comments = $request->bo_info[1]['comments'];}
-			if (!empty($request->bo_info[1]['cancelled_reason'])) {$activty->cancelled_reason = $request->bo_info[1]['cancelled_reason'];}
+			$activty->status_id = 11;
 			//$activty->is_exceptional = $request->is_exceptional_check;
 			//$activty->exceptional_reason = empty($request->is_exceptional_check) ? '' : $request->exceptional_reason_check;
 			$activty->save();
@@ -386,27 +364,79 @@ class ActivityController extends Controller {
 			//sending confirmation SMS to ASP
 			// $mobile_number = $activty->asp->contact_number1;
 			// $sms_message = 'BO_APPROVED';
-			// sendSMS2($sms_message,$mobile_number,$activty->ticket_number);
+			// sendSMS2($sms_message,$mobile_number,$activty->number);
 
 			$mobile_number = $activty->asp->contact_number1;
 			$sms_message = 'BO_APPROVED';
-			$array = [$activty->ticket_number];
+			$array = [$activty->number];
 			// sendSMS2($sms_message, $mobile_number, $array);
 
 			//sending notification to all BO users
 			$asp_user = $activty->asp->user_id;
 			$noty_message_template = 'BO_APPROVED';
-			$ticket_number = [$activty->ticket_number];
-			notify2($noty_message_template, $asp_user, config('constants.alert_type.blue'), $ticket_number);
+			$number = [$activty->number];
+			notify2($noty_message_template, $asp_user, config('constants.alert_type.blue'), $number);
 
 			DB::commit();
-			return redirect()->route('boActivitys')->with(['success' => 'Activity approved successfully.']);
+			$this->data['success'] = true;
+			$this->data['message'] = 'Ticket approved successfully.';
+			return response()->json(['data' => $this->data]);
 
 		} catch (\Exception $e) {
 			DB::rollBack();
 			dd($e);
 			$message = ['error' => $e->getMessage()];
-			return redirect()->back()->with($message)->withInput();
+			$this->data['success'] = false;
+			$this->data['message'] = 'Ticket deferred to ASP successfully.';
+			return response()->json(['data' => $this->data]);
+			
+		}
+	}
+
+	public function saveActivityDiffer(Request $request) {
+		DB::beginTransaction();
+		try {
+			//dd($request->all());
+			$activity = Activity::findOrFail($request->activity_id);
+			$activity->status_id = 7;
+			//$activity->comments = $request->reason;
+			$activity->save();
+
+			//Saving log record
+
+			$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_DEFERED_DONE');
+			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_DEFERRED');
+			logActivity2(config('constants.entity_types.ticket'), $activity->id, [
+				'Status' => $log_status,
+				'Waiting for' => $log_waiting,
+			]);
+
+			//SMS record
+			$mobile_number = $activity->asp->contact_number1;
+			$sms_message = 'BO_DEFERRED';
+			$array = [$activity->number];
+			sendSMS2($sms_message, $mobile_number, $array);
+
+			//sending notification to all BO users
+			$asp_user = $activity->asp->user_id;
+			$noty_message_template = 'BO_DEFERRED';
+			$number = [$activity->number];
+			notify2($noty_message_template, $asp_user, config('constants.alert_type.red'), $number);
+
+			DB::commit();
+			$this->data['success'] = true;
+			$this->data['message'] = 'Ticket deferred successfully.';
+			return response()->json(['data' => $this->data]);
+
+			//return redirect()->route('boTickets')->with(['success' => 'Ticket deferred to ASP successfully.']);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			$message = ['error' => $e->getMessage()];
+			$this->data['success'] = false;
+			return response()->json(['data' => $this->data]);
+
+			//return redirect()->back()->with($message)->withInput();
 		}
 	}
 }

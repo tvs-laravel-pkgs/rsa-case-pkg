@@ -268,178 +268,117 @@ app.component('billingDetails', {
             $("#confirm-ticket-modal").modal();
             
         }
-     /*   var form_id = "#defer_form";
-        var v = jQuery("#defer_form").validate({
-        rules: {
-            reason: {
-                        required: true,
-                    },
-        },
-        submitHandler: function(form) {
-                let formData = new FormData($(form_id)[0]);
-                $('#submit').button('loading');
-                $.ajax({
-                        url: laravel_routes['saveActivityDiffer'],
-                        method: "POST",
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                    })
-                    .done(function(res) {
-                        if (res.success == true) {
-                            $noty = new Noty({
-                                type: 'success',
-                                layout: 'topRight',
-                                text: res.message,
-                            }).show();
-                            setTimeout(function() {
-                                $noty.close();
-                            }, 3000);
-                            $location.path('/customer-pkg/customer/list');
-                            $scope.$apply();
-                        } else {
-                            if (!res.success == true) {
-                                $('#submit').button('reset');
-                                var errors = '';
-                                for (var i in res.errors) {
-                                    errors += '<li>' + res.errors[i] + '</li>';
-                                }
-                                $noty = new Noty({
-                                    type: 'error',
-                                    layout: 'topRight',
-                                    text: errors
-                                }).show();
-                                setTimeout(function() {
-                                    $noty.close();
-                                }, 3000);
-                            } else {
-                                $('#submit').button('reset');
-                                $location.path('/customer-pkg/customer/list');
-                                $scope.$apply();
-                            }
+     
+    $scope.saveApproval = function(){
+        $http.post(
+                    laravel_routes['approveActivity'], {
+                        activity_id : self.data.activity_id,
+                        bo_km_travelled : self.data.bo_km_travelled,
+                        raw_bo_collected : self.data.raw_bo_collected,
+                        raw_bo_not_collected : self.data.raw_bo_not_collected,
+                        bo_deduction : self.data.bo_deduction,
+                        bo_po_amount : self.data.bo_po_amount,
+                        bo_net_amount : self.data.bo_net_amount,
+                        bo_amount : self.data.bo_amount,
+
+                    }
+                ).then(function(response) {
+                    $('.save').button('reset');
+                    $("#confirm-ticket-modal").modal("hide");
+
+                    if (!response.data.data.success) {
+                        var errors = '';
+                        for (var i in response.data.data.errors) {
+                            errors += '<li>' + response.data.errors[i] + '</li>';
                         }
-                    })
-                    .fail(function(xhr) {
-                        $('#submit').button('reset');
                         $noty = new Noty({
                             type: 'error',
-                            layout: 'topRight',
-                            text: 'Something went wrong at server',
+                            layout: 'bottomRight',
+                            text: errors,
+                            animation: {
+                                speed: 500 // unavailable - no need
+                            },
+
                         }).show();
                         setTimeout(function() {
                             $noty.close();
-                        }, 3000);
-                    });
-            }
-    });*/
-
-
-var form_id = '#confirm-ticket-modal';
-        var v = jQuery(form_id).validate({
-            ignore: '',
-            rules: {
-                /*'code': {
-                    required: true,
-                    minlength: 3,
-                    maxlength: 255,
-                },
-                'name': {
-                    required: true,
-                    minlength: 3,
-                    maxlength: 255,
-                },
-                'cust_group': {
-                    maxlength: 100,
-                },
-                'gst_number': {
-                    required: true,
-                    maxlength: 100,
-                },
-                'dimension': {
-                    maxlength: 50,
-                },
-                'address_line1': {
-                    minlength: 3,
-                    maxlength: 255,
-                },
-                'address_line2': {
-                    minlength: 3,
-                    maxlength: 255,
-                },
-                'pincode': {
-                    required: true,
-                    minlength: 6,
-                    maxlength: 6,
-                },*/
-            },
-            
-            invalidHandler: function(event, validator) {
-                $noty = new Noty({
-                    type: 'error',
-                    layout: 'topRight',
-                    text: 'You have errors,Please check all tabs'
-                }).show();
-                setTimeout(function() {
-                    $noty.close();
-                }, 3000)
-            },
-            submitHandler: function(form) {
-                let formData = new FormData($(form_id)[0]);
-                $('#submit').button('loading');
-                $.ajax({
-                        url: laravel_routes['saveActivityDiffer'],
-                        method: "POST",
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                    })
-                    .done(function(res) {
-                        if (res.success == true) {
-                            $noty = new Noty({
-                                type: 'success',
-                                layout: 'topRight',
-                                text: res.message,
-                            }).show();
-                            setTimeout(function() {
-                                $noty.close();
-                            }, 3000);
-                            $location.path('/case-pkg/case/list');
-                            $scope.$apply();
-                        } else {
-                            if (!res.success == true) {
-                                $('#submit').button('reset');
-                                var errors = '';
-                                for (var i in res.errors) {
-                                    errors += '<li>' + res.errors[i] + '</li>';
-                                }
-                                $noty = new Noty({
-                                    type: 'error',
-                                    layout: 'topRight',
-                                    text: errors
-                                }).show();
-                                setTimeout(function() {
-                                    $noty.close();
-                                }, 3000);
-                            } else {
-                                $('#submit').button('reset');
-                                $location.path('/case-pkg/case/list');
-                                $scope.$apply();
-                            }
+                        }, 1000);
+                        return;
+                    }
+                    $noty = new Noty({
+                        type: 'success',
+                        layout: 'bottomRight',
+                        text: response.data.data.message,
+                        animation: {
+                            speed: 500
                         }
-                    })
-                    .fail(function(xhr) {
-                        $('#submit').button('reset');
+                    }).show();
+                    setTimeout(function() {
+                        $noty.close();
+                    }, 1000);
+
+                    item.selected = false;
+                    //$scope.getChannelDiscountAmounts();
+
+                });
+
+    }
+    $scope.differ = function(){
+        $http.post(
+                    laravel_routes['saveActivityDiffer'], {
+                        activity_id : self.data.activity_id,
+                        /*bo_km_travelled : self.data.bo_km_travelled,
+                        raw_bo_collected : self.data.raw_bo_collected,
+                        raw_bo_not_collected : self.data.raw_bo_not_collected,
+                        bo_deduction : self.data.bo_deduction,
+                        bo_po_amount : self.data.bo_po_amount,
+                        bo_net_amount : self.data.bo_net_amount,
+                        bo_amount : self.data.bo_amount,*/
+
+                    }
+                ).then(function(response) {
+                    $('.save').button('reset');
+                    $("#reject-modal").modal("hide");
+
+                    if (!response.data.data.success) {
+                        var errors = '';
+                        for (var i in response.data.data.errors) {
+                            errors += '<li>' + response.data.errors[i] + '</li>';
+                        }
                         $noty = new Noty({
                             type: 'error',
-                            layout: 'topRight',
-                            text: 'Something went wrong at server',
+                            layout: 'bottomRight',
+                            text: errors,
+                            animation: {
+                                speed: 500 // unavailable - no need
+                            },
+
                         }).show();
                         setTimeout(function() {
                             $noty.close();
-                        }, 3000);
-                    });
-            }
-        });
+                        }, 1000);
+                        return;
+                    }
+                    $noty = new Noty({
+                        type: 'success',
+                        layout: 'bottomRight',
+                        text: response.data.data.message,
+                        animation: {
+                            speed: 500
+                        }
+                    }).show();
+                    setTimeout(function() {
+                        $noty.close();
+                    }, 1000);
+
+                    item.selected = false;
+                    //$scope.getChannelDiscountAmounts();
+
+                });
+
+    }
+
+
     
         $scope.calculate = function(){
             var amount = 0;

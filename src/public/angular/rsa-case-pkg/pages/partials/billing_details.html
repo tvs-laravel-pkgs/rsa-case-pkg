@@ -362,8 +362,8 @@
 			          <h2 class="uploadMsg-title">Defer Ticket</h2>
 			          <input name="defer_to" type="hidden" value="{{config('constants.ticket_statuses.'.$defer_to)}}">
 			          <textarea name = "reason" ng-model="$ctrl.reason" value ="{{$ctrl.reason}}" rows = '5' class ="form-control" autocomplete="off" placeholder ="Enter Reason" required></textarea>
-			          <div class="clearfix"></div>          
-			          <button class="btn btn-primary yellow" type="submit">Confirm</button>
+			          <div class="clearfix"></div>   
+			          <button class="btn btn-primary yellow" type="btn" ng-click = "differ()">Confirm</button>       
 		        </form>
 	        </div>
       	</div>      
@@ -399,7 +399,7 @@
 					</div>
 					<!-- <textarea name = "exceptional_reason_check" ng-model="$ctrl.exceptional_reason_check" value ="{{$ctrl.exceptional_reason_check}}" rows = '5' class ="form-control" autocomplete="off" placeholder ="Reason for Exceptional" id = 'exceptional_reason_check'></textarea> -->
 	            	<div class="clearfix"></div>
-	            	<button class="btn btn-primary yellow" type="submit">Confirm</button>
+	            	<button class="btn btn-primary yellow" type="btn" ng-click = "saveApproval()">Confirm</button>
 		        </div>
 			</form>
 	    </div>      

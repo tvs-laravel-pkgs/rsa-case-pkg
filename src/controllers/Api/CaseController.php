@@ -75,21 +75,8 @@ class CaseController extends Controller {
 			$vehicle_make = VehicleMake::where('name', $request->vehicle_make)->first();
 
 			//VEHICLE MODEL GOT BY VEHICLE MAKE
-			$vehicle_model_by_make = VehicleModel::where('vehicle_make_id', $vehicle_make->id)->first();
+			$vehicle_model_by_make = VehicleModel::where('name', $request->vehicle_model)->where('vehicle_make_id', $vehicle_make->id)->first();
 			if (!$vehicle_model_by_make) {
-				return response()->json([
-					'success' => false,
-					'error' => 'Validation Error',
-					'errors' => [
-						'Selected vehicle model is invalid',
-					],
-				], $this->successStatus);
-			}
-			//GIVEN VEHICLE MODEL
-			$vehicle_model = VehicleModel::where('name', $request->vehicle_model)->first();
-
-			//CHECK SAME OR NOT
-			if ($vehicle_model_by_make->id != $vehicle_model->id) {
 				return response()->json([
 					'success' => false,
 					'error' => 'Validation Error',

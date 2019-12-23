@@ -5,7 +5,7 @@ app.component('paidBatchesList', {
         var self = this;
         self.hasPermission = HelperService.hasPermission;
         self.filter_img_url = filter_img_url;
-     
+
         var cols = [
             { data: 'batchid', name: 'batches.id', searchable: false },
             { data: 'batch_number', name: 'batches.batch_number', searchable: true },
@@ -112,16 +112,17 @@ app.component('batchView', {
             get_view_data_url
         ).then(function(response) {
             console.log(response.data);
-            self.period = response.data.period;
+            self.batch = response.data.batch;
             self.asp = response.data.asp;
-            self.rsa_address = response.data.rsa_address;
-            self.activities = response.data.activities;
-            self.invoice_amount = response.data.invoice_amount;
-            self.signature_attachment = response.data.signature_attachment;
-            self.signature_attachment_path = response.data.signature_attachment_path;
-            self.invoice_attachment_file = response.data.invoice_attachment_file;
-            self.invoice = response.data.invoice;
-            self.invoice_availability = response.data.invoice_availability;
+            self.tickets = response.data.tickets;
+            self.courier_details = response.data.courier_details;
+            self.courier_editable = response.data.courier_editable;
+            self.active_courier = response.data.active_courier;
+            self.invoice_details = response.data.invoice_details;
+            self.invoice_editable = response.data.invoice_editable;
+            self.payment_editable = response.data.payment_editable;
+            self.attachments = response.data.attachments;
+            self.period = response.data.period;
             $rootScope.loading = false;
         });
 
@@ -129,7 +130,7 @@ app.component('batchView', {
             $('#aspLogin-table').DataTable({
                 "bLengthChange": false,
                 "paginate": false,
-                "oLanguage": {"sZeroRecords": "", "sEmptyTable": ""},
+                "oLanguage": { "sZeroRecords": "", "sEmptyTable": "" },
             });
         }, 10);
 

@@ -124,11 +124,11 @@ class BatchController extends Controller {
 		}
 
 		return Datatables::of($batches)
-		// ->setRowAttr([
-		// 	'id' => function ($batch) {
-		// 		return route('adminCompletedBatchView', ['batch' => $batch->batchid]);
-		// 	},
-		// ])
+			->setRowAttr([
+				'id' => function ($batches) {
+					return route('angular') . '/#!/rsa-case-pkg/batch-view/' . $batches->id;
+				},
+			])
 			->make(true);
 	}
 
@@ -260,15 +260,36 @@ class BatchController extends Controller {
 		}
 
 		return Datatables::of($batches)
-		// ->setRowAttr([
-		// 	'id' => function ($batch) {
-		// 		return route('adminCompletedBatchView', ['batch' => $batch->batchid]);
-		// 	},
-		// ])
+			->setRowAttr([
+				'id' => function ($batches) {
+					return route('angular') . '/#!/rsa-case-pkg/batch-view/' . $batches->id;
+				},
+			])
 			->addColumn('action', function ($batches) {
 				return '<input type="checkbox" class="ticket_id no-link child_select_all ibtnDel" name="batch_ids[]" value="' . $batches->batchid . '">';
 			})
 			->make(true);
+	}
+
+	public function batchView(Batch $batch) {
+		$this->data['batch'] = $batch;
+		$this->data['asp'] = $batch->asp;
+		$this->data['tickets'] = $batch->tickets;
+		$this->data['courier_details'] = $batch->courier_details;
+		$this->data['courier_editable'] = [0 => ['disabled' => 'disabled'], 1 => ['disabled' => 'disabled']];
+		$this->data['active_courier'] = 1;
+
+		if ($batch->has_gst AND $batch->invoices) {
+			$this->data['invoice_details'] = $batch->invoices;
+			$this->data['invoice_editable'] = ['disabled' => 'disabled'];
+		}
+		$this->data['payment_editable'] = ['disabled' => 'disabled'];
+		$this->data['attachments'] = Attachment::where('entity_id', $batch->id)
+			->where('entity_type', config('constants.entity_types.BATCH_ATTACHMENT'))
+			->get();
+		$this->data['period'] = $batch->period;
+
+		return response()->json($this->data);
 	}
 
 }

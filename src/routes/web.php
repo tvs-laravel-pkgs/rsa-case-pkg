@@ -29,6 +29,9 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	//PAID BATCHES
 	Route::get('/paid-batches/get-list', 'BatchController@getPaidBatchList')->name('getPaidBatch');
 
+	//VIEW BATCHE
+	Route::get('/view-batch/{batch}', 'BatchController@batchView')->name('batchView');
+
 	//UNPAID BATCHES
 	Route::get('/unpaid-batches/get-filter-data', 'BatchController@getUnpaidBatchFilterData')->name('getUnpaidBatchFilterData');
 	Route::get('/unpaid-batches/get-list', 'BatchController@getUnpaidBatchList')->name('getUnpaidBatchList');

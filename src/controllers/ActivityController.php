@@ -265,7 +265,7 @@ class ActivityController extends Controller {
 			->groupBy('activities.id')
 			->where('activities.id', $activity_status_id)
 			->first();
-		$key_list = [158, 159, 160, 154, 155, 156, 170, 174, 180, 298];
+		$key_list = [158, 159, 160, 154, 155, 156, 170, 174, 180, 298,179,176,172,173,179,182,];
 		foreach ($key_list as $keyw) {
 			$var_key = Config::where('id', $keyw)->first();
 			$key_name = str_replace(" ", "_", strtolower($var_key->name));

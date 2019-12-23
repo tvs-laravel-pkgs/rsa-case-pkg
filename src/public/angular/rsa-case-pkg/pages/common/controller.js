@@ -268,7 +268,7 @@ app.component('billingDetails', {
             $("#confirm-ticket-modal").modal();
             
         }
-        var form_id = "#defer_form";
+     /*   var form_id = "#defer_form";
         var v = jQuery("#defer_form").validate({
         rules: {
             reason: {
@@ -331,15 +331,59 @@ app.component('billingDetails', {
                         }, 3000);
                     });
             }
-    });
- var form_id = "#confirm-ticket-modal";
-        var v = jQuery("#confirm-ticket-modal").validate({
-        rules: {
-            exceptional_reason_check: {
-                        required: true,
-                    },
-        },
-        submitHandler: function(form) {
+    });*/
+
+
+var form_id = '#confirm-ticket-modal';
+        var v = jQuery(form_id).validate({
+            ignore: '',
+            rules: {
+                /*'code': {
+                    required: true,
+                    minlength: 3,
+                    maxlength: 255,
+                },
+                'name': {
+                    required: true,
+                    minlength: 3,
+                    maxlength: 255,
+                },
+                'cust_group': {
+                    maxlength: 100,
+                },
+                'gst_number': {
+                    required: true,
+                    maxlength: 100,
+                },
+                'dimension': {
+                    maxlength: 50,
+                },
+                'address_line1': {
+                    minlength: 3,
+                    maxlength: 255,
+                },
+                'address_line2': {
+                    minlength: 3,
+                    maxlength: 255,
+                },
+                'pincode': {
+                    required: true,
+                    minlength: 6,
+                    maxlength: 6,
+                },*/
+            },
+            
+            invalidHandler: function(event, validator) {
+                $noty = new Noty({
+                    type: 'error',
+                    layout: 'topRight',
+                    text: 'You have errors,Please check all tabs'
+                }).show();
+                setTimeout(function() {
+                    $noty.close();
+                }, 3000)
+            },
+            submitHandler: function(form) {
                 let formData = new FormData($(form_id)[0]);
                 $('#submit').button('loading');
                 $.ajax({
@@ -359,7 +403,7 @@ app.component('billingDetails', {
                             setTimeout(function() {
                                 $noty.close();
                             }, 3000);
-                            $location.path('/customer-pkg/customer/list');
+                            $location.path('/case-pkg/case/list');
                             $scope.$apply();
                         } else {
                             if (!res.success == true) {
@@ -378,7 +422,7 @@ app.component('billingDetails', {
                                 }, 3000);
                             } else {
                                 $('#submit').button('reset');
-                                $location.path('/customer-pkg/customer/list');
+                                $location.path('/case-pkg/case/list');
                                 $scope.$apply();
                             }
                         }
@@ -395,47 +439,52 @@ app.component('billingDetails', {
                         }, 3000);
                     });
             }
-    });
-        console.log('sdas');
-        console.log(self.data);
+        });
+    
         $scope.calculate = function(){
             var amount = 0;
             if(self.data.asp_service_type_data.range_limit >self.data.bo_km_travelled){
                 amount = self.data.asp_service_type_data.below_range_price;
             }else{
                 excess = self.data.bo_km_travelled - self.data.asp_service_type_data.range_limit;
-                amount = self.data.asp_service_type_data.below_range_price + (excess*self.data.asp_service_type_data.above_range_price);
+                amount = parseFloat(self.data.asp_service_type_data.below_range_price) + (parseFloat(excess)*parseFloat(self.data.asp_service_type_data.above_range_price));
             }
-            self.data.raw_bo_not_collected;
-            self.data.raw_bo_collected;
-            self.data.cc_po_amount =  amount;
-            self.data.deduction = !$.isNumeric(self.data.deduction) ? 0 : self.data.deduction;
-            alert(self.data.bo_km_travelled);
+            self.data.bo_po_amount =  parseFloat(amount);
+            self.data.bo_deduction = !$.isNumeric(self.data.bo_deduction) ? 0 : parseFloat(self.data.bo_deduction);
+            //alert(self.data.bo_km_travelled);
             total = 0;
             if(self.data.asp.tax_calculation_method){
-            total = amount - (self.data.raw_bo_collected + self.data.deduction)
+            total = parseFloat(amount) - (parseFloat(self.data.raw_bo_collected) + parseFloat(self.data.bo_deduction))
 
             }else{
-            total = (amount + self.data.raw_bo_not_collected) - (self.data.raw_bo_collected + self.data.deduction)
+            total = (parseFloat(amount) + parseFloat(self.data.raw_bo_not_collected)) - (parseFloat(self.data.raw_bo_collected) + parseFloat(self.data.bo_deduction))
 
             }
-            self.data.cc_net_amount = amount- self.data.raw_bo_collected;
-            self.data.cc_amount = self.data.cc_net_amount + self.data.raw_bo_not_collected;
-            inv_amount = self.data.cc_amount;
-            console.log(self.data.asp.tax_group.taxes);
-            taxes = self.data.asp.tax_group.taxes;
+            self.data.bo_net_amount =  self.data.bo_amount = total /*parseFloat(amount)- parseFloat(self.data.raw_bo_collected)*/;
+            //self.data.bo_amount = parseFloat(self.data.bo_net_amount) + parseFloat(self.data.raw_bo_not_collected);
+            //inv_amount = parseFloat(self.data.bo_net_amount);
             total_tax = 0;
-            angular.forEach(taxes, function (value, key) { 
-                console.log(value); 
-            }); 
-            /*for (self.data.asp.tax_group.taxes in taxes) {
-                console.log(taxes);
-                (self.data.cc_amount * tax)/100;
-                tax = (net_amount * taxes[key]) / 100;
-                $('.tax').eq(key).val(tax.toFixed(2))
-                $('.tax_text').eq(key).html(tax.toFixed(2))
-                invoice_amount += tax;
-            }*/
+            taxes = self.data.asp.tax_group.taxes;
+            if(self.data.asp.has_gst== "TRUE"){
+                total_tax = 0;
+                angular.forEach(taxes, function (value, key) { 
+                    console.log(value); 
+                    total_tax = parseFloat(total_tax) + parseFloat(value.tax_rate);
+                }); 
+                self.data.bo_tax_amount = parseFloat(((parseFloat(self.data.bo_net_amount) * parseFloat(total_tax)) / 100));
+                self.data.bo_amount = parseFloat(self.data.bo_net_amount) + self.data.bo_tax_amount;
+            }else{
+                self.data.bo_tax_amount = 0;
+                self.data.bo_amount = parseFloat(self.data.bo_net_amount) + self.data.bo_tax_amount;
+            }
+            
+            console.log(total_tax);
+            console.log(self.data.bo_amount);
+            if(self.data.asp.tax_calculation_method == 0){
+                self.data.bo_amount = parseFloat(self.data.bo_amount) + parseFloat(self.data.raw_bo_not_collected);
+            }
+            //console.log(self.data.bo_amount);
+
         }
           }, 3000);
     }

@@ -210,7 +210,7 @@
 		<tr>
 			<td>Payout (+)</td>
 			<td>
-				<div>{{$ctrl.data.cc_po_amount}}</div>
+				<div>{{$ctrl.data.bo_po_amount}}</div>
 			</td>
 		</tr>
 		<tr>
@@ -241,7 +241,7 @@
 		<tr ng-show="$ctrl.data.verification==1">
 			<td>Deduction (-)</td>
 			<td>
-				<div><input type="text" ng-model="$ctrl.data.deduction" class="deduction" value="{{$ctrl.data.deduction}}" ng-keyup="calculate()"></div>
+				<div><input type="text" ng-model="$ctrl.data.bo_deduction" class="deduction" value="{{$ctrl.data.bo_deduction}}" ng-keyup="calculate()"></div>
 			</td>
 		</tr>
 		 
@@ -283,34 +283,34 @@
 		<tr class="warning" ng-show ="$ctrl.data.verification==0">
 			<td>Net Amount</td>
 			<td>
-				<div>{{$ctrl.data.cc_net_amount}}</div>
+				<div>{{$ctrl.data.bo_net_amount}}</div>
 
 			</td>
 		</tr>
 		<tr class="warning" ng-show ="$ctrl.data.verification==1">
 			<td>Net Amount</td>
 			<td>
-				<div>{{$ctrl.data.cc_net_amount}}</div>
+				<div>{{$ctrl.data.bo_net_amount}}</div>
 			</td>
 		</tr>
 
-		<!-- <tr class="active">
+		<tr class="active">
 			<td>Total Tax</td>
 			<td>
-				<div>{{$mis_info->tax}}</div>
+				<div>{{$ctrl.data.bo_tax_amount}}</div>
 			</td>
-		</tr> -->
+		</tr>
 
 	</tbody>
 </table>
 </div>
-<div class="table-data-footer" >
+<div class="table-data-footer" ng-show ="$ctrl.data.verification==0">
 	<div class="row">
 		<div class="col-md-6">
 			<h4 class="title">APPROVED VALUE</h4>
 		</div>
 		<div class="col-md-6 text-right">
-			<h4 class="price"><i class="fa fa-inr fa-2x"></i>{{$ctrl.data.cc_amount}}</h4>
+			<h4 class="price"><i class="fa fa-inr fa-2x"></i>{{$ctrl.data.bo_amount}}</h4>
 			
 			<ul class="inline-btns">
 				<!-- <li><a href="javascript:;" id="reject-ticket" class="differed-btn btn btn-primary blue">REJECT</a></li> -->
@@ -323,12 +323,12 @@
 	</div>
 </div>
 
-<div class="table-data-footer" ng-show="($ctrl.data.verification)">
+<div class="table-data-footer" ng-show ="$ctrl.data.verification==1">
 	<div class="col-md-6">
 		<h4 class="title">APPROVED VALUE</h4>
 	</div>
 	<div class="col-md-6 text-right">
-		<h4 class="price"><i class="fa fa-inr fa-2x"></i>0.00</h4>
+		<h4 class="price"><i class="fa fa-inr fa-2x"></i>{{$ctrl.data.bo_net_amount}}</h4>
 		<ul class="inline-btns">
 			<li><a href="javascript:;" id="reject-ticket" class="differed-btn btn btn-primary blue" ng-click="deferTicket()">DEFER</a></li>
 			<li><button type="button" class="differed-btn btn btn-primary blue" ng-click="approveTicket()">APPROVE</button></li>
@@ -377,7 +377,15 @@
 	        </div>
 			<form id="approve_form" method="post">
 				<input type="hidden" name="_token" value="{{ $ctrl.csrf }}" />
-	            <input type="hidden" name="activity_id" id="activity_id" value="{{$ctrl.data.id}}">
+	            <input type="hidden" name="activity_id" id="activity_id" ng-model="$ctrl.data.id" value="{{$ctrl.data.id}}">
+	            <input type="hidden" name="bo_km_travelled" ng-model="$ctrl.data.bo_km_travelled" value="{{$ctrl.data.bo_km_travelled}}">
+	            <input type="hidden" name="raw_bo_collected" ng-model="$ctrl.data.raw_bo_collected" value="{{$ctrl.data.raw_bo_collected}}">
+	            <input type="hidden" name="raw_bo_not_collected" ng-model="$ctrl.data.raw_bo_not_collected" value="{{$ctrl.data.raw_bo_not_collected}}">
+	            <input type="hidden" name="bo_deduction" ng-model="$ctrl.data.bo_deduction" value="{{$ctrl.data.bo_deduction}}">
+	            <input type="hidden" name="bo_po_amount"ng-model="$ctrl.data.bo_po_amount"  value="{{$ctrl.data.bo_po_amount}}">
+	            <input type="hidden" name="bo_net_amount" ng-model="$ctrl.data.bo_net_amount" value="{{$ctrl.data.bo_net_amount}}">
+	            <input type="hidden" name="bo_amount" ng-model="$ctrl.data.bo_amount" value="{{$ctrl.data.bo_amount}}">
+	            <input type="hidden" name="activity_id"ng-model="$ctrl.data.id"  value="{{$ctrl.data.id}}">
 		        <div class="modal-body">
 		        	<img class="uploadMsg-img" src="{{$ctrl.data.style_question_image_url}}">
 			        <h2 class="uploadMsg-title">
@@ -389,9 +397,9 @@
 		                    <label>Mark this Approval as Exceptional</label>
 		                </div>
 					</div>
-					<textarea name = "exceptional_reason_check" ng-model="$ctrl.exceptional_reason_check" value ="{{$ctrl.exceptional_reason_check}}" rows = '5' class ="form-control" autocomplete="off" placeholder ="Reason for Exceptional" id = 'exceptional_reason_check'></textarea>
+					<!-- <textarea name = "exceptional_reason_check" ng-model="$ctrl.exceptional_reason_check" value ="{{$ctrl.exceptional_reason_check}}" rows = '5' class ="form-control" autocomplete="off" placeholder ="Reason for Exceptional" id = 'exceptional_reason_check'></textarea> -->
 	            	<div class="clearfix"></div>
-	          		<a class="btn btn-primary yellow" href="javascript:;" id="confirm-ticket">Confirm</a>
+	            	<button class="btn btn-primary yellow" type="submit">Confirm</button>
 		        </div>
 			</form>
 	    </div>      

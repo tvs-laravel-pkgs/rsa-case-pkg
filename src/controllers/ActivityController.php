@@ -266,7 +266,7 @@ class ActivityController extends Controller {
 			->groupBy('activities.id')
 			->where('activities.id', $activity_status_id)
 			->first();
-			$key_list = [ 158,159,160,154,155,156,170,174,180,298,];
+			$key_list = [ 158,159,160,154,155,156,170,174,180,298,179,176,172,173,179,];
 			foreach($key_list as $keyw){
 				$var_key = Config::where('id',$keyw)->first();
 				$key_name = str_replace(" ","_",strtolower($var_key->name));
@@ -317,31 +317,20 @@ class ActivityController extends Controller {
 			if ($request->bo_km_travelled > $activty->asp_km) {
 				return redirect()->back()->with(['error' => 'Final KM should be less than or equal to ASP KM']);
 			}
-			
-			if ($activty->is_self) {
+			//old code to clarify
+			/*if ($activty->is_self) {
 				$activty->flow_current_status = "Waiting for Invoice Generation";
 			} else {
 				$activty->flow_current_status = "Waiting for Invoice Generation";
-			}
-
-			if (!empty($request->is_exceptional_check)) {
+			}*/
+			//on hold
+			/*if (!empty($request->is_exceptional_check)) {
 				$activty->is_exceptional = $request->is_exceptional_check;
 				$activty->exceptional_reason = $request->exceptional_reason_check;
-			}
+			}*/
 
 			//calculaing mis invoice amount
-			$mis_ticket_total = 0;
-
-			$km_travelled = 0;
-			$collected_by_asp = 0;
-			$not_collected_by_asp = 0;
-			$service = ServiceType::findOrFail($activty->service_type_id);
-
-			$km_travelled = $request->bo_km_travelled;
-			$payout = !empty($request->bo_info[1]['payout']) ? $request->bo_info[1]['payout'] : 0;
-			$not_collected_by_asp = !empty($request->bo_info[1]['not_collected']) ? $request->bo_info[1]['not_collected'] : 0;
-			$collected_by_asp = !empty($request->bo_info[1]['collected']) ? $request->bo_info[1]['collected'] : 0;
-			$deduction = !empty($request->bo_info[1]['deduction']) ? $request->bo_info[1]['deduction'] : 0;
+			
 			//dd($payout);
 			// $prices = getKMPrices($service, $activty->asp, $activty);
 			// if($prices['success']){

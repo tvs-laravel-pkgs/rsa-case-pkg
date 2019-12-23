@@ -176,6 +176,8 @@ app.component('activityStatusView', {
             self.data.style_location_image_url = style_location_image_url;
             self.data.style_profile_image_url = style_profile_image_url;
             self.data.style_phone_image_url = style_car_image_url;
+            self.data.verification = 0;
+
             console.log(self.data);
              $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();   
     $('.viewData-toggle--btn').click(function(){

@@ -25,34 +25,35 @@
 				<div>{{$ctrl.data.cc_colleced_amount}}</div>
 			</td>
 		</tr>
-		<!-- <tr>
+		<tr ng-show="$ctrl.data.verification==1">
+			<td colspan="2">
+				<textarea name="cancelled_reason" ng-model="$ctrl.data.cancelled_reason" class="form-control" value="{{$ctrl.data.cancelled_reason}}" placeholder = "Enter Deduction Reason" rows="3"></textarea>
+				
+			</td>
+		</tr>
+		<tr ng-show="$ctrl.data.verification==1">
+			<td colspan="2">
+				<textarea name="comments" ng-model="$ctrl.data.comments" class="form-control" value="{{$ctrl.data.comments}}" placeholder = "Enter Comments" rows="3"></textarea>
+			</td>
+		</tr>
+		<tr ng-show="$ctrl.data.verification==1">
 			<td>Tax Calculation Method</td>
 			<td>
 				<div class="">
 					<span class="alert alert-danger">
-						{{$asp->tax_calculation_method == 0 ? 'Calculate Tax without Not Collected Amount' : 'Calculate Tax with Not Collected Amount'}}
+						{{$ctrl.data.asp.tax_calculation_method == 0 ? 'Calculate Tax without Not Collected Amount' : 'Calculate Tax with Not Collected Amount'}}
 					</span>
 				</div>
 			</td>
 		</tr>
-		<tr>
+		<tr ng-show="$ctrl.data.verification==1">
 			<td>Deduction (-)</td>
 			<td>
-				<div>{{number_format($mis_info->deduction,2)}}</div>
-			</td>
-		</tr> -->
-		<!-- <tr>
-			<td>Deduction Reason</td>
-			<td colspan="2">
-				{{ Form::textarea('bo_info['.$index.'][cancelled_reason]',$mis_info->cancelled_reason,['class' => 'form-control',  "placeholder" => "Enter comments", 'readonly' => 'readonly']) }}
+				<div><input type="text" ng-model="$ctrl.data.deduction" class="deduction" value="{{$ctrl.data.deduction}}"></div>
 			</td>
 		</tr>
-		<tr>
-			<td>Comments</td>
-			<td colspan="2">
-				{{ Form::textarea('bo_info['.$index.'][comments]',$mis_info->Comments,['class' => 'form-control',  "placeholder" => "Enter comments", 'readonly' => 'readonly']) }}
-			</td>
-		</tr> -->
+		 
+		
 
 	</tbody>
 </table>

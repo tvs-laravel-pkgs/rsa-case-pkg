@@ -208,6 +208,8 @@ class ActivityController extends Controller {
 			'asp.state',
 			'asp.district',
 			'asp.location',
+			'asp.taxGroup',
+			'asp.taxGroup.taxes',
 			'serviceType',
 			'case',
 			'case.callcenter',
@@ -271,6 +273,8 @@ class ActivityController extends Controller {
 				$var_key_val = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',$var_key->id)->first();
 				if(strpos($key_name, 'amount') || strpos($key_name, 'collected') || strcmp("amount",$key_name)==0){
 					$this->data['activities'][$key_name] = $var_key_val ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($var_key_val->value,2))) : '0.00';
+					$raw_key_name = 'raw_'.$key_name;
+					$this->data['activities'][$raw_key_name] =$var_key_val ? $var_key_val->value :0;
 				}else{
 					$this->data['activities'][$key_name] = $var_key_val ? $var_key_val->value :0;
 				}
@@ -284,6 +288,8 @@ class ActivityController extends Controller {
 				if(strpos($config->name, '_charges') || strpos($config->name, '_amount')){
 					
 					$this->data['activities'][$config->name] = $detail->value ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($detail->value,2))) : '0.00';
+					$raw_key_name = 'raw_'.$config->name;
+					$this->data['activities'][$raw_key_name] =$detail->value ?$detail->value :0;
 				}else{
 					$this->data['activities'][$config->name]= $detail->value ?$detail->value :'-';
 				}
@@ -294,5 +300,124 @@ class ActivityController extends Controller {
 		return response()->json(['success' => true, 'data' => $this->data]);
 		
 	}
+	public function saveActivityDiffer(Request $request){
 
+
+	}
+
+	public function approveActivity(Request $request){
+		DB::beginTransaction();
+		try {
+			$activty = Activity::findOrFail($request->activity_id);
+			if (!$activty) {
+				return redirect()->back()->with(['error' => 'Activity not found']);
+			}
+
+			//CHECK BO KM > ASP KM
+			if ($request->bo_km_travelled > $activty->asp_km) {
+				return redirect()->back()->with(['error' => 'Final KM should be less than or equal to ASP KM']);
+			}
+			
+			if ($activty->is_self) {
+				$activty->flow_current_status = "Waiting for Invoice Generation";
+			} else {
+				$activty->flow_current_status = "Waiting for Invoice Generation";
+			}
+
+			if (!empty($request->is_exceptional_check)) {
+				$activty->is_exceptional = $request->is_exceptional_check;
+				$activty->exceptional_reason = $request->exceptional_reason_check;
+			}
+
+			//calculaing mis invoice amount
+			$mis_ticket_total = 0;
+
+			$km_travelled = 0;
+			$collected_by_asp = 0;
+			$not_collected_by_asp = 0;
+			$service = ServiceType::findOrFail($activty->service_type_id);
+
+			$km_travelled = $request->bo_km_travelled;
+			$payout = !empty($request->bo_info[1]['payout']) ? $request->bo_info[1]['payout'] : 0;
+			$not_collected_by_asp = !empty($request->bo_info[1]['not_collected']) ? $request->bo_info[1]['not_collected'] : 0;
+			$collected_by_asp = !empty($request->bo_info[1]['collected']) ? $request->bo_info[1]['collected'] : 0;
+			$deduction = !empty($request->bo_info[1]['deduction']) ? $request->bo_info[1]['deduction'] : 0;
+			//dd($payout);
+			// $prices = getKMPrices($service, $activty->asp, $activty);
+			// if($prices['success']){
+			//     $payout = calculatePayout($prices['asp_service_price'],$km_travelled);
+			// }else{
+			//     return redirect()->back()->with(['error' => $prices['error']]);
+			// }
+			// $mis_service_total = ($payout+$not_collected_by_asp)-$collected_by_asp;
+
+			if ($activty->asp->tax_calculation_method == 0) {
+				$mis_ticket_total = $payout - ($collected_by_asp + $deduction);
+			} else {
+				$mis_ticket_total = ($payout + $not_collected_by_asp) - ($collected_by_asp + $deduction);
+			}
+
+			//cadd($request->net_amount);
+			if ($activty->has_gst && $activty->asp->tax_group_id) {
+				$taxes = Tax::where('tax_group_id', $activty->asp->tax_group_id)->pluck('tax_rate', 'id')->toArray();
+				$tax_total = 0;
+				foreach ($taxes as $k => $tax) {
+					$tax_total += ($mis_ticket_total * $tax) / 100;
+				}
+				$mis_ticket_total += $tax_total;
+			} else { $tax_total = 0;}
+
+			if ($activty->asp->tax_calculation_method == 0) {
+				$mis_ticket_total += $not_collected_by_asp;
+			}
+
+			$activty->fill($request->all());
+			$activty->bo_invoice_amount = $mis_ticket_total;
+			$activty->bo_net_amount = $request->net_amount;
+			$activty->deduction = $deduction;
+			$activty->payout_amount = $request->bo_info[1]['payout'];
+			$activty->bo_km = $request->bo_km_travelled;
+			$activty->bo_other_charges = $not_collected_by_asp;
+			$activty->bo_collected_charges = $collected_by_asp;
+			$activty->bo_service_type_id = $activty->asp_service_type_id;
+			$activty->tax = $tax_total;
+			if (!empty($request->bo_info[1]['comments'])) {$activty->comments = $request->bo_info[1]['comments'];}
+			if (!empty($request->bo_info[1]['cancelled_reason'])) {$activty->cancelled_reason = $request->bo_info[1]['cancelled_reason'];}
+			//$activty->is_exceptional = $request->is_exceptional_check;
+			//$activty->exceptional_reason = empty($request->is_exceptional_check) ? '' : $request->exceptional_reason_check;
+			$activty->save();
+			$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_DEFERRED');
+			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_APPROVED');
+			logActivity2(config('constants.entity_types.ticket'), $activty->id, [
+				'Status' => $log_status,
+				'Waiting for' => $log_waiting,
+
+			]);
+
+			//sending confirmation SMS to ASP
+			// $mobile_number = $activty->asp->contact_number1;
+			// $sms_message = 'BO_APPROVED';
+			// sendSMS2($sms_message,$mobile_number,$activty->ticket_number);
+
+			$mobile_number = $activty->asp->contact_number1;
+			$sms_message = 'BO_APPROVED';
+			$array = [$activty->ticket_number];
+			// sendSMS2($sms_message, $mobile_number, $array);
+
+			//sending notification to all BO users
+			$asp_user = $activty->asp->user_id;
+			$noty_message_template = 'BO_APPROVED';
+			$ticket_number = [$activty->ticket_number];
+			notify2($noty_message_template, $asp_user, config('constants.alert_type.blue'), $ticket_number);
+
+			DB::commit();
+			return redirect()->route('boActivitys')->with(['success' => 'Activity approved successfully.']);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			dd($e);
+			$message = ['error' => $e->getMessage()];
+			return redirect()->back()->with($message)->withInput();
+		}
+	}
 }

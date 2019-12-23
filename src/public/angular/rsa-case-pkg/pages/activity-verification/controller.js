@@ -109,3 +109,110 @@ app.component('activityVerificationList', {
 });
 //------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+
+app.component('activityVerificationView', {
+    templateUrl: activity_status_view_template_url,
+    controller: function($http, $location, $window, HelperService, $scope, $routeParams, $rootScope, $location) {
+        $scope.loading = true;
+        var self = this;
+        self.hasPermission = HelperService.hasPermission;
+        self.filter_img_url = filter_img_url;
+       self.style_dot_image_url = style_dot_image_url;
+        self.csrf = $('#csrf').val();
+        
+        get_view_data_url = typeof($routeParams.id) == 'undefined' ? activity_status_view_data_url : activity_status_view_data_url + '/' + $routeParams.id;
+        $http.get(
+            get_view_data_url
+        ).then(function(response) {
+            console.log(response.data.data.activities);
+            self.data = response.data.data.activities;
+            self.data.style_dot_image_url = style_dot_image_url;
+            self.data.style_service_type_image_url = style_service_type_image_url;
+            self.data.style_car_image_url = style_car_image_url;
+            self.data.style_location_image_url = style_location_image_url;
+            self.data.style_profile_image_url = style_profile_image_url;
+            self.data.style_phone_image_url = style_car_image_url;
+            self.data.style_modal_close_image_url = style_modal_close_image_url;
+            self.data.style_question_image_url = style_question_image_url;
+            self.data.verification = 1;
+            
+                $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();   
+                $('.viewData-toggle--btn').click(function(){
+                    $(this).toggleClass('viewData-toggle--btn_reverse');
+                    $('.viewData-toggle--inner .viewData-threeColumn--wrapper').slideToggle();
+                });
+            $rootScope.loading = false;
+
+            
+        self.data.cc_net_amount = self.data.cc_po_amount - self.data.bo_not_collected;
+        
+        var v = jQuery("#defer_form").validate({
+        rules: {
+            reason: {
+                        required: true,
+                    },
+        },
+        submitHandler: function(form) {
+                let formData = new FormData($(form_id)[0]);
+                $('#submit').button('loading');
+                $.ajax({
+                        url: laravel_routes['saveActivityDifferewqw'],
+                        method: "POST",
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                    })
+                    .done(function(res) {
+                        if (res.success == true) {
+                            $noty = new Noty({
+                                type: 'success',
+                                layout: 'topRight',
+                                text: res.message,
+                            }).show();
+                            setTimeout(function() {
+                                $noty.close();
+                            }, 3000);
+                            $location.path('/customer-pkg/customer/list');
+                            $scope.$apply();
+                        } else {
+                            if (!res.success == true) {
+                                $('#submit').button('reset');
+                                var errors = '';
+                                for (var i in res.errors) {
+                                    errors += '<li>' + res.errors[i] + '</li>';
+                                }
+                                $noty = new Noty({
+                                    type: 'error',
+                                    layout: 'topRight',
+                                    text: errors
+                                }).show();
+                                setTimeout(function() {
+                                    $noty.close();
+                                }, 3000);
+                            } else {
+                                $('#submit').button('reset');
+                                $location.path('/customer-pkg/customer/list');
+                                $scope.$apply();
+                            }
+                        }
+                    })
+                    .fail(function(xhr) {
+                        $('#submit').button('reset');
+                        $noty = new Noty({
+                            type: 'error',
+                            layout: 'topRight',
+                            text: 'Something went wrong at server',
+                        }).show();
+                        setTimeout(function() {
+                            $noty.close();
+                        }, 3000);
+                    });
+                }
+        });
+        });
+        
+    }
+    
+});

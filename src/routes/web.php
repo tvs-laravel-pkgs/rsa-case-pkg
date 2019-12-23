@@ -15,6 +15,8 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 
 	//ACTIVITY VERIFICATION
 	Route::get('/activity-verification/get-list', 'ActivityController@getVerificationList')->name('getActivityVerificationList');
+	Route::post('/activity-verification/saveDiffer', 'ActivityController@saveActivityDiffer')->name('saveActivityDiffer');
+	Route::post('/activity-verification/approve', 'ActivityController@approveActivity')->name('approveActivity');
 
 	//INVOICE
 	Route::get('/invoice/get-filter-data', 'InvoiceController@getFilterData')->name('getFilterData');

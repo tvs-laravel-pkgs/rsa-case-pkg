@@ -73,7 +73,19 @@ class CaseController extends Controller {
 			$call_center = CallCenter::where('name', $request->call_center)->first();
 			$client = Client::where('name', $request->client)->first();
 			$vehicle_make = VehicleMake::where('name', $request->vehicle_make)->first();
-			$vehicle_model = VehicleModel::where('vehicle_make_id', $vehicle_make->id)->first();
+
+			//VEHICLE MODEL GOT BY VEHICLE MAKE
+			$vehicle_model_by_make = VehicleModel::where('name', $request->vehicle_model)->where('vehicle_make_id', $vehicle_make->id)->first();
+			if (!$vehicle_model_by_make) {
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						"Selected vehicle make doesn't matches with vehicle model",
+					],
+				], $this->successStatus);
+			}
+
 			$subject = Subject::where('name', $request->subject)->first();
 
 			$cancel_reason = CaseCancelledReason::where('name', $request->cancel_reason)->where('company_id', 1)->first();
@@ -92,7 +104,7 @@ class CaseController extends Controller {
 			$case->cancel_reason_id = $cancel_reason_id;
 			$case->call_center_id = $call_center->id;
 			$case->client_id = $client->id;
-			$case->vehicle_model_id = $vehicle_model->id;
+			$case->vehicle_model_id = $vehicle_model_by_make->id;
 			$case->subject_id = $subject->id;
 			$case->save();
 

@@ -39,6 +39,10 @@ class RsaCase extends Model {
 		'bd_city',
 	];
 
+	public function getDateAttribute($date) {
+		return empty($date) ? '' : date('d-m-Y', strtotime($date));
+	}
+
 	public function company() {
 		return $this->belongsTo('App\Company', 'company_id');
 	}

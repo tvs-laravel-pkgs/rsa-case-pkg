@@ -13,11 +13,11 @@ app.component('invoiceList', {
             var cols = [
                 { data: 'action', searchable: false },
                 { data: 'invoice_no', name: 'Invoices.invoice_no', searchable: true },
-                { data: 'invoice_date',  searchable: false },
+                { data: 'invoice_date', searchable: false },
                 { data: 'asp_code', name: 'asps.asp_code', searchable: true },
                 { data: 'workshop_name', name: 'asps.workshop_name', searchable: true },
-                { data: 'no_of_tickets',  searchable: false },
-                { data: 'invoice_amount',  searchable: false },
+                { data: 'no_of_tickets', searchable: false },
+                { data: 'invoice_amount', searchable: false },
             ];
 
             var activities_status_dt_config = JSON.parse(JSON.stringify(dt_config));
@@ -91,23 +91,46 @@ app.component('invoiceList', {
     }
 });
 
-app.component('activityStatusView1', {
-    templateUrl: activity_status_view_template_url,
+app.component('invoiceView', {
+    templateUrl: invoice_view_template_url,
     controller: function($http, $location, $window, HelperService, $scope, $routeParams, $rootScope, $location) {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
         self.filter_img_url = filter_img_url;
-        console.log($routeParams.id);
-        console.log(activity_status_view_data_url);
-        get_view_data_url = typeof($routeParams.id) == 'undefined' ? activity_status_view_data_url : activity_status_view_data_url + '/' + $routeParams.id;
+        self.type_id = $routeParams.type_id;
+        self.invoice_pdf_generate_url = invoice_pdf_generate_url;
+        get_view_data_url = typeof($routeParams.id) == 'undefined' ? invoice_view_data_url : invoice_view_data_url + '/' + $routeParams.id;
         $http.get(
             get_view_data_url
         ).then(function(response) {
-            console.log(response);
-            self.data = response.data.data.activities;
-            console.log(self.data);
+            console.log(response.data);
+            self.period = response.data.period;
+            self.asp = response.data.asp;
+            self.rsa_address = response.data.rsa_address;
+            self.activities = response.data.activities;
+            self.invoice_amount = response.data.invoice_amount;
+            self.signature_attachment = response.data.signature_attachment;
+            self.signature_attachment_path = response.data.signature_attachment_path;
+            self.invoice_attachment_file = response.data.invoice_attachment_file;
+            self.invoice = response.data.invoice;
+            self.invoice_availability = response.data.invoice_availability;
             $rootScope.loading = false;
         });
+
+        setTimeout(function() {
+            $('#aspLogin-table').DataTable({
+                "bLengthChange": false,
+                "paginate": false,
+                "oLanguage": {"sZeroRecords": "", "sEmptyTable": ""},
+            });
+        }, 10);
+
+        $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
+        $('.viewData-toggle--btn').click(function() {
+            $(this).toggleClass('viewData-toggle--btn_reverse');
+            $('.viewData-toggle--inner .viewData-threeColumn--wrapper').slideToggle();
+        });
+
     }
 });

@@ -21,4 +21,11 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	//INVOICE
 	Route::get('/invoice/get-filter-data', 'InvoiceController@getFilterData')->name('getFilterData');
 	Route::get('/invoice/get-list', 'InvoiceController@getList')->name('getListData');
+	Route::get('/invoice/view/{id}', 'InvoiceController@viewInvoice')->name('viewInvoice');
+	Route::get('/invoice/download/{id}', 'InvoiceController@downloadInvoice')->name('downloadInvoice');
+
+	//BATCH GENERATION
+	Route::get('/batch-generation/get-list', 'BatchController@getList')->name('getListData');
+	Route::post('/batch-generation/generate-batch', 'BatchController@generateBatch')->name('generateBatch');
+
 });

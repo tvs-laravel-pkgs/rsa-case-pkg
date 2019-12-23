@@ -232,9 +232,14 @@ class BatchController extends Controller {
 		// ->get()
 		;
 
-		// dd($batches);
-		if (Auth::user()->role_id == 6) {
-			$batches->whereIn('asps.state_id', $statesid);
+		if (!Entrust::can('view-all-asp-unpaid-batches')) {
+			if (Entrust::can('view-only-state-mapped-asp-unpaid-batches')) {
+				$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
+				$batches->whereIn('asps.state_id', $states);
+			}
+			if (Entrust::can('view-own-asp-unpaid-batches')) {
+				$batches->where('asps.user_id', Auth::id());
+			}
 		}
 
 		if ($request->get('date')) {
@@ -265,6 +270,7 @@ class BatchController extends Controller {
 					return route('angular') . '/#!/rsa-case-pkg/batch-view/' . $batches->batchid . '/12';
 				},
 			])
+
 			->addColumn('action', function ($batches) {
 				return '<input type="checkbox" class="ticket_id no-link child_select_all ibtnDel" name="batch_ids[]" value="' . $batches->batchid . '">';
 			})

@@ -4,10 +4,13 @@ app.component('unpaidBatchesList', {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
+        self.export_permission = self.hasPermission('export-asp-unpaid-batches');
         self.filter_img_url = filter_img_url;
         self.export_unpaid_batch_url = export_unpaid_batch_url;
         self.token = token;
         $("#status").val('-1');
+
+        alert(self.export_permission);
 
         var cols = [
             { data: 'action', orderable: false, targets: 0, searchable: false },
@@ -23,6 +26,12 @@ app.component('unpaidBatchesList', {
             { data: 'status', searchable: false },
         ];
 
+
+        // if (self.export_permission) {
+        //     cols.push(
+        //     );
+        // }
+        console.log(cols);
         var activities_status_dt_config = JSON.parse(JSON.stringify(dt_config));
 
         $('#unpaid_batch_table').DataTable(

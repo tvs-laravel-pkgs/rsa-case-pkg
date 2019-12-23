@@ -35,29 +35,23 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 			[
 				'display_order' => 2,
 				'parent' => 'activity-status',
-				'name' => 'view-activities',
-				'display_name' => 'View',
-			],
-			[
-				'display_order' => 3,
-				'parent' => 'activity-status',
 				'name' => 'delete-activities',
 				'display_name' => 'Delete',
 			],
 			[
-				'display_order' => 4,
+				'display_order' => 3,
 				'parent' => 'activity-status',
 				'name' => 'export-activities',
 				'display_name' => 'Export',
 			],
 			[
-				'display_order' => 5,
+				'display_order' => 4,
 				'parent' => 'activity-status',
 				'name' => 'view-all-activities',
 				'display_name' => 'View All',
 			],
 			[
-				'display_order' => 6,
+				'display_order' => 5,
 				'parent' => 'activity-status',
 				'name' => 'view-mapped-state-activities',
 				'display_name' => 'Only Mapped States',
@@ -107,6 +101,78 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'parent' => 'invoices-batch-generation',
 				'name' => 'view-only-state-mapped-invoices-batch-generation',
 				'display_name' => 'Only State Mapped',
+			],
+
+			//UNPAID BATCHES
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'asp-unpaid-batches',
+				'display_name' => 'ASP Unpaid Batches',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-unpaid-batches',
+				'name' => 'view-all-asp-unpaid-batches',
+				'display_name' => 'View All',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-unpaid-batches',
+				'name' => 'view-only-state-mapped-asp-unpaid-batches',
+				'display_name' => 'Only State Mapped',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-unpaid-batches',
+				'name' => 'view-own-asp-unpaid-batches',
+				'display_name' => 'View Own',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-unpaid-batches',
+				'name' => 'export-asp-unpaid-batches',
+				'display_name' => 'Export',
+			],
+
+			//PAYMENT INPROGRESS BATCHES
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'asp-payment-inprogress-batches',
+				'display_name' => 'ASP Payment Inprogress Batches',
+			],
+
+			//PAID BATCHES
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'asp-paid-batches',
+				'display_name' => 'ASP Paid Batches',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-paid-batches',
+				'name' => 'view-all-asp-paid-batches',
+				'display_name' => 'View All',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-paid-batches',
+				'name' => 'view-only-state-mapped-asp-paid-batches',
+				'display_name' => 'Only State Mapped',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-paid-batches',
+				'name' => 'view-own-asp-paid-batches',
+				'display_name' => 'View Own',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-paid-batches',
+				'name' => 'view-paid-batches-payment-info',
+				'display_name' => 'View Payment Info',
 			],
 
 			//ASP INVOICES

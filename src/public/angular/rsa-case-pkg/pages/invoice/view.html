@@ -3,7 +3,9 @@
         <ul class="mobile-breadcrumbs-group list-inline">
             <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
             <li ng-if="$ctrl.type_id == 2"><a href="#!/rsa-case-pkg/batch-generation/list">Batch Generation</a></li>
-            <li ng-if="$ctrl.type_id != 2"><a href="#!/rsa-case-pkg/invoice/list">Invoice</a></li>
+            <li ng-if="$ctrl.type_id == 1"><a href="#!/rsa-case-pkg/invoice/list">Invoice</a></li>
+            <li ng-if="$ctrl.type_id == 11"><a href="#!/rsa-case-pkg/paid-batches/list">Paid Batches</a></li>
+            <li ng-if="$ctrl.type_id == 12"><a href="#!/rsa-case-pkg/unpaid-batches/list">Unpaid Batches</a></li>
         </ul>
     </div>
 </div>

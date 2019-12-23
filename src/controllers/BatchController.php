@@ -126,7 +126,7 @@ class BatchController extends Controller {
 		return Datatables::of($batches)
 			->setRowAttr([
 				'id' => function ($batches) {
-					return route('angular') . '/#!/rsa-case-pkg/batch-view/' . $batches->batchid;
+					return route('angular') . '/#!/rsa-case-pkg/batch-view/' . $batches->batchid . '/11';
 				},
 			])
 			->make(true);
@@ -262,7 +262,7 @@ class BatchController extends Controller {
 		return Datatables::of($batches)
 			->setRowAttr([
 				'id' => function ($batches) {
-					return route('angular') . '/#!/rsa-case-pkg/batch-view/' . $batches->batchid;
+					return route('angular') . '/#!/rsa-case-pkg/batch-view/' . $batches->batchid . '/12';
 				},
 			])
 			->addColumn('action', function ($batches) {
@@ -275,18 +275,20 @@ class BatchController extends Controller {
 		$this->data['batch'] = $batch;
 		$this->data['asp'] = $batch->asp;
 		$this->data['tickets'] = $batch->tickets;
-		$this->data['courier_details'] = $batch->courier_details;
-		$this->data['courier_editable'] = [0 => ['disabled' => 'disabled'], 1 => ['disabled' => 'disabled']];
-		$this->data['active_courier'] = 1;
 
 		if ($batch->has_gst AND $batch->invoices) {
-			$this->data['invoice_details'] = $batch->invoices;
+			$batch_invoices = $batch->invoices;
+			foreach ($batch_invoices as $key => $value) {
+				$batch->invoices->asp = $value->asp;
+				$batch->invoices->activities = $value->activities;
+			}
+			$this->data['invoice_details'] = $batch_invoices;
 			$this->data['invoice_editable'] = ['disabled' => 'disabled'];
 		}
 		$this->data['payment_editable'] = ['disabled' => 'disabled'];
-		$this->data['attachments'] = Attachment::where('entity_id', $batch->id)
-			->where('entity_type', config('constants.entity_types.BATCH_ATTACHMENT'))
-			->get();
+		// $this->data['attachments'] = Attachment::where('entity_id', $batch->id)
+		// 	->where('entity_type', config('constants.entity_types.BATCH_ATTACHMENT'))
+		// 	->get();
 		$this->data['period'] = $batch->period;
 
 		return response()->json($this->data);

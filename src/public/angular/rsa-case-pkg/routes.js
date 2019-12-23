@@ -70,8 +70,8 @@ app.config(['$routeProvider', function($routeProvider) {
     }).
 
     //BATCH VIEW
-    when('/rsa-case-pkg/batch-view/:id', {
-        template: '<batch-view></unpaid-batches-list>',
+    when('/rsa-case-pkg/batch-view/:id/:type_id?', {
+        template: '<batch-view></batch-view>',
         title: 'Batch View',
     })
 

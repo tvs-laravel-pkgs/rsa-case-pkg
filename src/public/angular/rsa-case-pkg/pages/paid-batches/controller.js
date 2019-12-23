@@ -104,7 +104,10 @@ app.component('batchView', {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
+        self.payment_info_permission = self.hasPermission('view-paid-batches-payment-info');
+        self.type_id = $routeParams.type_id;
         self.filter_img_url = filter_img_url;
+        self.invoice_view_data_url = invoice_view_url;
         self.type_id = $routeParams.type_id;
         self.invoice_pdf_generate_url = invoice_pdf_generate_url;
         get_view_data_url = typeof($routeParams.id) == 'undefined' ? batch_view_url : batch_view_url + '/' + $routeParams.id;
@@ -121,7 +124,7 @@ app.component('batchView', {
             self.invoice_details = response.data.invoice_details;
             self.invoice_editable = response.data.invoice_editable;
             self.payment_editable = response.data.payment_editable;
-            self.attachments = response.data.attachments;
+            // self.attachments = response.data.attachments;
             self.period = response.data.period;
             $rootScope.loading = false;
         });

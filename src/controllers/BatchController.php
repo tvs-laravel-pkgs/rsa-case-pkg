@@ -8,6 +8,7 @@ use App\StateUser;
 use Auth;
 use DB;
 use Entrust;
+use Excel;
 use Illuminate\Http\Request;
 use Yajra\Datatables\Datatables;
 
@@ -128,6 +129,145 @@ class BatchController extends Controller {
 		// 		return route('adminCompletedBatchView', ['batch' => $batch->batchid]);
 		// 	},
 		// ])
+			->make(true);
+	}
+
+	public function exportUnpaidbatches(Request $request) {
+		try
+		{
+			ini_set('max_execution_time', 0);
+			ini_set('memory_limit', '5000M');
+
+			if (empty($request->batch_ids)) {
+				return redirect()->back()->with('error', "Please Select Batch");
+			}
+
+			dd($request->all());
+			// Start retriving information
+			$ticketList = MisInformation::
+				select(
+				'mis_informations.*',
+				'mis_informations.id as id',
+				'b.batch_number as batch_number',
+				'a.axpta_code as axpta_code',
+				'a.workshop_name as workshop_name',
+				// 'i.invoice_no as invoice_no',
+				DB::raw('CONCAT(i.invoice_no, "-", i.id) AS invoice_no'),
+				'i.created_at as created_at',
+				'a.asp_code as asp_code',
+				'l.name as location_name',
+				's.name as state_name',
+				'a.gst_registration_number as gst_registration_number',
+				'a.tax_calculation_method as tax_calculation_method',
+				'a.bank_name as bank_name',
+				'a.bank_account_number as bank_account_number',
+				'a.bank_ifsc_code as bank_ifsc_code',
+				'a.pan_number as pan_number',
+				'a.check_in_favour as check_in_favour'
+			)
+				->join('asps AS a', 'a.id', '=', 'mis_informations.asp_id')
+				->join('locations AS l', 'l.id', '=', 'a.location_id')
+				->join('states AS s', 's.id', '=', 'a.state_id')
+				->join('Invoices AS i', 'i.id', '=', 'mis_informations.invoice_id')
+				->join('batches AS b', 'b.id', '=', 'i.batch_id')
+				->whereIn('i.batch_id', $batch_ids)
+				->with('client')
+				->orderBy('mis_informations.asp_id')
+				->get()
+			;
+
+			$invoice_ids = Batch::join('Invoices AS i', 'i.batch_id', '=', 'batches.id')
+				->whereIn('batches.id', $batch_ids)
+				->pluck('i.id')
+				->toArray()
+			;
+
+			$exportInfo = $this->getaxapta->startExport($batch_ids, $invoice_ids, $ticketList);
+			$exportSheet2Info = $this->getaxapta->startSheet2Export($batch_ids, $invoice_ids, $ticketList);
+			//dd($exportSheet2Info, $exportInfo);
+			if (!$exportInfo) {
+				return back()->withErrors(['exportError', $exportInfo]);
+			}
+			if (!$exportSheet2Info) {
+				return back()->withErrors(['exportError', $exportSheet2Info]);
+			}
+			Excel::create('Axapta_export_' . date('Y-m-d H:i:s'), function ($axaptaInfo) use ($exportInfo, $exportSheet2Info) {
+				$axaptaInfo->sheet('Summary', function ($sheet) use ($exportInfo) {
+					$sheet->cell(1, function ($row) {
+						$row->setBackground('#CCCCCC');
+					});
+					$sheet->fromArray($exportInfo);
+				});
+				$axaptaInfo->sheet('Details', function ($sheet) use ($exportSheet2Info) {
+					$sheet->cell(1, function ($row) {
+						$row->setBackground('#CCCCCC');
+					});
+					$sheet->fromArray($exportSheet2Info);
+				});
+
+			})->export('xls');
+		} catch (\Exception $e) {
+			dd($e);
+			$message = ['error' => $e->getMessage()];
+			return redirect()->back()->with($message)->withInput();
+		}
+	}
+	public function getUnpaidBatchList(Request $request) {
+		$batches = Batch::join('Invoices', 'Invoices.batch_id', '=', 'batches.id')
+			->join('activities', 'activities.invoice_id', '=', 'Invoices.id')
+			->join('asps', 'asps.id', '=', 'batches.asp_id')
+			->selectRaw("
+                    batches.id as batchid,
+                    batches.batch_number,
+                    batches.created_at as created_at,
+                    batches.tds as tds,
+                    batches.paid_amount as paid_amount,
+                    asps.asp_code as asp_code,
+                    asps.name as asp_name, batches.status,
+                    asps.workshop_name as workshop_name,
+                    IF(asps.is_self = 1,'SELF','NON-SELF') as asp_type,
+                    CONCAT(DATE_FORMAT(min(Invoices.start_date), '%d/%m/%Y'),' - ',DATE_FORMAT(max(Invoices.end_date), '%d/%m/%Y')) as date_period,
+                    COUNT(activities.id) as tickets_count,COUNT(DISTINCT(Invoices.id)) as invoices_count")
+			->groupBy('batches.id')
+		// ->get()
+		;
+
+		// dd($batches);
+		if (Auth::user()->role_id == 6) {
+			$batches->whereIn('asps.state_id', $statesid);
+		}
+
+		if ($request->get('date')) {
+			$batches->whereRaw('DATE_FORMAT(batches.created_at,"%d-%m-%Y") =  "' . $request->get('date') . '"');
+		}
+
+		if ($request->get('batch_number')) {
+			$batches->where('batches.batch_number', 'LIKE', '%' . $request->get('batch_number') . '%');
+		}
+
+		if ($request->get('workshop_name')) {
+			$batches->where('asps.workshop_name', 'LIKE', '%' . $request->get('workshop_name') . '%');
+		}
+
+		if ($request->get('asp_code')) {
+			$batches->where('asps.asp_code', 'LIKE', '%' . $request->get('asp_code') . '%');
+		}
+
+		if ($request->get('status') && $request->get('status') != '-1') {
+			$batches->where('batches.status', $request->get('status'));
+		} else {
+			$batches->whereIn('batches.status', ['Waiting for Payment', 'Payment Inprogress']);
+		}
+
+		return Datatables::of($batches)
+		// ->setRowAttr([
+		// 	'id' => function ($batch) {
+		// 		return route('adminCompletedBatchView', ['batch' => $batch->batchid]);
+		// 	},
+		// ])
+			->addColumn('action', function ($batches) {
+				return '<input type="checkbox" class="ticket_id no-link child_select_all ibtnDel" name="batch_ids[]" value="' . $batches->batchid . '">';
+			})
 			->make(true);
 	}
 

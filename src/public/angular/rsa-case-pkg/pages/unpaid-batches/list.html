@@ -2,7 +2,7 @@
     <div class="mobile-breadcrumbs-wrapper">
         <ul class="mobile-breadcrumbs-group list-inline">
             <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
-            <li><a href="#!/rsa-case-pkg/paid-batches/list">Paid Batches</a></li>
+            <li><a href="#!/rsa-case-pkg/unpaid-batches/list">Unpaid Batches</a></li>
         </ul>
     </div>
 </div>
@@ -12,7 +12,7 @@
             <div class="row">
                 <div class="col-xs-12 col-sm-6">
                     <div class="dataTable--left_wrapper">
-                        <h2 class="dataTable-title">Paid Batches</h2>
+                        <h2 class="dataTable-title">Unpaid Batches</h2>
                         <p>Total - <span class="orange-txt"><span class="count">0</span></span></p>
                     </div>
                 </div>
@@ -43,6 +43,14 @@
                                                 <input name="work_shop" id="work_shop" class="form-control filter-input" type="text" placeholder="ASP Workshop Name" autocomplete="off">
                                             </div>
                                             <div class="form-group">
+                                                <md-select ng-model="status" placeholder="Select Status" ng-change="selectStatus(status)" class="md-no-underline">
+                                                    <md-option value="-1">All Status</md-option>
+                                                    <md-option value="Waiting for Payment">Waiting for Payment</md-option>
+                                                    <md-option value="Payment Inprogress">Payment Inprogress</md-option>
+                                                </md-select>
+                                                <input type="hidden" id="status" class="" name="status" value="{{status}}">
+                                            </div>
+                                            <div class="form-group">
                                                 <div class="filter-btns">
                                                     <a href="javascript:;" class="reset-filter  btn btn-primary yellow reset-filter1">RESET</a>
                                                     <a href="javascript:;" class="close-filter btn btn-primary">CLOSE</a>
@@ -60,22 +68,27 @@
                 <div class="customTab-content">
                     <div class="tab-content">
                         <div id="about40" class="tab-pane fade in active">
-                            <table id="paid_batch_table" class="display table dataTable row_linked_table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Batch Number</th>
-                                        <th>Batch Date</th>
-                                        <th>ASP Code</th>
-                                        <th>ASP Name</th>
-                                        <th>ASP Type</th>
-                                        <th>Period</th>
-                                        <th>No of Tickets</th>
-                                        <th>TDS</th>
-                                        <th>Amount</th>
-                                    </tr>
-                                </thead>
-                            </table>
+                            <form id="unpaid_batch" action="{{$ctrl.export_unpaid_batch_url}}" method="post">
+                                <input type="hidden" name="_token" value="{{$ctrl.token}}">
+                                <table id="unpaid_batch_table" class="display table dataTable row_linked_table">
+                                    <thead>
+                                        <tr>
+                                            <th><input type="checkbox" id="select_all_checkbox" class="check_all" autocomplete="off"></th>
+                                            <th>ID</th>
+                                            <th>Batch Number</th>
+                                            <th>Batch Date</th>
+                                            <th>ASP Code</th>
+                                            <th>ASP Name</th>
+                                            <th>ASP Type</th>
+                                            <th>No of Tickets</th>
+                                            <th>No of Invoices</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                                <button type="submit" id="submit" class="approve-btn pull-right approval-batch preview-batch">Export Payment Details</button>
+                            </form>
                         </div>
                     </div>
                 </div>

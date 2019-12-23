@@ -32,5 +32,6 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	//UNPAID BATCHES
 	Route::get('/unpaid-batches/get-filter-data', 'BatchController@getUnpaidBatchFilterData')->name('getUnpaidBatchFilterData');
 	Route::get('/unpaid-batches/get-list', 'BatchController@getUnpaidBatchList')->name('getUnpaidBatchList');
+	Route::post('/unpaid-batches/payment-details/export', 'BatchController@exportUnpaidbatches')->name('exportUnpaidbatches');
 
 });

@@ -1,7 +1,6 @@
 <?php
 
 namespace Abs\RsaCasePkg;
-use App\Asp;
 use App\Batch;
 use App\Http\Controllers\Controller;
 use App\Invoices;
@@ -81,13 +80,6 @@ class BatchController extends Controller {
 
 	}
 
-	public function getPaidBatchFilterData() {
-		$this->data['extras'] = [
-			'asp_list' => collect(Asp::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select ASP']),
-		];
-		return response()->json($this->data);
-	}
-
 	public function getPaidBatchList(Request $request) {
 		$batches = Batch::where('status', '=', "Payment Confirmed")
 			->join('Invoices', 'Invoices.batch_id', '=', 'batches.id')
@@ -114,16 +106,16 @@ class BatchController extends Controller {
 			$batches->whereIn('asps.state_id', $statesid);
 		}
 
-		if ($request->get('batch_date')) {
-			$batches->whereRaw('DATE_FORMAT(batches.created_at,"%d-%m-%Y") =  "' . $request->get('batch_date') . '"');
+		if ($request->get('date')) {
+			$batches->whereRaw('DATE_FORMAT(batches.created_at,"%d-%m-%Y") =  "' . $request->get('date') . '"');
 		}
 
 		if ($request->get('batch_number')) {
 			$batches->where('batches.batch_number', 'LIKE', '%' . $request->get('batch_number') . '%');
 		}
 
-		if ($request->get('asp_name')) {
-			$batches->where('asps.workshop_name', 'LIKE', '%' . $request->get('asp_name') . '%');
+		if ($request->get('workshop_name')) {
+			$batches->where('asps.workshop_name', 'LIKE', '%' . $request->get('workshop_name') . '%');
 		}
 
 		if ($request->get('asp_code')) {

@@ -56,12 +56,6 @@ app.component('batchGenerationList', {
 
         var dataTable = $('#batch_generation_table').dataTable();
 
-
-        // $('#batch_generation_table').on('click', 'tbody td', function() {
-        //     window.location = $(this).closest('tr').find('td:eq(0) a').attr('href');
-        // });
-
-
         $(".filterTable").keyup(function() {
             dataTable.fnFilter(this.value);
         });
@@ -78,7 +72,7 @@ app.component('batchGenerationList', {
             $('#date').val('');
             $('#invoice_number').val('');
             $('#asp_code').val('');
-            $('#workshop').val('');
+            $('#work_shop').val('');
             dataTable.fnFilter();
         });
 

@@ -104,6 +104,18 @@ class ActivityController extends Controller {
 			}
 
 			$asp = Asp::where('asp_code', $request->asp_code)->first();
+
+			//CHECK ASP IS NOT ACTIVE
+			if (!$asp->is_active) {
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						'ASP is inactive',
+					],
+				], $this->successStatus);
+			}
+
 			$service_type = ServiceType::where('name', $request->sub_service)->first();
 			$asp_status = ActivityAspStatus::where('name', $request->asp_activity_status)->where('company_id', 1)->first();
 			if (!$asp_status) {
@@ -134,6 +146,16 @@ class ActivityController extends Controller {
 			}
 
 			$case = RsaCase::where('number', $request->case_number)->first();
+			//CHECK CASE IS CLOSED
+			if ($case->status_id == 4) {
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						'Case already closed',
+					],
+				], $this->successStatus);
+			}
 
 			$activity = new Activity([
 				'crm_activity_id' => $request->crm_activity_id,

@@ -99,6 +99,21 @@ class CaseController extends Controller {
 				'company_id' => 1,
 				'number' => $request->number,
 			]);
+
+			// CASE NEW
+			if (!$case->exists) {
+				//WITH CLOSED STATUS
+				if ($status->id == 4) {
+					return response()->json([
+						'success' => false,
+						'error' => 'Validation Error',
+						'errors' => [
+							"Case should not start with closed status",
+						],
+					], $this->successStatus);
+				}
+			}
+
 			$case->fill($request->all());
 			$case->status_id = $status->id;
 			$case->cancel_reason_id = $cancel_reason_id;

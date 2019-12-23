@@ -104,7 +104,7 @@ class CaseController extends Controller {
 			$case->cancel_reason_id = $cancel_reason_id;
 			$case->call_center_id = $call_center->id;
 			$case->client_id = $client->id;
-			$case->vehicle_model_id = $vehicle_model->id;
+			$case->vehicle_model_id = $vehicle_model_by_make->id;
 			$case->subject_id = $subject->id;
 			$case->save();
 

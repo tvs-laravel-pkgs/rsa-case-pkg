@@ -126,7 +126,7 @@ class BatchController extends Controller {
 		return Datatables::of($batches)
 			->setRowAttr([
 				'id' => function ($batches) {
-					return route('angular') . '/#!/rsa-case-pkg/batch-view/' . $batches->id;
+					return route('angular') . '/#!/rsa-case-pkg/batch-view/' . $batches->batchid;
 				},
 			])
 			->make(true);
@@ -262,7 +262,7 @@ class BatchController extends Controller {
 		return Datatables::of($batches)
 			->setRowAttr([
 				'id' => function ($batches) {
-					return route('angular') . '/#!/rsa-case-pkg/batch-view/' . $batches->id;
+					return route('angular') . '/#!/rsa-case-pkg/batch-view/' . $batches->batchid;
 				},
 			])
 			->addColumn('action', function ($batches) {

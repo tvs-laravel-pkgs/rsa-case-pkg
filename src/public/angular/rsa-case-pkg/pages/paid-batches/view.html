@@ -1,0 +1,40 @@
+@extends('layouts.app')
+@section('title', 'Paid Batch View')
+@include('partials.common.breadcrumbs',$links = ['adminBatchCompletedList' => 'Paid Batches', '#' => $batch->batch_number])
+
+@section('content')
+    <div class="container-fluid dataTable-content--wrapper">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12">
+                @include('partials.batch.header')
+                <div class="tab-content">
+                    <div id="bill" class="tab-pane fade in active">
+                      <div class="viewData-wrapper">
+                            <div class="viewData-toggle--wrapper">
+                                @include('partials.asp_details')
+                            </div>
+
+                            @include('partials.batch.attachments')
+
+                            <div class="viewData-accordion">
+                                <!-- @include('partials.batch.batch_ticket') -->
+<!--
+                                <div class="viewData-accordion--btns">
+                                    <label>Batch Amount <span><i class="fa fa-inr" aria-hidden="true"></i>{{$batch->invoice_amount}}</span></label>
+                                    <div class="clearfix"></div>
+                                </div> -->
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+                @includeWhen(($batch->has_gst AND $invoice_details),'partials.batch.invoice_details1')
+                @include('partials.batch.courier_view')
+                @include('partials.batch.payment_details')
+
+            </div>
+        </div>
+    </div>
+
+@endsection

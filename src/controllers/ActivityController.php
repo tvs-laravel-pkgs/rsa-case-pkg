@@ -192,7 +192,7 @@ class ActivityController extends Controller {
 		return Datatables::of($activities)
 			->addColumn('action', function ($activity) {
 				$action = '<div class="dataTable-actions">
-								<a href="#!/rsa-case-pkg/activity-status/view/' . $activity->id . '">
+								<a href="#!/rsa-case-pkg/activity-verification/view/' . $activity->id . '">
 					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
 					            </a>
 					            </div>';
@@ -202,6 +202,12 @@ class ActivityController extends Controller {
 	}
 
 	public function viewActivityStatus($activity_status_id) {
+		$activity_data = Activity::findOrFail($activity_status_id);
+		if(!($activity_data && ($activity_data->status_id==5 || $activity_data->status_id==6 || $activity_data->status_id==9 || $activity_data->status_id==8))){
+			$errors[0] = "Activity is not valid for Verification!!!";
+			return response()->json(['success' => false, 'errors' => $errors]);
+
+		}
 		$this->data['activities'] = $activity = Activity::with([
 			'asp',
 			'asp.rms',
@@ -280,10 +286,7 @@ class ActivityController extends Controller {
 				}
 
 			}
-		}
 		$this->data['activities']['asp_service_type_data'] = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();
-		/*
-			 $config_ids = [302,303,300,304,296,297,284,285,283,286,287,289,290,288,291,280,299,281,280,282,305,306,307,308];*/
 			$configs = Config::where('entity_type_id',23)->get();
 			 foreach($configs as $config){
 				$detail = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',$config->id)->first();
@@ -296,10 +299,12 @@ class ActivityController extends Controller {
 					$this->data['activities'][$config->name]= $detail->value ?$detail->value :'-';
 				}
 			 }
-
-		if (!$activity) {
-			return response()->json(['success' => false, 'data' => "Activity not Found!!!"]);
+		if($this->data['activities']['asp_service_type_data']->adjustment_type == 1){
+			$this->data['activities']['bo_deduction']= ($this->data['activities']['raw_bo_po_amount'] * $this->data['activities']['asp_service_type_data']->adjustment)/100;
+		}else if($this->data['activities']['asp_service_type_data']->adjustment_type == 2){
+			$this->data['activities']['bo_deduction']= $this->data['activities']['asp_service_type_data']->adjustment;
 		}
+		
 		return response()->json(['success' => true, 'data' => $this->data]);
 
 	}

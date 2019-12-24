@@ -119,14 +119,34 @@ app.component('activityVerificationView', {
         var self = this;
         self.hasPermission = HelperService.hasPermission;
         self.filter_img_url = filter_img_url;
-       self.style_dot_image_url = style_dot_image_url;
+        self.style_dot_image_url = style_dot_image_url;
         self.csrf = $('#csrf').val();
-        
         get_view_data_url = typeof($routeParams.id) == 'undefined' ? activity_status_view_data_url : activity_status_view_data_url + '/' + $routeParams.id;
         $http.get(
             get_view_data_url
         ).then(function(response) {
-            console.log(response.data.data.activities);
+            console.log(response);
+            if (!response.data.success) {
+                var errors = '';
+                for (var i in response.data.errors) {
+                    errors += '<li>' + response.data.errors[i] + '</li>';
+                }
+                $noty = new Noty({
+                    type: 'error',
+                    layout: 'bottomRight',
+                    text: errors,
+                    animation: {
+                        speed: 500 // unavailable - no need
+                    },
+
+                }).show();
+                setTimeout(function() {
+                    $noty.close();
+                }, 1000);
+                $location.path('/rsa-case-pkg/activity-verification/list');
+                $scope.$apply();
+                return;
+            }
             self.data = response.data.data.activities;
             self.data.style_dot_image_url = style_dot_image_url;
             self.data.style_service_type_image_url = style_service_type_image_url;
@@ -137,35 +157,30 @@ app.component('activityVerificationView', {
             self.data.style_modal_close_image_url = style_modal_close_image_url;
             self.data.style_question_image_url = style_question_image_url;
             self.data.verification = 1;
-            
-                $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();   
-                $('.viewData-toggle--btn').click(function(){
-                    $(this).toggleClass('viewData-toggle--btn_reverse');
-                    $('.viewData-toggle--inner .viewData-threeColumn--wrapper').slideToggle();
-                });
+            $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();   
+            $('.viewData-toggle--btn').click(function(){
+                $(this).toggleClass('viewData-toggle--btn_reverse');
+                $('.viewData-toggle--inner .viewData-threeColumn--wrapper').slideToggle();
+            });
             $rootScope.loading = false;
-
-            
-        self.data.cc_net_amount = self.data.cc_po_amount - self.data.bo_not_collected;
-        
-       $scope.differ = function(){
-        alert('sss');
-        $http.post(
+            self.data.cc_net_amount = self.data.cc_po_amount - self.data.bo_not_collected;
+            $scope.differ = function(){
+                $http.post(
                     laravel_routes['saveActivityDiffer'], {
                         activity_id : self.data.activity_id,
-                        /*bo_km_travelled : self.data.bo_km_travelled,
+                        bo_km_travelled : self.data.bo_km_travelled,
                         raw_bo_collected : self.data.raw_bo_collected,
                         raw_bo_not_collected : self.data.raw_bo_not_collected,
                         bo_deduction : self.data.bo_deduction,
                         bo_po_amount : self.data.bo_po_amount,
                         bo_net_amount : self.data.bo_net_amount,
-                        bo_amount : self.data.bo_amount,*/
+                        bo_amount : self.data.bo_amount,
 
                     }
                 ).then(function(response) {
                     $('.save').button('reset');
                     $("#reject-modal").modal("hide");
-
+                    console.log(response.data.data);
                     if (!response.data.data.success) {
                         var errors = '';
                         for (var i in response.data.data.errors) {
@@ -198,13 +213,9 @@ app.component('activityVerificationView', {
                     }, 1000);
 
                     item.selected = false;
-                    //$scope.getChannelDiscountAmounts();
-
                 });
-
-    }
+            }
         });
-        
     }
     
 });

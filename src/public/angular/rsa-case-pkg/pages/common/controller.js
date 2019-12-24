@@ -276,6 +276,8 @@ app.component('billingDetails', {
                         }, 1000);
                         return;
                     }
+                    $location.path('/rsa-case-pkg/activity-verification/list');
+                    $scope.$apply();
                     $noty = new Noty({
                         type: 'success',
                         layout: 'bottomRight',
@@ -330,6 +332,8 @@ app.component('billingDetails', {
                         }, 1000);
                         return;
                     }
+                    $location.path('/rsa-case-pkg/activity-verification/list');
+                    $scope.$apply();
                     $noty = new Noty({
                         type: 'success',
                         layout: 'bottomRight',
@@ -348,9 +352,11 @@ app.component('billingDetails', {
                 });
 
     }
-
-
-    
+          }, 3000);
+        setTimeout(function() {
+            $scope.calculate();
+            $scope.$apply();
+        }, 4000);
         $scope.calculate = function(){
             var amount = 0;
             if(self.data.asp_service_type_data.range_limit >self.data.bo_km_travelled){
@@ -375,9 +381,10 @@ app.component('billingDetails', {
             //inv_amount = parseFloat(self.data.bo_net_amount);
             total_tax = 0;
             taxes = self.data.asp.tax_group.taxes;
-            if(self.data.asp.has_gst== "TRUE"){
+            if(self.data.asp.has_gst){
                 total_tax = 0;
                 angular.forEach(taxes, function (value, key) { 
+                    console.log('value'); 
                     console.log(value); 
                     total_tax = parseFloat(total_tax) + parseFloat(value.tax_rate);
                 }); 
@@ -388,15 +395,17 @@ app.component('billingDetails', {
                 self.data.bo_amount = parseFloat(self.data.bo_net_amount) + self.data.bo_tax_amount;
             }
             
+            console.log('total_tax');
             console.log(total_tax);
+            console.log('self.data.bo_amount');
             console.log(self.data.bo_amount);
             if(self.data.asp.tax_calculation_method == 0){
                 self.data.bo_amount = parseFloat(self.data.bo_amount) + parseFloat(self.data.raw_bo_not_collected);
             }
-            //console.log(self.data.bo_amount);
+            console.log('self.data.bo_amount');
+            console.log(self.data.bo_amount);
 
         }
-          }, 3000);
 
     }
 });

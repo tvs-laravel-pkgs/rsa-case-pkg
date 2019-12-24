@@ -28,7 +28,22 @@ app.config(['$routeProvider', function($routeProvider) {
         template: '<activity-status-delete></activity-status-delete>',
         title: 'Activity Status Delete',
     }).
+    //NEW ACTIVITY 
+    
+    when('/asp/new-activity', {
+        template: '<new-activity></new-activity>'
+    }).
+    when('/asp/new-activity/update-details/:id', {
+        template: '<new-activity-update-details></new-activity-update-details>'
+    }).
 
+    //NEW ACTIVITY
+    when('/asp/new-differed', {
+        template: '<new-differed></new-differed>'
+    }).
+    when('/asp/new-differed/update-details/:id', {
+        template: '<new-differed-update-details></new-differed-update-details>'
+    }). 
     //ACTIVITY VERIFICATION
     when('/rsa-case-pkg/activity-verification/list', {
         template: '<activity-verification-list></activity-verification-list>',

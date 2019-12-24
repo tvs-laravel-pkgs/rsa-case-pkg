@@ -12,6 +12,10 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	Route::get('/activity-status/get-list', 'ActivityController@getList')->name('getActivityStatusList');
 	Route::get('/activity-status/delete/{id}', 'ActivityController@delete')->name('deleteActivity');
 	Route::get('/activity-status/view/{activity_status_id?}', 'ActivityController@viewActivityStatus')->name('viewActivityStatus');
+	Route::get('/new-activity/get-form-data/{id?}', 'ActivityController@activityGetFormData')->name('activityGetFormData');
+	Route::post('asp/activity/verify', 'ActivityController@verifyActivity')->name('verifyActivity');
+		Route::post('asp/activity/save', 'ActivityController@saveNewActitvity')->name('saveNewActitvity');
+
 
 	//ACTIVITY VERIFICATION
 	Route::get('/activity-verification/get-list', 'ActivityController@getVerificationList')->name('getActivityVerificationList');
@@ -27,5 +31,4 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	//BATCH GENERATION
 	Route::get('/batch-generation/get-list', 'BatchController@getList')->name('getListData');
 	Route::post('/batch-generation/generate-batch', 'BatchController@generateBatch')->name('generateBatch');
-
 });

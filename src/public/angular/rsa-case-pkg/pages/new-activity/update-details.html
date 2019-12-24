@@ -18,11 +18,11 @@
                     </div>
                 </div>
                 <form id="new-tickect-form" enctype="multipart-formdata">
-                    <input type="hidden" name="mis_id" class="mis_id" value="<%$ctrl.mis_id%>">
-                    <input type="hidden" name="for_differ_km" class="for_differ_km" value='1'>
-                    <input type="hidden" name="for_differ_other" class="for_differ_other" value='0'>
-                    <input type="hidden" name="service_range_limit" class="service_range_limit" value="<%$ctrl.range_limit%>">
-                    <input type="hidden" name="for_update_deferred" value="<%$ctrl.for_deffer_ticket%>">
+                    <input type="hidden" name="activity_id" class="activity_id" value="{{$ctrl.activity.id}}" ng-model = "$ctrl.activity_id">
+                    <input type="hidden" name="for_differ_km" class="for_differ_km" value='1' ng-model = "$ctrl.for_differ_km">
+                    <input type="hidden" name="for_differ_other" class="for_differ_other" value='0' ng-model = "$ctrl.for_differ_other">
+                    <input type="hidden" name="range_limit" class="service_range_limit" value="<%$ctrl.range_limit%>" ng-model = "$ctrl.range_limit">
+                    <input type="hidden" name="for_update_deferred" value="<%$ctrl.for_deffer_activity%>" ng-model = "$ctrl.for_deffer_activity">
                     <input type="hidden" name="modal" value="no">
                     <!-- Defer ticket update hidden values-->
                     <div class="defer_hidden"></div>
@@ -35,19 +35,19 @@
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
                                         <label>KM Travelled</label>
-                                        <input type="number" name="km_travelled" class="km_travel form-control customForm-input" autocomplete='off'>
+                                        <input type="number" name="km_travelled" class="km_travel form-control customForm-input" ng-model = "$ctrl.km_travelled" autocomplete='off'>
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
                                         <label>Other charges (Not Collected)</label>
-                                        <input type="number" class="form-control other_charge customForm-input" name="other_charge" pattern="[0-9]*" autocomplete='off'>
+                                        <input type="number" class="form-control other_charge customForm-input" name="other_charge" pattern="[0-9]*" ng-model = "$ctrl.other_charge" autocomplete='off'>
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
                                         <label>Collected amount from Customer</label>
-                                        <input type="number" class="form-control asp_collected_charges customForm-input" name="asp_collected_charges" autocomplete='off'>
+                                        <input type="number" class="form-control asp_collected_charges customForm-input" name="asp_collected_charges" autocomplete='off' ng-model = "$ctrl.asp_collected_charges">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
@@ -66,7 +66,7 @@
                             <div ng-bind-html="i.name | highlight: $select.search"></div>
                         </ui-select-choices>
                     </ui-select> -->
-                                        <input type="hidden" name="asp_service_type_id" value="<% $ctrl.service_type_id %>" class="required">
+                                        <input type="hidden" name="asp_service_type_id" value="<% $ctrl.service_type_id %>" class="required" >
                                         <!-- <?php echo Form::select("asp_service_type_id", $service_types, "", ["class" => "form-control service_type_id", "autocomplete" => "off"]); ?> -->
                                     </div><!-- Field -->
                                 </div><!-- Column -->
@@ -81,7 +81,7 @@
                                 <div class="col-sm-3 remarks_notcollected" style="display: none;">
                                     <div class="input-text form-group">
                                         <label>Remarks for Charges Not Collected</label>
-                                        <textarea class="form-control remarks_not_collected" rows="1" name="remarks_not_collected" autocomplete='off'></textarea>
+                                        <textarea class="form-control remarks_not_collected" rows="1" name="remarks_not_collected" ng-model = "$ctrl.remarks_not_collected"autocomplete='off'></textarea>
                                     </div><!-- Field -->
                                 </div>
                                 <div class="col-sm-3 other_attachment" style="display: none;">
@@ -93,7 +93,7 @@
                                             <span class="input-group-btn">
                                                 <span class="btn btn-file">
                                                     Browse
-                                                    <input name="other_attachment[]" type="file" multiple="multiple" class="form-control other_attachment_data" autocomplete='off' />
+                                                    <input name="other_attachment[]" type="file" multiple="multiple" class="form-control other_attachment_data" autocomplete='off' ng-model = "$ctrl.other_attachment"/>
                                                 </span>
                                             </span>
                                         </div>
@@ -108,7 +108,7 @@
                                             <span class="input-group-btn">
                                                 <span class="btn btn-file">
                                                     Browse
-                                                    <input name="map_attachment[]" type="file" multiple="multiple" class="form-control map_attachment_data" autocomplete='off' />
+                                                    <input name="map_attachment[]" type="file" multiple="multiple" class="form-control map_attachment_data" autocomplete='off' ng-model = "$ctrl.map_attachment"/>
                                                 </span>
                                             </span>
                                         </div>
@@ -126,7 +126,7 @@
                                 <div class="col-sm-3 resolve_comment" style="display:none;">
                                     <div class="input-text form-group">
                                         <label>Resolve Comments</label>
-                                        <textarea name="comments" class="comments form-control" autocomplete='off'></textarea>
+                                        <textarea name="comments" class="comments form-control" autocomplete='off' ng-model = "$ctrl.comments"></textarea>
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-xs-12 col-sm-12">

@@ -1,5 +1,5 @@
-app.component('newTicket', {
-    templateUrl: asp_new_ticket_form_template_url,
+app.component('newActivity', {
+    templateUrl: asp_new_activity_form_template_url,
     controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope) {
         var self = this;
         self.hasPermission = HelperService.hasPermission;
@@ -10,7 +10,7 @@ app.component('newTicket', {
         var v = jQuery(form_id).validate({
             ignore: '',
             rules: {
-                'ticket_number': {
+                'number': {
                     required: true,
                 },
             },
@@ -19,7 +19,7 @@ app.component('newTicket', {
                 let formData = new FormData($(form_id)[0]);
                 //$('#submit').button('loading');
                 $.ajax({
-                        url: laravel_routes['verifyTicket'],
+                        url: laravel_routes['verifyActivity'],
                         method: "POST",
                         data: formData,
                         processData: false,
@@ -41,7 +41,7 @@ app.component('newTicket', {
                             }).show();
 
                         } else {
-                            $location.path('/asp/new-ticket/update-details/' + res.ticket_id)
+                            $location.path('/asp/new-activity/update-details/' + res.activity_id)
                             $scope.$apply()
                         }
                     })
@@ -60,11 +60,11 @@ app.component('newTicket', {
 //------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------
 
-app.component('newTicketUpdateDetails', {
-    templateUrl: asp_new_ticket_update_details_template_url,
+app.component('newActivityUpdateDetails', {
+    templateUrl: asp_new_activity_update_details_template_url,
     controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope) {
 
-        $form_data_url = typeof($routeParams.id) == 'undefined' ? get_ticket_form_data_url : get_ticket_form_data_url + '/' + $routeParams.id;
+        $form_data_url = typeof($routeParams.id) == 'undefined' ? get_activity_form_data_url : get_activity_form_data_url + '/' + $routeParams.id;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
         self.angular_routes = angular_routes;
@@ -74,15 +74,15 @@ app.component('newTicketUpdateDetails', {
         ).then(function(response) {
             console.log(response.data);
             self.service_types_list = response.data.service_types;
-            self.for_deffer_ticket = response.data.for_deffer_ticket;
-            self.actual_km = response.data.mis_info.total_km;
-            self.mis_id = response.data.mis_info.id;
-            self.unpaid_amount = response.data.mis_info.unpaid_amount;
-            self.service_type_id = response.data.mis_info.service_type_id;
+            self.for_deffer_activity = response.data.for_deffer_activity;
+            //self.actual_km = response.data.activity.total_km;
+            self.activity = response.data.activity.id;
+            //self.data.unpaid_amount = response.data.activity.unpaid_amount;
+            self.service_type_id = response.data.activity.service_type_id;
             self.range_limit = response.data.range_limit;
             $rootScope.loading = false;
             // console.log(self.for_deffer_ticket);
-            if (self.for_deffer_ticket != '') {
+            if (self.for_deffer_activity != '') {
                 $('.resolve_comment').show();
             } else {
                 $('.resolve_comment').hide();
@@ -271,7 +271,7 @@ app.component('newTicketUpdateDetails', {
                             let formData = new FormData($(form_id)[0]);
                             //$('#submit').button('loading');
                             $.ajax({
-                                    url: laravel_routes['aspSaveTicket'],
+                                    url: laravel_routes['saveNewActitvity'],
                                     method: "POST",
                                     data: formData,
                                     processData: false,
@@ -296,10 +296,10 @@ app.component('newTicketUpdateDetails', {
                                         new Noty({
                                             type: 'success',
                                             layout: 'topRight',
-                                            text: 'Ticket informations saved successfully',
+                                            text: 'Activity informations saved successfully',
                                         }).show();
 
-                                        $location.path('/asp/new-ticket');
+                                        $location.path('/asp/new-activity');
                                         $scope.$apply();
                                     }
                                 })

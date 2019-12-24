@@ -7,10 +7,12 @@ use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityPortalStatus;
 use Abs\RsaCasePkg\ActivityStatus;
 use App\AspServiceType;
+use App\Asp;
 use App\CallCenter;
 use App\Client;
 use App\Config;
 use App\Http\Controllers\Controller;
+use App\Attachment;
 use App\ServiceType;
 use App\StateUser;
 use DB;
@@ -18,6 +20,10 @@ use Auth;
 use Entrust;
 use Illuminate\Http\Request;
 use Yajra\Datatables\Datatables;
+use Illuminate\Support\Facades\Storage;
+
+use Validator;
+
 
 class ActivityController extends Controller {
 
@@ -387,7 +393,7 @@ class ActivityController extends Controller {
 
 			DB::commit();
 			$this->data['success'] = true;
-			$this->data['message'] = 'Ticket approved successfully.';
+			$this->data['message'] = 'Activity approved successfully.';
 			return response()->json(['data' => $this->data]);
 
 		} catch (\Exception $e) {
@@ -395,7 +401,7 @@ class ActivityController extends Controller {
 			dd($e);
 			$message = ['error' => $e->getMessage()];
 			$this->data['success'] = false;
-			$this->data['message'] = 'Ticket deferred to ASP successfully.';
+			$this->data['message'] = 'Activity deferred to ASP successfully.';
 			return response()->json(['data' => $this->data]);
 			
 		}
@@ -433,10 +439,10 @@ class ActivityController extends Controller {
 
 			DB::commit();
 			$this->data['success'] = true;
-			$this->data['message'] = 'Ticket deferred successfully.';
+			$this->data['message'] = 'Activity deferred successfully.';
 			return response()->json(['data' => $this->data]);
 
-			//return redirect()->route('boTickets')->with(['success' => 'Ticket deferred to ASP successfully.']);
+			//return redirect()->route('boActivitys')->with(['success' => 'Ticket deferred to ASP successfully.']);
 
 		} catch (\Exception $e) {
 			DB::rollBack();
@@ -445,6 +451,264 @@ class ActivityController extends Controller {
 			return response()->json(['data' => $this->data]);
 
 			//return redirect()->back()->with($message)->withInput();
+		}
+	}
+	public function verifyActivity(Request $request) {
+		$today = date('Y-m-d'); //current date
+
+		//THIS IS THE ORIGINAL CONDITION
+		$threeMonthsBefore = date('Y-m-d', strtotime("-3 months", strtotime($today))); //three months before
+
+		//FOR CHANGE REQUEST BY TVS TEAM DATE GIVEN IN STATIC
+		// $threeMonthsBefore = "2019-04-01";
+
+		$number = $request->number;
+		$validator = Validator::make($request->all(), [
+			'number' => 'required',
+		]);
+
+		if ($validator->fails()) {
+			$response = ['success' => false, 'errors' => ["Activity Number is required"]];
+			return response()->json($response);
+		}
+		$activity = Activity::where([
+			['number', $number],
+			['asp_id', Auth::user()->asp->id],
+			['status_id', 2],
+		])->first();
+		//dd($activity,$request->number,Auth::user()->asp->id);
+
+		if (!$activity) {
+			$response = ['success' => false, 'errors' => ["Activity Not Found"]];
+			return response()->json($response);
+		} else {
+			$activity_date = date('Y-m-d', strtotime($activity->created_at));
+
+			if ($activity_date < $threeMonthsBefore) {
+				$response = ['success' => false, 'errors' => ["Please contact administrator."]];
+				return response()->json($response);
+			} else {
+				$response = ['success' => true, 'activity_id' => $activity->id];
+				return response()->json($response);
+			}
+		}
+
+	}
+	public function activityGetFormData($id = NULL) {
+		//dd($id);
+		$this->data['service_types'] = Asp::where('user_id', Auth::id())->join('asp_service_types', 'asp_service_types.asp_id', '=', 'asps.id')->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')->select('service_types.name', 'asp_service_types.service_type_id as id')->get();
+		$this->data['activity'] = Activity::findOrFail($id);
+		$this->data['for_deffer_activity'] = 0;
+		$activity = $this->data['activity'];
+		$range_limit = "";
+		$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();
+		if ($aspServiceType) {
+			$range_limit = $aspServiceType->range_limit;
+		}
+		$this->data['range_limit'] = $range_limit;
+		$this->data['km_attachment'] = Attachment::where('entity_type', '=', config('constants.entity_types.ASP_KM_ATTACHMENT'))
+			->where('entity_id', '=', $activity->id)
+			->select('id', 'attachment_file_name')->get();
+		$this->data['other_attachment'] = Attachment::where('entity_type', '=', config('constants.entity_types.ASP_OTHER_ATTACHMENT'))
+			->where('entity_id', '=', $activity->id)
+			->select('id', 'attachment_file_name')->get();
+
+		return response()->json($this->data);
+	}
+
+	public function saveNewActitvity(Request $request) {
+
+		DB::beginTransaction();
+		try {
+			$modal = $request->modal;
+			$range_limit = "";
+			$activity = Activity::findOrFail($request->mis_id);
+			// Attachment::where('entity_id', $activity->id)->where('entity_type', config('constants.entity_types.ASP_KM_ATTACHMENT'))->delete();
+			// Attachment::where('entity_id', $activity->id)->where('entity_type', config('constants.entity_types.ASP_OTHER_ATTACHMENT'))->delete();
+
+			if (!empty($request->update_attach_map_id)) {
+
+				Attachment::whereIn('id', $request->update_attach_map_id)->delete();
+			}
+
+			if (!empty($request->update_attach_other_id)) {
+				Attachment::whereIn('id', $request->update_attach_other_id)->delete();
+			}
+			// dd("1");
+			$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();
+			if ($aspServiceType) {
+				$range_limit = $aspServiceType->range_limit;
+			}
+
+			if (!empty($request->comments)) {
+				$activity->comments = $request->comments;
+			}
+
+			$destination = aspTicketAttachmentPath($request->mis_id, $activity->asp_id, $activity->service_type_id);
+			$status = Storage::makeDirectory($destination, 0777);
+
+			if (!empty($request->other_attachment)):
+				foreach ($request->other_attachment as $key => $value) {
+					if ($request->hasFile("other_attachment.$key")) {
+						$key1 = $key + 1;
+						$filename = "other_charges" . $key;
+						$extension = $request->file("other_attachment.$key")->getClientOriginalExtension();
+						$status = $request->file("other_attachment.$key")->storeAs($destination, $filename . '.' . $extension);
+						$other_charge = $filename . '.' . $extension;
+						$attachment = $Attachment = Attachment::create([
+							'entity_type' => config('constants.entity_types.ASP_OTHER_ATTACHMENT'),
+							'entity_id' => $activity->id,
+							'attachment_file_name' => $other_charge,
+						]);
+					}
+				}
+			endif;
+
+			if (!empty($request->map_attachment)):
+				foreach ($request->map_attachment as $key => $value) {
+					if ($request->hasFile("map_attachment.$key")) {
+						$key1 = $key + 1;
+						$filename = "km_travelled_attachment" . $key;
+						$extension = $request->file("map_attachment.$key")->getClientOriginalExtension();
+						$status = $request->file("map_attachment.$key")->storeAs($destination, $filename . '.' . $extension);
+						$km_travelled = $filename . '.' . $extension;
+						$attachment = $Attachment = Attachment::create([
+							'entity_type' => config('constants.entity_types.ASP_KM_ATTACHMENT'),
+							'entity_id' => $activity->id,
+							'attachment_file_name' => $km_travelled,
+						]);
+					}
+				}
+			endif;
+
+			//Updating ticket status.. Check if "Bulk Approval" OR "Deferred Approval"
+
+			$mis_km = $activity->total_km;
+			$not_collect_charges = $activity->unpaid_amount;
+			$asp_km = empty($request->km_travelled) ? 0 : $request->km_travelled;
+			$asp_other = empty($request->other_charge) ? 0 : $request->other_charge;
+
+			$reasons_for_not_eligible_for_bulk_approvals = [0, 0, 0, 0, 0];
+			$is_bulk = true;
+
+			//1. checking MIS and ASP Service
+			if ($request->asp_service_type_id && $activity->service_type_id != $request->asp_service_type_id) {
+				//dd($activity->service_type_id, $request->asp_service_type_id);
+				$is_bulk = false;
+				$reasons_for_not_eligible_for_bulk_approvals[0] = 1;
+			}
+
+			//dd(1);
+			//2. checking MIS and ASP KMs
+			$allowed_variation = 0.5;
+			$five_percentage_difference = $mis_km * $allowed_variation / 100;
+			if ($asp_km > $range_limit || $range_limit == "") {
+				if ($asp_km > $mis_km) {
+					$km_difference = $asp_km - $mis_km;
+					if ($km_difference > $five_percentage_difference) {
+						if (empty($request->map_attachment)) {
+							return redirect()->back()->with(['error' => 'Please attach google map screenshot']);
+						}
+						$is_bulk = false;
+						$reasons_for_not_eligible_for_bulk_approvals[1] = 1;
+					}
+				}
+			}
+
+			//checking ASP KMs exceed 40 KMs
+			if ($asp_km > 40) {
+				$is_bulk = false;
+				$reasons_for_not_eligible_for_bulk_approvals[1] = 1;
+			}
+
+			//checking MIS and ASP not collected
+			if ($asp_other > $not_collect_charges) {
+				$is_bulk = false;
+				$reasons_for_not_eligible_for_bulk_approvals[2] = 1;
+				$for_delete_old_other_attachment = 0;
+				if (empty($request->other_attachment)) {
+					return redirect()->back()->with(['error' => 'Please attach other Attachment']);
+				}
+				if (empty($request->remarks_not_collected)) {
+					return redirect()->back()->with(['error' => 'Please enter remarks comments for not collected']);
+				}
+			}
+
+			//checking MIS and ASP collected
+			$asp_collected_charges = empty($request->asp_collected_charges) ? 0 : $request->asp_collected_charges;
+			if ($asp_collected_charges < $activity->paid_amount_by_customer) {
+				$is_bulk = false;
+				$reasons_for_not_eligible_for_bulk_approvals[3] = 1;
+				'ASP says I have collected less than MIS';
+			}
+
+			if ($mis_km == 0) {
+				$is_bulk = false;
+				$reasons_for_not_eligible_for_bulk_approvals[4] = 1;
+				'ASP didnt give KM to Call Center. So MIS KM is 0';
+			}
+
+			if ($is_bulk) {
+				$activity->flow_current_status = "Waiting for BO - Bulk Approval";
+			} else {
+				$activity->flow_current_status = "Waiting for BO - Deferred Approval";
+			}
+
+			$activity->asp_service_type_id = $request->asp_service_type_id ? $request->asp_service_type_id : $activity->service_type_id;
+			$activity->asp_km = $request->km_travelled;
+			$activity->asp_other_charges = $request->other_charge;
+			$activity->asp_collected_charges = $request->asp_collected_charges;
+			if (!empty($request->comments)) {
+				$activity->comments = $request->comments;
+			}
+
+			if (!empty($request->remarks_not_collected)) {
+				$activity->remarks_not_collected = $request->remarks_not_collected;
+			}
+
+			$activity->reason_for_not_bulk_approval = json_encode($reasons_for_not_eligible_for_bulk_approvals);
+
+			$activity->save();
+			//TicketActivity::saveLog($log);
+
+			//log message
+			$log_status = config('rsa.LOG_STATUES_TEMPLATES.ASP_DATA_ENTRY_DONE');
+			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ASP_DATA_ENTRY_DONE');
+			logActivity2(config('constants.entity_types.ticket'), $activity->id, [
+				'Status' => $log_status,
+				'Waiting for' => $log_waiting,
+			]);
+
+			//sending confirmation SMS to ASP
+			$mobile_number = $activity->asp->contact_number1;
+			$sms_message = 'ASP_DATA_ENTRY_DONE';
+			$array = [$activity->ticket_number];
+			// sendSMS2($sms_message, $mobile_number, $array);
+
+			//sending notification to all BO users
+			//$bo_users = User::where('users.role_id', 6)->pluck('users.id'); //6 - Bo User role ID
+			$state_id = Auth::user()->asp->state_id;
+			$bo_users = StateUser::where('state_id', $state_id)->pluck('user_id');
+
+			if ($activity->flow_current_status == "Waiting for BO - Bulk Approval") {$noty_message_template = 'ASP_DATA_ENTRY_DONE_BULK';} else { $noty_message_template = 'ASP_DATA_ENTRY_DONE_DEFFERED';}
+			$ticket_number = [$activity->ticket_number];
+			if (!empty($bo_users)) {
+				foreach ($bo_users as $bo_user_id) {
+					notify2($noty_message_template, $bo_user_id, config('constants.alert_type.blue'), $ticket_number);
+				}
+			}
+			DB::commit();
+			$message = ['success' => "Ticket informations saved successfully"];
+			if ($modal == 'yes') {
+				return redirect()->route('aspNewlistTicket')->with($message);
+			} else {
+				$request->session()->flash('success', $message);
+				return response()->json(['success' => true]);
+			}
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			dd($e);
 		}
 	}
 }

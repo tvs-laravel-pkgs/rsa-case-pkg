@@ -147,15 +147,15 @@ class ActivityController extends Controller {
 
 			$case = RsaCase::where('number', $request->case_number)->first();
 			//CHECK CASE IS CLOSED
-			if ($case->status_id == 4) {
-				return response()->json([
-					'success' => false,
-					'error' => 'Validation Error',
-					'errors' => [
-						'Case already closed',
-					],
-				], $this->successStatus);
-			}
+			// if ($case->status_id == 4) {
+			// 	return response()->json([
+			// 		'success' => false,
+			// 		'error' => 'Validation Error',
+			// 		'errors' => [
+			// 			'Case already closed',
+			// 		],
+			// 	], $this->successStatus);
+			// }
 
 			$activity = new Activity([
 				'crm_activity_id' => $request->crm_activity_id,

@@ -9,9 +9,6 @@ app.component('unpaidBatchesList', {
         self.export_unpaid_batch_url = export_unpaid_batch_url;
         self.token = token;
         $("#status").val('-1');
-
-        alert(self.export_permission);
-
         var cols = [
             { data: 'action', orderable: false, targets: 0, searchable: false },
             { data: 'batchid', name: 'batches.id', searchable: false },
@@ -25,13 +22,12 @@ app.component('unpaidBatchesList', {
             { data: 'paid_amount', searchable: false },
             { data: 'status', searchable: false },
         ];
+        if (self.export_permission) {
+            $('.approval-batch').show();
+        } else {
+            $('.approval-batch').hide();
+        }
 
-
-        // if (self.export_permission) {
-        //     cols.push(
-        //     );
-        // }
-        console.log(cols);
         var activities_status_dt_config = JSON.parse(JSON.stringify(dt_config));
 
         $('#unpaid_batch_table').DataTable(

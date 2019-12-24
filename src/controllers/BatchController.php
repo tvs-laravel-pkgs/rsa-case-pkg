@@ -221,7 +221,6 @@ class BatchController extends Controller {
                     batches.batch_number,
                     batches.created_at as created_at,
                     batches.tds as tds,
-                    batches.paid_amount as paid_amount,
                     asps.asp_code as asp_code,
                     asps.name as asp_name, batches.status,
                     asps.workshop_name as workshop_name,
@@ -270,6 +269,11 @@ class BatchController extends Controller {
 					return route('angular') . '/#!/rsa-case-pkg/batch-view/' . $batches->batchid . '/12';
 				},
 			])
+
+			->addColumn('paid_amount', function ($batches) {
+				$paid_amount = Invoices::where('batch_id', $batches->batchid)->sum('invoice_amount');
+				return $paid_amount;
+			})
 
 			->addColumn('action', function ($batches) {
 				return '<input type="checkbox" class="ticket_id no-link child_select_all ibtnDel" name="batch_ids[]" value="' . $batches->batchid . '">';

@@ -188,6 +188,26 @@ class ActivityController extends Controller {
 			$activity->number = 'ACT' . $activity->id;
 			$activity->save();
 
+			if ($case->status_id == 3) {
+				//CANCELLED
+				$activity->update([
+					// Not Eligible for Payout
+					'status_id' => 15,
+				]);
+			}
+
+			// CHECK CASE IS CLOSED
+			if ($case->status_id == 4) {
+				$activity->where([
+					// Invoice Amount Calculated - Waiting for Case Closure
+					'status_id' => 10,
+				])
+					->update([
+						// Case Closed - Waiting for ASP to Generate Invoice
+						'status_id' => 1,
+					]);
+			}
+
 			//SAVING ACTIVITY DETAILS
 			$activity_fields = Config::where('entity_type_id', 23)->get();
 			foreach ($activity_fields as $key => $activity_field) {

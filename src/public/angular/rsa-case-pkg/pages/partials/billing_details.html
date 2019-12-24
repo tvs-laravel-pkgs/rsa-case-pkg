@@ -97,7 +97,7 @@
 			<td class="asp_value" >{{$ctrl.data.asp_km_travelled}}</td>
 			<td style="text-align:left" class=""ng-show ="$ctrl.data.verification==0">{{$ctrl.data.bo_km_travelled}}</td>
 			<td style="text-align:left" ng-show ="$ctrl.data.verification==1">
-				<input type="text" name="bo_km_travelled" ng-model="$ctrl.data.bo_km_travelled" value="{{$ctrl.data.bo_km_travelled}}" class="km_value" ng-keyup="calculate()"><br><span class="alert alert-danger" style="display:none;">Enter Value less than Asp Value</span>
+				<input type="text" name="bo_km_travelled" ng-model="$ctrl.data.bo_km_travelled" value="{{$ctrl.data.asp_km_travelled}}" class="km_value" ng-keyup="calculate()"><br><span class="alert alert-danger" style="display:none;">Enter Value less than Asp Value</span>
 			</td>
 
 		</tr>
@@ -109,7 +109,7 @@
 			<td class="">{{$ctrl.data.asp_not_collected}}</td>
 			<td style="text-align:left" class=""ng-show ="$ctrl.data.verification==0">{{$ctrl.data.bo_not_collected}}</td>
 			<td style="text-align:left" class=""ng-show ="$ctrl.data.verification==1">
-				<input type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_not_collected" class="non_collected_amount" value="{{$ctrl.data.raw_bo_not_collected}}" ng-keyup="calculate()">
+				<input type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_not_collected" class="non_collected_amount" value="{{$ctrl.data.raw_asp_not_collected}}" ng-keyup="calculate()">
 				<br>
 				<input type="hidden" ng-model="$ctrl.data.raw_asp_not_collected" class="other_value" value="{{$ctrl.data.raw_asp_not_collected}}">	
 				<span class="alert alert-danger2" style="display:none;">Enter Value less than Not Collected Value</span>
@@ -123,7 +123,7 @@
 			<td class="">{{$ctrl.data.asp_collected}}</td>
 			<td style="text-align:left" class=""ng-show ="$ctrl.data.verification==0">{{$ctrl.data.bo_collected}}</td>
 			<td style="text-align:left" ng-show ="$ctrl.data.verification==1">
-				<input type="text" name="bo_collected" ng-model="$ctrl.data.raw_bo_collected" class="collected_amount" value="{{$ctrl.data.raw_bo_collected}}" ng-keyup="calculate()">
+				<input type="text" name="bo_collected" ng-model="$ctrl.data.raw_bo_collected" class="collected_amount" value="{{$ctrl.data.raw_asp_collected}}" ng-keyup="calculate()">
 				<input type="hidden" ng-model="$ctrl.data.raw_asp_collected" class="collected_value" value="{{$ctrl.data.raw_asp_collected}}">
 				<br>
 				<span class="alert alert-danger1" style="display:none;">Enter Value less than Collected Value</span>
@@ -208,7 +208,7 @@
 	</thead>
 	<tbody>
 		<tr>
-			<td>Payout (+)</td>
+			<td>KM Charges (+)</td>
 			<td>
 				<div>{{$ctrl.data.bo_po_amount}}</div>
 			</td>
@@ -294,12 +294,12 @@
 			</td>
 		</tr>
 
-		<tr class="active">
+		<!-- <tr class="active">
 			<td>Total Tax</td>
 			<td>
 				<div>{{$ctrl.data.bo_tax_amount | currency:"₹"}}</div>
 			</td>
-		</tr>
+		</tr> -->
 
 	</tbody>
 </table>

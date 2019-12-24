@@ -383,11 +383,11 @@ app.component('billingDetails', {
             taxes = self.data.asp.tax_group.taxes;
             if(self.data.asp.has_gst){
                 total_tax = 0;
-                angular.forEach(taxes, function (value, key) { 
+                /*angular.forEach(taxes, function (value, key) { 
                     console.log('value'); 
                     console.log(value); 
                     total_tax = parseFloat(total_tax) + parseFloat(value.tax_rate);
-                }); 
+                }); */
                 self.data.bo_tax_amount = parseFloat(((parseFloat(self.data.bo_net_amount) * parseFloat(total_tax)) / 100));
                 self.data.bo_amount = parseFloat(self.data.bo_net_amount) + self.data.bo_tax_amount;
             }else{

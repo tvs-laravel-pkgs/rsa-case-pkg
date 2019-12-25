@@ -30,7 +30,7 @@ class ActivityController extends Controller {
 				'asp_code' => 'required|string|max:24|exists:asps,asp_code',
 				'case_number' => 'required|string|max:32|exists:cases,number',
 				'sub_service' => 'required|string|max:50|exists:service_types,name',
-				'asp_accepted_cc_details' => 'required',
+				'asp_accepted_cc_details' => 'required|numeric',
 				'reason_for_asp_rejected_cc_details' => 'nullable|string',
 				'finance_status' => [
 					'required',
@@ -114,6 +114,19 @@ class ActivityController extends Controller {
 						'ASP is inactive',
 					],
 				], $this->successStatus);
+			}
+
+			//ASP ACCEPTED CC DETAILS == 0 -- REASON IS MANDATORY
+			if (!$request->asp_accepted_cc_details) {
+				if (!$request->reason_for_asp_rejected_cc_details) {
+					return response()->json([
+						'success' => false,
+						'error' => 'Validation Error',
+						'errors' => [
+							'Reason for ASP rejected cc details is required',
+						],
+					], $this->successStatus);
+				}
 			}
 
 			$service_type = ServiceType::where('name', $request->sub_service)->first();

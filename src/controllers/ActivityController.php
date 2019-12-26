@@ -17,7 +17,6 @@ use App\ServiceType;
 use App\StateUser;
 use Auth;
 use DB;
-use Auth;
 use Entrust;
 use Illuminate\Http\Request;
 use Yajra\Datatables\Datatables;
@@ -505,9 +504,15 @@ class ActivityController extends Controller {
 	public function activityGetFormData($id = NULL) {
 		//dd($id);
 		$this->data['service_types'] = Asp::where('user_id', Auth::id())->join('asp_service_types', 'asp_service_types.asp_id', '=', 'asps.id')->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')->select('service_types.name', 'asp_service_types.service_type_id as id')->get();
-		$this->data['activity'] = Activity::findOrFail($id);
+		$this->data['activity'] = $activity = Activity::findOrFail($id);
+		$km_travelled = DB::table('activity_details')->where([['activity_id','=',$activity->id],['key_id','=',154]])->first();
+		$other_charge= DB::table('activity_details')->where([['activity_id','=',$activity->id],['key_id','=',156]])->first();
+		$asp_collected_charges = DB::table('activity_details')->where([['activity_id','=',$activity->id],['key_id','=',155]])->first();
+		$this->data['asp_collected_charges'] = $asp_collected_charges->value;
+		$this->data['other_charge'] = $other_charge->value;
+		$this->data['km_travelled'] = $km_travelled->value;
 		$this->data['for_deffer_activity'] = 0;
-		$activity = $this->data['activity'];
+		
 		$range_limit = "";
 		$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();
 		if ($aspServiceType) {
@@ -525,23 +530,23 @@ class ActivityController extends Controller {
 	}
 
 	public function saveNewActitvity(Request $request) {
-
+		$activity = Activity::findOrFail($request->activity_id);
 		DB::beginTransaction();
 		try {
-			$modal = $request->modal;
+			//$modal = $request->modal;
 			$range_limit = "";
-			$activity = Activity::findOrFail($request->mis_id);
-			// Attachment::where('entity_id', $activity->id)->where('entity_type', config('constants.entity_types.ASP_KM_ATTACHMENT'))->delete();
-			// Attachment::where('entity_id', $activity->id)->where('entity_type', config('constants.entity_types.ASP_OTHER_ATTACHMENT'))->delete();
+			//dd($activity,$request->all());
+			Attachment::where('entity_id', $activity->id)->where('entity_type', config('constants.entity_types.ASP_KM_ATTACHMENT'))->delete();
+			Attachment::where('entity_id', $activity->id)->where('entity_type', config('constants.entity_types.ASP_OTHER_ATTACHMENT'))->delete();
 
-			if (!empty($request->update_attach_map_id)) {
+			/*if (!empty($request->update_attach_map_id)) {
 
 				Attachment::whereIn('id', $request->update_attach_map_id)->delete();
 			}
 
 			if (!empty($request->update_attach_other_id)) {
 				Attachment::whereIn('id', $request->update_attach_other_id)->delete();
-			}
+			}*/
 			// dd("1");
 			$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();
 			if ($aspServiceType) {
@@ -590,23 +595,24 @@ class ActivityController extends Controller {
 			endif;
 
 			//Updating ticket status.. Check if "Bulk Approval" OR "Deferred Approval"
-
-			$mis_km = $activity->total_km;
-			$not_collect_charges = $activity->unpaid_amount;
+			$configs = Config::where('entity_type_id',23)->get();
+			foreach($configs as $config){
+				$detail = ActivityDetail::where('activity_id',$activity->id)->where('key_id',$config->id)->first();
+				$this->data['activities'][$config->name] = $detail->value ? $detail->value : 0;
+				
+			}
+			$mis_km = $this->data['activities']['cc_total_km'];
+			$not_collect_charges = $this->data['activities']['cc_not_collected_amount'];
 			$asp_km = empty($request->km_travelled) ? 0 : $request->km_travelled;
 			$asp_other = empty($request->other_charge) ? 0 : $request->other_charge;
-
-			$reasons_for_not_eligible_for_bulk_approvals = [0, 0, 0, 0, 0];
 			$is_bulk = true;
 
 			//1. checking MIS and ASP Service
 			if ($request->asp_service_type_id && $activity->service_type_id != $request->asp_service_type_id) {
-				//dd($activity->service_type_id, $request->asp_service_type_id);
 				$is_bulk = false;
-				$reasons_for_not_eligible_for_bulk_approvals[0] = 1;
+				
 			}
 
-			//dd(1);
 			//2. checking MIS and ASP KMs
 			$allowed_variation = 0.5;
 			$five_percentage_difference = $mis_km * $allowed_variation / 100;
@@ -618,7 +624,7 @@ class ActivityController extends Controller {
 							return redirect()->back()->with(['error' => 'Please attach google map screenshot']);
 						}
 						$is_bulk = false;
-						$reasons_for_not_eligible_for_bulk_approvals[1] = 1;
+						
 					}
 				}
 			}
@@ -626,14 +632,14 @@ class ActivityController extends Controller {
 			//checking ASP KMs exceed 40 KMs
 			if ($asp_km > 40) {
 				$is_bulk = false;
-				$reasons_for_not_eligible_for_bulk_approvals[1] = 1;
+				
 			}
 
 			//checking MIS and ASP not collected
 			if ($asp_other > $not_collect_charges) {
 				$is_bulk = false;
-				$reasons_for_not_eligible_for_bulk_approvals[2] = 1;
-				$for_delete_old_other_attachment = 0;
+				
+				//$for_delete_old_other_attachment = 0;
 				if (empty($request->other_attachment)) {
 					return redirect()->back()->with(['error' => 'Please attach other Attachment']);
 				}
@@ -644,37 +650,37 @@ class ActivityController extends Controller {
 
 			//checking MIS and ASP collected
 			$asp_collected_charges = empty($request->asp_collected_charges) ? 0 : $request->asp_collected_charges;
-			if ($asp_collected_charges < $activity->paid_amount_by_customer) {
-				$is_bulk = false;
-				$reasons_for_not_eligible_for_bulk_approvals[3] = 1;
-				'ASP says I have collected less than MIS';
+			if ($asp_collected_charges < $this->data['activities']['cc_colleced_amount']) {
+				$is_bulk = false;				
 			}
-
 			if ($mis_km == 0) {
 				$is_bulk = false;
-				$reasons_for_not_eligible_for_bulk_approvals[4] = 1;
-				'ASP didnt give KM to Call Center. So MIS KM is 0';
+				
 			}
-
 			if ($is_bulk) {
-				$activity->flow_current_status = "Waiting for BO - Bulk Approval";
+				$activity->status_id = 5;
 			} else {
-				$activity->flow_current_status = "Waiting for BO - Deferred Approval";
+				$activity->status_id = 6;
 			}
 
-			$activity->asp_service_type_id = $request->asp_service_type_id ? $request->asp_service_type_id : $activity->service_type_id;
-			$activity->asp_km = $request->km_travelled;
-			$activity->asp_other_charges = $request->other_charge;
-			$activity->asp_collected_charges = $request->asp_collected_charges;
+			$activity->service_type_id = $request->asp_service_type_id ? $request->asp_service_type_id : $activity->service_type_id;
+			$asp_key_ids = [
+						154 => $request->km_travelled,
+						156 => $request->other_charge,
+						155 => $request->asp_collected_charges,
+					];
+			foreach ($asp_key_ids as $key_id => $value) {
+				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $request->activity_id, 'key_id' => $key_id ,'company_id' =>1], ['value' => $value]);
+			}
+			
 			if (!empty($request->comments)) {
-				$activity->comments = $request->comments;
+				//$activity->comments = $request->comments;
 			}
 
 			if (!empty($request->remarks_not_collected)) {
-				$activity->remarks_not_collected = $request->remarks_not_collected;
+				$activity->remarks = $request->remarks_not_collected;
 			}
 
-			$activity->reason_for_not_bulk_approval = json_encode($reasons_for_not_eligible_for_bulk_approvals);
 
 			$activity->save();
 			//TicketActivity::saveLog($log);
@@ -690,7 +696,7 @@ class ActivityController extends Controller {
 			//sending confirmation SMS to ASP
 			$mobile_number = $activity->asp->contact_number1;
 			$sms_message = 'ASP_DATA_ENTRY_DONE';
-			$array = [$activity->ticket_number];
+			$array = [$activity->number];
 			// sendSMS2($sms_message, $mobile_number, $array);
 
 			//sending notification to all BO users
@@ -698,7 +704,7 @@ class ActivityController extends Controller {
 			$state_id = Auth::user()->asp->state_id;
 			$bo_users = StateUser::where('state_id', $state_id)->pluck('user_id');
 
-			if ($activity->flow_current_status == "Waiting for BO - Bulk Approval") {$noty_message_template = 'ASP_DATA_ENTRY_DONE_BULK';} else { $noty_message_template = 'ASP_DATA_ENTRY_DONE_DEFFERED';}
+			if ($activity->status_id ==5) {$noty_message_template = 'ASP_DATA_ENTRY_DONE_BULK';} else { $noty_message_template = 'ASP_DATA_ENTRY_DONE_DEFFERED';}
 			$ticket_number = [$activity->ticket_number];
 			if (!empty($bo_users)) {
 				foreach ($bo_users as $bo_user_id) {
@@ -707,16 +713,20 @@ class ActivityController extends Controller {
 			}
 			DB::commit();
 			$message = ['success' => "Ticket informations saved successfully"];
-			if ($modal == 'yes') {
+			return response()->json(['success' => true]);
+
+			/*if ($modal == 'yes') {
 				return redirect()->route('aspNewlistTicket')->with($message);
 			} else {
 				$request->session()->flash('success', $message);
 				return response()->json(['success' => true]);
-			}
+			}*/
 
 		} catch (\Exception $e) {
 			DB::rollBack();
 			dd($e);
+			return response()->json(['success' => false]);
+
 		}
 	}
 }

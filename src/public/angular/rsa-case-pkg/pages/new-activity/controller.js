@@ -73,23 +73,24 @@ app.component('newActivityUpdateDetails', {
             $form_data_url
         ).then(function(response) {
             console.log(response.data);
+            console.log(response.data.activity.id);
             self.service_types_list = response.data.service_types;
             self.for_deffer_activity = response.data.for_deffer_activity;
             //self.actual_km = response.data.activity.total_km;
-            self.activity = response.data.activity.id;
+            self.activity = response.data.activity;
+            self.unpaid_amount = response.data.other_charge;
+            self.actual_km = response.data.km_travelled;
+            self.collected_charges = response.data.asp_collected_charges;
             //self.data.unpaid_amount = response.data.activity.unpaid_amount;
             self.service_type_id = response.data.activity.service_type_id;
             self.range_limit = response.data.range_limit;
             $rootScope.loading = false;
-            // console.log(self.for_deffer_ticket);
             if (self.for_deffer_activity != '') {
                 $('.resolve_comment').show();
             } else {
                 $('.resolve_comment').hide();
             }
-
         });
-
 
         $('body').on('focusout', '.km_travel', function() {
             var entry_val = parseInt($(this).val());
@@ -99,7 +100,6 @@ app.component('newActivityUpdateDetails', {
             var km_travel = parseInt($(this).parents(".asp_for_find").find(".km_travel").val());
 
             if ($.isNumeric(km_travel)) {
-
                 if (entry_val > range_limit || range_limit == "") {
                     var allowed_variation = 0.5;
                     var mis_percentage = mis_km * allowed_variation / 100;
@@ -136,7 +136,6 @@ app.component('newActivityUpdateDetails', {
 
         });
 
-
         $('body').on('focusout', '.other_charge', function() {
             var entry_val = parseInt($(this).val());
             var other_not_collected = parseInt($(this).parents(".asp_for_find").find(".unpaid_amount").val());
@@ -144,7 +143,6 @@ app.component('newActivityUpdateDetails', {
             var other_charge = parseInt($(this).parents(".asp_for_find").find(".other_charge").val());
 
             if ($.isNumeric(other_charge)) {
-
                 if (entry_val) {
                     if (entry_val > other_not_collected) {
 

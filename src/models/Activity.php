@@ -256,9 +256,9 @@ class Activity extends Model {
 			$cc_km_charge->value = $km_charge;
 			$cc_km_charge->save();
 
-			$payout_amount = $km_charge;
-			$net_amount = $payout_amount - $collected;
-			$invoice_amount = $net_amount + $not_collected;
+			// $payout_amount = $km_charge;
+			// $net_amount = $payout_amount - $collected;
+			// $invoice_amount = $net_amount + $not_collected;
 
 			$cc_po_amount = ActivityDetail::firstOrNew([
 				'company_id' => 1,

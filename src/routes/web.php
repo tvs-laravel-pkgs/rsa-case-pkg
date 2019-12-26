@@ -17,6 +17,14 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 		Route::post('asp/activity/save', 'ActivityController@saveNewActitvity')->name('saveNewActitvity');
 
 
+	//ACTIVITY DEFERRED
+	Route::get('/activity-deferred/get-filter-data', 'ActivityController@getFilterData')->name('getActivityDeferredFilterData');
+	Route::get('/activity-deferred/get-list', 'ActivityController@getDeferredList')->name('getActivityDeferredList');
+
+	//ACTIVITY APPROVED
+	Route::get('/activity-approved/get-filter-data', 'ActivityController@getFilterData')->name('getActivityApprovedFilterData');
+	Route::get('/activity-approved/get-list', 'ActivityController@getApprovedList')->name('getActivityApprovedList');
+
 	//ACTIVITY VERIFICATION
 	Route::get('/activity-verification/{view_type_id?}/view/{activity_status_id?}', 'ActivityController@viewActivityStatus')->name('viewActivityStatus');
 

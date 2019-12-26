@@ -93,7 +93,7 @@ class InvoiceController extends Controller {
 				//SYSTEM
 
 				//GENERATE INVOICE NUMBER
-				$invoice_no = generateInvoiceNumber();
+				$invoice_no = generateAppInvoiceNumber();
 				$invoice_date = new Carbon();
 			}
 			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $invoice_date);

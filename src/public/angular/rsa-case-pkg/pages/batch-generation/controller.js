@@ -19,7 +19,7 @@ app.component('batchGenerationList', {
 
         var activities_status_dt_config = JSON.parse(JSON.stringify(dt_config));
 
-        $('#batch_generation_table').DataTable(
+        $('#invoice_generation_table').DataTable(
             $.extend(activities_status_dt_config, {
                 columns: cols,
                 ordering: false,
@@ -54,7 +54,7 @@ app.component('batchGenerationList', {
 
         $('.dataTables_length select').select2();
 
-        var dataTable = $('#batch_generation_table').dataTable();
+        var dataTable = $('#invoice_generation_table').dataTable();
 
 
         // $('#batch_generation_table').on('click', 'tbody td', function() {
@@ -83,7 +83,7 @@ app.component('batchGenerationList', {
         });
 
         $scope.refresh = function() {
-            $('#batch_generation_table').DataTable().ajax.reload();
+            $('#invoice_generation_table').DataTable().ajax.reload();
         };
 
         $('.filterToggle').click(function() {

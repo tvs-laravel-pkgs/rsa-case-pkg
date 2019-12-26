@@ -54,6 +54,22 @@ app.config(['$routeProvider', function($routeProvider) {
         title: 'Activity Verification View',
     }).
 
+    //ASP DEFERRED ACTIVITY
+    when('/rsa-case-pkg/deferred-activity/list', {
+        template: '<deferred-activity-list></deferred-activity-list>',
+        title: 'Deferred Activities',
+    }).
+    when('/rsa-case-pkg/deferred-activity/update/:id', {
+        template: '<deferred-activity-update></deferred-activity-update>',
+        title: 'Deferred Activity Update',
+    }).
+
+    //ASP APPROVED ACTIVITY
+    when('/rsa-case-pkg/approved-activity/list', {
+        template: '<approved-activity-list></approved-activity-list>',
+        title: 'Approved Activities',
+    }).
+
     //ASP INVOICES
     when('/rsa-case-pkg/invoice/list', {
         template: '<invoice-list></invoice-list>',

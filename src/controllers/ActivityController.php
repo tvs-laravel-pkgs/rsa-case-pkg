@@ -6,24 +6,22 @@ use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityPortalStatus;
 use Abs\RsaCasePkg\ActivityStatus;
-use App\AspServiceType;
 use App\Asp;
+use App\AspServiceType;
+use App\Attachment;
 use App\CallCenter;
 use App\Client;
 use App\Config;
 use App\Http\Controllers\Controller;
-use App\Attachment;
 use App\ServiceType;
 use App\StateUser;
 use Auth;
 use DB;
 use Entrust;
 use Illuminate\Http\Request;
-use Yajra\Datatables\Datatables;
 use Illuminate\Support\Facades\Storage;
-
 use Validator;
-
+use Yajra\Datatables\Datatables;
 
 class ActivityController extends Controller {
 
@@ -113,7 +111,7 @@ class ActivityController extends Controller {
 				$status_id = 1;
 
 				$action = '<div class="dataTable-actions">
-				<a href="#!/rsa-case-pkg/activity-status/'.$status_id.'/view/' . $activity->id . '">
+				<a href="#!/rsa-case-pkg/activity-status/' . $status_id . '/view/' . $activity->id . '">
 					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
 					            </a>';
 				if (Entrust::can('delete-activities')) {
@@ -201,7 +199,7 @@ class ActivityController extends Controller {
 			->addColumn('action', function ($activity) {
 				$verification_id = 2;
 				$action = '<div class="dataTable-actions">
-								<a href="#!/rsa-case-pkg/activity-verification/'.$verification_id.'/view/' . $activity->id . '">
+								<a href="#!/rsa-case-pkg/activity-verification/' . $verification_id . '/view/' . $activity->id . '">
 					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
 					            </a>
 					            </div>';
@@ -210,17 +208,17 @@ class ActivityController extends Controller {
 			->make(true);
 	}
 
-	public function viewActivityStatus($view_type_id = NULL,$activity_status_id) {
+	public function viewActivityStatus($view_type_id = NULL, $activity_status_id) {
 		//dd($view_type_id);
 		$activity_data = Activity::findOrFail($activity_status_id);
-		if($view_type_id==2){
-			if(!($activity_data && ($activity_data->status_id==5 || $activity_data->status_id==6 || $activity_data->status_id==9 || $activity_data->status_id==8))){
-			$errors[0] = "Activity is not valid for Verification!!!";
-			return response()->json(['success' => false, 'errors' => $errors]);
+		if ($view_type_id == 2) {
+			if (!($activity_data && ($activity_data->status_id == 5 || $activity_data->status_id == 6 || $activity_data->status_id == 9 || $activity_data->status_id == 8))) {
+				$errors[0] = "Activity is not valid for Verification!!!";
+				return response()->json(['success' => false, 'errors' => $errors]);
 
 			}
 		}
-		
+
 		$this->data['activities'] = $activity = Activity::with([
 			'asp',
 			'asp.rms',
@@ -285,45 +283,44 @@ class ActivityController extends Controller {
 			->groupBy('activities.id')
 			->where('activities.id', $activity_status_id)
 			->first();
-			$key_list = [ 158,159,160,154,155,156,170,174,180,298,179,176,172,173,179,182,171,175,181,];
-			foreach($key_list as $keyw){
-				$var_key = Config::where('id',$keyw)->first();
-				$key_name = str_replace(" ","_",strtolower($var_key->name));
-				$var_key_val = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',$var_key->id)->first();
-					$raw_key_name = 'raw_'.$key_name;
-				if(strpos($key_name, 'amount') || strpos($key_name, 'collected') || strcmp("amount",$key_name)==0){
-					$this->data['activities'][$key_name] = $var_key_val ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($var_key_val->value,2))) : '0.00';
-					$this->data['activities'][$raw_key_name] =$var_key_val ? $var_key_val->value :0;
-				}else{
-					$this->data['activities'][$key_name] = $var_key_val ? $var_key_val->value :0;
-					$this->data['activities'][$raw_key_name] = $var_key_val ? $var_key_val->value :0;
-				}
+		$key_list = [158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 179, 182, 171, 175, 181];
+		foreach ($key_list as $keyw) {
+			$var_key = Config::where('id', $keyw)->first();
+			$key_name = str_replace(" ", "_", strtolower($var_key->name));
+			$var_key_val = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $var_key->id)->first();
+			$raw_key_name = 'raw_' . $key_name;
+			if (strpos($key_name, 'amount') || strpos($key_name, 'collected') || strcmp("amount", $key_name) == 0) {
+				$this->data['activities'][$key_name] = $var_key_val ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($var_key_val->value, 2))) : '0.00';
+				$this->data['activities'][$raw_key_name] = $var_key_val ? $var_key_val->value : 0;
+			} else {
+				$this->data['activities'][$key_name] = $var_key_val ? $var_key_val->value : 0;
+				$this->data['activities'][$raw_key_name] = $var_key_val ? $var_key_val->value : 0;
 			}
-		$this->data['activities']['asp_service_type_data'] = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();
-			$configs = Config::where('entity_type_id',23)->get();
-			 foreach($configs as $config){
-				$detail = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',$config->id)->first();
-				if(strpos($config->name, '_charges') || strpos($config->name, '_amount')){
-					
-					$this->data['activities'][$config->name] = $detail->value ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($detail->value,2))) : '0.00';
-					$raw_key_name = 'raw_'.$config->name;
-					$this->data['activities'][$raw_key_name] =$detail->value ?$detail->value :0;
-				}else{
-					$this->data['activities'][$config->name]= $detail->value ?$detail->value :'-';
-				}
-			 }
-		if($this->data['activities']['asp_service_type_data']->adjustment_type == 1){
-			$this->data['activities']['bo_deduction']= ($this->data['activities']['raw_bo_po_amount'] * $this->data['activities']['asp_service_type_data']->adjustment)/100;
-		}else if($this->data['activities']['asp_service_type_data']->adjustment_type == 2){
-			$this->data['activities']['bo_deduction']= $this->data['activities']['asp_service_type_data']->adjustment;
 		}
-		
+		$this->data['activities']['asp_service_type_data'] = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();
+		$configs = Config::where('entity_type_id', 23)->get();
+		foreach ($configs as $config) {
+			$detail = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $config->id)->first();
+			if (strpos($config->name, '_charges') || strpos($config->name, '_amount')) {
+
+				$this->data['activities'][$config->name] = $detail->value ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '0.00';
+				$raw_key_name = 'raw_' . $config->name;
+				$this->data['activities'][$raw_key_name] = $detail->value ? $detail->value : 0;
+			} else {
+				$this->data['activities'][$config->name] = $detail->value ? $detail->value : '-';
+			}
+		}
+		if ($this->data['activities']['asp_service_type_data']->adjustment_type == 1) {
+			$this->data['activities']['bo_deduction'] = ($this->data['activities']['raw_bo_po_amount'] * $this->data['activities']['asp_service_type_data']->adjustment) / 100;
+		} else if ($this->data['activities']['asp_service_type_data']->adjustment_type == 2) {
+			$this->data['activities']['bo_deduction'] = $this->data['activities']['asp_service_type_data']->adjustment;
+		}
+
 		return response()->json(['success' => true, 'data' => $this->data]);
 
 	}
-	
 
-	public function approveActivity(Request $request){
+	public function approveActivity(Request $request) {
 		//dd($request->all());
 		//dd('dd');
 		DB::beginTransaction();
@@ -331,7 +328,7 @@ class ActivityController extends Controller {
 			$activty = Activity::findOrFail($request->activity_id);
 			if (!$activty) {
 				$this->data['success'] = true;
-			$this->data['errors'][] = 'Activity not found.';
+				$this->data['errors'][] = 'Activity not found.';
 				return response()->json(['data' => $this->data]);
 			}
 
@@ -352,7 +349,7 @@ class ActivityController extends Controller {
 			}*/
 
 			//calculaing mis invoice amount
-			
+
 			//dd($payout);
 			// $prices = getKMPrices($service, $activty->asp, $activty);
 			// if($prices['success']){
@@ -362,12 +359,12 @@ class ActivityController extends Controller {
 			// }
 			// $mis_service_total = ($payout+$not_collected_by_asp)-$collected_by_asp;
 			//dd(Auth::user());
-			$key_list = [ 158,159,160,176,172,173,179,182,];
-			foreach($key_list as $keyw){
-				$var_key = Config::where('id',$keyw)->first();
-				$key_name = str_replace(" ","_",strtolower($var_key->name));
-				$value = $request->$key_name ? str_replace(",","",$request->$key_name) : 0;
-				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $request->activity_id, 'key_id' => $keyw,'company_id' =>1], ['value' => $value]);
+			$key_list = [158, 159, 160, 176, 172, 173, 179, 182];
+			foreach ($key_list as $keyw) {
+				$var_key = Config::where('id', $keyw)->first();
+				$key_name = str_replace(" ", "_", strtolower($var_key->name));
+				$value = $request->$key_name ? str_replace(",", "", $request->$key_name) : 0;
+				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $request->activity_id, 'key_id' => $keyw, 'company_id' => 1], ['value' => $value]);
 			}
 
 			$activty->status_id = 11;
@@ -410,7 +407,7 @@ class ActivityController extends Controller {
 			$this->data['success'] = false;
 			$this->data['message'] = 'Activity deferred to ASP successfully.';
 			return response()->json(['data' => $this->data]);
-			
+
 		}
 	}
 
@@ -505,14 +502,14 @@ class ActivityController extends Controller {
 		//dd($id);
 		$this->data['service_types'] = Asp::where('user_id', Auth::id())->join('asp_service_types', 'asp_service_types.asp_id', '=', 'asps.id')->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')->select('service_types.name', 'asp_service_types.service_type_id as id')->get();
 		$this->data['activity'] = $activity = Activity::findOrFail($id);
-		$km_travelled = DB::table('activity_details')->where([['activity_id','=',$activity->id],['key_id','=',154]])->first();
-		$other_charge= DB::table('activity_details')->where([['activity_id','=',$activity->id],['key_id','=',156]])->first();
-		$asp_collected_charges = DB::table('activity_details')->where([['activity_id','=',$activity->id],['key_id','=',155]])->first();
+		$km_travelled = DB::table('activity_details')->where([['activity_id', '=', $activity->id], ['key_id', '=', 154]])->first();
+		$other_charge = DB::table('activity_details')->where([['activity_id', '=', $activity->id], ['key_id', '=', 156]])->first();
+		$asp_collected_charges = DB::table('activity_details')->where([['activity_id', '=', $activity->id], ['key_id', '=', 155]])->first();
 		$this->data['asp_collected_charges'] = $asp_collected_charges->value;
 		$this->data['other_charge'] = $other_charge->value;
 		$this->data['km_travelled'] = $km_travelled->value;
 		$this->data['for_deffer_activity'] = 0;
-		
+
 		$range_limit = "";
 		$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();
 		if ($aspServiceType) {
@@ -541,12 +538,12 @@ class ActivityController extends Controller {
 
 			/*if (!empty($request->update_attach_map_id)) {
 
-				Attachment::whereIn('id', $request->update_attach_map_id)->delete();
-			}
+					Attachment::whereIn('id', $request->update_attach_map_id)->delete();
+				}
 
-			if (!empty($request->update_attach_other_id)) {
-				Attachment::whereIn('id', $request->update_attach_other_id)->delete();
-			}*/
+				if (!empty($request->update_attach_other_id)) {
+					Attachment::whereIn('id', $request->update_attach_other_id)->delete();
+			*/
 			// dd("1");
 			$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();
 			if ($aspServiceType) {
@@ -595,11 +592,11 @@ class ActivityController extends Controller {
 			endif;
 
 			//Updating ticket status.. Check if "Bulk Approval" OR "Deferred Approval"
-			$configs = Config::where('entity_type_id',23)->get();
-			foreach($configs as $config){
-				$detail = ActivityDetail::where('activity_id',$activity->id)->where('key_id',$config->id)->first();
+			$configs = Config::where('entity_type_id', 23)->get();
+			foreach ($configs as $config) {
+				$detail = ActivityDetail::where('activity_id', $activity->id)->where('key_id', $config->id)->first();
 				$this->data['activities'][$config->name] = $detail->value ? $detail->value : 0;
-				
+
 			}
 			$mis_km = $this->data['activities']['cc_total_km'];
 			$not_collect_charges = $this->data['activities']['cc_not_collected_amount'];
@@ -610,7 +607,7 @@ class ActivityController extends Controller {
 			//1. checking MIS and ASP Service
 			if ($request->asp_service_type_id && $activity->service_type_id != $request->asp_service_type_id) {
 				$is_bulk = false;
-				
+
 			}
 
 			//2. checking MIS and ASP KMs
@@ -624,7 +621,7 @@ class ActivityController extends Controller {
 							return redirect()->back()->with(['error' => 'Please attach google map screenshot']);
 						}
 						$is_bulk = false;
-						
+
 					}
 				}
 			}
@@ -632,13 +629,13 @@ class ActivityController extends Controller {
 			//checking ASP KMs exceed 40 KMs
 			if ($asp_km > 40) {
 				$is_bulk = false;
-				
+
 			}
 
 			//checking MIS and ASP not collected
 			if ($asp_other > $not_collect_charges) {
 				$is_bulk = false;
-				
+
 				//$for_delete_old_other_attachment = 0;
 				if (empty($request->other_attachment)) {
 					return redirect()->back()->with(['error' => 'Please attach other Attachment']);
@@ -651,11 +648,11 @@ class ActivityController extends Controller {
 			//checking MIS and ASP collected
 			$asp_collected_charges = empty($request->asp_collected_charges) ? 0 : $request->asp_collected_charges;
 			if ($asp_collected_charges < $this->data['activities']['cc_colleced_amount']) {
-				$is_bulk = false;				
+				$is_bulk = false;
 			}
 			if ($mis_km == 0) {
 				$is_bulk = false;
-				
+
 			}
 			if ($is_bulk) {
 				$activity->status_id = 5;
@@ -665,14 +662,14 @@ class ActivityController extends Controller {
 
 			$activity->service_type_id = $request->asp_service_type_id ? $request->asp_service_type_id : $activity->service_type_id;
 			$asp_key_ids = [
-						154 => $request->km_travelled,
-						156 => $request->other_charge,
-						155 => $request->asp_collected_charges,
-					];
+				154 => $request->km_travelled,
+				156 => $request->other_charge,
+				155 => $request->asp_collected_charges,
+			];
 			foreach ($asp_key_ids as $key_id => $value) {
-				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $request->activity_id, 'key_id' => $key_id ,'company_id' =>1], ['value' => $value]);
+				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $request->activity_id, 'key_id' => $key_id, 'company_id' => 1], ['value' => $value]);
 			}
-			
+
 			if (!empty($request->comments)) {
 				//$activity->comments = $request->comments;
 			}
@@ -680,7 +677,6 @@ class ActivityController extends Controller {
 			if (!empty($request->remarks_not_collected)) {
 				$activity->remarks = $request->remarks_not_collected;
 			}
-
 
 			$activity->save();
 			//TicketActivity::saveLog($log);
@@ -704,7 +700,7 @@ class ActivityController extends Controller {
 			$state_id = Auth::user()->asp->state_id;
 			$bo_users = StateUser::where('state_id', $state_id)->pluck('user_id');
 
-			if ($activity->status_id ==5) {$noty_message_template = 'ASP_DATA_ENTRY_DONE_BULK';} else { $noty_message_template = 'ASP_DATA_ENTRY_DONE_DEFFERED';}
+			if ($activity->status_id == 5) {$noty_message_template = 'ASP_DATA_ENTRY_DONE_BULK';} else { $noty_message_template = 'ASP_DATA_ENTRY_DONE_DEFFERED';}
 			$ticket_number = [$activity->ticket_number];
 			if (!empty($bo_users)) {
 				foreach ($bo_users as $bo_user_id) {
@@ -716,11 +712,11 @@ class ActivityController extends Controller {
 			return response()->json(['success' => true]);
 
 			/*if ($modal == 'yes') {
-				return redirect()->route('aspNewlistTicket')->with($message);
-			} else {
-				$request->session()->flash('success', $message);
-				return response()->json(['success' => true]);
-			}*/
+					return redirect()->route('aspNewlistTicket')->with($message);
+				} else {
+					$request->session()->flash('success', $message);
+					return response()->json(['success' => true]);
+			*/
 
 		} catch (\Exception $e) {
 			DB::rollBack();
@@ -729,4 +725,159 @@ class ActivityController extends Controller {
 
 		}
 	}
+	public function getDeferredList(Request $request) {
+		$activities = Activity::select(
+			'activities.id',
+			'activities.crm_activity_id',
+			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			'cases.number',
+			'asps.asp_code',
+			'service_types.name as sub_service',
+			// 'activity_asp_statuses.name as asp_status',
+			'activity_finance_statuses.name as finance_status',
+			'activity_portal_statuses.name as status',
+			'activity_statuses.name as activity_status',
+			'clients.name as client',
+			'call_centers.name as call_center'
+		)
+			->leftjoin('asps', 'asps.id', 'activities.asp_id')
+			->leftjoin('users', 'users.id', 'asps.user_id')
+			->leftjoin('cases', 'cases.id', 'activities.case_id')
+			->leftjoin('clients', 'clients.id', 'cases.client_id')
+			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
+			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
+		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
+			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
+			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
+			->orderBy('cases.date', 'DESC')
+			->groupBy('activities.id')
+			->where('users.id', Auth::id())
+			->where('activity_portal_statuses.id', 7) //BO Rejected - Waiting for ASP Data Re-Entry
+		;
+
+		if ($request->get('ticket_date')) {
+			$activities->whereRaw('DATE_FORMAT(cases.date,"%d-%m-%Y") =  "' . $request->get('ticket_date') . '"');
+		}
+		if ($request->get('call_center_id')) {
+			$activities->where('cases.call_center_id', $request->get('call_center_id'));
+		}
+		if ($request->get('case_number')) {
+			$activities->where('cases.number', 'LIKE', '%' . $request->get('case_number') . '%');
+		}
+		if ($request->get('service_type_id')) {
+			$activities->where('activities.service_type_id', $request->get('service_type_id'));
+		}
+		// if ($request->get('asp_status_id')) {
+		// 	$activities->where('activities.status_id', $request->get('asp_status_id'));
+		// }
+		if ($request->get('finance_status_id')) {
+			$activities->where('activities.finance_status_id', $request->get('finance_status_id'));
+		}
+		if ($request->get('status_id')) {
+			$activities->where('activities.status_id', $request->get('status_id'));
+		}
+		if ($request->get('activity_status_id')) {
+			$activities->where('activities.activity_status_id', $request->get('activity_status_id'));
+		}
+		if ($request->get('client_id')) {
+			$activities->where('cases.client_id', $request->get('client_id'));
+		}
+
+		return Datatables::of($activities)
+			->addColumn('action', function ($activity) {
+				$action = '<div class="dataTable-actions">
+				<a href="#!/rsa-case-pkg/deferred-activity/update/' . $activity->id . '">
+					                <i class="fa fa-pencil dataTable-icon--edit" aria-hidden="true"></i>
+					            </a></div>';
+				return $action;
+			})
+			->make(true);
+	}
+
+	public function getApprovedList(Request $request) {
+		$activities = Activity::select(
+			'activities.id',
+			'activities.crm_activity_id',
+			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			'cases.number',
+			'asps.asp_code',
+			'service_types.name as sub_service',
+			// 'activity_asp_statuses.name as asp_status',
+			'activity_finance_statuses.name as finance_status',
+			'activity_portal_statuses.name as status',
+			'activity_statuses.name as activity_status',
+			'clients.name as client',
+			'call_centers.name as call_center',
+			'bo_net_amount.value as net_amount',
+			'bo_not_collected_amount.value as not_collected_amount',
+			'bo_colleced_amount.value as colleced_amount',
+			'bo_invoice_amount.value as invoice_amount'
+		)
+			->leftjoin('asps', 'asps.id', 'activities.asp_id')
+			->leftjoin('users', 'users.id', 'asps.user_id')
+			->leftjoin('cases', 'cases.id', 'activities.case_id')
+			->leftjoin('clients', 'clients.id', 'cases.client_id')
+			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
+			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
+		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
+			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
+			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
+			->leftJoin('activity_details as bo_net_amount', function ($join) {
+				$join->on('bo_net_amount.activity_id', 'activities.id')
+					->where('bo_net_amount.key_id', 176); //BO NET AMOUNT
+			})
+			->leftJoin('activity_details as bo_not_collected_amount', function ($join) {
+				$join->on('bo_not_collected_amount.activity_id', 'activities.id')
+					->where('bo_not_collected_amount.key_id', 160); //BO NOT COLLECTED
+			})
+			->leftJoin('activity_details as bo_colleced_amount', function ($join) {
+				$join->on('bo_colleced_amount.activity_id', 'activities.id')
+					->where('bo_colleced_amount.key_id', 159); //BO COLLECTED
+			})
+			->leftJoin('activity_details as bo_invoice_amount', function ($join) {
+				$join->on('bo_invoice_amount.activity_id', 'activities.id')
+					->where('bo_invoice_amount.key_id', 182); //BO INVOICE AMOUNT
+			})
+			->orderBy('cases.date', 'DESC')
+			->groupBy('activities.id')
+			->where('users.id', Auth::id())
+			->where('activity_portal_statuses.id', 11) //BO Approved - Waiting for Invoice Generation by ASP
+		;
+
+		if ($request->get('ticket_date')) {
+			$activities->whereRaw('DATE_FORMAT(cases.date,"%d-%m-%Y") =  "' . $request->get('ticket_date') . '"');
+		}
+		if ($request->get('call_center_id')) {
+			$activities->where('cases.call_center_id', $request->get('call_center_id'));
+		}
+		if ($request->get('case_number')) {
+			$activities->where('cases.number', 'LIKE', '%' . $request->get('case_number') . '%');
+		}
+		if ($request->get('service_type_id')) {
+			$activities->where('activities.service_type_id', $request->get('service_type_id'));
+		}
+		// if ($request->get('asp_status_id')) {
+		// 	$activities->where('activities.status_id', $request->get('asp_status_id'));
+		// }
+		if ($request->get('finance_status_id')) {
+			$activities->where('activities.finance_status_id', $request->get('finance_status_id'));
+		}
+		if ($request->get('client_id')) {
+			$activities->where('cases.client_id', $request->get('client_id'));
+		}
+
+		return Datatables::of($activities)
+			->setRowAttr([
+				'id' => function ($activities) {
+					return route('angular') . '/#!/rsa-case-pkg/activity-status/view/' . $activities->id;
+				},
+			])
+			->addColumn('action', function ($activities) {
+				return '<input type="checkbox" class="ticket_id no-link child_select_all" name="invoice_ids[]" value="' . $activities->id . '">';
+			})
+			->make(true);
+	}
+
 }

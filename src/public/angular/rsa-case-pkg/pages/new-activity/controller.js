@@ -41,7 +41,7 @@ app.component('newActivity', {
                             }).show();
 
                         } else {
-                            $location.path('/asp/new-activity/update-details/' + res.activity_id)
+                            $location.path('/rsa-case-pkg/new-activity/update-details/' + res.activity_id)
                             $scope.$apply()
                         }
                     })
@@ -297,7 +297,7 @@ app.component('newActivityUpdateDetails', {
                                             text: 'Activity informations saved successfully',
                                         }).show();
 
-                                        $location.path('/asp/new-activity');
+                                        $location.path('/rsa-case-pkg/new-activity');
                                         $scope.$apply();
                                     }
                                 })

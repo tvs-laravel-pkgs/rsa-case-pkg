@@ -244,14 +244,13 @@ app.component('billingDetails', {
         $http.post(
                     laravel_routes['approveActivity'], {
                         activity_id : self.data.activity_id,
-                        bo_km_travelled : self.data.bo_km_travelled,
-                        raw_bo_collected : self.data.raw_bo_collected,
-                        raw_bo_not_collected : self.data.raw_bo_not_collected,
+                        bo_km_travelled : self.data.raw_asp_km_travelled,
+                        raw_bo_collected : self.data.raw_asp_collected,
+                        raw_bo_not_collected : self.data.raw_asp_not_collected,
                         bo_deduction : self.data.bo_deduction,
                         bo_po_amount : self.data.bo_po_amount,
                         bo_net_amount : self.data.bo_net_amount,
                         bo_amount : self.data.bo_amount,
-
                     }
                 ).then(function(response) {
                     $('.save').button('reset');
@@ -301,8 +300,8 @@ app.component('billingDetails', {
                     laravel_routes['saveActivityDiffer'], {
                         activity_id : self.data.activity_id,
                         /*bo_km_travelled : self.data.bo_km_travelled,
-                        raw_bo_collected : self.data.raw_bo_collected,
-                        raw_bo_not_collected : self.data.raw_bo_not_collected,
+                        raw_asp_collected : self.data.raw_asp_collected,
+                        raw_asp_not_collected : self.data.raw_asp_not_collected,
                         bo_deduction : self.data.bo_deduction,
                         bo_po_amount : self.data.bo_po_amount,
                         bo_net_amount : self.data.bo_net_amount,
@@ -354,54 +353,57 @@ app.component('billingDetails', {
     }
           }, 3000);
         setTimeout(function() {
-            $scope.calculate();
-            $scope.$apply();
+            if(self.data.verification==1){
+                $scope.calculate();
+                $scope.$apply();
+            }
+            
         }, 4000);
+
         $scope.calculate = function(){
             var amount = 0;
-            if(self.data.asp_service_type_data.range_limit >self.data.bo_km_travelled){
+            if(self.data.asp_service_type_data.range_limit > self.data.raw_asp_km_travelled){
                 amount = self.data.asp_service_type_data.below_range_price;
             }else{
-                excess = self.data.bo_km_travelled - self.data.asp_service_type_data.range_limit;
+                excess = self.data.raw_asp_km_travelled - self.data.asp_service_type_data.range_limit;
                 amount = parseFloat(self.data.asp_service_type_data.below_range_price) + (parseFloat(excess)*parseFloat(self.data.asp_service_type_data.above_range_price));
             }
+            amount = parseFloat(amount)+ parseFloat(self.data.bo_deduction);
             self.data.bo_po_amount =  parseFloat(amount);
             self.data.bo_deduction = !$.isNumeric(self.data.bo_deduction) ? 0 : parseFloat(self.data.bo_deduction);
-            //alert(self.data.bo_km_travelled);
-            total = 0;
+            //alert(self.data.raw_asp_km_travelled);
+            /*total = 0;
             if(self.data.asp.tax_calculation_method){
-            total = parseFloat(amount) - (parseFloat(self.data.raw_bo_collected) + parseFloat(self.data.bo_deduction))
+            total = parseFloat(amount) - (parseFloat(self.data.raw_asp_collected) + parseFloat(self.data.bo_deduction))
 
             }else{
-            total = (parseFloat(amount) + parseFloat(self.data.raw_bo_not_collected)) - (parseFloat(self.data.raw_bo_collected) + parseFloat(self.data.bo_deduction))
+            total = (parseFloat(amount) + parseFloat(self.data.raw_asp_not_collected)) - (parseFloat(self.data.raw_asp_collected) + parseFloat(self.data.bo_deduction))
 
-            }
-            self.data.bo_net_amount =  self.data.bo_amount = total /*parseFloat(amount)- parseFloat(self.data.raw_bo_collected)*/;
-            //self.data.bo_amount = parseFloat(self.data.bo_net_amount) + parseFloat(self.data.raw_bo_not_collected);
-            //inv_amount = parseFloat(self.data.bo_net_amount);
-            total_tax = 0;
+            }*/
+            total = (parseFloat(amount) + parseFloat(self.data.raw_asp_not_collected)) - parseFloat(self.data.raw_asp_collected) - parseFloat(self.data.bo_deduction);
+            self.data.bo_net_amount =  self.data.bo_amount = total;
+            
+            /*total_tax = 0;
             taxes = self.data.asp.tax_group.taxes;
             if(self.data.asp.has_gst){
                 total_tax = 0;
-                /*angular.forEach(taxes, function (value, key) { 
+                angular.forEach(taxes, function (value, key) { 
                     console.log('value'); 
                     console.log(value); 
                     total_tax = parseFloat(total_tax) + parseFloat(value.tax_rate);
-                }); */
+                }); 
                 self.data.bo_tax_amount = parseFloat(((parseFloat(self.data.bo_net_amount) * parseFloat(total_tax)) / 100));
                 self.data.bo_amount = parseFloat(self.data.bo_net_amount) + self.data.bo_tax_amount;
             }else{
                 self.data.bo_tax_amount = 0;
                 self.data.bo_amount = parseFloat(self.data.bo_net_amount) + self.data.bo_tax_amount;
-            }
-            
-            console.log('total_tax');
-            console.log(total_tax);
+            }*/
+        
             console.log('self.data.bo_amount');
             console.log(self.data.bo_amount);
-            if(self.data.asp.tax_calculation_method == 0){
-                self.data.bo_amount = parseFloat(self.data.bo_amount) + parseFloat(self.data.raw_bo_not_collected);
-            }
+            /*if(self.data.asp.tax_calculation_method == 0){
+                self.data.bo_amount = parseFloat(self.data.bo_amount) + parseFloat(self.data.raw_asp_not_collected);
+            }*/
             console.log('self.data.bo_amount');
             console.log(self.data.bo_amount);
 

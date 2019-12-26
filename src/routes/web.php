@@ -11,13 +11,15 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 
 	Route::get('/activity-status/get-list', 'ActivityController@getList')->name('getActivityStatusList');
 	Route::get('/activity-status/delete/{id}', 'ActivityController@delete')->name('deleteActivity');
-	Route::get('/activity-status/view/{activity_status_id?}', 'ActivityController@viewActivityStatus')->name('viewActivityStatus');
+	Route::get('/activity-status/{view_type_id?}/view/{activity_status_id?}', 'ActivityController@viewActivityStatus')->name('viewActivityStatus');
 	Route::get('/new-activity/get-form-data/{id?}', 'ActivityController@activityGetFormData')->name('activityGetFormData');
 	Route::post('asp/activity/verify', 'ActivityController@verifyActivity')->name('verifyActivity');
 		Route::post('asp/activity/save', 'ActivityController@saveNewActitvity')->name('saveNewActitvity');
 
 
 	//ACTIVITY VERIFICATION
+	Route::get('/activity-verification/{view_type_id?}/view/{activity_status_id?}', 'ActivityController@viewActivityStatus')->name('viewActivityStatus');
+
 	Route::get('/activity-verification/get-list', 'ActivityController@getVerificationList')->name('getActivityVerificationList');
 	Route::post('/activity-verification/saveDiffer', 'ActivityController@saveActivityDiffer')->name('saveActivityDiffer');
 	Route::post('/activity-verification/approve', 'ActivityController@approveActivity')->name('approveActivity');

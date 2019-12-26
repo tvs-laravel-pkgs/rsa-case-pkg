@@ -20,7 +20,7 @@ app.config(['$routeProvider', function($routeProvider) {
         template: '<activity-status-list></activity-status-list>',
         title: 'Activity Status',
     }).
-    when('/rsa-case-pkg/activity-status/view/:id', {
+    when('/rsa-case-pkg/activity-status/:view_type_id/view/:id', {
         template: '<activity-status-view></activity-status-view>',
         title: 'Activity Status View',
     }).
@@ -49,7 +49,7 @@ app.config(['$routeProvider', function($routeProvider) {
         template: '<activity-verification-list></activity-verification-list>',
         title: 'Activity Verification',
     }).
-    when('/rsa-case-pkg/activity-verification/view/:id', {
+    when('/rsa-case-pkg/activity-verification/:view_type_id/view/:id', {
         template: '<activity-verification-view></activity-verification-view>',
         title: 'Activity Verification View',
     }).

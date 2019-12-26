@@ -161,14 +161,32 @@ app.component('activityStatusView', {
         self.hasPermission = HelperService.hasPermission;
         self.filter_img_url = filter_img_url;
        // self.style_dot_image_url = style_dot_image_url;
-        console.log(style_dot_image_url);
-        console.log($routeParams.id);
-        console.log(activity_status_view_data_url);
-        get_view_data_url = typeof($routeParams.id) == 'undefined' ? activity_status_view_data_url : activity_status_view_data_url + '/' + $routeParams.id;
+        get_view_data_url = typeof($routeParams.id) == 'undefined' ? activity_status_view_data_url + '/' : activity_status_view_data_url + '/' + $routeParams.view_type_id + '/view/' + $routeParams.id;
         $http.get(
             get_view_data_url
         ).then(function(response) {
             console.log(response);
+            if (!response.data.success) {
+                var errors = '';
+                for (var i in response.data.errors) {
+                    errors += '<li>' + response.data.errors[i] + '</li>';
+                }
+                $noty = new Noty({
+                    type: 'error',
+                    layout: 'bottomRight',
+                    text: errors,
+                    animation: {
+                        speed: 500 // unavailable - no need
+                    },
+
+                }).show();
+                setTimeout(function() {
+                    $noty.close();
+                }, 1000);
+                $location.path('/rsa-case-pkg/activity-verification/list');
+                $scope.$apply();
+                return;
+            }
             self.data = response.data.data.activities;
             self.data.style_dot_image_url = style_dot_image_url;
             self.data.style_service_type_image_url = style_service_type_image_url;

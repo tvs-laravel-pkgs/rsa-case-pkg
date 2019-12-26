@@ -110,8 +110,10 @@ class ActivityController extends Controller {
 		}
 		return Datatables::of($activities)
 			->addColumn('action', function ($activity) {
+				$status_id = 1;
+
 				$action = '<div class="dataTable-actions">
-				<a href="#!/rsa-case-pkg/activity-status/view/' . $activity->id . '">
+				<a href="#!/rsa-case-pkg/activity-status/'.$status_id.'/view/' . $activity->id . '">
 					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
 					            </a>';
 				if (Entrust::can('delete-activities')) {
@@ -197,8 +199,9 @@ class ActivityController extends Controller {
 		}
 		return Datatables::of($activities)
 			->addColumn('action', function ($activity) {
+				$verification_id = 2;
 				$action = '<div class="dataTable-actions">
-								<a href="#!/rsa-case-pkg/activity-verification/view/' . $activity->id . '">
+								<a href="#!/rsa-case-pkg/activity-verification/'.$verification_id.'/view/' . $activity->id . '">
 					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
 					            </a>
 					            </div>';
@@ -207,13 +210,17 @@ class ActivityController extends Controller {
 			->make(true);
 	}
 
-	public function viewActivityStatus($activity_status_id) {
+	public function viewActivityStatus($view_type_id = NULL,$activity_status_id) {
+		//dd($view_type_id);
 		$activity_data = Activity::findOrFail($activity_status_id);
-		if(!($activity_data && ($activity_data->status_id==5 || $activity_data->status_id==6 || $activity_data->status_id==9 || $activity_data->status_id==8))){
+		if($view_type_id==2){
+			if(!($activity_data && ($activity_data->status_id==5 || $activity_data->status_id==6 || $activity_data->status_id==9 || $activity_data->status_id==8))){
 			$errors[0] = "Activity is not valid for Verification!!!";
 			return response()->json(['success' => false, 'errors' => $errors]);
 
+			}
 		}
+		
 		$this->data['activities'] = $activity = Activity::with([
 			'asp',
 			'asp.rms',
@@ -278,17 +285,18 @@ class ActivityController extends Controller {
 			->groupBy('activities.id')
 			->where('activities.id', $activity_status_id)
 			->first();
-			$key_list = [ 158,159,160,154,155,156,170,174,180,298,179,176,172,173,179,182,];
+			$key_list = [ 158,159,160,154,155,156,170,174,180,298,179,176,172,173,179,182,171,175,181,];
 			foreach($key_list as $keyw){
 				$var_key = Config::where('id',$keyw)->first();
 				$key_name = str_replace(" ","_",strtolower($var_key->name));
 				$var_key_val = ActivityDetail::where('activity_id',$activity_status_id)->where('key_id',$var_key->id)->first();
+					$raw_key_name = 'raw_'.$key_name;
 				if(strpos($key_name, 'amount') || strpos($key_name, 'collected') || strcmp("amount",$key_name)==0){
 					$this->data['activities'][$key_name] = $var_key_val ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",","",number_format($var_key_val->value,2))) : '0.00';
-					$raw_key_name = 'raw_'.$key_name;
 					$this->data['activities'][$raw_key_name] =$var_key_val ? $var_key_val->value :0;
 				}else{
 					$this->data['activities'][$key_name] = $var_key_val ? $var_key_val->value :0;
+					$this->data['activities'][$raw_key_name] = $var_key_val ? $var_key_val->value :0;
 				}
 
 			}

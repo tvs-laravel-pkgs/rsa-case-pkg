@@ -367,4 +367,89 @@ class ActivityController extends Controller {
 			->make(true);
 	}
 
+	public function getApprovedList(Request $request) {
+		$activities = Activity::select(
+			'activities.id',
+			'activities.crm_activity_id',
+			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			'cases.number',
+			'asps.asp_code',
+			'service_types.name as sub_service',
+			// 'activity_asp_statuses.name as asp_status',
+			'activity_finance_statuses.name as finance_status',
+			'activity_portal_statuses.name as status',
+			'activity_statuses.name as activity_status',
+			'clients.name as client',
+			'call_centers.name as call_center',
+			'bo_net_amount.value as net_amount',
+			'bo_not_collected_amount.value as not_collected_amount',
+			'bo_colleced_amount.value as colleced_amount',
+			'bo_invoice_amount.value as invoice_amount'
+		)
+			->leftjoin('asps', 'asps.id', 'activities.asp_id')
+			->leftjoin('users', 'users.id', 'asps.user_id')
+			->leftjoin('cases', 'cases.id', 'activities.case_id')
+			->leftjoin('clients', 'clients.id', 'cases.client_id')
+			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
+			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
+		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
+			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
+			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
+			->leftJoin('activity_details as bo_net_amount', function ($join) {
+				$join->on('bo_net_amount.activity_id', 'activities.id')
+					->where('bo_net_amount.key_id', 176); //BO NET AMOUNT
+			})
+			->leftJoin('activity_details as bo_not_collected_amount', function ($join) {
+				$join->on('bo_not_collected_amount.activity_id', 'activities.id')
+					->where('bo_not_collected_amount.key_id', 160); //BO NOT COLLECTED
+			})
+			->leftJoin('activity_details as bo_colleced_amount', function ($join) {
+				$join->on('bo_colleced_amount.activity_id', 'activities.id')
+					->where('bo_colleced_amount.key_id', 159); //BO COLLECTED
+			})
+			->leftJoin('activity_details as bo_invoice_amount', function ($join) {
+				$join->on('bo_invoice_amount.activity_id', 'activities.id')
+					->where('bo_invoice_amount.key_id', 182); //BO INVOICE AMOUNT
+			})
+			->orderBy('cases.date', 'DESC')
+			->groupBy('activities.id')
+			->where('users.id', Auth::id())
+			->where('activity_portal_statuses.id', 11) //BO Approved - Waiting for Invoice Generation by ASP
+		;
+
+		if ($request->get('ticket_date')) {
+			$activities->whereRaw('DATE_FORMAT(cases.date,"%d-%m-%Y") =  "' . $request->get('ticket_date') . '"');
+		}
+		if ($request->get('call_center_id')) {
+			$activities->where('cases.call_center_id', $request->get('call_center_id'));
+		}
+		if ($request->get('case_number')) {
+			$activities->where('cases.number', 'LIKE', '%' . $request->get('case_number') . '%');
+		}
+		if ($request->get('service_type_id')) {
+			$activities->where('activities.service_type_id', $request->get('service_type_id'));
+		}
+		// if ($request->get('asp_status_id')) {
+		// 	$activities->where('activities.status_id', $request->get('asp_status_id'));
+		// }
+		if ($request->get('finance_status_id')) {
+			$activities->where('activities.finance_status_id', $request->get('finance_status_id'));
+		}
+		if ($request->get('client_id')) {
+			$activities->where('cases.client_id', $request->get('client_id'));
+		}
+
+		return Datatables::of($activities)
+			->setRowAttr([
+				'id' => function ($activities) {
+					return route('angular') . '/#!/rsa-case-pkg/activity-status/view/' . $activities->id;
+				},
+			])
+			->addColumn('action', function ($activities) {
+				return '<input type="checkbox" class="ticket_id no-link child_select_all" name="invoice_ids[]" value="' . $activities->id . '">';
+			})
+			->make(true);
+	}
+
 }

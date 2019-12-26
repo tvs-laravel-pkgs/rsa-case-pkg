@@ -1,0 +1,109 @@
+<div class="col-xs-12 col-sm-12">
+    <div class="mobile-breadcrumbs-wrapper">
+        <ul class="mobile-breadcrumbs-group list-inline">
+            <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
+            <li><a href="#">Activities</a></li>
+            <li><a href="#!/rsa-case-pkg/approved-activity/list">Approved</a></li>
+        </ul>
+    </div>
+</div>
+<div class="container-fluid dataTable-content--wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12">
+            <div class="row">
+                <div class="col-xs-12 col-sm-6">
+                    <div class="dataTable--left_wrapper">
+                        <h2 class="dataTable-title">Approved</h2>
+                        <p>Total - <span class="orange-txt"><span class="count">0</span></span></p>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-6">
+                    <div class="dataTable-top--right_wrapper">
+                        <ul class="dataTable-top--right_group list-inline">
+                            <li><input class="filterTable" type="text" placeholder="Search"></li>
+                            <li><a href="javascript:void(0)" class="btn btn-md" ng-click="refresh()">Refresh</a></li>
+                            <li>
+                                <img src="<% $ctrl.filter_img_url %>" class="filterToggle">
+                                <div class="filter-wrapper" id='filterticket'>
+                                    <div class="filter-overlay"></div>
+                                    <div class="filter-content">
+                                        <div class="filter-header">
+                                            <h2>Ticket Filter</h2>
+                                        </div>
+                                        <div class="filter-body">
+                                            <div class="form-group">
+                                                <input id="ticket_date" class="form-control filter-input date-picker" type="text" placeholder="Date" autocomplete="off">
+                                            </div>
+                                            <div class="form-group">
+                                                <md-select ng-model="$ctrl.call_center_id" ng-change="changeCommonFilter($ctrl.call_center_id, 'call_center_id')" placeholder="Select Call Center">
+                                                    <md-option ng-repeat="val in $ctrl.extras.call_center_list" value="{{val.id}}">{{val.name}}</md-option>
+                                                </md-select>
+                                                <input type="hidden" name="call_center_id" value="" id="call_center_id">
+                                            </div>
+                                            <div class="form-group">
+                                                <input id="case_number" class="form-control filter-input" type="text" placeholder="Case Number" autocomplete="off">
+                                            </div>
+                                            <div class="form-group">
+                                                <md-select ng-model="$ctrl.service_type_id" ng-change="changeCommonFilter($ctrl.service_type_id,'service_type_id')" placeholder="Select Service Type">
+                                                    <md-option ng-repeat="val in $ctrl.extras.service_type_list" value="{{val.id}}">{{val.name}}</md-option>
+                                                </md-select>
+                                                <input type="hidden" name="service_type_id" value="" id="service_type_id">
+                                            </div>
+                                            <div class="form-group">
+                                                <md-select ng-model="$ctrl.finance_status_id" ng-change="changeCommonFilter($ctrl.finance_status_id,'finance_status_id')" placeholder="Select Finance Status">
+                                                    <md-option ng-repeat="val in $ctrl.extras.finance_status_list" value="{{val.id}}">{{val.name}}</md-option>
+                                                </md-select>
+                                                <input type="hidden" name="finance_status_id" value="" id="finance_status_id">
+                                            </div>
+                                            <div class="form-group">
+                                                <md-select ng-model="$ctrl.client_id" ng-change="changeCommonFilter($ctrl.client_id,'client_id')" placeholder="Select Client">
+                                                    <md-option ng-repeat="val in $ctrl.extras.client_list" value="{{val.id}}">{{val.name}}</md-option>
+                                                </md-select>
+                                                <input type="hidden" name="client_id" value="" id="client_id">
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="filter-btns">
+                                                    <!-- <a href="javascript:;" class="reset-filter  btn btn-primary yellow reset-filter1">RESET</a> -->
+                                                    <a href="javascript:;" class="close-filter btn btn-primary">CLOSE</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <div class="customTab-content">
+                    <div class="tab-content">
+                        <div id="about40" class="tab-pane fade in active">
+                            <form id="invoice_generation" method="post">
+                                <table id="invoice_generation_table" class="display table dataTable row_linked_table">
+                                    <thead>
+                                        <tr>
+                                            <th><input type="checkbox" class="check_all" id="select_all_checkbox" autocomplete="off"></th>
+                                            <th>Date</th>
+                                            <th>Case Number</th>
+                                            <th>CRM Activity ID</th>
+                                            <th>Client</th>
+                                            <th>Call Center</th>
+                                            <th>Service</th>
+                                            <th>Finance Status</th>
+                                            <th>Net Amount</th>
+                                            <th>Non Collected Charges</th>
+                                            <th>Collected Charges</th>
+                                            <th>Invoice Amount</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                                <button type="submit" id="submit" class="approve-btn pull-right preview-batch">Generate Invoice</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

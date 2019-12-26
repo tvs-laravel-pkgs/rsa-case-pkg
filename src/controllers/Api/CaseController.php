@@ -74,6 +74,18 @@ class CaseController extends Controller {
 			$client = Client::where('name', $request->client)->first();
 			$vehicle_make = VehicleMake::where('name', $request->vehicle_make)->first();
 
+			//CASE STATUS IS CANCELLED - CANCEL REASON IS MANDATORY
+			if ($status->id == 3) {
+				if (!$request->cancel_reason) {
+					return response()->json([
+						'success' => false,
+						'error' => 'Validation Error',
+						'errors' => [
+							"Cancel reason is required",
+						],
+					], $this->successStatus);
+				}
+			}
 			//VEHICLE MODEL GOT BY VEHICLE MAKE
 			$vehicle_model_by_make = VehicleModel::where('name', $request->vehicle_model)->where('vehicle_make_id', $vehicle_make->id)->first();
 			if (!$vehicle_model_by_make) {
@@ -99,6 +111,21 @@ class CaseController extends Controller {
 				'company_id' => 1,
 				'number' => $request->number,
 			]);
+
+			// CASE NEW
+			// if (!$case->exists) {
+			// 	//WITH CLOSED STATUS
+			// 	if ($status->id == 4) {
+			// 		return response()->json([
+			// 			'success' => false,
+			// 			'error' => 'Validation Error',
+			// 			'errors' => [
+			// 				"Case should not start with closed status",
+			// 			],
+			// 		], $this->successStatus);
+			// 	}
+			// }
+
 			$case->fill($request->all());
 			$case->status_id = $status->id;
 			$case->cancel_reason_id = $cancel_reason_id;

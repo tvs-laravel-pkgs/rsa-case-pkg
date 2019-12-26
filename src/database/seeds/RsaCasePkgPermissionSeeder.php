@@ -83,96 +83,120 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Only Mapped',
 			],
 
-			//BATCH GENERATION
+			// //BATCH GENERATION
+			// [
+			// 	'display_order' => 99,
+			// 	'parent' => null,
+			// 	'name' => 'invoices-batch-generation',
+			// 	'display_name' => 'Batch Generation',
+			// ],
+			// [
+			// 	'display_order' => 6,
+			// 	'parent' => 'invoices-batch-generation',
+			// 	'name' => 'view-all-invoices-batch-generation',
+			// 	'display_name' => 'View All',
+			// ],
+			// [
+			// 	'display_order' => 6,
+			// 	'parent' => 'invoices-batch-generation',
+			// 	'name' => 'view-only-state-mapped-invoices-batch-generation',
+			// 	'display_name' => 'Only State Mapped',
+			// ],
+
+			// //UNPAID BATCHES
+			// [
+			// 	'display_order' => 99,
+			// 	'parent' => null,
+			// 	'name' => 'asp-unpaid-batches',
+			// 	'display_name' => 'ASP Unpaid Batches',
+			// ],
+			// [
+			// 	'display_order' => 6,
+			// 	'parent' => 'asp-unpaid-batches',
+			// 	'name' => 'view-all-asp-unpaid-batches',
+			// 	'display_name' => 'View All',
+			// ],
+			// [
+			// 	'display_order' => 6,
+			// 	'parent' => 'asp-unpaid-batches',
+			// 	'name' => 'view-only-state-mapped-asp-unpaid-batches',
+			// 	'display_name' => 'Only State Mapped',
+			// ],
+			// [
+			// 	'display_order' => 6,
+			// 	'parent' => 'asp-unpaid-batches',
+			// 	'name' => 'view-own-asp-unpaid-batches',
+			// 	'display_name' => 'View Own',
+			// ],
+			// [
+			// 	'display_order' => 6,
+			// 	'parent' => 'asp-unpaid-batches',
+			// 	'name' => 'export-asp-unpaid-batches',
+			// 	'display_name' => 'Export',
+			// ],
+
+			// //PAYMENT INPROGRESS BATCHES
+			// [
+			// 	'display_order' => 99,
+			// 	'parent' => null,
+			// 	'name' => 'asp-payment-inprogress-batches',
+			// 	'display_name' => 'ASP Payment Inprogress Batches',
+			// ],
+
+			// //PAID BATCHES
+			// [
+			// 	'display_order' => 99,
+			// 	'parent' => null,
+			// 	'name' => 'asp-paid-batches',
+			// 	'display_name' => 'ASP Paid Batches',
+			// ],
+			// [
+			// 	'display_order' => 6,
+			// 	'parent' => 'asp-paid-batches',
+			// 	'name' => 'view-all-asp-paid-batches',
+			// 	'display_name' => 'View All',
+			// ],
+			// [
+			// 	'display_order' => 6,
+			// 	'parent' => 'asp-paid-batches',
+			// 	'name' => 'view-only-state-mapped-asp-paid-batches',
+			// 	'display_name' => 'Only State Mapped',
+			// ],
+			// [
+			// 	'display_order' => 6,
+			// 	'parent' => 'asp-paid-batches',
+			// 	'name' => 'view-own-asp-paid-batches',
+			// 	'display_name' => 'View Own',
+			// ],
+			// [
+			// 	'display_order' => 6,
+			// 	'parent' => 'asp-paid-batches',
+			// 	'name' => 'view-paid-batches-payment-info',
+			// 	'display_name' => 'View Payment Info',
+			// ],
+
+			//ASP NEW ACTIVITIES
 			[
 				'display_order' => 99,
 				'parent' => null,
-				'name' => 'invoices-batch-generation',
-				'display_name' => 'Batch Generation',
-			],
-			[
-				'display_order' => 6,
-				'parent' => 'invoices-batch-generation',
-				'name' => 'view-all-invoices-batch-generation',
-				'display_name' => 'View All',
-			],
-			[
-				'display_order' => 6,
-				'parent' => 'invoices-batch-generation',
-				'name' => 'view-only-state-mapped-invoices-batch-generation',
-				'display_name' => 'Only State Mapped',
+				'name' => 'asp-new-activities',
+				'display_name' => 'ASP New Activities',
 			],
 
-			//UNPAID BATCHES
+			//ASP DEFERRED ACTIVITIES
 			[
 				'display_order' => 99,
 				'parent' => null,
-				'name' => 'asp-unpaid-batches',
-				'display_name' => 'ASP Unpaid Batches',
-			],
-			[
-				'display_order' => 6,
-				'parent' => 'asp-unpaid-batches',
-				'name' => 'view-all-asp-unpaid-batches',
-				'display_name' => 'View All',
-			],
-			[
-				'display_order' => 6,
-				'parent' => 'asp-unpaid-batches',
-				'name' => 'view-only-state-mapped-asp-unpaid-batches',
-				'display_name' => 'Only State Mapped',
-			],
-			[
-				'display_order' => 6,
-				'parent' => 'asp-unpaid-batches',
-				'name' => 'view-own-asp-unpaid-batches',
-				'display_name' => 'View Own',
-			],
-			[
-				'display_order' => 6,
-				'parent' => 'asp-unpaid-batches',
-				'name' => 'export-asp-unpaid-batches',
-				'display_name' => 'Export',
+				'name' => 'asp-deferred-activities',
+				'display_name' => 'ASP Deferred Activities',
 			],
 
-			//PAYMENT INPROGRESS BATCHES
+			//ASP APPROVED ACTIVITIES
 			[
 				'display_order' => 99,
 				'parent' => null,
-				'name' => 'asp-payment-inprogress-batches',
-				'display_name' => 'ASP Payment Inprogress Batches',
-			],
-
-			//PAID BATCHES
-			[
-				'display_order' => 99,
-				'parent' => null,
-				'name' => 'asp-paid-batches',
-				'display_name' => 'ASP Paid Batches',
-			],
-			[
-				'display_order' => 6,
-				'parent' => 'asp-paid-batches',
-				'name' => 'view-all-asp-paid-batches',
-				'display_name' => 'View All',
-			],
-			[
-				'display_order' => 6,
-				'parent' => 'asp-paid-batches',
-				'name' => 'view-only-state-mapped-asp-paid-batches',
-				'display_name' => 'Only State Mapped',
-			],
-			[
-				'display_order' => 6,
-				'parent' => 'asp-paid-batches',
-				'name' => 'view-own-asp-paid-batches',
-				'display_name' => 'View Own',
-			],
-			[
-				'display_order' => 6,
-				'parent' => 'asp-paid-batches',
-				'name' => 'view-paid-batches-payment-info',
-				'display_name' => 'View Payment Info',
+				'name' => 'asp-approved-activities',
+				'display_name' => 'ASP Approved Activities',
 			],
 
 			//ASP INVOICES

@@ -30,7 +30,7 @@ class ActivityController extends Controller {
 				'asp_code' => 'required|string|max:24|exists:asps,asp_code',
 				'case_number' => 'required|string|max:32|exists:cases,number',
 				'sub_service' => 'required|string|max:50|exists:service_types,name',
-				'asp_accepted_cc_details' => 'required',
+				'asp_accepted_cc_details' => 'required|numeric',
 				'reason_for_asp_rejected_cc_details' => 'nullable|string',
 				'finance_status' => [
 					'required',
@@ -104,6 +104,31 @@ class ActivityController extends Controller {
 			}
 
 			$asp = Asp::where('asp_code', $request->asp_code)->first();
+
+			//CHECK ASP IS NOT ACTIVE
+			if (!$asp->is_active) {
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						'ASP is inactive',
+					],
+				], $this->successStatus);
+			}
+
+			//ASP ACCEPTED CC DETAILS == 0 -- REASON IS MANDATORY
+			if (!$request->asp_accepted_cc_details) {
+				if (!$request->reason_for_asp_rejected_cc_details) {
+					return response()->json([
+						'success' => false,
+						'error' => 'Validation Error',
+						'errors' => [
+							'Reason for ASP rejected cc details is required',
+						],
+					], $this->successStatus);
+				}
+			}
+
 			$service_type = ServiceType::where('name', $request->sub_service)->first();
 			$asp_status = ActivityAspStatus::where('name', $request->asp_activity_status)->where('company_id', 1)->first();
 			if (!$asp_status) {
@@ -134,6 +159,16 @@ class ActivityController extends Controller {
 			}
 
 			$case = RsaCase::where('number', $request->case_number)->first();
+			//CHECK CASE IS CLOSED
+			// if ($case->status_id == 4) {
+			// 	return response()->json([
+			// 		'success' => false,
+			// 		'error' => 'Validation Error',
+			// 		'errors' => [
+			// 			'Case already closed',
+			// 		],
+			// 	], $this->successStatus);
+			// }
 
 			$activity = new Activity([
 				'crm_activity_id' => $request->crm_activity_id,
@@ -165,6 +200,26 @@ class ActivityController extends Controller {
 			$activity->save();
 			$activity->number = 'ACT' . $activity->id;
 			$activity->save();
+
+			if ($case->status_id == 3) {
+				//CANCELLED
+				$activity->update([
+					// Not Eligible for Payout
+					'status_id' => 15,
+				]);
+			}
+
+			// CHECK CASE IS CLOSED
+			if ($case->status_id == 4) {
+				$activity->where([
+					// Invoice Amount Calculated - Waiting for Case Closure
+					'status_id' => 10,
+				])
+					->update([
+						// Case Closed - Waiting for ASP to Generate Invoice
+						'status_id' => 1,
+					]);
+			}
 
 			//SAVING ACTIVITY DETAILS
 			$activity_fields = Config::where('entity_type_id', 23)->get();

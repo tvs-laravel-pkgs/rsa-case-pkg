@@ -15,6 +15,7 @@ use App\Http\Controllers\Controller;
 use App\Attachment;
 use App\ServiceType;
 use App\StateUser;
+use Auth;
 use DB;
 use Auth;
 use Entrust;
@@ -298,7 +299,6 @@ class ActivityController extends Controller {
 					$this->data['activities'][$key_name] = $var_key_val ? $var_key_val->value :0;
 					$this->data['activities'][$raw_key_name] = $var_key_val ? $var_key_val->value :0;
 				}
-
 			}
 		$this->data['activities']['asp_service_type_data'] = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();
 			$configs = Config::where('entity_type_id',23)->get();

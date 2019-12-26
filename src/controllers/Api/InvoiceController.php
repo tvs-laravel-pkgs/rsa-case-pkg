@@ -157,7 +157,7 @@ class InvoiceController extends Controller {
 				$invoices->limit($request->limit);
 			}
 
-			$invoices = $invoices->groupBy('Invoices.id')->get();
+			$invoices = $invoices->groupBy('Invoices.id')->orderBy('Invoices.created_at', 'desc')->get();
 
 			if (count($invoices) > 0) {
 				foreach ($invoices as $key => $invoice) {

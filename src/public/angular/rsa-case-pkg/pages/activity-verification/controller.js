@@ -17,6 +17,7 @@ app.component('activityVerificationList', {
                 { data: 'number', name: 'cases.number', searchable: true },
                 { data: 'asp_code', name: 'asps.asp_code', searchable: true },
                 { data: 'crm_activity_id', searchable: false },
+                { data: 'activity_number', name: 'activities.number', searchable: true },
                 { data: 'sub_service', name: 'service_types.name', searchable: true },
                 { data: 'finance_status', name: 'activity_finance_statuses.name', searchable: true },
                 // { data: 'asp_status', name: 'activity_asp_statuses.name', searchable: true },
@@ -159,24 +160,24 @@ app.component('activityVerificationView', {
             self.data.style_modal_close_image_url = style_modal_close_image_url;
             self.data.style_question_image_url = style_question_image_url;
             self.data.verification = 1;
-            $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();   
-            $('.viewData-toggle--btn').click(function(){
+            $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
+            $('.viewData-toggle--btn').click(function() {
                 $(this).toggleClass('viewData-toggle--btn_reverse');
                 $('.viewData-toggle--inner .viewData-threeColumn--wrapper').slideToggle();
             });
             $rootScope.loading = false;
             self.data.cc_net_amount = self.data.cc_po_amount - self.data.bo_not_collected;
-            $scope.differ = function(){
+            $scope.differ = function() {
                 $http.post(
                     laravel_routes['saveActivityDiffer'], {
-                        activity_id : self.data.activity_id,
-                        bo_km_travelled : self.data.bo_km_travelled,
-                        raw_bo_collected : self.data.raw_bo_collected,
-                        raw_bo_not_collected : self.data.raw_bo_not_collected,
-                        bo_deduction : self.data.bo_deduction,
-                        bo_po_amount : self.data.bo_po_amount,
-                        bo_net_amount : self.data.bo_net_amount,
-                        bo_amount : self.data.bo_amount,
+                        activity_id: self.data.activity_id,
+                        bo_km_travelled: self.data.bo_km_travelled,
+                        raw_bo_collected: self.data.raw_bo_collected,
+                        raw_bo_not_collected: self.data.raw_bo_not_collected,
+                        bo_deduction: self.data.bo_deduction,
+                        bo_po_amount: self.data.bo_po_amount,
+                        bo_net_amount: self.data.bo_net_amount,
+                        bo_amount: self.data.bo_amount,
 
                     }
                 ).then(function(response) {
@@ -219,5 +220,5 @@ app.component('activityVerificationView', {
             }
         });
     }
-    
+
 });

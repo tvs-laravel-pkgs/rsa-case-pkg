@@ -41,6 +41,7 @@ class ActivityController extends Controller {
 		$activities = Activity::select(
 			'activities.id',
 			'activities.crm_activity_id',
+			'activities.number as activity_number',
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			'cases.number',
 			'asps.asp_code',
@@ -134,6 +135,7 @@ class ActivityController extends Controller {
 		$activities = Activity::select(
 			'activities.id',
 			'activities.crm_activity_id',
+			'activities.number as activity_number',
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			'cases.number',
 			'asps.asp_code',
@@ -753,7 +755,7 @@ class ActivityController extends Controller {
 			->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
 			->where('users.id', Auth::id())
-			->where('activities.id', 7) //BO Rejected - Waiting for ASP Data Re-Entry
+			->where('activities.status_id', 7) //BO Rejected - Waiting for ASP Data Re-Entry
 		;
 
 		if ($request->get('ticket_date')) {
@@ -843,7 +845,7 @@ class ActivityController extends Controller {
 			->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
 			->where('users.id', Auth::id())
-			->where('activities.id', 11) //BO Approved - Waiting for Invoice Generation by ASP
+			->where('activities.status_id', 11) //BO Approved - Waiting for Invoice Generation by ASP
 		;
 
 		if ($request->get('ticket_date')) {

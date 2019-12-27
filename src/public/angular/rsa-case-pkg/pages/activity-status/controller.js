@@ -16,6 +16,7 @@ app.component('activityStatusList', {
                 { data: 'number', name: 'cases.number', searchable: true },
                 { data: 'asp_code', name: 'asps.asp_code', searchable: true },
                 { data: 'crm_activity_id', searchable: false },
+                { data: 'activity_number', name: 'activities.number', searchable: true },
                 { data: 'sub_service', name: 'service_types.name', searchable: true },
                 { data: 'finance_status', name: 'activity_finance_statuses.name', searchable: true },
                 // { data: 'asp_status', name: 'activity_asp_statuses.name', searchable: true },
@@ -160,7 +161,7 @@ app.component('activityStatusView', {
         var self = this;
         self.hasPermission = HelperService.hasPermission;
         self.filter_img_url = filter_img_url;
-       // self.style_dot_image_url = style_dot_image_url;
+        // self.style_dot_image_url = style_dot_image_url;
         get_view_data_url = typeof($routeParams.id) == 'undefined' ? activity_status_view_data_url + '/' : activity_status_view_data_url + '/' + $routeParams.view_type_id + '/view/' + $routeParams.id;
         $http.get(
             get_view_data_url
@@ -197,11 +198,11 @@ app.component('activityStatusView', {
             self.data.verification = 0;
 
             console.log(self.data);
-             $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();   
-    $('.viewData-toggle--btn').click(function(){
-        $(this).toggleClass('viewData-toggle--btn_reverse');
-        $('.viewData-toggle--inner .viewData-threeColumn--wrapper').slideToggle();
-    });
+            $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
+            $('.viewData-toggle--btn').click(function() {
+                $(this).toggleClass('viewData-toggle--btn_reverse');
+                $('.viewData-toggle--inner .viewData-threeColumn--wrapper').slideToggle();
+            });
             $rootScope.loading = false;
         });
 

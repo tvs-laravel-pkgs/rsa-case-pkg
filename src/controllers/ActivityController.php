@@ -753,7 +753,7 @@ class ActivityController extends Controller {
 			->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
 			->where('users.id', Auth::id())
-			->where('activity_portal_statuses.id', 7) //BO Rejected - Waiting for ASP Data Re-Entry
+			->where('activities.id', 7) //BO Rejected - Waiting for ASP Data Re-Entry
 		;
 
 		if ($request->get('ticket_date')) {
@@ -843,7 +843,7 @@ class ActivityController extends Controller {
 			->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
 			->where('users.id', Auth::id())
-			->where('activity_portal_statuses.id', 11) //BO Approved - Waiting for Invoice Generation by ASP
+			->where('activities.id', 11) //BO Approved - Waiting for Invoice Generation by ASP
 		;
 
 		if ($request->get('ticket_date')) {

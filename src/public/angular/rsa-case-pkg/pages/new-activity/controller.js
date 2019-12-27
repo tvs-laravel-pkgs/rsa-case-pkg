@@ -251,7 +251,7 @@ app.component('newActivityUpdateDetails', {
             },
             submitHandler: function(form) {
                 bootbox.confirm({
-                    message: 'Do you want to save ticket details?',
+                    message: 'Do you want to save activity details?',
                     className: 'action-confirm-modal',
                     buttons: {
                         confirm: {

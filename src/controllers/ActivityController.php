@@ -323,37 +323,50 @@ class ActivityController extends Controller {
 	}
 
 	public function approveActivity(Request $request) {
-		//dd($request->all());
+		// dd($requestest->all());
 		//dd('dd');
 		DB::beginTransaction();
 		try {
-			$activty = Activity::findOrFail($request->activity_id);
-			if (!$activty) {
-				$this->data['success'] = true;
-				$this->data['errors'][] = 'Activity not found.';
-				return response()->json(['data' => $this->data]);
+			$activity = Activity::findOrFail($request->activity_id);
+			if (!$activity) {
+				return response()->json([
+					'success' => false,
+					'errors' => ['Activity not found'],
+				]);
+			}
+
+			$asp_km_travelled = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 154]])->first();
+			if (!$asp_km_travelled) {
+				return response()->json([
+					'success' => false,
+					'errors' => ['Activity ASP KM not found'],
+				]);
 			}
 
 			//CHECK BO KM > ASP KM
-			/*if ($request->bo_km_travelled > $activty->asp_km) {
-				return redirect()->back()->with(['error' => 'Final KM should be less than or equal to ASP KM']);
-			}*/
+			if ($request->bo_km_travelled > $asp_km_travelled) {
+				return response()->json([
+					'success' => false,
+					'errors' => ['Final KM should be less than or equal to ASP KM'],
+				]);
+			}
+
 			//old code to clarify
-			/*if ($activty->is_self) {
-				$activty->flow_current_status = "Waiting for Invoice Generation";
+			/*if ($activity->is_self) {
+				$activity->flow_current_status = "Waiting for Invoice Generation";
 			} else {
-				$activty->flow_current_status = "Waiting for Invoice Generation";
+				$activity->flow_current_status = "Waiting for Invoice Generation";
 			}*/
 			//on hold
 			/*if (!empty($request->is_exceptional_check)) {
-				$activty->is_exceptional = $request->is_exceptional_check;
-				$activty->exceptional_reason = $request->exceptional_reason_check;
+				$activity->is_exceptional = $request->is_exceptional_check;
+				$activity->exceptional_reason = $request->exceptional_reason_check;
 			}*/
 
 			//calculaing mis invoice amount
 
 			//dd($payout);
-			// $prices = getKMPrices($service, $activty->asp, $activty);
+			// $prices = getKMPrices($service, $activity->asp, $activity);
 			// if($prices['success']){
 			//     $payout = calculatePayout($prices['asp_service_price'],$km_travelled);
 			// }else{
@@ -369,46 +382,48 @@ class ActivityController extends Controller {
 				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $request->activity_id, 'key_id' => $keyw, 'company_id' => 1], ['value' => $value]);
 			}
 
-			$activty->status_id = 11;
-			//$activty->is_exceptional = $request->is_exceptional_check;
-			//$activty->exceptional_reason = empty($request->is_exceptional_check) ? '' : $request->exceptional_reason_check;
-			$activty->save();
+			$activity->status_id = 11;
+			//$activity->is_exceptional = $request->is_exceptional_check;
+			//$activity->exceptional_reason = empty($request->is_exceptional_check) ? '' : $request->exceptional_reason_check;
+			$activity->save();
 			$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_DEFERRED');
 			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_APPROVED');
-			logActivity2(config('constants.entity_types.ticket'), $activty->id, [
+			logActivity2(config('constants.entity_types.ticket'), $activity->id, [
 				'Status' => $log_status,
 				'Waiting for' => $log_waiting,
 
 			]);
 
 			//sending confirmation SMS to ASP
-			// $mobile_number = $activty->asp->contact_number1;
+			// $mobile_number = $activity->asp->contact_number1;
 			// $sms_message = 'BO_APPROVED';
-			// sendSMS2($sms_message,$mobile_number,$activty->number);
+			// sendSMS2($sms_message,$mobile_number,$activity->number);
 
-			$mobile_number = $activty->asp->contact_number1;
+			$mobile_number = $activity->asp->contact_number1;
 			$sms_message = 'BO_APPROVED';
-			$array = [$activty->number];
+			$array = [$activity->number];
 			// sendSMS2($sms_message, $mobile_number, $array);
 
 			//sending notification to all BO users
-			$asp_user = $activty->asp->user_id;
+			$asp_user = $activity->asp->user_id;
 			$noty_message_template = 'BO_APPROVED';
-			$number = [$activty->number];
+			$number = [$activity->number];
 			notify2($noty_message_template, $asp_user, config('constants.alert_type.blue'), $number);
 
 			DB::commit();
-			$this->data['success'] = true;
-			$this->data['message'] = 'Activity approved successfully.';
-			return response()->json(['data' => $this->data]);
+			return response()->json([
+				'success' => true,
+				'message' => 'Activity approved successfully.',
+			]);
 
 		} catch (\Exception $e) {
 			DB::rollBack();
 			dd($e);
 			$message = ['error' => $e->getMessage()];
-			$this->data['success'] = false;
-			$this->data['message'] = 'Activity deferred to ASP successfully.';
-			return response()->json(['data' => $this->data]);
+			return response()->json([
+				'success' => false,
+				'errors' => ['Activity deferred to ASP successfully.'],
+			]);
 
 		}
 	}
@@ -444,9 +459,10 @@ class ActivityController extends Controller {
 			notify2($noty_message_template, $asp_user, config('constants.alert_type.red'), $number);
 
 			DB::commit();
-			$this->data['success'] = true;
-			$this->data['message'] = 'Activity deferred successfully.';
-			return response()->json(['data' => $this->data]);
+			return response()->json([
+				'success' => true,
+				'message' => 'Activity deferred successfully.',
+			]);
 
 			//return redirect()->route('boActivitys')->with(['success' => 'Ticket deferred to ASP successfully.']);
 
@@ -500,53 +516,35 @@ class ActivityController extends Controller {
 		}
 
 	}
-	public function activityGetFormData($id = NULL) {
-		//dd($id);
-		$this->data['service_types'] = Asp::where('user_id', Auth::id())->join('asp_service_types', 'asp_service_types.asp_id', '=', 'asps.id')->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')->select('service_types.name', 'asp_service_types.service_type_id as id')->get();
-		$this->data['activity'] = $activity = Activity::findOrFail($id);
-		$km_travelled = DB::table('activity_details')->where([['activity_id', '=', $activity->id], ['key_id', '=', 154]])->first();
-		$other_charge = DB::table('activity_details')->where([['activity_id', '=', $activity->id], ['key_id', '=', 156]])->first();
-		$asp_collected_charges = DB::table('activity_details')->where([['activity_id', '=', $activity->id], ['key_id', '=', 155]])->first();
-		$this->data['asp_collected_charges'] = $asp_collected_charges->value;
-		$this->data['other_charge'] = $other_charge->value;
-		$this->data['km_travelled'] = $km_travelled->value;
-		$this->data['for_deffer_activity'] = 0;
-
-		$range_limit = "";
-		$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();
-		if ($aspServiceType) {
-			$range_limit = $aspServiceType->range_limit;
-		}
-		$this->data['range_limit'] = $range_limit;
-		$this->data['km_attachment'] = Attachment::where('entity_type', '=', config('constants.entity_types.ASP_KM_ATTACHMENT'))
-			->where('entity_id', '=', $activity->id)
-			->select('id', 'attachment_file_name')->get();
-		$this->data['other_attachment'] = Attachment::where('entity_type', '=', config('constants.entity_types.ASP_OTHER_ATTACHMENT'))
-			->where('entity_id', '=', $activity->id)
-			->select('id', 'attachment_file_name')->get();
-
+	public function activityNewGetFormData($id = NULL) {
+		$for_deffer_activity = 0;
+		$this->data = Activity::getFormData($id, $for_deffer_activity);
 		return response()->json($this->data);
 	}
 
-	public function saveNewActitvity(Request $request) {
-		$activity = Activity::findOrFail($request->activity_id);
+	public function updateActitvity(Request $request) {
+		// dd($request->all());
 		DB::beginTransaction();
 		try {
-			//$modal = $request->modal;
+			$activity = Activity::findOrFail($request->activity_id);
+			if (!$activity) {
+				return response()->json([
+					'success' => false,
+					'errors' => ['Activity not found'],
+				]);
+			}
+
 			$range_limit = "";
-			//dd($activity,$request->all());
-			Attachment::where('entity_id', $activity->id)->where('entity_type', config('constants.entity_types.ASP_KM_ATTACHMENT'))->delete();
-			Attachment::where('entity_id', $activity->id)->where('entity_type', config('constants.entity_types.ASP_OTHER_ATTACHMENT'))->delete();
 
-			/*if (!empty($request->update_attach_map_id)) {
+			if (!empty($request->update_attach_map_id)) {
+				$update_attach_km_map_ids = json_decode($request->update_attach_km_map_id, true);
+				Attachment::whereIn('id', $update_attach_km_map_ids)->delete();
+			}
+			if (!empty($request->update_attach_other_id)) {
+				$update_attach_other_ids = json_decode($request->update_attach_other_id, true);
+				Attachment::whereIn('id', $update_attach_other_ids)->delete();
+			}
 
-					Attachment::whereIn('id', $request->update_attach_map_id)->delete();
-				}
-
-				if (!empty($request->update_attach_other_id)) {
-					Attachment::whereIn('id', $request->update_attach_other_id)->delete();
-			*/
-			// dd("1");
 			$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();
 			if ($aspServiceType) {
 				$range_limit = $aspServiceType->range_limit;
@@ -619,8 +617,11 @@ class ActivityController extends Controller {
 				if ($asp_km > $mis_km) {
 					$km_difference = $asp_km - $mis_km;
 					if ($km_difference > $five_percentage_difference) {
-						if (empty($request->map_attachment)) {
-							return redirect()->back()->with(['error' => 'Please attach google map screenshot']);
+						if (!isset($request->km_attachment_exist) && empty($request->map_attachment)) {
+							return response()->json([
+								'success' => false,
+								'errors' => ['Please attach google map screenshot'],
+							]);
 						}
 						$is_bulk = false;
 
@@ -639,11 +640,17 @@ class ActivityController extends Controller {
 				$is_bulk = false;
 
 				//$for_delete_old_other_attachment = 0;
-				if (empty($request->other_attachment)) {
-					return redirect()->back()->with(['error' => 'Please attach other Attachment']);
+				if (!isset($request->other_attachment_exist) && empty($request->other_attachment)) {
+					return response()->json([
+						'success' => false,
+						'errors' => ['Please attach other Attachment'],
+					]);
 				}
 				if (empty($request->remarks_not_collected)) {
-					return redirect()->back()->with(['error' => 'Please enter remarks comments for not collected']);
+					return response()->json([
+						'success' => false,
+						'errors' => ['Please enter remarks comments for not collected'],
+					]);
 				}
 			}
 
@@ -664,6 +671,7 @@ class ActivityController extends Controller {
 
 			$activity->service_type_id = $request->asp_service_type_id ? $request->asp_service_type_id : $activity->service_type_id;
 			$asp_key_ids = [
+				157 => $request->asp_service_type_id,
 				154 => $request->km_travelled,
 				156 => $request->other_charge,
 				155 => $request->asp_collected_charges,
@@ -796,6 +804,12 @@ class ActivityController extends Controller {
 				return $action;
 			})
 			->make(true);
+	}
+
+	public function activityDeferredGetFormData($id = NULL) {
+		$for_deffer_activity = 1;
+		$this->data = Activity::getFormData($id, $for_deffer_activity);
+		return response()->json($this->data);
 	}
 
 	public function getApprovedList(Request $request) {

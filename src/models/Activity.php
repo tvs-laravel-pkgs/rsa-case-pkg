@@ -3,8 +3,13 @@
 namespace Abs\RsaCasePkg;
 
 use Abs\HelperPkg\Traits\SeederTrait;
+use Abs\RsaCasePkg\ActivityDetail;
+use App\Asp;
+use App\AspServiceType;
+use App\Attachment;
 use App\Company;
 use App\Config;
+use Auth;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -114,6 +119,90 @@ class Activity extends Model {
 		return $this->belongsTo('App\User', 'deleted_by_id');
 	}
 
+	public static function getFormData($id = NULL, $for_deffer_activity) {
+		$data = [];
+
+		$data['activity'] = $activity = self::findOrFail($id);
+		$data['service_types'] = Asp::where('user_id', Auth::id())
+			->join('asp_service_types', 'asp_service_types.asp_id', '=', 'asps.id')
+			->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')
+			->select('service_types.name', 'asp_service_types.service_type_id as id')
+			->get();
+		if ($for_deffer_activity) {
+			$asp_km_travelled = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 154]])->first();
+			if (!$asp_km_travelled) {
+				return $data = [
+					'success' => false,
+					'error' => 'Activity ASP KM not found',
+				];
+			}
+			$asp_other_charge = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 156]])->first();
+			if (!$asp_other_charge) {
+				return $data = [
+					'success' => false,
+					'error' => 'Activity ASP other charges not found',
+				];
+			}
+
+			$asp_collected_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 155]])->first();
+			if (!$asp_collected_charges) {
+				return $data = [
+					'success' => false,
+					'error' => 'Activity ASP collected charges not found',
+				];
+			}
+
+			$data['asp_collected_charges'] = $asp_collected_charges->value;
+			$data['asp_other_charge'] = $asp_other_charge->value;
+			$data['asp_km_travelled'] = $asp_km_travelled->value;
+		}
+
+		$cc_km_travelled = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 280]])->first();
+		if (!$cc_km_travelled) {
+			return $data = [
+				'success' => false,
+				'error' => 'Activity CC KM not found',
+			];
+		}
+		$cc_other_charge = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 282]])->first();
+		if (!$cc_other_charge) {
+			return $data = [
+				'success' => false,
+				'error' => 'Activity CC other charges not found',
+			];
+		}
+		$cc_collected_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 281]])->first();
+		if (!$cc_collected_charges) {
+			return $data = [
+				'success' => false,
+				'error' => 'Activity CC collected charges not found',
+			];
+		}
+
+		$data['cc_collected_charges'] = $cc_collected_charges->value;
+		$data['cc_other_charge'] = $cc_other_charge->value;
+		$data['cc_km_travelled'] = $cc_km_travelled->value;
+
+		$range_limit = "";
+		$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
+			->where('service_type_id', $activity->service_type_id)
+			->first();
+		if ($aspServiceType) {
+			$range_limit = $aspServiceType->range_limit;
+		}
+		$data['range_limit'] = $range_limit;
+		$data['km_attachment'] = Attachment::where('entity_type', '=', config('constants.entity_types.ASP_KM_ATTACHMENT'))
+			->where('entity_id', '=', $activity->id)
+			->select('id', 'attachment_file_name')
+			->get();
+		$data['other_attachment'] = Attachment::where('entity_type', '=', config('constants.entity_types.ASP_OTHER_ATTACHMENT'))
+			->where('entity_id', '=', $activity->id)
+			->select('id', 'attachment_file_name')
+			->get();
+		$data['success'] = true;
+		return $data;
+	}
+
 	public static function createFromObject($record_data) {
 
 		$errors = [];
@@ -192,13 +281,13 @@ class Activity extends Model {
 			$asp_service_type->value = $this->serviceType->name;
 			$asp_service_type->save();
 
-			$bo_service_type = ActivityDetail::firstOrNew([
-				'company_id' => 1,
-				'activity_id' => $this->id,
-				'key_id' => 161,
-			]);
-			$bo_service_type->value = $this->serviceType->name;
-			$bo_service_type->save();
+			// $bo_service_type = ActivityDetail::firstOrNew([
+			// 	'company_id' => 1,
+			// 	'activity_id' => $this->id,
+			// 	'key_id' => 161,
+			// ]);
+			// $bo_service_type->value = $this->serviceType->name;
+			// $bo_service_type->save();
 
 			$asp_km_travelled = ActivityDetail::firstOrNew([
 				'company_id' => 1,
@@ -208,13 +297,13 @@ class Activity extends Model {
 			$asp_km_travelled->value = $total_km;
 			$asp_km_travelled->save();
 
-			$bo_km_travelled = ActivityDetail::firstOrNew([
-				'company_id' => 1,
-				'activity_id' => $this->id,
-				'key_id' => 158,
-			]);
-			$bo_km_travelled->value = $total_km;
-			$bo_km_travelled->save();
+			// $bo_km_travelled = ActivityDetail::firstOrNew([
+			// 	'company_id' => 1,
+			// 	'activity_id' => $this->id,
+			// 	'key_id' => 158,
+			// ]);
+			// $bo_km_travelled->value = $total_km;
+			// $bo_km_travelled->save();
 
 			$asp_collected = ActivityDetail::firstOrNew([
 				'company_id' => 1,
@@ -224,13 +313,13 @@ class Activity extends Model {
 			$asp_collected->value = $collected;
 			$asp_collected->save();
 
-			$bo_collected = ActivityDetail::firstOrNew([
-				'company_id' => 1,
-				'activity_id' => $this->id,
-				'key_id' => 159,
-			]);
-			$bo_collected->value = $collected;
-			$bo_collected->save();
+			// $bo_collected = ActivityDetail::firstOrNew([
+			// 	'company_id' => 1,
+			// 	'activity_id' => $this->id,
+			// 	'key_id' => 159,
+			// ]);
+			// $bo_collected->value = $collected;
+			// $bo_collected->save();
 
 			$asp_not_collected = ActivityDetail::firstOrNew([
 				'company_id' => 1,
@@ -240,13 +329,13 @@ class Activity extends Model {
 			$asp_not_collected->value = $not_collected;
 			$asp_not_collected->save();
 
-			$bo_not_collected = ActivityDetail::firstOrNew([
-				'company_id' => 1,
-				'activity_id' => $this->id,
-				'key_id' => 160,
-			]);
-			$bo_not_collected->value = $not_collected;
-			$bo_not_collected->save();
+			// $bo_not_collected = ActivityDetail::firstOrNew([
+			// 	'company_id' => 1,
+			// 	'activity_id' => $this->id,
+			// 	'key_id' => 160,
+			// ]);
+			// $bo_not_collected->value = $not_collected;
+			// $bo_not_collected->save();
 
 			$cc_km_charge = ActivityDetail::firstOrNew([
 				'company_id' => 1,
@@ -292,13 +381,13 @@ class Activity extends Model {
 			$asp_po_amount->value = $payout_amount;
 			$asp_po_amount->save();
 
-			$bo_po_amount = ActivityDetail::firstOrNew([
-				'company_id' => 1,
-				'activity_id' => $this->id,
-				'key_id' => 172,
-			]);
-			$bo_po_amount->value = $payout_amount;
-			$bo_po_amount->save();
+			// $bo_po_amount = ActivityDetail::firstOrNew([
+			// 	'company_id' => 1,
+			// 	'activity_id' => $this->id,
+			// 	'key_id' => 172,
+			// ]);
+			// $bo_po_amount->value = $payout_amount;
+			// $bo_po_amount->save();
 
 			$asp_net_amount = ActivityDetail::firstOrNew([
 				'company_id' => 1,
@@ -308,13 +397,13 @@ class Activity extends Model {
 			$asp_net_amount->value = $net_amount;
 			$asp_net_amount->save();
 
-			$bo_net_amount = ActivityDetail::firstOrNew([
-				'company_id' => 1,
-				'activity_id' => $this->id,
-				'key_id' => 176,
-			]);
-			$bo_net_amount->value = $net_amount;
-			$bo_net_amount->save();
+			// $bo_net_amount = ActivityDetail::firstOrNew([
+			// 	'company_id' => 1,
+			// 	'activity_id' => $this->id,
+			// 	'key_id' => 176,
+			// ]);
+			// $bo_net_amount->value = $net_amount;
+			// $bo_net_amount->save();
 
 			$asp_invoice_amount = ActivityDetail::firstOrNew([
 				'company_id' => 1,
@@ -324,13 +413,13 @@ class Activity extends Model {
 			$asp_invoice_amount->value = $invoice_amount;
 			$asp_invoice_amount->save();
 
-			$bo_invoice_amount = ActivityDetail::firstOrNew([
-				'company_id' => 1,
-				'activity_id' => $this->id,
-				'key_id' => 182,
-			]);
-			$bo_invoice_amount->value = $invoice_amount;
-			$bo_invoice_amount->save();
+			// $bo_invoice_amount = ActivityDetail::firstOrNew([
+			// 	'company_id' => 1,
+			// 	'activity_id' => $this->id,
+			// 	'key_id' => 182,
+			// ]);
+			// $bo_invoice_amount->value = $invoice_amount;
+			// $bo_invoice_amount->save();
 
 			return [
 				'success' => true,

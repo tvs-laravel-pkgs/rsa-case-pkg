@@ -72,15 +72,30 @@ app.component('newActivityUpdateDetails', {
         $http.get(
             $form_data_url
         ).then(function(response) {
-            console.log(response.data);
-            console.log(response.data.activity.id);
+            if (!response.data.success) {
+                $noty = new Noty({
+                    type: 'error',
+                    layout: 'topRight',
+                    text: response.data.error,
+                    animation: {
+                        speed: 500 // unavailable - no need
+                    },
+                }).show();
+                setTimeout(function() {
+                    $noty.close();
+                }, 1000);
+                $location.path('/rsa-case-pkg/new-activity')
+                $scope.$apply()
+                return;
+            }
+
             self.service_types_list = response.data.service_types;
             self.for_deffer_activity = response.data.for_deffer_activity;
             //self.actual_km = response.data.activity.total_km;
             self.activity = response.data.activity;
-            self.unpaid_amount = response.data.other_charge;
-            self.actual_km = response.data.km_travelled;
-            self.collected_charges = response.data.asp_collected_charges;
+            self.unpaid_amount = response.data.cc_other_charge;
+            self.actual_km = response.data.cc_km_travelled;
+            self.collected_charges = response.data.cc_collected_charges;
             //self.data.unpaid_amount = response.data.activity.unpaid_amount;
             self.service_type_id = response.data.activity.service_type_id;
             self.range_limit = response.data.range_limit;
@@ -269,7 +284,7 @@ app.component('newActivityUpdateDetails', {
                             let formData = new FormData($(form_id)[0]);
                             //$('#submit').button('loading');
                             $.ajax({
-                                    url: laravel_routes['saveNewActitvity'],
+                                    url: laravel_routes['updateActitvity'],
                                     method: "POST",
                                     data: formData,
                                     processData: false,

@@ -12,14 +12,18 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	Route::get('/activity-status/get-list', 'ActivityController@getList')->name('getActivityStatusList');
 	Route::get('/activity-status/delete/{id}', 'ActivityController@delete')->name('deleteActivity');
 	Route::get('/activity-status/{view_type_id?}/view/{activity_status_id?}', 'ActivityController@viewActivityStatus')->name('viewActivityStatus');
-	Route::get('/new-activity/get-form-data/{id?}', 'ActivityController@activityGetFormData')->name('activityGetFormData');
-	Route::post('asp/activity/verify', 'ActivityController@verifyActivity')->name('verifyActivity');
-		Route::post('asp/activity/save', 'ActivityController@saveNewActitvity')->name('saveNewActitvity');
 
+	//ASP NEW ACTIVITY
+	Route::get('/new-activity/get-form-data/{id?}', 'ActivityController@activityNewGetFormData')->name('activityNewGetFormData');
+	Route::post('asp/activity/verify', 'ActivityController@verifyActivity')->name('verifyActivity');
 
 	//ACTIVITY DEFERRED
 	Route::get('/activity-deferred/get-filter-data', 'ActivityController@getFilterData')->name('getActivityDeferredFilterData');
 	Route::get('/activity-deferred/get-list', 'ActivityController@getDeferredList')->name('getActivityDeferredList');
+	Route::get('/deferred-activity/get-form-data/{id?}', 'ActivityController@activityDeferredGetFormData')->name('activityDeferredGetFormData');
+	// Route::post('asp/activity-deferred/save', 'ActivityController@saveActitvity')->name('saveDeferredActitvity');
+
+	Route::post('asp/activity/update', 'ActivityController@updateActitvity')->name('updateActitvity');
 
 	//ACTIVITY APPROVED
 	Route::get('/activity-approved/get-filter-data', 'ActivityController@getFilterData')->name('getActivityApprovedFilterData');

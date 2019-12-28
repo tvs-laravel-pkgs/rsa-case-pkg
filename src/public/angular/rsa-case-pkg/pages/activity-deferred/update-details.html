@@ -1,0 +1,134 @@
+<div class="col-xs-12 col-sm-12">
+    <div class="mobile-breadcrumbs-wrapper">
+        <ul class="mobile-breadcrumbs-group list-inline">
+            <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
+            <li><a href="#">Activities</a></li>
+            <li><a href="#!/rsa-case-pkg/deferred-activity/list">Deferred</a></li>
+        </ul>
+    </div>
+</div>
+<div class="container-fluid asp_for_find">
+    <div class="dataTable-content--wrapper">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12">
+                <div class="row">
+                    <div class="col-xs-12 col-sm-12">
+                        <div class="dataTable--left_wrapper">
+                            <h2 class="dataTable-title customForm-title">Update Details</h2>
+                        </div>
+                    </div>
+                </div>
+                <form id="activity-deferred-form" enctype="multipart-formdata">
+                    <input type="hidden" name="activity_id" class="activity_id" value="{{$ctrl.activity.id}}" ng-model="$ctrl.activity_id">
+                    <input type="hidden" name="for_differ_km" class="for_differ_km" value='1' ng-model="$ctrl.for_differ_km">
+                    <input type="hidden" name="for_differ_other" class="for_differ_other" value='0' ng-model="$ctrl.for_differ_other">
+                    <input type="hidden" name="range_limit" class="service_range_limit" value="<%$ctrl.range_limit%>" ng-model="$ctrl.range_limit">
+                    <input type="hidden" name="for_update_deferred" value="<%$ctrl.for_deffer_activity%>" ng-model="$ctrl.for_deffer_activity">
+                    <input type="hidden" name="modal" value="no">
+                    <!-- Defer ticket update hidden values-->
+                    <div class="defer_hidden"></div>
+                    <input type='hidden' name='update_attach_other_id' id="update_attach_other_id" value="">
+                    <input type='hidden' name='update_attach_km_map_id' id="update_attach_km_map_id" value="">
+                    <div class="alert alert-danger" style="display: none;"></div>
+                    <div class="customTab-content">
+                        <div class="customForm-wrapper">
+                            <div class="row">
+                                <input type="hidden" class="cc_actual_km" value="<%$ctrl.cc_actual_km%>">
+                                <input type="hidden" class="cc_not_collected" value="<%$ctrl.cc_not_collected%>">
+                                <div class="col-sm-3">
+                                    <div class="input-text form-group">
+                                        <label>KM Travelled</label>
+                                        <input type="number" name="km_travelled" class="km_travel form-control customForm-input" ng-model="$ctrl.asp_km_travelled" autocomplete='off' oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                    </div><!-- Field -->
+                                </div><!-- Column -->
+                                <div class="col-sm-3">
+                                    <div class="input-text form-group">
+                                        <label>Other charges (Not Collected)</label>
+                                        <input type="number" class="form-control other_charge customForm-input" name="other_charge" pattern="[0-9]*" ng-model="$ctrl.asp_other_charge" autocomplete='off' oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                    </div><!-- Field -->
+                                </div><!-- Column -->
+                                <div class="col-sm-3">
+                                    <div class="input-text form-group">
+                                        <label>Collected amount from Customer</label>
+                                        <input type="number" class="form-control asp_collected_charges customForm-input" name="asp_collected_charges" autocomplete='off' ng-model="$ctrl.asp_collected_charges" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                    </div><!-- Field -->
+                                </div><!-- Column -->
+                                <div class="col-sm-3">
+                                    <div class="input-text form-group">
+                                        <label>Services</label>
+                                        <md-select ng-model="$ctrl.service_type_id">
+                                            <md-option ng-repeat="val in $ctrl.service_types_list" value="<% val.id %>">
+                                                <% val.name %>
+                                            </md-option>
+                                        </md-select>
+                                        <input type="hidden" name="asp_service_type_id" value="<% $ctrl.service_type_id %>" class="required">
+                                    </div><!-- Field -->
+                                </div><!-- Column -->
+                                <div class="col-sm-3 remarks_notcollected" style="display: none;">
+                                    <div class="input-text form-group">
+                                        <label>Remarks for Charges Not Collected</label>
+                                        <textarea class="form-control remarks_not_collected" rows="1" name="remarks_not_collected" ng-model="$ctrl.remarks_not_collected" autocomplete='off'></textarea>
+                                    </div><!-- Field -->
+                                </div>
+                                <div class="col-sm-3 other_attachment" style="display: none;">
+                                    <div class="input-text form-group">
+                                        <label>Other Attachment</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" readonly placeholder="Select File">
+                                            <span class="errorfile">This File is Required</span>
+                                            <span class="input-group-btn">
+                                                <span class="btn btn-file">
+                                                    Browse
+                                                    <input name="other_attachment[]" type="file" multiple="multiple" class="form-control other_attachment_data" autocomplete='off' ng-model="$ctrl.other_attachment" />
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div class="other_after"></div>
+                                        <div ng-repeat="(index, other_attach) in $ctrl.other_attachment">
+                                            {{ other_attach.attachment_file_name }}
+                                            <button class='close_other' id="{{other_attach.id}}" type='button' ng-click="$ctrl.closeOtherAttach(index, other_attach.id)">X</button>
+                                        </div>
+                                        <input ng-if="$ctrl.other_attachment.length > 0" type="hidden" name="other_attachment_exist" value="1">
+                                    </div><!-- Field -->
+                                </div><!-- Column -->
+                                <div class="col-sm-3 map_attachment" style="display: none;">
+                                    <div class="input-text form-group">
+                                        <label>Map Attachment</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" readonly placeholder="Select File">
+                                            <span class="input-group-btn">
+                                                <span class="btn btn-file">
+                                                    Browse
+                                                    <input name="map_attachment[]" type="file" multiple="multiple" class="form-control map_attachment_data" autocomplete='off' ng-model="$ctrl.map_attachment" />
+                                                </span>
+                                            </span>
+                                        </div>
+                                    </div><!-- Field -->
+                                    <div class="map_after"></div>
+                                    <div ng-repeat="(index, km_attach) in $ctrl.km_attachment">
+                                        {{ km_attach.attachment_file_name }}
+                                        <button class='close_map' id="{{km_attach.id}}" ng-click="$ctrl.closeKmMapAttach(index,km_attach.id)" type='button'>X</button>
+                                    </div>
+                                    <a href="https://www.google.com/maps" class="blue" target="_blank">GO TO GOOGLE MAP</a>
+                                    <input ng-if="$ctrl.km_attachment.length > 0" type="hidden" name="km_attachment_exist" value="1">
+                                </div><!-- Column -->
+                                <!-- Map Attachement -->
+                                <div class="col-sm-3 resolve_comment" ng-if="$ctrl.for_deffer_activity">
+                                    <div class="input-text form-group">
+                                        <label>Resolve Comments</label>
+                                        <textarea name="comments" class="comments form-control" autocomplete='off' ng-model="$ctrl.comments"></textarea>
+                                    </div><!-- Field -->
+                                </div><!-- Column -->
+                                <div class="col-xs-12 col-sm-12">
+                                    <div class="form-group">
+                                        <button type="submit" class="btn btn-primary customForm-btn">Submit</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

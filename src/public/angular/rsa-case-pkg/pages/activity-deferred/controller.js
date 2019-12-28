@@ -112,127 +112,175 @@ app.component('deferredActivityList', {
 //------------------------------------------------------------------------------------------------------------------------
 
 app.component('deferredActivityUpdate', {
-    templateUrl: asp_new_ticket_update_details_template_url,
+    templateUrl: asp_activity_deferred_update_details_template_url,
     controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope) {
 
-        $form_data_url = typeof($routeParams.id) == 'undefined' ? get_ticket_form_data_url : get_ticket_form_data_url + '/' + $routeParams.id;
+        $form_data_url = typeof($routeParams.id) == 'undefined' ? get_deferred_activity_form_data_url : get_deferred_activity_form_data_url + '/' + $routeParams.id;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
         self.angular_routes = angular_routes;
 
+        var update_attach_other_id = [];
+        var update_attach_km_map_id = [];
+
         $http.get(
             $form_data_url
         ).then(function(response) {
-            console.log(response.data);
-            self.service_types_list = response.data.service_types;
-            self.for_deffer_ticket = response.data.for_deffer_ticket;
-            self.actual_km = response.data.mis_info.total_km;
-            self.mis_id = response.data.mis_info.id;
-            self.unpaid_amount = response.data.mis_info.unpaid_amount;
-            self.service_type_id = response.data.mis_info.service_type_id;
-            self.range_limit = response.data.range_limit;
-            $rootScope.loading = false;
-            // console.log(self.for_deffer_ticket);
-            if (self.for_deffer_ticket != '') {
-                $('.resolve_comment').show();
-            } else {
-                $('.resolve_comment').hide();
+            if (!response.data.success) {
+                $noty = new Noty({
+                    type: 'error',
+                    layout: 'topRight',
+                    text: response.data.error,
+                    animation: {
+                        speed: 500 // unavailable - no need
+                    },
+                }).show();
+                setTimeout(function() {
+                    $noty.close();
+                }, 1000);
+                $location.path('/rsa-case-pkg/deferred-activity/list')
+                $scope.$apply()
+                return;
             }
 
+            self.service_types_list = response.data.service_types;
+            self.for_deffer_activity = response.data.for_deffer_activity;
+            self.activity = response.data.activity;
+            self.cc_collected_charges = parseInt(response.data.cc_collected_charges);
+            self.cc_not_collected = parseInt(response.data.cc_other_charge);
+            self.cc_actual_km = parseInt(response.data.cc_km_travelled);
+            self.asp_other_charge = parseInt(response.data.asp_other_charge);
+            self.asp_collected_charges = parseInt(response.data.asp_collected_charges);
+            self.asp_km_travelled = parseInt(response.data.asp_km_travelled);
+            self.service_type_id = response.data.activity.service_type_id;
+            self.range_limit = response.data.range_limit;
+            self.km_attachment = response.data.km_attachment;
+            self.other_attachment = response.data.other_attachment;
+
+            self.kmTravelledHideShow();
+            self.otherChargeHideShow();
+            $rootScope.loading = false;
         });
 
+        self.closeOtherAttach = function(index, other_attach_id) {
+            if (other_attach_id) {
+                update_attach_other_id.push(other_attach_id);
+                $('#update_attach_other_id').val(JSON.stringify(update_attach_other_id));
+            }
+            self.other_attachment.splice(index, 1);
+        }
 
-        $('body').on('focusout', '.km_travel', function() {
-            var entry_val = parseInt($(this).val());
-            var mis_km = parseInt($(this).parents(".asp_for_find").find(".actual_km").val());
-            var range_limit = $(".service_range_limit").val();
+        self.closeKmMapAttach = function(index, km_attach_id) {
+            if (km_attach_id) {
+                update_attach_km_map_id.push(km_attach_id);
+                $('#update_attach_km_map_id').val(JSON.stringify(update_attach_km_map_id));
+            }
+            self.km_attachment.splice(index, 1);
+        }
 
-            var km_travel = parseInt($(this).parents(".asp_for_find").find(".km_travel").val());
+        self.kmTravelledHideShow = function() {
+            var km_travelled_entered = parseInt(self.asp_km_travelled);
+            var mis_km = parseInt(self.cc_actual_km);
+            var range_limit = self.range_limit;
 
-            if ($.isNumeric(km_travel)) {
-
-                if (entry_val > range_limit || range_limit == "") {
+            if ($.isNumeric(km_travelled_entered)) {
+                if (km_travelled_entered > range_limit || range_limit == "") {
                     var allowed_variation = 0.5;
                     var mis_percentage = mis_km * allowed_variation / 100;
-                    if (entry_val > mis_km) { var per = entry_val - mis_km; }
+                    if (km_travelled_entered > mis_km) {
+                        var per = km_travelled_entered - mis_km;
+                    }
                     var actual_val = Math.round(per - mis_percentage);
-
-                    if (entry_val) {
-                        if (entry_val > mis_km) {
-
+                    if (km_travelled_entered) {
+                        if (km_travelled_entered > mis_km) {
                             if (actual_val >= 1) {
-                                $(this).parents(".asp_for_find").find(".map_attachment").show();
-                                $(this).parents(".asp_for_find").find(".for_differ_km").val(1);
+                                $(".map_attachment").show();
+                                $(".for_differ_km").val(1);
                             } else {
-                                $(this).parents(".asp_for_find").find(".map_attachment").hide();
-                                $(this).parents(".asp_for_find").find(".for_differ_km").val(0);
+                                $(".map_attachment").hide();
+                                $(".for_differ_km").val(0);
                             }
                         } else {
-                            $(this).parents(".asp_for_find").find(".map_attachment").hide();
-                            $(this).parents(".asp_for_find").find(".for_differ_km").val(0);
+                            $(".map_attachment").hide();
+                            $(".for_differ_km").val(0);
                         }
 
                     } else {
-                        $(this).parents(".asp_for_find").find(".map_attachment").hide();
-                        $(this).parents(".asp_for_find").find(".for_differ_km").val(0);
+                        $(".map_attachment").hide();
+                        $(".for_differ_km").val(0);
                     }
-                    // $("#"+ids).after(html);
                 } else {
-                    $(this).parents(".asp_for_find").find(".map_attachment").hide();
-                    $(this).parents(".asp_for_find").find(".for_differ_km").val(0);
+                    $(".map_attachment").hide();
+                    $(".for_differ_km").val(0);
                 }
             } else {
-                $(this).parents(".asp_for_find").find(".km_travel").val("");
+                $(".km_travel").val("");
             }
+        }
 
+        $('body').on('focusout', '.km_travel', function() {
+            self.kmTravelledHideShow();
         });
 
+        self.otherChargeHideShow = function() {
+            var other_charge_entered = parseInt(self.asp_other_charge);
+            var other_charge = parseInt(self.cc_not_collected);
+            if ($.isNumeric(other_charge_entered)) {
+                if (other_charge_entered) {
+                    if (other_charge_entered > other_charge) {
+                        $(".other_attachment").show();
+                        $(".remarks_notcollected").show();
+                        $(".for_differ_other").val(1);
+                    } else {
+                        $(".other_attachment").hide();
+                        $(".remarks_notcollected").hide();
+                        $(".for_differ_other").val(0);
+                    }
+                } else {
+                    $(".other_attachment").hide();
+                    $(".remarks_notcollected").hide();
+                    $(".for_differ_other").val(0);
+                }
+            } else {
+                $(".other_attachment").hide();
+                $(".remarks_notcollected").hide();
+                $(".other_charge").val("");
+            }
+        }
 
         $('body').on('focusout', '.other_charge', function() {
-            var entry_val = parseInt($(this).val());
-            var other_not_collected = parseInt($(this).parents(".asp_for_find").find(".unpaid_amount").val());
-
-            var other_charge = parseInt($(this).parents(".asp_for_find").find(".other_charge").val());
-
-            if ($.isNumeric(other_charge)) {
-
-                if (entry_val) {
-                    if (entry_val > other_not_collected) {
-
-                        $(this).parents(".asp_for_find").find(".other_attachment").show();
-                        $(this).parents(".asp_for_find").find(".remarks_notcollected").show();
-                        $(this).parents(".asp_for_find").find(".for_differ_other").val(1);
-                    } else {
-                        $(this).parents(".asp_for_find").find(".other_attachment").hide();
-                        $(this).parents(".asp_for_find").find(".remarks_notcollected").hide();
-                        $(this).parents(".asp_for_find").find(".for_differ_other").val(0);
-                    }
-
-                } else {
-                    $(this).parents(".asp_for_find").find(".other_attachment").hide();
-                    $(this).parents(".asp_for_find").find(".remarks_notcollected").hide();
-                    $(this).parents(".asp_for_find").find(".for_differ_other").val(0);
-                }
-            }
-            //$("#"+ids).after(html);
-            else {
-                $(this).parents(".asp_for_find").find(".other_attachment").hide();
-                $(this).parents(".asp_for_find").find(".remarks_notcollected").hide();
-                $(this).parents(".asp_for_find").find(".other_charge").val("");
-            }
-
+            self.otherChargeHideShow();
         });
 
 
         $('body').on('focusout', '.asp_collected_charges', function() {
-            var asp_collected_charges = parseInt($(this).parents(".asp_for_find").find(".asp_collected_charges").val());
+            var asp_collected_charges = parseInt(self.asp_collected_charges);
             if (!$.isNumeric(asp_collected_charges)) {
-                $(this).parents(".asp_for_find").find(".asp_collected_charges").val("");
+                $(".asp_collected_charges").val("");
             }
         });
 
+        $.validator.addMethod("check_other_attach", function(number, element) {
+            var other_attached = $(".close_other").attr('id');
+            var other_attaching_now = $(".other_attachment_data").val();
+            if (other_attached) return true;
+            else if (other_attaching_now) return true;
+            else return false;
+            return true;
+        }, 'Please attach other Attachment');
+
+        $.validator.addMethod("check_map_attach", function(number, element) {
+            var map_attached = $(".close_map").attr('id');
+            var map_attaching_now = $(".map_attachment_data").val();
+            if (map_attached) return true;
+            else if (map_attaching_now) return true;
+            else return false;
+            return true;
+        }, 'Please attach google map screenshot');
+
+
         //Jquery Validation
-        var form_id = '#new-tickect-form';
+        var form_id = '#activity-deferred-form';
         var v = jQuery(form_id).validate({
             invalidHandler: function(event, validator) {
                 var errors = validator.numberOfInvalids();
@@ -270,11 +318,13 @@ app.component('deferredActivityUpdate', {
                     number: true
                 },
                 'map_attachment[]': {
-                    required: true,
+                    // required: true,
+                    check_map_attach: true,
                     extension: "jpg|jpeg|png|gif"
                 },
                 'other_attachment[]': {
-                    required: true,
+                    // required: true,
+                    check_other_attach: true,
                     extension: "jpg|jpeg|png|gif"
                 },
             },
@@ -304,7 +354,7 @@ app.component('deferredActivityUpdate', {
             },
             submitHandler: function(form) {
                 bootbox.confirm({
-                    message: 'Do you want to save ticket details?',
+                    message: 'Do you want to save activity details?',
                     className: 'action-confirm-modal',
                     buttons: {
                         confirm: {
@@ -322,21 +372,21 @@ app.component('deferredActivityUpdate', {
                             let formData = new FormData($(form_id)[0]);
                             //$('#submit').button('loading');
                             $.ajax({
-                                    url: laravel_routes['aspSaveTicket'],
+                                    url: laravel_routes['updateActitvity'],
                                     method: "POST",
                                     data: formData,
                                     processData: false,
                                     contentType: false,
                                 })
                                 .done(function(res) {
-                                    console.log(res.errors);
+                                    // console.log(res.errors);
                                     if (!res.success) {
                                         $('#submit').button('reset');
                                         var errors = '';
                                         for (var i in res.errors) {
                                             errors += '<li>' + res.errors[i] + '</li>';
                                         }
-                                        console.log(errors);
+                                        // console.log(errors);
                                         new Noty({
                                             type: 'error',
                                             layout: 'topRight',
@@ -347,10 +397,10 @@ app.component('deferredActivityUpdate', {
                                         new Noty({
                                             type: 'success',
                                             layout: 'topRight',
-                                            text: 'Ticket informations saved successfully',
+                                            text: 'Activity informations saved successfully',
                                         }).show();
 
-                                        $location.path('/asp/new-ticket');
+                                        $location.path('/rsa-case-pkg/deferred-activity/list');
                                         $scope.$apply();
                                     }
                                 })

@@ -122,13 +122,10 @@ app.component('activityVerificationView', {
         self.filter_img_url = filter_img_url;
         self.style_dot_image_url = style_dot_image_url;
         self.csrf = $('#csrf').val();
-        console.log($routeParams);
-        console.log($routeParams);
         get_view_data_url = typeof($routeParams.id) == 'undefined' ? activity_verification_view_data_url + '/' + 2 : activity_verification_view_data_url + '/' + $routeParams.view_type_id + '/view/' + $routeParams.id;
         $http.get(
             get_view_data_url
         ).then(function(response) {
-            console.log(response);
             if (!response.data.success) {
                 var errors = '';
                 for (var i in response.data.errors) {

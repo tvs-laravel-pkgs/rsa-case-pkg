@@ -17,6 +17,7 @@ app.component('deferredActivityList', {
                 { data: 'number', name: 'cases.number', searchable: true },
                 // { data: 'asp_code', name: 'asps.asp_code', searchable: true },
                 { data: 'crm_activity_id', searchable: false },
+                { data: 'activity_number', name: 'activities.number', searchable: true },
                 { data: 'sub_service', name: 'service_types.name', searchable: true },
                 { data: 'finance_status', name: 'activity_finance_statuses.name', searchable: true },
                 // { data: 'asp_status', name: 'activity_asp_statuses.name', searchable: true },

@@ -731,6 +731,7 @@ class ActivityController extends Controller {
 		$activities = Activity::select(
 			'activities.id',
 			'activities.crm_activity_id',
+			'activities.number as activity_number',
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			'cases.number',
 			'asps.asp_code',

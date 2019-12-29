@@ -25,8 +25,14 @@ class InvoiceController extends Controller {
 
 	public function getList(Request $request) {
 
-		$invoices = Invoices::select('Invoices.id', DB::raw("CONCAT(Invoices.invoice_no,'-',Invoices.id) as invoice_no"), DB::raw("date_format(Invoices.created_at,'%d-%m-%Y') as invoice_date"), DB::raw("ROUND(SUM(Invoices.invoice_amount),2) as invoice_amount"), 'asps.asp_code as asp_code',
-			'asps.workshop_name as workshop_name', DB::raw("COUNT(activities.id) as no_of_tickets"))
+		$invoices = Invoices::select(
+			'Invoices.id',
+			DB::raw("CONCAT(Invoices.invoice_no,'-',Invoices.id) as invoice_no"),
+			DB::raw("date_format(Invoices.created_at,'%d-%m-%Y') as invoice_date"),
+			DB::raw("ROUND(SUM(Invoices.invoice_amount),2) as invoice_amount"), 'asps.asp_code as asp_code',
+			'asps.workshop_name as workshop_name',
+			DB::raw("COUNT(activities.id) as no_of_tickets")
+		)
 			->join('asps', 'Invoices.asp_id', '=', 'asps.id')
 			->join('users', 'users.id', 'asps.user_id')
 			->join('activities', 'activities.invoice_id', '=', 'Invoices.id')
@@ -46,6 +52,9 @@ class InvoiceController extends Controller {
 		}
 
 		return Datatables::of($invoices)
+			->filterColumn('invoice_no', function ($query, $keyword) {
+				$query->whereRaw("CONCAT(Invoices.invoice_no,'-',Invoices.id) like ?", ["%{$keyword}%"]);
+			})
 			->addColumn('action', function ($invoices) {
 				$action = '<div class="dataTable-actions">
 				<a href="#!/rsa-case-pkg/invoice/view/' . $invoices->id . '">

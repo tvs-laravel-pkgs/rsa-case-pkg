@@ -12,7 +12,7 @@ app.component('invoiceList', {
 
             var cols = [
                 { data: 'action', searchable: false },
-                { data: 'invoice_no', name: 'Invoices.invoice_no', searchable: true },
+                { data: 'invoice_no', name: 'invoice_no', searchable: true },
                 { data: 'invoice_date', searchable: false },
                 { data: 'asp_code', name: 'asps.asp_code', searchable: true },
                 { data: 'workshop_name', name: 'asps.workshop_name', searchable: true },
@@ -91,6 +91,9 @@ app.component('invoiceList', {
     }
 });
 
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+
 app.component('invoiceView', {
     templateUrl: invoice_view_template_url,
     controller: function($http, $location, $window, HelperService, $scope, $routeParams, $rootScope, $location) {
@@ -104,7 +107,7 @@ app.component('invoiceView', {
         $http.get(
             get_view_data_url
         ).then(function(response) {
-            console.log(response.data);
+            // console.log(response.data);
             self.period = response.data.period;
             self.asp = response.data.asp;
             self.rsa_address = response.data.rsa_address;
@@ -122,7 +125,7 @@ app.component('invoiceView', {
             $('#aspLogin-table').DataTable({
                 "bLengthChange": false,
                 "paginate": false,
-                "oLanguage": {"sZeroRecords": "", "sEmptyTable": ""},
+                "oLanguage": { "sZeroRecords": "", "sEmptyTable": "" },
             });
         }, 10);
 

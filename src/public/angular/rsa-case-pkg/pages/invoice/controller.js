@@ -113,6 +113,7 @@ app.component('invoiceView', {
             self.rsa_address = response.data.rsa_address;
             self.activities = response.data.activities;
             self.invoice_amount = response.data.invoice_amount;
+            self.invoice_amount_in_word = response.data.invoice_amount_in_word;
             self.signature_attachment = response.data.signature_attachment;
             self.signature_attachment_path = response.data.signature_attachment_path;
             self.invoice_attachment_file = response.data.invoice_attachment_file;

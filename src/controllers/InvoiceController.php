@@ -125,6 +125,7 @@ class InvoiceController extends Controller {
 
 		$this->data['activities'] = $activities;
 		$this->data['invoice_amount'] = number_format($invoice->amount, 2);
+		$this->data['invoice_amount_in_word'] = getIndianCurrency($invoice->amount);
 		$this->data['mis_infos'] = $invoice->tickets;
 		$this->data['mis_info'] = $invoice->tickets;
 		$asp = $invoice->asp;

@@ -100,7 +100,7 @@ app.component('newActivityUpdateDetails', {
             self.service_type_id = response.data.activity.service_type_id;
             self.range_limit = response.data.range_limit;
             $rootScope.loading = false;
-            if (self.for_deffer_activity != '') {
+            if (self.for_deffer_activity) {
                 $('.resolve_comment').show();
             } else {
                 $('.resolve_comment').hide();

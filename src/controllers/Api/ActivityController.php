@@ -328,6 +328,7 @@ class ActivityController extends Controller {
 				->where('activities.status_id', 1) //Case Closed - Waiting for ASP to Generate Invoice
 				->where('cases.status_id', 4) //case closed
 				->where('activities.asp_id', $asp->id)
+				->orderBy('activities.created_at', 'desc')
 				->get();
 
 			DB::commit();

@@ -285,7 +285,7 @@ class ActivityController extends Controller {
 			->groupBy('activities.id')
 			->where('activities.id', $activity_status_id)
 			->first();
-		$key_list = [158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 179, 182, 171, 175, 181];
+		$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 179, 182, 171, 175, 181];
 		foreach ($key_list as $keyw) {
 			$var_key = Config::where('id', $keyw)->first();
 			$key_name = str_replace(" ", "_", strtolower($var_key->name));
@@ -669,16 +669,7 @@ class ActivityController extends Controller {
 				$activity->status_id = 6;
 			}
 
-			$activity->service_type_id = $request->asp_service_type_id ? $request->asp_service_type_id : $activity->service_type_id;
-			$asp_key_ids = [
-				157 => $request->asp_service_type_id,
-				154 => $request->km_travelled,
-				156 => $request->other_charge,
-				155 => $request->asp_collected_charges,
-			];
-			foreach ($asp_key_ids as $key_id => $value) {
-				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $request->activity_id, 'key_id' => $key_id, 'company_id' => 1], ['value' => $value]);
-			}
+			$activity->service_type_id = $request->asp_service_type_id;
 
 			if (!empty($request->comments)) {
 				//$activity->comments = $request->comments;
@@ -689,6 +680,16 @@ class ActivityController extends Controller {
 			}
 
 			$activity->save();
+
+			$asp_key_ids = [
+				157 => $activity->serviceType->name,
+				154 => $request->km_travelled,
+				156 => $request->other_charge,
+				155 => $request->asp_collected_charges,
+			];
+			foreach ($asp_key_ids as $key_id => $value) {
+				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $activity->id, 'key_id' => $key_id, 'company_id' => 1], ['value' => $value]);
+			}
 			//TicketActivity::saveLog($log);
 
 			//log message

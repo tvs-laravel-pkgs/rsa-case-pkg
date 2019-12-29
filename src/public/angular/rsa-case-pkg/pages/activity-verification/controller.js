@@ -133,7 +133,7 @@ app.component('activityVerificationView', {
                 }
                 $noty = new Noty({
                     type: 'error',
-                    layout: 'bottomRight',
+                    layout: 'topRight',
                     text: errors,
                     animation: {
                         speed: 500 // unavailable - no need
@@ -188,7 +188,7 @@ app.component('activityVerificationView', {
                         }
                         $noty = new Noty({
                             type: 'error',
-                            layout: 'bottomRight',
+                            layout: 'topRight',
                             text: errors,
                             animation: {
                                 speed: 500 // unavailable - no need
@@ -202,7 +202,7 @@ app.component('activityVerificationView', {
                     }
                     $noty = new Noty({
                         type: 'success',
-                        layout: 'bottomRight',
+                        layout: 'topRight',
                         text: response.data.data.message,
                         animation: {
                             speed: 500

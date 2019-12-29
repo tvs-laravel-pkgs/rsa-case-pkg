@@ -274,7 +274,7 @@ app.component('billingDetails', {
                         }
                         $noty = new Noty({
                             type: 'error',
-                            layout: 'bottomRight',
+                            layout: 'topRight',
                             text: errors,
                             animation: {
                                 speed: 500 // unavailable - no need
@@ -288,7 +288,7 @@ app.component('billingDetails', {
                     } else {
                         $noty = new Noty({
                             type: 'success',
-                            layout: 'bottomRight',
+                            layout: 'topRight',
                             text: response.data.message,
                             animation: {
                                 speed: 500
@@ -301,7 +301,7 @@ app.component('billingDetails', {
                         setTimeout(function() {
                             $location.path('/rsa-case-pkg/activity-verification/list');
                             $scope.$apply();
-                        }, 2000);
+                        }, 1500);
                     }
                     // item.selected = false;
                     //$scope.getChannelDiscountAmounts();
@@ -333,7 +333,7 @@ app.component('billingDetails', {
                         }
                         $noty = new Noty({
                             type: 'error',
-                            layout: 'bottomRight',
+                            layout: 'topRight',
                             text: errors,
                             animation: {
                                 speed: 500 // unavailable - no need
@@ -347,7 +347,7 @@ app.component('billingDetails', {
                     } else {
                         $noty = new Noty({
                             type: 'success',
-                            layout: 'bottomRight',
+                            layout: 'topRight',
                             text: response.data.message,
                             animation: {
                                 speed: 500
@@ -360,7 +360,7 @@ app.component('billingDetails', {
                         setTimeout(function() {
                             $location.path('/rsa-case-pkg/activity-verification/list');
                             $scope.$apply();
-                        }, 2000);
+                        }, 1500);
 
                     }
 

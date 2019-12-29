@@ -174,7 +174,7 @@ app.component('activityStatusView', {
                 }
                 $noty = new Noty({
                     type: 'error',
-                    layout: 'bottomRight',
+                    layout: 'topRight',
                     text: errors,
                     animation: {
                         speed: 500 // unavailable - no need
@@ -184,7 +184,7 @@ app.component('activityStatusView', {
                 setTimeout(function() {
                     $noty.close();
                 }, 1000);
-                $location.path('/rsa-case-pkg/activity-verification/list');
+                $location.path('/rsa-case-pkg/activity-status/list');
                 $scope.$apply();
                 return;
             }

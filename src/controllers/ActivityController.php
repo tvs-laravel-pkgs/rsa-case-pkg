@@ -217,10 +217,8 @@ class ActivityController extends Controller {
 			if (!($activity_data && ($activity_data->status_id == 5 || $activity_data->status_id == 6 || $activity_data->status_id == 9 || $activity_data->status_id == 8))) {
 				$errors[0] = "Activity is not valid for Verification!!!";
 				return response()->json(['success' => false, 'errors' => $errors]);
-
 			}
 		}
-
 		$this->data['activities'] = $activity = Activity::with([
 			'asp',
 			'asp.rms',
@@ -258,7 +256,6 @@ class ActivityController extends Controller {
 			'asp_po_rejected_reason',
 			'activities.description as description',
 			DB::raw('IF(activities.remarks IS NULL,"activities.remarks","-") as remarks'),
-
 			//'activities.remarks as remarks',
 			'cases.*',
 			DB::raw('IF(Invoices.invoice_no IS NULL,"-","Invoices.invoice_no") as invoice_no'),
@@ -292,7 +289,7 @@ class ActivityController extends Controller {
 			$var_key_val = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $var_key->id)->first();
 			$raw_key_name = 'raw_' . $key_name;
 			if (strpos($key_name, 'amount') || strpos($key_name, 'collected') || strcmp("amount", $key_name) == 0) {
-				$this->data['activities'][$key_name] = $var_key_val ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($var_key_val->value, 2))) : '0.00';
+				$this->data['activities'][$key_name] = $var_key_val ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($var_key_val->value, 2))) : '-';
 				$this->data['activities'][$raw_key_name] = $var_key_val ? $var_key_val->value : 0;
 			} else {
 				$this->data['activities'][$key_name] = $var_key_val ? $var_key_val->value : 0;
@@ -305,13 +302,15 @@ class ActivityController extends Controller {
 			$detail = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $config->id)->first();
 			if (strpos($config->name, '_charges') || strpos($config->name, '_amount')) {
 
-				$this->data['activities'][$config->name] = $detail->value ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '0.00';
+				$this->data['activities'][$config->name] = $detail->value ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '-';
 				$raw_key_name = 'raw_' . $config->name;
-				$this->data['activities'][$raw_key_name] = $detail->value ? $detail->value : 0;
+				$this->data['activities'][$raw_key_name] = $detail->value ? $detail->value : '-';
 			} else {
 				$this->data['activities'][$config->name] = $detail->value ? $detail->value : '-';
 			}
+			//dump($config->name,$this->data['activities'][$config->name]);
 		}
+		//dd($config->name,$this->data['activities']);
 		if ($this->data['activities']['asp_service_type_data']->adjustment_type == 1) {
 			$this->data['activities']['bo_deduction'] = ($this->data['activities']['raw_bo_po_amount'] * $this->data['activities']['asp_service_type_data']->adjustment) / 100;
 		} else if ($this->data['activities']['asp_service_type_data']->adjustment_type == 2) {

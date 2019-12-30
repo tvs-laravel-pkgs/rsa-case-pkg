@@ -104,7 +104,7 @@
 											<li>
 												<p>Activity Description</p>
 												
-												<h3 ng-show="!($ctrl.data.description)">{{$ctrl.data.description}}</h3>
+												<h3 ng-show="($ctrl.data.description)">{{$ctrl.data.description}}</h3>
 												<h3 ng-show="!($ctrl.data.description)">-</h3>
 
 											</li>
@@ -116,7 +116,7 @@
 											<li>
 												<p>Amount</p>
 												
-												<h3>{{$ctrl.data.amount}}</h3>
+												<h3>{{$ctrl.data.amount| currency:"₹"}}</h3>
 											</li>
 										</ul>
 									</div>

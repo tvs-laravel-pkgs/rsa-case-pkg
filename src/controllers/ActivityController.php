@@ -6,6 +6,7 @@ use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityPortalStatus;
 use Abs\RsaCasePkg\ActivityStatus;
+use Abs\RsaCasePkg\RsaCase;
 use App\Asp;
 use App\AspServiceType;
 use App\Attachment;
@@ -475,14 +476,7 @@ class ActivityController extends Controller {
 		}
 	}
 	public function verifyActivity(Request $request) {
-		$today = date('Y-m-d'); //current date
-
-		//THIS IS THE ORIGINAL CONDITION
-		$threeMonthsBefore = date('Y-m-d', strtotime("-3 months", strtotime($today))); //three months before
-
-		//FOR CHANGE REQUEST BY TVS TEAM DATE GIVEN IN STATIC
-		// $threeMonthsBefore = "2019-04-01";
-
+		//dd($request->all());
 		$number = $request->number;
 		$validator = Validator::make($request->all(), [
 			'number' => 'required',
@@ -492,27 +486,42 @@ class ActivityController extends Controller {
 			$response = ['success' => false, 'errors' => ["Activity Number is required"]];
 			return response()->json($response);
 		}
-		$activity = Activity::where([
-			['number', $number],
-			['asp_id', Auth::user()->asp->id],
-			['status_id', 2],
-		])->first();
-		//dd($activity,$request->number,Auth::user()->asp->id);
 
-		if (!$activity) {
-			$response = ['success' => false, 'errors' => ["Activity Not Found"]];
+		$today = date('Y-m-d'); //current date
+
+		//THIS IS THE ORIGINAL CONDITION
+		$threeMonthsBefore = date('Y-m-d', strtotime("-3 months", strtotime($today))); //three months before
+
+		//FOR CHANGE REQUEST BY TVS TEAM DATE GIVEN IN STATIC
+		// $threeMonthsBefore = "2019-04-01";
+
+		$case = RsaCase::where([
+			['number', $number],
+		])->first();
+		if (!$case) {
+			$response = ['success' => false, 'errors' => ["Case Not Found"]];
 			return response()->json($response);
 		} else {
-			$activity_date = date('Y-m-d', strtotime($activity->created_at));
-
-			if ($activity_date < $threeMonthsBefore) {
+			$case_date = date('Y-m-d', strtotime($case->created_at));
+			if ($case_date < $threeMonthsBefore) {
 				$response = ['success' => false, 'errors' => ["Please contact administrator."]];
 				return response()->json($response);
 			} else {
-				$response = ['success' => true, 'activity_id' => $activity->id];
-				return response()->json($response);
+				$activity = Activity::join('cases','cases.id','activities.case_id')->where([
+					['activities.asp_id', Auth::user()->asp->id],
+					['activities.status_id', 2],
+					['activities.case_id', $case->id],
+				])->select('activities.id as id')->first();
+				if (!$activity) {
+					$response = ['success' => false, 'errors' => ["Activity Not Found"]];
+					return response()->json($response);
+				} else {
+					$response = ['success' => true, 'activity_id' => $activity->id];
+					return response()->json($response);
+				}
 			}
 		}
+		
 
 	}
 	public function activityNewGetFormData($id = NULL) {
@@ -522,7 +531,7 @@ class ActivityController extends Controller {
 	}
 
 	public function updateActitvity(Request $request) {
-		// dd($request->all());
+		//dd($request->all());
 		DB::beginTransaction();
 		try {
 			$activity = Activity::findOrFail($request->activity_id);

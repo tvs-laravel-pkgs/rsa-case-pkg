@@ -34,12 +34,17 @@ app.component('newActivity', {
                                 errors += '<li>' + res.errors[i] + '</li>';
                             }
                             console.log(errors);
-                            new Noty({
+                             $noty = new Noty({
                                 type: 'error',
                                 layout: 'topRight',
-                                text: errors
+                                text: errors,
+                                animation: {
+                                    speed: 500 
+                                },
                             }).show();
-
+                            setTimeout(function() {
+                                $noty.close();
+                            }, 1000);
                         } else {
                             $location.path('/rsa-case-pkg/new-activity/update-details/' + res.activity_id)
                             $scope.$apply()
@@ -47,11 +52,17 @@ app.component('newActivity', {
                     })
                     .fail(function(xhr) {
                         $('#submit').button('reset');
-                        new Noty({
+                         $noty = new Noty({
                             type: 'error',
                             layout: 'topRight',
                             text: 'Something went wrong at server',
+                            animation: {
+                                speed: 500 // unavailable - no need
+                            },
                         }).show();
+                        setTimeout(function() {
+                            $noty.close();
+                        }, 1000);
                     });
             },
         });
@@ -108,88 +119,84 @@ app.component('newActivityUpdateDetails', {
         });
 
         $('body').on('focusout', '.km_travel', function() {
-            var entry_val = parseInt($(this).val());
-            var mis_km = parseInt($(this).parents(".asp_for_find").find(".actual_km").val());
-            var range_limit = $(".service_range_limit").val();
-
-            var km_travel = parseInt($(this).parents(".asp_for_find").find(".km_travel").val());
-
+            var entry_val = self.km_travelled;
+            var mis_km = self.actual_km;
+            var range_limit = self.range_limit;
+            var km_travel = self.km_travelled;
             if ($.isNumeric(km_travel)) {
                 if (entry_val > range_limit || range_limit == "") {
                     var allowed_variation = 0.5;
                     var mis_percentage = mis_km * allowed_variation / 100;
                     if (entry_val > mis_km) { var per = entry_val - mis_km; }
-                    var actual_val = Math.round(per - mis_percentage);
+                        var actual_val = Math.round(per - mis_percentage);
+                        if (entry_val) {
+                            if (entry_val > mis_km) {
 
-                    if (entry_val) {
-                        if (entry_val > mis_km) {
-
-                            if (actual_val >= 1) {
-                                $(this).parents(".asp_for_find").find(".map_attachment").show();
-                                $(this).parents(".asp_for_find").find(".for_differ_km").val(1);
+                                if (actual_val >= 1) {
+                                    $(".map_attachment").show();
+                                    $(".for_differ_km").val(1);
+                                } else {
+                                    $(".map_attachment").hide();
+                                    $(".for_differ_km").val(0);
+                                }
                             } else {
-                                $(this).parents(".asp_for_find").find(".map_attachment").hide();
-                                $(this).parents(".asp_for_find").find(".for_differ_km").val(0);
+                                $(".map_attachment").hide();
+                                $(".for_differ_km").val(0);
                             }
-                        } else {
-                            $(this).parents(".asp_for_find").find(".map_attachment").hide();
-                            $(this).parents(".asp_for_find").find(".for_differ_km").val(0);
-                        }
 
-                    } else {
-                        $(this).parents(".asp_for_find").find(".map_attachment").hide();
-                        $(this).parents(".asp_for_find").find(".for_differ_km").val(0);
-                    }
+                        } else {
+                            $(".map_attachment").hide();
+                            $(".for_differ_km").val(0);
+                        }
                     // $("#"+ids).after(html);
                 } else {
-                    $(this).parents(".asp_for_find").find(".map_attachment").hide();
-                    $(this).parents(".asp_for_find").find(".for_differ_km").val(0);
+                    $(".map_attachment").hide();
+                    $(".for_differ_km").val(0);
                 }
             } else {
-                $(this).parents(".asp_for_find").find(".km_travel").val("");
+                $(".km_travel").val("");
             }
 
         });
 
         $('body').on('focusout', '.other_charge', function() {
-            var entry_val = parseInt($(this).val());
-            var other_not_collected = parseInt($(this).parents(".asp_for_find").find(".unpaid_amount").val());
-
-            var other_charge = parseInt($(this).parents(".asp_for_find").find(".other_charge").val());
+            var entry_val = self.other_charge;
+            var other_not_collected = self.unpaid_amount;
+            var other_charge = self.other_charge;
 
             if ($.isNumeric(other_charge)) {
                 if (entry_val) {
                     if (entry_val > other_not_collected) {
 
-                        $(this).parents(".asp_for_find").find(".other_attachment").show();
-                        $(this).parents(".asp_for_find").find(".remarks_notcollected").show();
-                        $(this).parents(".asp_for_find").find(".for_differ_other").val(1);
+                        $(".other_attachment").show();
+                        $(".remarks_notcollected").show();
+                        $(".for_differ_other").val(1);
                     } else {
-                        $(this).parents(".asp_for_find").find(".other_attachment").hide();
-                        $(this).parents(".asp_for_find").find(".remarks_notcollected").hide();
-                        $(this).parents(".asp_for_find").find(".for_differ_other").val(0);
+                        $(".other_attachment").hide();
+                        $(".remarks_notcollected").hide();
+                        $(".for_differ_other").val(0);
                     }
 
                 } else {
-                    $(this).parents(".asp_for_find").find(".other_attachment").hide();
-                    $(this).parents(".asp_for_find").find(".remarks_notcollected").hide();
-                    $(this).parents(".asp_for_find").find(".for_differ_other").val(0);
+                    $(".other_attachment").hide();
+                    $(".remarks_notcollected").hide();
+                    $(".for_differ_other").val(0);
                 }
             }
             //$("#"+ids).after(html);
             else {
-                $(this).parents(".asp_for_find").find(".other_attachment").hide();
-                $(this).parents(".asp_for_find").find(".remarks_notcollected").hide();
-                $(this).parents(".asp_for_find").find(".other_charge").val("");
+                $(".other_attachment").hide();
+                $(".remarks_notcollected").hide();
+                $(".other_charge").val("");
             }
 
         });
 
 
         $('body').on('focusout', '.asp_collected_charges', function() {
-            var asp_collected_charges = parseInt($(this).parents(".asp_for_find").find(".asp_collected_charges").val());
+            var asp_collected_charges = self.asp_collected_charges;
             if (!$.isNumeric(asp_collected_charges)) {
-                $(this).parents(".asp_for_find").find(".asp_collected_charges").val("");
+                $(".asp_collected_charges").val("");
             }
         });
 
@@ -289,42 +296,59 @@ app.component('newActivityUpdateDetails', {
                                     data: formData,
                                     processData: false,
                                     contentType: false,
-                                })
-                                .done(function(res) {
-                                    console.log(res.errors);
-                                    if (!res.success) {
-                                        $('#submit').button('reset');
-                                        var errors = '';
-                                        for (var i in res.errors) {
-                                            errors += '<li>' + res.errors[i] + '</li>';
-                                        }
-                                        console.log(errors);
-                                        new Noty({
-                                            type: 'error',
-                                            layout: 'topRight',
-                                            text: errors
-                                        }).show();
-
-                                    } else {
-                                        new Noty({
-                                            type: 'success',
-                                            layout: 'topRight',
-                                            text: 'Activity informations saved successfully',
-                                        }).show();
-
-                                        $location.path('/rsa-case-pkg/new-activity');
-                                        $scope.$apply();
-                                    }
-                                })
-                                .fail(function(xhr) {
+                            })
+                            .done(function(res) {
+                                console.log(res.errors);
+                                if (!res.success) {
                                     $('#submit').button('reset');
-                                    new Noty({
+                                    var errors = '';
+                                    for (var i in res.errors) {
+                                        errors += '<li>' + res.errors[i] + '</li>';
+                                    }
+                                    console.log(errors);
+                                    $noty = new Noty({
                                         type: 'error',
                                         layout: 'topRight',
-                                        text: 'Something went wrong at server',
-                                    }).show();
-                                });
+                                        text: errors,
+                                        animation: {
+                                            speed: 500 
+                                        },
 
+                                    }).show();
+                                    setTimeout(function() {
+                                        $noty.close();
+                                    }, 1000);
+
+                                } else {
+                                    $noty = new Noty({
+                                        type: 'success',
+                                        layout: 'topRight',
+                                        text: 'Activity informations saved successfully',
+                                        animation: {
+                                            speed: 500 
+                                        },
+                                    }).show();
+                                    setTimeout(function() {
+                                        $noty.close();
+                                    }, 1000);
+                                    $location.path('/rsa-case-pkg/new-activity');
+                                    $scope.$apply();
+                                }
+                            })
+                            .fail(function(xhr) {
+                                $('#submit').button('reset');
+                                $noty = new Noty({
+                                    type: 'error',
+                                    layout: 'topRight',
+                                    text: 'Something went wrong at server',
+                                    animation: {
+                                        speed: 500 
+                                    },
+                                }).show();
+                                setTimeout(function() {
+                                $noty.close();
+                            }, 1000);
+                            });
                         }
                     }
                 });

@@ -129,6 +129,36 @@ class ActivityController extends Controller {
 				}
 			}
 
+			if ($request->drop_location_type != 'Garage' && $request->drop_location_type != 'Dealer' && $request->drop_location_type != 'Customer Preferred') {
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						'Invalid drop_location_type',
+					],
+				], $this->successStatus);
+			}
+
+			if ($request->paid_to != 'ASP' && $request->paid_to != 'Online') {
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						'Invalid paid_to',
+					],
+				], $this->successStatus);
+			}
+
+			if ($request->payment_mode != 'Cash' && $request->payment_mode != 'Paytm' && $request->payment_mode != 'Online') {
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						'Invalid payment_mode',
+					],
+				], $this->successStatus);
+			}
+
 			$service_type = ServiceType::where('name', $request->sub_service)->first();
 			$asp_status = ActivityAspStatus::where('name', $request->asp_activity_status)->where('company_id', 1)->first();
 			if (!$asp_status) {

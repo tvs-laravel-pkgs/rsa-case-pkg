@@ -323,7 +323,7 @@ class ActivityController extends Controller {
 				})
 				->leftJoin('activity_details as cc_po_amount', function ($join) {
 					$join->on('cc_po_amount.activity_id', 'activities.id')
-						->where('cc_po_amount.key_id', 170); //CC PO AMOUNT
+						->where('cc_po_amount.key_id', 180); //CC INVOICE AMOUNT
 				})
 				->where('activities.status_id', 1) //Case Closed - Waiting for ASP to Generate Invoice
 				->where('cases.status_id', 4) //case closed

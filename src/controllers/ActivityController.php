@@ -684,10 +684,16 @@ class ActivityController extends Controller {
 			$activity->save();
 
 			$asp_key_ids = [
+				//ASP
 				157 => $activity->serviceType->name,
 				154 => $request->km_travelled,
 				156 => $request->other_charge,
 				155 => $request->asp_collected_charges,
+				//BO
+				161 => $activity->serviceType->name,
+				158 => $request->km_travelled,
+				160 => $request->other_charge,
+				159 => $request->asp_collected_charges,
 			];
 			foreach ($asp_key_ids as $key_id => $value) {
 				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $activity->id, 'key_id' => $key_id, 'company_id' => 1], ['value' => $value]);

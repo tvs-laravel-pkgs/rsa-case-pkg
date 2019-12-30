@@ -13,9 +13,11 @@ use App\CallCenter;
 use App\Client;
 use App\Config;
 use App\Http\Controllers\Controller;
+use App\Invoices;
 use App\ServiceType;
 use App\StateUser;
 use Auth;
+use Carbon\Carbon;
 use DB;
 use Entrust;
 use Illuminate\Http\Request;
@@ -896,6 +898,226 @@ class ActivityController extends Controller {
 				return '<input type="checkbox" class="ticket_id no-link child_select_all" name="invoice_ids[]" value="' . $activities->id . '">';
 			})
 			->make(true);
+	}
+
+	public function getActivityEncryptionKey(Request $request) {
+		if (empty($request->invoice_ids)) {
+			return response()->json([
+				'success' => false,
+				'errors' => ['Please select atleast one activity'],
+			]);
+		}
+		$encryption_key = encryptString(implode('-', $request->invoice_ids));
+		return response()->json([
+			'success' => true,
+			'encryption_key' => $encryption_key,
+		]);
+	}
+
+	public function getActivityApprovedDetails($encryption_key = '') {
+		if (empty($encryption_key)) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Activities not found',
+				],
+			]);
+		}
+		$decrypt = decryptString($encryption_key);
+		$activity_ids = explode('-', $decrypt);
+		if (empty($activity_ids)) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Activities not found',
+				],
+			]);
+		}
+		$asp = Asp::with('rm')->find(Auth::user()->asp->id);
+		if (!$asp) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'ASP not found',
+				],
+			]);
+		}
+
+		$activities = Activity::join('cases', 'cases.id', 'activities.case_id')
+			->join('call_centers', 'call_centers.id', 'cases.call_center_id')
+			->join('service_types', 'service_types.id', 'activities.service_type_id')
+			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+			->leftJoin('activity_details as km_charge', function ($join) {
+				$join->on('km_charge.activity_id', 'activities.id')
+					->where('km_charge.key_id', 158); //BO KM TRAVELLED
+			})
+			->leftJoin('activity_details as net_amount', function ($join) {
+				$join->on('net_amount.activity_id', 'activities.id')
+					->where('net_amount.key_id', 176); //BO NET AMOUNT
+			})
+			->leftJoin('activity_details as collect_amount', function ($join) {
+				$join->on('collect_amount.activity_id', 'activities.id')
+					->where('collect_amount.key_id', 159); //BO COLLECT AMOUNT
+			})
+			->leftJoin('activity_details as not_collected_amount', function ($join) {
+				$join->on('not_collected_amount.activity_id', 'activities.id')
+					->where('not_collected_amount.key_id', 160); //BO NOT COLLECT AMOUNT
+			})
+
+			->leftJoin('activity_details as total_amount', function ($join) {
+				$join->on('total_amount.activity_id', 'activities.id')
+					->where('total_amount.key_id', 182); //BO TOTAL AMOUNT
+			})
+			->select(
+				'activities.number',
+				'activities.id',
+				'activities.crm_activity_id',
+				DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
+				'activity_portal_statuses.name as status',
+				'call_centers.name as callcenter',
+				'cases.vehicle_registration_number',
+				'service_types.name as service_type',
+				'km_charge.value as km_value',
+				'not_collected_amount.value as not_collect_value',
+				'net_amount.value as net_value',
+				'collect_amount.value as collect_value',
+				'total_amount.value as total_value'
+			)
+			->whereIn('activities.id', $activity_ids)
+			->groupBy('activities.id')
+			->get();
+
+		if (count($activities) == 0) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Activities not found',
+				],
+			]);
+		}
+
+		//GET INVOICE AMOUNT FROM ACTIVITY DETAIL
+		$activity_detail = Activity::select(
+			DB::raw('SUM(bo_invoice_amount.value) as invoice_amount')
+		)
+			->leftjoin('activity_details as bo_invoice_amount', function ($join) {
+				$join->on('bo_invoice_amount.activity_id', 'activities.id')
+					->where('bo_invoice_amount.key_id', 182); //BO INVOICE AMOUNT
+			})
+			->whereIn('activities.id', $activity_ids)
+			->first();
+
+		if (!$activity_detail) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Invoice amount not found',
+				],
+			]);
+		}
+
+		$this->data['activities'] = $activities;
+		$this->data['invoice_amount'] = number_format($activity_detail->invoice_amount, 2);
+		$this->data['invoice_amount_in_word'] = getIndianCurrency($activity_detail->invoice_amount);
+		$this->data['asp'] = $asp;
+		$this->data['inv_no'] = generateInvoiceNumber();
+		$this->data['inv_date'] = date("d-m-Y");
+		$this->data['signature_attachment'] = Attachment::where('entity_id', $asp->id)
+			->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))
+			->first();
+		$this->data['signature_attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
+
+		$this->data['action'] = 'ASP Invoice Confirmation';
+		$this->data['success'] = true;
+		return response()->json($this->data);
+	}
+
+	public function generateInvoice(Request $request) {
+		// dd($request->all());
+		DB::beginTransaction();
+		try {
+			//STORE ATTACHMENT
+			$value = "";
+			if ($request->hasFile("filename")) {
+				$destination = aspInvoiceAttachmentPath();
+				$status = Storage::makeDirectory($destination, 0777);
+				$extension = $request->file("filename")->getClientOriginalExtension();
+				$max_id = Invoices::selectRaw("Max(id) as id")->first();
+				if (!empty($max_id)) {
+					$ids = $max_id->id + 1;
+					$filename = "Invoice" . $ids . "." . $extension;} else { $filename = "Invoice1" . "." . $extension;}
+				$status = $request->file("filename")->storeAs($destination, $filename);
+				$value = $filename;
+			}
+
+			//CHECK IF INVOICE ALREADY CREATED FOR ACTIVITY
+			$activities = Activity::select(
+				'invoice_id',
+				'crm_activity_id',
+				'number'
+			)
+				->whereIn('crm_activity_id', $request->crm_activity_ids)
+				->get();
+			if (!empty($activities)) {
+				foreach ($activities as $key => $activity) {
+					if (!empty($activity->invoice_id)) {
+						return response()->json([
+							'success' => false,
+							'message' => 'Validation Error',
+							'errors' => 'Invoice already created for activity ' . $activity->number,
+						]);
+					}
+				}
+			}
+
+			//GET ASP
+			$asp = ASP::where('id', $request->asp_id)->first();
+			//SELF INVOICE
+			if (!$asp->is_auto_invoice) {
+				if (!$request->invoice_no) {
+					return response()->json([
+						'success' => false,
+						'message' => 'Validation Error',
+						'errors' => 'Invoice number is required',
+					], $this->successStatus);
+				}
+				if (!$request->inv_date) {
+					return response()->json([
+						'success' => false,
+						'message' => 'Validation Error',
+						'errors' => 'Invoice date is required',
+					], $this->successStatus);
+				}
+
+				$invoice_no = $request->invoice_no;
+				$invoice_date = date('Y-m-d H:i:s', strtotime($request->inv_date));
+			} else {
+				//SYSTEM
+				//GENERATE INVOICE NUMBER
+				$invoice_no = generateInvoiceNumber();
+				$invoice_date = new Carbon();
+			}
+
+			$invoice_c = Invoices::createInvoice($asp, $request->crm_activity_ids, $invoice_no, $invoice_date, $value);
+
+			DB::commit();
+
+			if ($invoice_c) {
+				return response()->json([
+					'success' => true,
+					'message' => 'Invoice created successfully',
+				]);
+			} else {
+				return response()->json([
+					'success' => false,
+					'message' => 'Invoice not created',
+				]);
+
+			}
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json(['success' => false, 'errors' => ['Exception Error' => $e->getMessage()]]);
+		}
 	}
 
 }

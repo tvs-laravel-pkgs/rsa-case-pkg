@@ -62,6 +62,10 @@ app.config(['$routeProvider', function($routeProvider) {
         template: '<approved-activity-list></approved-activity-list>',
         title: 'Approved Activities',
     }).
+    when('/rsa-case-pkg/approved-activity/invoice/preview/:encryption_key', {
+        template: '<approved-activity-invoice-preview></approved-activity-invoice-preview>',
+        title: 'Approved Activities Invoice Preview',
+    }).
 
     //ASP INVOICES
     when('/rsa-case-pkg/invoice/list', {

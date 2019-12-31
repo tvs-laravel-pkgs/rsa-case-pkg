@@ -69,6 +69,16 @@ class CaseController extends Controller {
 				], $this->successStatus);
 			}
 
+			if (preg_match("/([%\@!$#\^&()+*]+)/", $request->number)) {
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						"Invalid Case Number",
+					],
+				], $this->successStatus);
+			}
+
 			$status = CaseStatus::where('name', $request->status)->where('company_id', 1)->first();
 			$call_center = CallCenter::where('name', $request->call_center)->first();
 			$client = Client::where('name', $request->client)->first();

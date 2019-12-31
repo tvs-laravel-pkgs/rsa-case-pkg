@@ -29,7 +29,8 @@ class InvoiceController extends Controller {
 			'Invoices.id',
 			DB::raw("CONCAT(Invoices.invoice_no,'-',Invoices.id) as invoice_no"),
 			DB::raw("date_format(Invoices.created_at,'%d-%m-%Y') as invoice_date"),
-			DB::raw("ROUND(SUM(Invoices.invoice_amount),2) as invoice_amount"), 'asps.asp_code as asp_code',
+			DB::raw("ROUND(Invoices.invoice_amount,2) as invoice_amount"),
+			'asps.asp_code as asp_code',
 			'asps.workshop_name as workshop_name',
 			DB::raw("COUNT(activities.id) as no_of_tickets")
 		)

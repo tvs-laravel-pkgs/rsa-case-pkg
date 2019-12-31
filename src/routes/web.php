@@ -28,6 +28,9 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	//ACTIVITY APPROVED
 	Route::get('/activity-approved/get-filter-data', 'ActivityController@getFilterData')->name('getActivityApprovedFilterData');
 	Route::get('/activity-approved/get-list', 'ActivityController@getApprovedList')->name('getActivityApprovedList');
+	Route::post('/activity-approved/get-activiy-encryption-key', 'ActivityController@getActivityEncryptionKey')->name('getActivityEncryptionKey');
+	Route::get('/activity-approved/get-details/{encryption_key}', 'ActivityController@getActivityApprovedDetails')->name('getActivityApprovedDetails');
+	Route::post('/activity-approved/generate-invoice', 'ActivityController@generateInvoice')->name('generateInvoice');
 
 	//ACTIVITY VERIFICATION
 	Route::get('/activity-verification/{view_type_id?}/view/{activity_status_id?}', 'ActivityController@viewActivityStatus')->name('viewActivityStatus');

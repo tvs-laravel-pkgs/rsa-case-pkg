@@ -36,12 +36,12 @@
                                             <div class="viewData-toggle--wrapper">
                                                 <div class="viewData-toggle--inner">
                                                     <h2 class="viewData-toggle--title pull-left">
-                                                        {{$ctrl.asp.name}}
+                                                        {{$ctrl.asp.name ? $ctrl.asp.name : 'N/A'}}
                                                     </h2>
                                                     <span class="viewData-toggle--btn pull-right"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
                                                     <div class="clearfix"></div>
                                                     <ul>
-                                                        <li>ASP Code : <span>{{$ctrl.asp.asp_code}}</span></li>
+                                                        <li>ASP Code : <span>{{$ctrl.asp.asp_code ? $ctrl.asp.asp_code : 'N/A'}}</span></li>
                                                         <li ng-if="$ctrl.asp.asp_code != 'NULL'">ASP Type :
                                                             <span>
                                                                 {{$ctrl.asp.is_self ? 'Self' : 'Non Self'}}
@@ -59,7 +59,7 @@
                                                         </li>
                                                         <li>Tier :
                                                             <span>
-                                                                {{$ctrl.asp.tier}}
+                                                                {{$ctrl.asp.tier ? $ctrl.asp.tier : 'N/A'}}
                                                             </span>
                                                         </li>
                                                     </ul>
@@ -71,9 +71,9 @@
                                                                     <li><img src="./resources/assets/images/ic-location.svg"></li>
                                                                     <li>
                                                                         <p>
-                                                                            {{$ctrl.asp.workshop_name}} <br>
-                                                                            {{$ctrl.asp.address_line_1}}<br>
-                                                                            {{$ctrl.asp.address_line_2}}<br>
+                                                                            {{$ctrl.asp.workshop_name ? $ctrl.asp.workshop_name : 'N/A'}} <br>
+                                                                            {{$ctrl.asp.address_line_1 ? $ctrl.asp.address_line_1 : 'N/A'}}<br>
+                                                                            {{$ctrl.asp.address_line_2 ? $ctrl.asp.address_line_2 : 'N/A'}}<br>
                                                                         </p>
                                                                     </li>
                                                                 </ul>
@@ -82,7 +82,7 @@
                                                                 <ul class="viewData-threeColumn--group">
                                                                     <li><img src="./resources/assets/images/ic-phone.svg"></li>
                                                                     <li>
-                                                                        <p>{{$ctrl.asp.contact_number1}}<br><a href="javascript:;">{{$ctrl.asp.email}}</a></p>
+                                                                        <p>{{$ctrl.asp.contact_number1 ? $ctrl.asp.contact_number1 : 'N/A'}}<br><a href="javascript:;">{{$ctrl.asp.email ? $ctrl.asp.email : 'N/A'}}</a></p>
                                                                     </li>
                                                                 </ul>
                                                             </div>
@@ -90,7 +90,7 @@
                                                                 <ul class="viewData-threeColumn--group">
                                                                     <li><img src="./resources/assets/images/ic-profile.svg"></li>
                                                                     <li>
-                                                                        <p>RM: {{$ctrl.asp.rm.name}}<br> RM Mobile: {{$ctrl.asp.rm.contact_number}} </p>
+                                                                        <p>RM: {{$ctrl.asp.rm ? ($ctrl.asp.rm.name ? $ctrl.asp.rm.name : 'N/A') : 'N/A'}}<br> RM Mobile: {{$ctrl.asp.rm ? ($ctrl.asp.rm.contact_number ? $ctrl.asp.rm.contact_number : 'N/A') : 'N/A'}} </p>
                                                                     </li>
                                                                 </ul>
                                                             </div>
@@ -131,10 +131,10 @@
                                                                     <tr>
                                                                         <td class="text-right">GST Registration Number :</td>
                                                                         <td><span ng-if="$ctrl.invoice.asp_gst_registration_number != ''">
-                                                                                {{$ctrl.invoice.asp_gst_registration_number}}
+                                                                                {{$ctrl.invoice.asp_gst_registration_number ? $ctrl.invoice.asp_gst_registration_number : 'N/A'}}
                                                                             </span>
                                                                             <span ng-if="$ctrl.invoice.asp_gst_registration_number == ''">
-                                                                                {{$ctrl.invoice.gst_registration_number}}
+                                                                                {{$ctrl.invoice.gst_registration_number ? $ctrl.invoice.gst_registration_number : 'N/A'}}
                                                                             </span>
                                                                         </td>
                                                                     </tr>
@@ -142,10 +142,10 @@
                                                                         <td class="text-right">PAN Number :</td>
                                                                         <td>
                                                                             <span ng-if="$ctrl.invoice.asp_pan_number != ''">
-                                                                                {{$ctrl.invoice.asp_pan_number}}
+                                                                                {{$ctrl.invoice.asp_pan_number ? $ctrl.invoice.asp_pan_number : 'N/A'}}
                                                                             </span>
                                                                             <span ng-if="$ctrl.invoice.asp_pan_number == ''">
-                                                                                {{$ctrl.invoice.pan_number}}
+                                                                                {{$ctrl.invoice.pan_number ? $ctrl.invoice.pan_number : 'N/A'}}
                                                                             </span>
                                                                         </td>
                                                                     </tr>
@@ -228,7 +228,7 @@
                                                                 <div class="clearfix"></div>
                                                                 <div class="aai_footer">
                                                                     <p class=" pull-left"> Bank Details:<br />
-                                                                        Name : {{$ctrl.asp.workshop_name}} | Acc Number : {{$ctrl.asp.bank_account_number}} | Bank : {{$ctrl.asp.bank_name}} | Branch : {{$ctrl.asp.bank_branch_name}} | Ifsc : {{$ctrl.asp.bank_ifsc_code}}
+                                                                        Name : {{$ctrl.asp.workshop_name ? $ctrl.asp.workshop_name : 'N/A'}} | Account Number : {{$ctrl.asp.bank_account_number ? $ctrl.asp.bank_account_number : 'N/A'}} | Bank : {{$ctrl.asp.bank_name ? $ctrl.asp.bank_name : 'N/A'}} | Branch : {{$ctrl.asp.bank_branch_name ? $ctrl.asp.bank_branch_name : 'N/A'}} | IFSC : {{$ctrl.asp.bank_ifsc_code ? $ctrl.asp.bank_ifsc_code : 'N/A'}}
                                                                     </p>
                                                                     <p ng-show="$ctrl.signature_attachment != ''" class="pull-right"><img src="{{$ctrl.signature_attachment_path}}/{{$ctrl.asp.id}}/{{$ctrl.signature_attachment.attachment_file_name}}" weight="80px" height="50px" align="right"></p>
                                                                     <div class="clearfix"></div>

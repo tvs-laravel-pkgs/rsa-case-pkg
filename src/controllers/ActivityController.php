@@ -420,13 +420,7 @@ class ActivityController extends Controller {
 
 		} catch (\Exception $e) {
 			DB::rollBack();
-			dd($e);
-			$message = ['error' => $e->getMessage()];
-			return response()->json([
-				'success' => false,
-				'errors' => ['Activity deferred to ASP successfully.'],
-			]);
-
+			return response()->json(['success' => false, 'errors' => ['Exception Error' => $e->getMessage()]]);
 		}
 	}
 
@@ -524,7 +518,7 @@ class ActivityController extends Controller {
 		return response()->json($this->data);
 	}
 
-	public function updateActitvity(Request $request) {
+	public function updateActivity(Request $request) {
 		// dd($request->all());
 		DB::beginTransaction();
 		try {
@@ -719,7 +713,11 @@ class ActivityController extends Controller {
 			$state_id = Auth::user()->asp->state_id;
 			$bo_users = StateUser::where('state_id', $state_id)->pluck('user_id');
 
-			if ($activity->status_id == 5) {$noty_message_template = 'ASP_DATA_ENTRY_DONE_BULK';} else { $noty_message_template = 'ASP_DATA_ENTRY_DONE_DEFFERED';}
+			if ($activity->status_id == 5) {
+				$noty_message_template = 'ASP_DATA_ENTRY_DONE_BULK';
+			} else {
+				$noty_message_template = 'ASP_DATA_ENTRY_DONE_DEFFERED';
+			}
 			$ticket_number = [$activity->ticket_number];
 			if (!empty($bo_users)) {
 				foreach ($bo_users as $bo_user_id) {
@@ -729,14 +727,6 @@ class ActivityController extends Controller {
 			DB::commit();
 			$message = ['success' => "Ticket informations saved successfully"];
 			return response()->json(['success' => true]);
-
-			/*if ($modal == 'yes') {
-					return redirect()->route('aspNewlistTicket')->with($message);
-				} else {
-					$request->session()->flash('success', $message);
-					return response()->json(['success' => true]);
-			*/
-
 		} catch (\Exception $e) {
 			DB::rollBack();
 			dd($e);

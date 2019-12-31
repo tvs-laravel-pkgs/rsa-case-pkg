@@ -113,9 +113,8 @@ app.component('approvedActivityList', {
             var v = jQuery(form_ids).validate({
                 ignore: '',
                 rules: {
-                    'invoice_ids[]': {
-                        required: true,
-                    },
+                    // 'invoice_ids[]': {
+                    //     required: true,// },
                 },
                 invalidHandler: function(event, validator) {
                     $noty = new Noty({

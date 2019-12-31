@@ -198,7 +198,8 @@
                                 <tr>
                                     <td>KM Charges (+)</td>
                                     <td>
-                                        <div>{{$ctrl.data.bo_po_amount| currency:"₹"}}</div>
+                                        <div ng-show="$ctrl.data.verification==1">{{$ctrl.data.bo_po_amount| currency:"₹"}}</div>
+                                        <div ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_po_amount}}</div>
                                     </td>
                                 </tr>
                                 <tr>

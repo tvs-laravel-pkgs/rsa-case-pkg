@@ -23,7 +23,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	Route::get('/deferred-activity/get-form-data/{id?}', 'ActivityController@activityDeferredGetFormData')->name('activityDeferredGetFormData');
 	// Route::post('asp/activity-deferred/save', 'ActivityController@saveActitvity')->name('saveDeferredActitvity');
 
-	Route::post('asp/activity/update', 'ActivityController@updateActitvity')->name('updateActitvity');
+	Route::post('asp/activity/update', 'ActivityController@updateActivity')->name('updateActivity');
 
 	//ACTIVITY APPROVED
 	Route::get('/activity-approved/get-filter-data', 'ActivityController@getFilterData')->name('getActivityApprovedFilterData');

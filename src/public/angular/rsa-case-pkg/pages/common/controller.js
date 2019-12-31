@@ -258,8 +258,8 @@ app.component('billingDetails', {
                         laravel_routes['approveActivity'], {
                             activity_id: self.data.activity_id,
                             bo_km_travelled: self.data.raw_bo_km_travelled,
-                            raw_bo_collected: self.data.raw_bo_collected,
-                            raw_bo_not_collected: self.data.raw_bo_not_collected,
+                            bo_collected: self.data.raw_bo_collected,
+                            bo_not_collected: self.data.raw_bo_not_collected,
                             bo_deduction: self.data.bo_deduction,
                             bo_po_amount: self.data.bo_po_amount,
                             bo_net_amount: self.data.bo_net_amount,

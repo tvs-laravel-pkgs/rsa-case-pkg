@@ -237,8 +237,10 @@ class ActivityController extends Controller {
 		])->select(
 			'activities.id as activity_id',
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			DB::raw('DATE_FORMAT(activities.created_at,"%d-%m-%Y %H:%i:%s") as activity_date'),
 			//DB::raw('DATE_FORMAT(asps.asp_reached_date,"%d-%m-%Y %H:%i:%s") as asp_r_date'),
 			'cases.number',
+			'activities.number as activity_number',
 			'activities.asp_po_accepted as asp_po_accepted',
 			'activities.deduction_reason as deduction_reason',
 			'activities.bo_comments as bo_comments',

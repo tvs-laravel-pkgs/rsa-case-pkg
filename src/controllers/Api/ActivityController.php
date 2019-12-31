@@ -227,8 +227,10 @@ class ActivityController extends Controller {
 			$activity->asp_activity_status_id = $asp_activity_status_id;
 			$activity->asp_activity_rejected_reason_id = $asp_activity_rejected_reason_id;
 
-			//ASP ACCEPTED CC DETAILS == 1 AND ACTIVITY STATUS SUCCESSFUL
-			if ($request->asp_accepted_cc_details && $activity_status_id == 7) {
+			//ASP ACCEPTED CC DETAILS == 1 AND ACTIVITY STATUS SUCCESSFUL OLD
+			// if ($request->asp_accepted_cc_details && $activity_status_id == 7) {
+			//ASP ACCEPTED CC DETAILS == 1
+			if ($request->asp_accepted_cc_details) {
 				//Invoice Amount Calculated - Waiting for Case Closure
 				$activity->status_id = 10;
 			} else {
@@ -342,6 +344,7 @@ class ActivityController extends Controller {
 
 			$invoiceable_activities = Activity::select(
 				'activities.crm_activity_id',
+				'cases.vehicle_registration_number',
 				'cc_km_charge.value as km_charge',
 				'cc_not_collected_amount.value as cc_not_collected_amount',
 				'cc_colleced_amount.value as cc_colleced_amount',

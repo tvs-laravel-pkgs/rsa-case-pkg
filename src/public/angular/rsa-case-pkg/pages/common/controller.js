@@ -250,69 +250,81 @@ app.component('billingDetails', {
                 $("#confirm-ticket-modal").modal();
 
             }
-
+            /*$scope.isExceptionalCheck = function(val){
+                alert(val);
+            }*/
             $scope.saveApproval = function() {
-                $http.post(
-                    laravel_routes['approveActivity'], {
-                        activity_id: self.data.activity_id,
-                        bo_km_travelled: self.data.raw_asp_km_travelled,
-                        raw_bo_collected: self.data.raw_asp_collected,
-                        raw_bo_not_collected: self.data.raw_asp_not_collected,
-                        bo_deduction: self.data.bo_deduction,
-                        bo_po_amount: self.data.bo_po_amount,
-                        bo_net_amount: self.data.bo_net_amount,
-                        bo_amount: self.data.bo_amount,
-                    }
-                ).then(function(response) {
-                    $('.save').button('reset');
-                    $("#confirm-ticket-modal").modal("hide");
-
-                    if (!response.data.success) {
-                        var errors = '';
-                        for (var i in response.data.errors) {
-                            errors += '<li>' + response.data.errors[i] + '</li>';
+                console.log($scope.myForm.$valid);
+                if($scope.myForm.$valid){
+                    $http.post(
+                        laravel_routes['approveActivity'], {
+                            activity_id: self.data.activity_id,
+                            bo_km_travelled: self.data.raw_asp_km_travelled,
+                            raw_bo_collected: self.data.raw_asp_collected,
+                            raw_bo_not_collected: self.data.raw_asp_not_collected,
+                            bo_deduction: self.data.bo_deduction,
+                            bo_po_amount: self.data.bo_po_amount,
+                            bo_net_amount: self.data.bo_net_amount,
+                            bo_amount: self.data.bo_amount,
+                            bo_comments: self.data.bo_comments,
+                            deduction_reason: self.data.deduction_reason,
+                            exceptional_reason: self.exceptional_reason,
+                            is_exceptional_check: self.is_exceptional_check,
                         }
-                        $noty = new Noty({
-                            type: 'error',
-                            layout: 'topRight',
-                            text: errors,
-                            animation: {
-                                speed: 500 // unavailable - no need
-                            },
+                    ).then(function(response) {
+                        $('.save').button('reset');
+                        $("#confirm-ticket-modal").modal("hide");
 
-                        }).show();
-                        setTimeout(function() {
-                            $noty.close();
-                        }, 1000);
-                        return;
-                    } else {
-                        $noty = new Noty({
-                            type: 'success',
-                            layout: 'topRight',
-                            text: response.data.message,
-                            animation: {
-                                speed: 500
+                        if (!response.data.success) {
+                            var errors = '';
+                            for (var i in response.data.errors) {
+                                errors += '<li>' + response.data.errors[i] + '</li>';
                             }
-                        }).show();
-                        setTimeout(function() {
-                            $noty.close();
-                        }, 1000);
+                            $noty = new Noty({
+                                type: 'error',
+                                layout: 'topRight',
+                                text: errors,
+                                animation: {
+                                    speed: 500 // unavailable - no need
+                                },
 
-                        setTimeout(function() {
-                            $location.path('/rsa-case-pkg/activity-verification/list');
-                            $scope.$apply();
-                        }, 1500);
+                            }).show();
+                            setTimeout(function() {
+                                $noty.close();
+                            }, 1000);
+                            return;
+                        } else {
+                            $noty = new Noty({
+                                type: 'success',
+                                layout: 'topRight',
+                                text: response.data.message,
+                                animation: {
+                                    speed: 500
+                                }
+                            }).show();
+                            setTimeout(function() {
+                                $noty.close();
+                            }, 1000);
+
+                            setTimeout(function() {
+                                $location.path('/rsa-case-pkg/activity-verification/list');
+                                $scope.$apply();
+                            }, 1500);
+                        }
+                        // item.selected = false;
+                        //$scope.getChannelDiscountAmounts();
+
+                        }); 
                     }
-                    // item.selected = false;
-                    //$scope.getChannelDiscountAmounts();
-
-                });
-
             }
             $scope.differ = function() {
-                $http.post(
+                if($scope.differForm.$valid){
+                    $http.post(
                     laravel_routes['saveActivityDiffer'], {
                         activity_id: self.data.activity_id,
+                        defer_reason: self.defer_reason,
+                        bo_comments: self.data.bo_comments,
+                        deduction_reason: self.data.deduction_reason,
                         /*bo_km_travelled : self.data.bo_km_travelled,
                         raw_asp_collected : self.data.raw_asp_collected,
                         raw_asp_not_collected : self.data.raw_asp_not_collected,
@@ -326,48 +338,50 @@ app.component('billingDetails', {
                     $('.save').button('reset');
                     $("#reject-modal").modal("hide");
 
-                    if (!response.data.success) {
-                        var errors = '';
-                        for (var i in response.data.errors) {
-                            errors += '<li>' + response.data.errors[i] + '</li>';
-                        }
-                        $noty = new Noty({
-                            type: 'error',
-                            layout: 'topRight',
-                            text: errors,
-                            animation: {
-                                speed: 500 // unavailable - no need
-                            },
-
-                        }).show();
-                        setTimeout(function() {
-                            $noty.close();
-                        }, 1000);
-                        return;
-                    } else {
-                        $noty = new Noty({
-                            type: 'success',
-                            layout: 'topRight',
-                            text: response.data.message,
-                            animation: {
-                                speed: 500
+                        if (!response.data.success) {
+                            var errors = '';
+                            for (var i in response.data.errors) {
+                                errors += '<li>' + response.data.errors[i] + '</li>';
                             }
-                        }).show();
-                        setTimeout(function() {
-                            $noty.close();
-                        }, 1000);
+                            $noty = new Noty({
+                                type: 'error',
+                                layout: 'topRight',
+                                text: errors,
+                                animation: {
+                                    speed: 500 // unavailable - no need
+                                },
 
-                        setTimeout(function() {
-                            $location.path('/rsa-case-pkg/activity-verification/list');
-                            $scope.$apply();
-                        }, 1500);
+                            }).show();
+                            setTimeout(function() {
+                                $noty.close();
+                            }, 1000);
+                            return;
+                        } else {
+                            $noty = new Noty({
+                                type: 'success',
+                                layout: 'topRight',
+                                text: response.data.message,
+                                animation: {
+                                    speed: 500
+                                }
+                            }).show();
+                            setTimeout(function() {
+                                $noty.close();
+                            }, 1000);
 
-                    }
+                            setTimeout(function() {
+                                $location.path('/rsa-case-pkg/activity-verification/list');
+                                $scope.$apply();
+                            }, 1500);
+
+                        }
 
                     // item.selected = false;
                     //$scope.getChannelDiscountAmounts();
 
-                });
+                    });
+                }
+                
 
             }
         }, 3000);
@@ -381,16 +395,16 @@ app.component('billingDetails', {
 
         $scope.calculate = function() {
             var amount = 0;
-            if (self.data.asp_service_type_data.range_limit > self.data.raw_asp_km_travelled) {
+            if (self.data.asp_service_type_data.range_limit > self.data.raw_bo_km_travelled) {
                 amount = self.data.asp_service_type_data.below_range_price;
             } else {
-                excess = self.data.raw_asp_km_travelled - self.data.asp_service_type_data.range_limit;
+                excess = self.data.raw_bo_km_travelled - self.data.asp_service_type_data.range_limit;
                 amount = parseFloat(self.data.asp_service_type_data.below_range_price) + (parseFloat(excess) * parseFloat(self.data.asp_service_type_data.above_range_price));
             }
-            amount = parseFloat(amount) + parseFloat(self.data.bo_deduction);
-            self.data.bo_po_amount = parseFloat(amount);
+            //amount = parseFloat(amount) + parseFloat(self.data.bo_deduction);
+            self.data.bo_po_amount = amount;
             self.data.bo_deduction = !$.isNumeric(self.data.bo_deduction) ? 0 : parseFloat(self.data.bo_deduction);
-            //alert(self.data.raw_asp_km_travelled);
+            //alert(self.data.raw_bo_km_travelled);
             /*total = 0;
             if(self.data.asp.tax_calculation_method){
             total = parseFloat(amount) - (parseFloat(self.data.raw_asp_collected) + parseFloat(self.data.bo_deduction))
@@ -399,7 +413,7 @@ app.component('billingDetails', {
             total = (parseFloat(amount) + parseFloat(self.data.raw_asp_not_collected)) - (parseFloat(self.data.raw_asp_collected) + parseFloat(self.data.bo_deduction))
 
             }*/
-            total = (parseFloat(amount) + parseFloat(self.data.raw_asp_not_collected)) - parseFloat(self.data.raw_asp_collected) - parseFloat(self.data.bo_deduction);
+            total = (parseFloat(amount) + parseFloat(self.data.raw_bo_not_collected)) - parseFloat(self.data.raw_bo_collected) - parseFloat(self.data.bo_deduction);
             self.data.bo_net_amount = self.data.bo_amount = total;
 
             /*total_tax = 0;

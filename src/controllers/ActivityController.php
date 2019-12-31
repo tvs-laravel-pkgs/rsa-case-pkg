@@ -325,7 +325,7 @@ class ActivityController extends Controller {
 	}
 
 	public function approveActivity(Request $request) {
-		// dd($requestest->all());
+		//dd($request->all());
 		//dd('dd');
 		DB::beginTransaction();
 		try {
@@ -383,10 +383,15 @@ class ActivityController extends Controller {
 				$value = $request->$key_name ? str_replace(",", "", $request->$key_name) : 0;
 				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $request->activity_id, 'key_id' => $keyw, 'company_id' => 1], ['value' => $value]);
 			}
-
+			if(isset($request->is_exceptional_check)){
+				$activity->is_exceptional_check = $request->is_exceptional_check;
+				if($request->is_exceptional_check){
+					$activity->exceptional_reason = isset($request->exceptional_reason) ? $request->exceptional_reason : NULL;
+				}
+			}
+			$activity->bo_comments = isset($request->bo_comments) ? $request->bo_comments : NULL;
+			$activity->deduction_reason = isset($request->deduction_reason) ?$request->deduction_reason : NULL;
 			$activity->status_id = 11;
-			//$activity->is_exceptional = $request->is_exceptional_check;
-			//$activity->exceptional_reason = empty($request->is_exceptional_check) ? '' : $request->exceptional_reason_check;
 			$activity->save();
 			$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_DEFERRED');
 			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_APPROVED');
@@ -436,6 +441,9 @@ class ActivityController extends Controller {
 			//dd($request->all());
 			$activity = Activity::findOrFail($request->activity_id);
 			$activity->status_id = 7;
+			$activity->defer_reason = isset($request->defer_reason) ?$request->defer_reason : NULL;
+			$activity->bo_comments = isset($request->bo_comments) ?$request->bo_comments :NULL;
+			$activity->deduction_reason = isset($request->deduction_reason) ?$request->deduction_reason : NULL;
 			//$activity->comments = $request->reason;
 			$activity->save();
 

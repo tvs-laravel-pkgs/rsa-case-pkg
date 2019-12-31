@@ -85,28 +85,24 @@
                                     <th scope="row">Service</th>
                                     <td>{{$ctrl.data.cc_service_type}}</td>
                                     <td class="">{{$ctrl.data.asp_service_type}}</td>
-                                    <td style="text-align:left" ng-show="!$ctrl.data.verification && $ctrl.data.bo_service_type">{{$ctrl.data.bo_service_type}}</td>
-                                    <td style="text-align:left" ng-show="!$ctrl.data.verification && !$ctrl.data.bo_service_type">-</td>
-                                    <td style="text-align:left" ng-show="$ctrl.data.verification">{{$ctrl.data.asp_service_type}}</td>
+                                    <td style="text-align:left">{{$ctrl.data.bo_service_type}}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row">KM Travelled</th>
                                     <td class="">{{$ctrl.data.cc_total_km}}</td>
                                     <td class="asp_value">{{$ctrl.data.asp_km_travelled}}</td>
-                                    <td style="text-align:left" class="" ng-show="$ctrl.data.verification==0 && $ctrl.data.bo_km_travelled!=0">{{$ctrl.data.bo_km_travelled}}</td>
-                                    <td style="text-align:left" class="" ng-show="$ctrl.data.verification==0 && $ctrl.data.bo_km_travelled==0">-</td>
+                                    <td style="text-align:left" class="" ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_km_travelled}}</td>
                                     <td style="text-align:left" ng-show="$ctrl.data.verification==1">
-                                        <input type="text" name="bo_km_travelled" ng-model="$ctrl.data.raw_asp_km_travelled" value="{{$ctrl.data.raw_asp_km_travelled}}" class="km_value" ng-keyup="calculate()"><br><span class="alert alert-danger" style="display:none;">Enter Value less than Asp Value</span>
+                                        <input oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" type="text" name="bo_km_travelled" ng-model="$ctrl.data.raw_bo_km_travelled" value="{{$ctrl.data.raw_bo_km_travelled}}" class="km_value" ng-keyup="calculate()"><br><span class="alert alert-danger" style="display:none;">Enter Value less than Asp Value</span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <th scope="row">Charges Not Collected From Customer </th>
                                     <td class="">{{$ctrl.data.cc_not_collected_amount}}</td>
                                     <td class="">{{$ctrl.data.asp_not_collected}}</td>
-                                    <td style="text-align:left" class="" ng-show="$ctrl.data.verification==0 && $ctrl.data.bo_not_collected!=0">{{$ctrl.data.bo_not_collected}}</td>
-                                    <td style="text-align:left" class="" ng-show="$ctrl.data.verification==0 && $ctrl.data.bo_not_collected==0">-</td>
+                                    <td style="text-align:left" class="" ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_not_collected}}</td>
                                     <td style="text-align:left" class="" ng-show="$ctrl.data.verification==1">
-                                        <input type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_asp_not_collected" class="non_collected_amount" value="{{$ctrl.data.raw_asp_not_collected}}" ng-keyup="calculate()">
+                                        <input type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_not_collected" class="non_collected_amount" value="{{$ctrl.data.raw_bo_not_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                         <br>
                                         <input type="hidden" ng-model="$ctrl.data.raw_asp_not_collected" class="other_value" value="{{$ctrl.data.raw_asp_not_collected}}">
                                         <span class="alert alert-danger2" style="display:none;">Enter Value less than Not Collected Value</span>
@@ -116,10 +112,9 @@
                                     <th scope="row">Charges Collected From Customer </th>
                                     <td class="">{{$ctrl.data.cc_colleced_amount}}</td>
                                     <td class="">{{$ctrl.data.asp_collected}}</td>
-                                    <td style="text-align:left" class="" ng-show="$ctrl.data.verification==0 && $ctrl.data.bo_collected!=0">{{$ctrl.data.bo_collected}}</td>
-                                    <td style="text-align:left" class="" ng-show="$ctrl.data.verification==0 && $ctrl.data.bo_collected==0">-</td>
+                                    <td style="text-align:left" class="" ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_collected}}</td>
                                     <td style="text-align:left" ng-show="$ctrl.data.verification==1">
-                                        <input type="text" name="bo_collected" ng-model="$ctrl.data.raw_asp_collected" class="collected_amount" value="{{$ctrl.data.raw_asp_collected}}" ng-keyup="calculate()">
+                                        <input type="text" name="bo_collected" ng-model="$ctrl.data.raw_bo_collected" class="collected_amount" value="{{$ctrl.data.raw_bo_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                         <input type="hidden" ng-model="$ctrl.data.raw_asp_collected" class="collected_value" value="{{$ctrl.data.raw_asp_collected}}">
                                         <br>
                                         <span class="alert alert-danger1" style="display:none;">Enter Value less than Collected Value</span>
@@ -154,8 +149,8 @@
                                          <th>Above {{ $ctrl.data.asp_service_type_data.range_limit }} (for every KM)</th>
                                          <th>Waiting Charge</th>
                                          <th>Empty Return Charge</th>
-                                                <th>Adjustment Type</th>
-                                                <th>Adjustment</th>
+                                        <th>Adjustment Type</th>
+                                        <th>Adjustment</th>
                                          </tr>
                                     </thead>
                                 <tbody>
@@ -203,39 +198,37 @@
                                 <tr>
                                     <td>KM Charges (+)</td>
                                     <td>
-                                        <div>{{$ctrl.data.bo_po_amount}}</div>
+                                        <div>{{$ctrl.data.bo_po_amount| currency:"₹"}}</div>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>Charges Not Collected From Customer (+) </td>
                                     <td>
-                                        <div ng-show="$ctrl.data.verification==0 && $ctrl.data.bo_not_collected!=0">{{$ctrl.data.bo_not_collected}}</div>
-                                        <div ng-show="$ctrl.data.verification==0 && $ctrl.data.bo_not_collected==0">{{$ctrl.data.asp_not_collected}}</div>
-                                        <div ng-show="$ctrl.data.verification==1">{{$ctrl.data.raw_asp_not_collected}}</div>
+                                        <div ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_not_collected}}</div>
+                                        <div ng-show="$ctrl.data.verification==1">{{$ctrl.data.raw_bo_not_collected | currency:"₹"}}</div>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>Charges Collected From Customer (-)</td>
                                     <td>
-                                        <div ng-show="$ctrl.data.verification==0 && $ctrl.data.bo_collected!=0">{{$ctrl.data.bo_collected}}</div>
-                                        <div ng-show="$ctrl.data.verification==0 && $ctrl.data.bo_collected==0">{{$ctrl.data.asp_collected}}</div>
-                                        <div ng-show="$ctrl.data.verification==1">{{$ctrl.data.raw_asp_collected}}</div>
+                                        <div ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_collected}}</div>
+                                        <div ng-show="$ctrl.data.verification==1">{{$ctrl.data.raw_bo_collected | currency:"₹"}}</div>
                                     </td>
                                 </tr>
                                 <tr ng-show="$ctrl.data.verification==1">
                                     <td>Discount (-)</td>
                                     <td>
-                                        <div><input type="text" ng-model="$ctrl.data.bo_deduction" class="deduction" value="{{$ctrl.data.bo_deduction}}" ng-keyup="calculate()"></div>
+                                        <div><input type="text" ng-model="$ctrl.data.bo_deduction" class="deduction" value="{{$ctrl.data.bo_deduction}}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-keyup="calculate()"></div>
                                     </td>
                                 </tr>
                                 <tr ng-show="$ctrl.data.verification==1">
                                     <td colspan="2">
-                                        <textarea name="cancelled_reason" ng-model="$ctrl.data.cancelled_reason" class="form-control" value="{{$ctrl.data.cancelled_reason}}" placeholder="Enter Deduction Reason" rows="3"></textarea>
+                                        <textarea name="deduction_reason" ng-model="$ctrl.data.deduction_reason" class="form-control" value="{{$ctrl.data.deduction_reason}}" placeholder="Enter Deduction Reason" rows="3"></textarea>
                                     </td>
                                 </tr>
                                 <tr ng-show="$ctrl.data.verification==1">
                                     <td colspan="2">
-                                        <textarea name="comments" ng-model="$ctrl.data.comments" class="form-control" value="{{$ctrl.data.comments}}" placeholder="Enter Comments" rows="3"></textarea>
+                                        <textarea name="bo_comments" ng-model="$ctrl.data.bo_comments" class="form-control" value="{{$ctrl.data.bo_comments}}" placeholder="Enter Comments" rows="3"></textarea>
                                     </td>
                                 </tr>
                             </tbody>
@@ -261,13 +254,13 @@
                                 <td>Net Amount</td>
                                 <td>
                                     <div ng-show="$ctrl.data.bo_net_amount!=0">₹{{$ctrl.data.bo_net_amount}}</div>
-                                    <div ng-show="$ctrl.data.bo_net_amount==0">₹{{$ctrl.data.asp_net_amount}}</div>
+                                    <div ng-show="$ctrl.data.bo_net_amount==0">₹{{$ctrl.data.bo_net_amount}}</div>
                                 </td>
                             </tr>
                             <tr class="warning" ng-show="$ctrl.data.verification==1">
                                 <td>Net Amount</td>
                                 <td>
-                                    <div>{{$ctrl.data.bo_net_amount | currency:"₹"}}</div>
+                                    <div>{{$ctrl.data.bo_net_amount| currency:"₹"}}</div>
                                 </td>
                             </tr>
                             <!-- <tr class="active">
@@ -285,8 +278,8 @@
                             <h4 class="title">APPROVED VALUE</h4>
                         </div>
                         <div class="col-md-6 text-right">
-                            <h4 class="price" ng-show="$ctrl.data.bo_amount!=0">₹{{$ctrl.data.bo_amount}}</h4>
-                            <h4 class="price" ng-show="$ctrl.data.bo_amount==0">₹{{$ctrl.data.asp_amount}}</h4>
+                            <!-- <h4 class="price" ng-show="$ctrl.data.bo_amount!=0">₹{{$ctrl.data.bo_amount}}</h4> -->
+                            <h4 class="price">₹{{$ctrl.data.bo_amount}}</h4>
                             <ul class="inline-btns">
                                 <!-- <li><a href="javascript:;" id="reject-ticket" class="differed-btn btn btn-primary blue">REJECT</a></li> -->
                                 <!-- <li><a href="javascript:;" id="defer-ticket" class="differed-btn btn btn-primary blue">DEFER</a></li> -->
@@ -325,13 +318,18 @@
                 <button type="button" class="close" data-dismiss="modal"><img src="{{$ctrl.data.style_modal_close_image_url}}"></button>
             </div>
             <div class="modal-body">
-                <form id="defer_form" method="post">
+                <form id="defer_form" method="post" name="differForm">
                     <input type="hidden" name="_token" value="{{ $ctrl.csrf }}" />
                     <input type="hidden" name="activity_id" id="activity_id" value="{{$ctrl.data.id}}">
                     <img class="uploadMsg-img" src="{{$ctrl.data.style_question_image_url}}">
                     <h2 class="uploadMsg-title">Defer Activity</h2>
                     <input name="defer_to" type="hidden" value="{{config('constants.ticket_statuses.'.$defer_to)}}">
-                    <textarea name="reason" ng-model="$ctrl.reason" value="{{$ctrl.reason}}" rows='5' class="form-control" autocomplete="off" placeholder="Enter Reason" required></textarea>
+                    <textarea name="defer_reason" ng-model="$ctrl.defer_reason" value="{{$ctrl.defer_reason}}" rows='5' class="form-control" autocomplete="off" placeholder="Enter Reason" ng-required="true"></textarea>
+                    <div ng-show="differForm.$submitted || differForm.defer_reason.$touched">
+                        <span style="color:red" ng-show="differForm.defer_reason.$error.required">Differ Reason is required.</span>
+                    </div>
+                    <input type="hidden" value="{{$ctrl.data.bo_comments}}" ng-model="$ctrl.data.bo_comments">
+                    <input type="hidden" value="{{$ctrl.data.deduction_reason}}" ng-model="$ctrl.data.deduction_reason">
                     <div class="clearfix"></div>
                     <button class="btn btn-primary yellow" type="btn" ng-click="differ()">Confirm</button>
                 </form>
@@ -345,7 +343,7 @@
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><img src="{{$ctrl.data.style_modal_close_image_url}}"></button>
             </div>
-            <form id="approve_form" method="post">
+            <form id="approve_form" method="post" name="myForm">
                 <input type="hidden" name="_token" value="{{ $ctrl.csrf }}" />
                 <input type="hidden" name="activity_id" id="activity_id" ng-model="$ctrl.data.id" value="{{$ctrl.data.id}}">
                 <input type="hidden" name="bo_km_travelled" ng-model="$ctrl.data.bo_km_travelled" value="{{$ctrl.data.bo_km_travelled}}">
@@ -356,6 +354,8 @@
                 <input type="hidden" name="bo_net_amount" ng-model="$ctrl.data.bo_net_amount" value="{{$ctrl.data.bo_net_amount}}">
                 <input type="hidden" name="bo_amount" ng-model="$ctrl.data.bo_amount" value="{{$ctrl.data.bo_amount}}">
                 <input type="hidden" name="activity_id" ng-model="$ctrl.data.id" value="{{$ctrl.data.id}}">
+                <input type="hidden" ng-model="$ctrl.data.bo_comments">
+                <input type="hidden" ng-model="$ctrl.data.deduction_reason">
                 <div class="modal-body">
                     <img class="uploadMsg-img" src="{{$ctrl.data.style_question_image_url}}">
                     <h2 class="uploadMsg-title">
@@ -364,12 +364,19 @@
                     </h2>
                     <div class="form-group">
                         <div class="col-xs-12">
-                            <label>Mark this Approval as Exceptional</label>
+                            <label>
+                                <input type="checkbox" ng-model="$ctrl.is_exceptional_check" name="is_exceptional_check" ng-true-value=1 ng-false-value=0> Mark this Approval as Exceptional</label>
                         </div>
+                        
                     </div>
-                    <!-- <textarea name = "exceptional_reason_check" ng-model="$ctrl.exceptional_reason_check" value ="{{$ctrl.exceptional_reason_check}}" rows = '5' class ="form-control" autocomplete="off" placeholder ="Reason for Exceptional" id = 'exceptional_reason_check'></textarea> -->
+                    <textarea name = "exceptional_reason" ng-model="$ctrl.exceptional_reason" value ="{{$ctrl.exceptional_reason}}" rows = '5' class ="form-control" autocomplete="off" placeholder ="Reason for Exceptional" id = 'exceptional_reason' ng-required="$ctrl.is_exceptional_check==1"></textarea>
+                    <div ng-show="myForm.$submitted || myForm.exceptional_reason.$touched">
+                        <span style="color:red" ng-show="myForm.exceptional_reason.$error.required">Exceptional Reason is required.</span>
+                    </div>
                     <div class="clearfix"></div>
+                    <div class="row">
                     <button class="btn btn-primary yellow" type="btn" ng-click="saveApproval()">Confirm</button>
+                </div>
                 </div>
             </form>
         </div>

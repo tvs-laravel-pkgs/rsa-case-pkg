@@ -363,14 +363,14 @@ class ActivityController extends Controller {
 				$value = $request->$key_name ? str_replace(",", "", $request->$key_name) : 0;
 				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $request->activity_id, 'key_id' => $keyw, 'company_id' => 1], ['value' => $value]);
 			}
-			if(isset($request->is_exceptional_check)){
+			if (isset($request->is_exceptional_check)) {
 				$activity->is_exceptional_check = $request->is_exceptional_check;
-				if($request->is_exceptional_check){
+				if ($request->is_exceptional_check) {
 					$activity->exceptional_reason = isset($request->exceptional_reason) ? $request->exceptional_reason : NULL;
 				}
 			}
 			$activity->bo_comments = isset($request->bo_comments) ? $request->bo_comments : NULL;
-			$activity->deduction_reason = isset($request->deduction_reason) ?$request->deduction_reason : NULL;
+			$activity->deduction_reason = isset($request->deduction_reason) ? $request->deduction_reason : NULL;
 			$activity->status_id = 11;
 			$activity->save();
 			$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_DEFERRED');
@@ -414,9 +414,9 @@ class ActivityController extends Controller {
 		try {
 			$activity = Activity::findOrFail($request->activity_id);
 			$activity->status_id = 7;
-			$activity->defer_reason = isset($request->defer_reason) ?$request->defer_reason : NULL;
-			$activity->bo_comments = isset($request->bo_comments) ?$request->bo_comments :NULL;
-			$activity->deduction_reason = isset($request->deduction_reason) ?$request->deduction_reason : NULL;
+			$activity->defer_reason = isset($request->defer_reason) ? $request->defer_reason : NULL;
+			$activity->bo_comments = isset($request->bo_comments) ? $request->bo_comments : NULL;
+			$activity->deduction_reason = isset($request->deduction_reason) ? $request->deduction_reason : NULL;
 			//$activity->comments = $request->reason;
 			$activity->save();
 
@@ -819,10 +819,10 @@ class ActivityController extends Controller {
 			'activity_statuses.name as activity_status',
 			'clients.name as client',
 			'call_centers.name as call_center',
-			'bo_net_amount.value as net_amount',
-			'bo_not_collected_amount.value as not_collected_amount',
-			'bo_colleced_amount.value as colleced_amount',
-			'bo_invoice_amount.value as invoice_amount'
+			DB::raw("FORMAT(bo_net_amount.value,2) as net_amount"),
+			DB::raw("FORMAT(bo_not_collected_amount.value,2) as not_collected_amount"),
+			DB::raw("FORMAT(bo_colleced_amount.value,2) as colleced_amount"),
+			DB::raw("FORMAT(bo_invoice_amount.value,2) as invoice_amount")
 		)
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('users', 'users.id', 'asps.user_id')

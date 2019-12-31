@@ -118,6 +118,7 @@ app.component('invoiceView', {
             self.signature_attachment_path = response.data.signature_attachment_path;
             self.invoice_attachment_file = response.data.invoice_attachment_file;
             self.invoice = response.data.invoice;
+            self.inv_no = response.data.inv_no;
             self.invoice_availability = response.data.invoice_availability;
             $rootScope.loading = false;
         });

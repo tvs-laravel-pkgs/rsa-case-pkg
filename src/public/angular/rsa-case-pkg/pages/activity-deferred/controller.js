@@ -370,7 +370,7 @@ app.component('deferredActivityUpdate', {
                         if (result) {
 
                             let formData = new FormData($(form_id)[0]);
-                            //$('#submit').button('loading');
+                            $('#submit').button('loading');
                             $.ajax({
                                     url: laravel_routes['updateActivity'],
                                     method: "POST",

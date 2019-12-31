@@ -246,14 +246,18 @@
                                     <label>Total Net Amount <span><i class="fa fa-inr" aria-hidden="true"></i>{{$ctrl.invoice_amount}}</span></label>
                                     <div class="clearfix"></div>
                                 </div>
-                                <div ng-if="$ctrl.invoice_availability == 'yes'" class="ccdv_btn multiUpload-wrapper" style="overflow: hidden; color: #333333; display: inline-grid; font-weight: 700; font-size: 20px; margin-top: 10px;">
+                                <div class="ccdv_btn multiUpload-wrapper" style="overflow: hidden; color: #333333; display: inline-grid; font-weight: 700; font-size: 20px; margin-top: 10px;">
+                                    Download Invoice
+                                    <a href="{{$ctrl.invoice_attachment_file}}" download>Download</a>
+                                </div>
+                                <!-- <div ng-if="$ctrl.invoice_availability == 'yes'" class="ccdv_btn multiUpload-wrapper" style="overflow: hidden; color: #333333; display: inline-grid; font-weight: 700; font-size: 20px; margin-top: 10px;">
                                     Uploaded Invoice
                                     <a href="{{$ctrl.invoice_attachment_file}}" download>Download</a>
                                 </div>
                                 <div ng-if="$ctrl.invoice_availability == 'no'" class="ccdv_btn multiUpload-wrapper" style="overflow: hidden; color: #333333; display: inline-grid; font-weight: 700; font-size: 20px; margin-top: 10px; margin-left:50px;">
                                     System Invoice
                                     <a href="{{$ctrl.invoice_pdf_generate_url}}/{{$ctrl.invoice.id}}" class="approve-btn pull-left preview-batch">Download</a>
-                                </div>
+                                </div> -->
                             </div>
                         </div>
                     </div>

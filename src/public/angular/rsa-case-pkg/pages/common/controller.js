@@ -241,6 +241,7 @@ app.component('billingDetails', {
         $scope.loading = true;
         var self = this;
         //self.data = activity;
+        console.log(self.data);
         setTimeout(function() {
             $scope.deferTicket = function() {
                 $("#reject-modal").modal();
@@ -250,9 +251,6 @@ app.component('billingDetails', {
                 $("#confirm-ticket-modal").modal();
 
             }
-            /*$scope.isExceptionalCheck = function(val){
-                alert(val);
-            }*/
             $scope.saveApproval = function() {
                 console.log($scope.myForm.$valid);
                 if($scope.myForm.$valid){
@@ -390,7 +388,6 @@ app.component('billingDetails', {
                 $scope.calculate();
                 $scope.$apply();
             }
-
         }, 4000);
 
         $scope.calculate = function() {

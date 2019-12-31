@@ -240,6 +240,8 @@ class ActivityController extends Controller {
 			//DB::raw('DATE_FORMAT(asps.asp_reached_date,"%d-%m-%Y %H:%i:%s") as asp_r_date'),
 			'cases.number',
 			'activities.asp_po_accepted as asp_po_accepted',
+			'activities.deduction_reason as deduction_reason',
+			'activities.bo_comments as bo_comments',
 			'cases.vehicle_registration_number',
 			'case_statuses.name as case_status',
 			'vehicle_models.name as vehicle_model',

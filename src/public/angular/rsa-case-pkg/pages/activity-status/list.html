@@ -20,6 +20,11 @@
                 <div class="col-xs-12 col-sm-6">
                     <div class="dataTable-top--right_wrapper">
                         <ul class="dataTable-top--right_group list-inline">
+                            <!-- <div class="float-right"> -->
+                               <li> <button class="btn btn-md preview-batch export" data-toggle="modal" data-target="#asp_excel_export">Export</button></li>
+                            <!-- </div> -->
+                            <!-- <li><a href="javascript:void(0)" class="btn btn-md" ng-click="">Export</a></li> -->
+
                             <li><input class="filterTable" type="text" placeholder="Search"></li>
                             <li><a href="javascript:void(0)" class="btn btn-md" ng-click="refresh()">Refresh</a></li>
                             <li>
@@ -114,3 +119,49 @@
         </div>
     </div>
 </div>
+<!-- Modal --> 
+  <div class="modal fade asp_for_find" id="asp_excel_export" role="dialog">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <a href="#" type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <img class="close_btn" src="{{ asset('resources/assets/images/modal-close.svg') }}">
+          </a>
+          <h4 class="modal-title">Export Tickets</h4>
+        </div>
+                <form novalidate id="export_excel_form" method="post" name="export_excel_form">
+          <?php echo Form::open(['route' => 'exportASP', 'id' => 'export_excel_form']) ?>
+          <div class="modal-body">
+             <div class="approvalModal-wrapper">
+              <div class="viewData-threeColumn--wrapper">
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="row"> 
+                       <div class="col-sm-6">
+                        <div class="input-text form-group">
+                          <label>Period<sup class="req">*</sup></label>                         
+                          <input class="form-control customForm-input" autocomplete="off" name="period" type="text" value=''>  
+                        </div><!-- Field -->
+                       </div><!-- Column -->
+
+                        <div class="col-sm-6">
+                          <div class="input-text form-group">
+                            <label>Ticket Status<sup class="req">*</sup></label>  
+                               <?php echo Form::select('ticket_status[]',$ticket_statuses,'',['class' => 'multiselect-ui form-control ticket_statuses', 'autocomplete' => 'off', 'multiple'=>'','id'=>'multiselect-ui']); ?>   
+                          </div>
+                        </div>
+
+                       </div>
+                       <div class="alert alert-danger">Sometimes Export may take few miniutes to export large amount of data. So please be patient.</div>
+                    </div>
+                  </div>
+                </div>
+             </div>
+             <div class="approvalModal-btns">
+              <button type="submit" class="differed-btn blue approve-btn">Export</button>
+             </div>
+           </div>
+          <?php echo Form::close(); ?>    
+      </div>
+    </div>
+  </div>

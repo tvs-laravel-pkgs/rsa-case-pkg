@@ -291,7 +291,7 @@ app.component('newActivityUpdateDetails', {
                             let formData = new FormData($(form_id)[0]);
                             //$('#submit').button('loading');
                             $.ajax({
-                                    url: laravel_routes['updateActitvity'],
+                                    url: laravel_routes['updateActivity'],
                                     method: "POST",
                                     data: formData,
                                     processData: false,

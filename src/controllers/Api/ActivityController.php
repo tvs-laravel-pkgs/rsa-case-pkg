@@ -88,6 +88,16 @@ class ActivityController extends Controller {
 					'errors' => $validator->errors()->all(),
 				], $this->successStatus);
 			}
+			//ALLOW ONLY LETTERS AND NUMBERS
+			if (!preg_match("/^[a-zA-Z0-9]+$/", $request->case_number)) {
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						"Invalid Case Number",
+					],
+				], $this->successStatus);
+			}
 
 			$data_src = Config::where([
 				'entity_type_id' => 22,

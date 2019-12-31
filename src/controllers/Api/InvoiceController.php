@@ -137,7 +137,8 @@ class InvoiceController extends Controller {
 			$invoices = Invoices::
 				select(
 				'Invoices.id',
-				DB::raw("CONCAT(Invoices.invoice_no,'-',Invoices.id) as invoice_no"),
+				DB::raw("(CASE WHEN (asps.is_auto_invoice = 1) THEN CONCAT(Invoices.invoice_no,'-',Invoices.id) ELSE Invoices.invoice_no END) as invoice_no"),
+				// DB::raw("CONCAT(Invoices.invoice_no,'-',Invoices.id) as invoice_no"),
 				DB::raw("date_format(Invoices.created_at,'%d-%m-%Y') as invoice_date"),
 				DB::raw("COUNT(activities.id) as no_of_tickets"),
 				// DB::raw("ROUND(SUM(activities.bo_invoice_amount),2) as invoice_amount"),

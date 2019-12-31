@@ -27,7 +27,8 @@ class InvoiceController extends Controller {
 
 		$invoices = Invoices::select(
 			'Invoices.id',
-			DB::raw("CONCAT(Invoices.invoice_no,'-',Invoices.id) as invoice_no"),
+			DB::raw("(CASE WHEN (asps.is_auto_invoice = 1) THEN CONCAT(Invoices.invoice_no,'-',Invoices.id) ELSE Invoices.invoice_no END) as invoice_no"),
+			// DB::raw("CONCAT(Invoices.invoice_no,'-',Invoices.id) as invoice_no"),
 			DB::raw("date_format(Invoices.created_at,'%d-%m-%Y') as invoice_date"),
 			DB::raw("ROUND(Invoices.invoice_amount,2) as invoice_amount"),
 			'asps.asp_code as asp_code',
@@ -79,7 +80,8 @@ class InvoiceController extends Controller {
 
 		$this->data['invoice'] = $invoice = Invoices::where('Invoices.id', $invoice_id)->
 			select(
-			'Invoices.*', 'asps.gst_registration_number',
+			'Invoices.*',
+			'asps.gst_registration_number',
 			'asps.pan_number',
 			'asps.account_holder_name',
 			'asps.bank_account_number',
@@ -132,7 +134,11 @@ class InvoiceController extends Controller {
 		$asp = $invoice->asp;
 		$asp->rm = $invoice->asp->rm;
 		$this->data['period'] = $invoice->startdate . ' to ' . $invoice->enddate;
-		$this->data['inv_no'] = $invoice->invoice_no . '-' . $invoice->id;
+		if ($asp->is_auto_invoice) {
+			$this->data['inv_no'] = $invoice->invoice_no . '-' . $invoice->id;
+		} else {
+			$this->data['inv_no'] = $invoice->invoice_no;
+		}
 		$this->data['inv_date'] = $invoice->created_at;
 		$this->data['batch'] = "";
 		$this->data['asp'] = $asp;

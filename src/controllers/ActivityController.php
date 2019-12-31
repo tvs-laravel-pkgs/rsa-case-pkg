@@ -350,36 +350,12 @@ class ActivityController extends Controller {
 			}
 
 			//CHECK BO KM > ASP KM
-			if ($request->bo_km_travelled > $asp_km_travelled) {
+			if ($request->bo_km_travelled > $asp_km_travelled->value) {
 				return response()->json([
 					'success' => false,
 					'errors' => ['Final KM should be less than or equal to ASP KM'],
 				]);
 			}
-
-			//old code to clarify
-			/*if ($activity->is_self) {
-				$activity->flow_current_status = "Waiting for Invoice Generation";
-			} else {
-				$activity->flow_current_status = "Waiting for Invoice Generation";
-			}*/
-			//on hold
-			/*if (!empty($request->is_exceptional_check)) {
-				$activity->is_exceptional = $request->is_exceptional_check;
-				$activity->exceptional_reason = $request->exceptional_reason_check;
-			}*/
-
-			//calculaing mis invoice amount
-
-			//dd($payout);
-			// $prices = getKMPrices($service, $activity->asp, $activity);
-			// if($prices['success']){
-			//     $payout = calculatePayout($prices['asp_service_price'],$km_travelled);
-			// }else{
-			//     return redirect()->back()->with(['error' => $prices['error']]);
-			// }
-			// $mis_service_total = ($payout+$not_collected_by_asp)-$collected_by_asp;
-			//dd(Auth::user());
 			$key_list = [158, 159, 160, 176, 172, 173, 179, 182];
 			foreach ($key_list as $keyw) {
 				$var_key = Config::where('id', $keyw)->first();
@@ -412,13 +388,13 @@ class ActivityController extends Controller {
 
 			$mobile_number = $activity->asp->contact_number1;
 			$sms_message = 'BO_APPROVED';
-			$array = [$activity->number];
+			$array = [$request->case_number];
 			// sendSMS2($sms_message, $mobile_number, $array);
 
 			//sending notification to all BO users
 			$asp_user = $activity->asp->user_id;
 			$noty_message_template = 'BO_APPROVED';
-			$number = [$activity->number];
+			$number = [$request->case_number];
 			notify2($noty_message_template, $asp_user, config('constants.alert_type.blue'), $number);
 
 			DB::commit();
@@ -436,7 +412,6 @@ class ActivityController extends Controller {
 	public function saveActivityDiffer(Request $request) {
 		DB::beginTransaction();
 		try {
-			//dd($request->all());
 			$activity = Activity::findOrFail($request->activity_id);
 			$activity->status_id = 7;
 			$activity->defer_reason = isset($request->defer_reason) ?$request->defer_reason : NULL;
@@ -457,13 +432,13 @@ class ActivityController extends Controller {
 			//SMS record
 			$mobile_number = $activity->asp->contact_number1;
 			$sms_message = 'BO_DEFERRED';
-			$array = [$activity->number];
+			$array = [$request->case_number];
 			sendSMS2($sms_message, $mobile_number, $array);
 
 			//sending notification to all BO users
 			$asp_user = $activity->asp->user_id;
 			$noty_message_template = 'BO_DEFERRED';
-			$number = [$activity->number];
+			$number = [$request->case_number];
 			notify2($noty_message_template, $asp_user, config('constants.alert_type.red'), $number);
 
 			DB::commit();

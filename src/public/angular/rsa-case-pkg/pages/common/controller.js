@@ -249,14 +249,16 @@ app.component('billingDetails', {
 
             $scope.approveTicket = function() {
                 $("#confirm-ticket-modal").modal();
-
             }
+
             $scope.saveApproval = function() {
-                console.log($scope.myForm.$valid);
                 if($scope.myForm.$valid){
+                    $('.approve_btn').button('loading');
+                    
                     $http.post(
                         laravel_routes['approveActivity'], {
                             activity_id: self.data.activity_id,
+                            case_number: self.data.number,
                             bo_km_travelled: self.data.raw_bo_km_travelled,
                             bo_collected: self.data.raw_bo_collected,
                             bo_not_collected: self.data.raw_bo_not_collected,
@@ -270,7 +272,8 @@ app.component('billingDetails', {
                             is_exceptional_check: self.is_exceptional_check,
                         }
                     ).then(function(response) {
-                        $('.save').button('reset');
+                        $('.approve_btn').button('reset');
+                        
                         $("#confirm-ticket-modal").modal("hide");
 
                         if (!response.data.success) {
@@ -317,12 +320,15 @@ app.component('billingDetails', {
             }
             $scope.differ = function() {
                 if($scope.differForm.$valid){
+                    $('.differ_btn').button('loading');
                     $http.post(
                     laravel_routes['saveActivityDiffer'], {
                         activity_id: self.data.activity_id,
                         defer_reason: self.defer_reason,
                         bo_comments: self.data.bo_comments,
                         deduction_reason: self.data.deduction_reason,
+                        case_number: self.data.number,
+
                         /*bo_km_travelled : self.data.bo_km_travelled,
                         raw_asp_collected : self.data.raw_asp_collected,
                         raw_asp_not_collected : self.data.raw_asp_not_collected,
@@ -333,7 +339,8 @@ app.component('billingDetails', {
 
                     }
                 ).then(function(response) {
-                    $('.save').button('reset');
+                    $('.differ_btn').button('reset');
+                    
                     $("#reject-modal").modal("hide");
 
                         if (!response.data.success) {
@@ -389,8 +396,11 @@ app.component('billingDetails', {
                 $scope.$apply();
             }
         }, 4000);
-
+        
         $scope.calculate = function() {
+            if(self.data.raw_bo_km_travelled>self.data.asp_km_travelled){
+                self.show_km=1;
+            }
             var amount = 0;
             if (self.data.asp_service_type_data.range_limit > self.data.raw_bo_km_travelled) {
                 amount = self.data.asp_service_type_data.below_range_price;

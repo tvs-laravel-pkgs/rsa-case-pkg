@@ -17,7 +17,7 @@ app.component('newActivity', {
             submitHandler: function(form) {
                 console.log(self.user);
                 let formData = new FormData($(form_id)[0]);
-                //$('#submit').button('loading');
+                $('#submit').button('loading');
                 $.ajax({
                         url: laravel_routes['verifyActivity'],
                         method: "POST",
@@ -289,7 +289,7 @@ app.component('newActivityUpdateDetails', {
                         if (result) {
 
                             let formData = new FormData($(form_id)[0]);
-                            //$('#submit').button('loading');
+                            $('#submit').button('loading');
                             $.ajax({
                                     url: laravel_routes['updateActivity'],
                                     method: "POST",

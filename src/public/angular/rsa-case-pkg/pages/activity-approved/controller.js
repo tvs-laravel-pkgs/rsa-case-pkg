@@ -214,86 +214,88 @@ app.component('approvedActivityInvoicePreview', {
             self.inv_date = response.data.inv_date;
             self.signature_attachment = response.data.signature_attachment;
 
-            $('.date-picker').datepicker({
-                format: 'dd-mm-yyyy',
-                autoclose: true,
+            setTimeout(function() {
+                $('#invoice-preview-table').DataTable({
+                    "bLengthChange": false,
+                    "paginate": false,
+                    "oLanguage": { "sZeroRecords": "", "sEmptyTable": "" },
+                });
+            }, 10);
+
+            setTimeout(function() {
+                $('.date-picker').datepicker({
+                    format: 'dd-mm-yyyy',
+                    autoclose: true,
+                });
+            }, 100);
+
+            $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
+            $('.viewData-toggle--btn').click(function() {
+                $(this).toggleClass('viewData-toggle--btn_reverse');
+                $('.viewData-toggle--inner .viewData-threeColumn--wrapper').slideToggle();
             });
 
-            $rootScope.loading = false;
-        });
-
-        setTimeout(function() {
-            $('#invoice-preview-table').DataTable({
-                "bLengthChange": false,
-                "paginate": false,
-                "oLanguage": { "sZeroRecords": "", "sEmptyTable": "" },
-            });
-        }, 10);
-
-        $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
-        $('.viewData-toggle--btn').click(function() {
-            $(this).toggleClass('viewData-toggle--btn_reverse');
-            $('.viewData-toggle--inner .viewData-threeColumn--wrapper').slideToggle();
-        });
-
-        var form_id = form_ids = '#invoice-create-form';
-        var v = jQuery(form_ids).validate({
-            ignore: "",
-            rules: {
-                invoice_no: {
-                    required: true,
+            var form_id = form_ids = '#invoice-create-form';
+            var v = jQuery(form_ids).validate({
+                ignore: "",
+                rules: {
+                    invoice_no: {
+                        required: true,
+                    },
+                    inv_date: {
+                        required: true,
+                    },
                 },
-                inv_date: {
-                    required: true,
+                messages: {
+                    invoice_no: {
+                        required: 'Invoice number is required',
+                    },
+                    inv_date: {
+                        required: 'Invoice date is required',
+                    },
                 },
-            },
-            messages: {
-                invoice_no: {
-                    required: 'Invoice number is required',
-                },
-                inv_date: {
-                    required: 'Invoice date is required',
-                },
-            },
-            submitHandler: function(form) {
-                let formData = new FormData($(form_id)[0]);
-                $('#submit').button('loading');
-                $.ajax({
-                        url: laravel_routes['generateInvoice'],
-                        method: "POST",
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                    })
-                    .done(function(res) {
-                        // console.log(res.success);
-                        if (!res.success) {
+                submitHandler: function(form) {
+                    let formData = new FormData($(form_id)[0]);
+                    $('#submit').button('loading');
+                    $.ajax({
+                            url: laravel_routes['generateInvoice'],
+                            method: "POST",
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                        })
+                        .done(function(res) {
+                            // console.log(res.success);
+                            if (!res.success) {
+                                $('#submit').button('reset');
+                                $noty = new Noty({
+                                    type: 'error',
+                                    layout: 'topRight',
+                                    text: res.error,
+                                }).show();
+                                setTimeout(function() {
+                                    $noty.close();
+                                }, 5000);
+                            } else {
+                                $location.path('/rsa-case-pkg/approved-activity/list');
+                                $scope.$apply();
+                            }
+                        })
+                        .fail(function(xhr) {
                             $('#submit').button('reset');
                             $noty = new Noty({
                                 type: 'error',
                                 layout: 'topRight',
-                                text: res.error,
+                                text: 'Something went wrong at server',
                             }).show();
                             setTimeout(function() {
                                 $noty.close();
                             }, 5000);
-                        } else {
-                            $location.path('/rsa-case-pkg/approved-activity/list');
-                            $scope.$apply();
-                        }
-                    })
-                    .fail(function(xhr) {
-                        $('#submit').button('reset');
-                        $noty = new Noty({
-                            type: 'error',
-                            layout: 'topRight',
-                            text: 'Something went wrong at server',
-                        }).show();
-                        setTimeout(function() {
-                            $noty.close();
-                        }, 5000);
-                    });
-            },
+                        });
+                },
+            });
+
+            $rootScope.loading = false;
         });
 
     }

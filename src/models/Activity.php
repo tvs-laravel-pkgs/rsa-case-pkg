@@ -37,6 +37,9 @@ class Activity extends Model {
 		'remarks',
 		'deduction_reason',
 		'bo_comments',
+		'defer_reason',
+		'is_exceptional_check',
+		'exceptional_reason',
 	];
 
 	public function financeStatus() {

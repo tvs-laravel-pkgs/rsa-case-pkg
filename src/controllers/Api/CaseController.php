@@ -133,19 +133,19 @@ class CaseController extends Controller {
 				'number' => $request->number,
 			]);
 
-			// CASE NEW
-			// if (!$case->exists) {
-			// 	//WITH CLOSED STATUS
-			// 	if ($status->id == 4) {
-			// 		return response()->json([
-			// 			'success' => false,
-			// 			'error' => 'Validation Error',
-			// 			'errors' => [
-			// 				"Case should not start with closed status",
-			// 			],
-			// 		], $this->successStatus);
-			// 	}
-			// }
+			//CASE NEW
+			if (!$case->exists) {
+				//WITH CANCELLED OR CLOSED STATUS
+				if ($status->id == 3 || $status->id == 4) {
+					return response()->json([
+						'success' => false,
+						'error' => 'Validation Error',
+						'errors' => [
+							"Case should not start with cancelled or closed status",
+						],
+					], $this->successStatus);
+				}
+			}
 
 			$case->fill($request->all());
 			$case->status_id = $status->id;

@@ -1118,8 +1118,6 @@ class ActivityController extends Controller {
 	}
 
 	public function exportActivities(Request $request){
-		//dd($request->all());
-		try {
 			ini_set('max_execution_time', 0);
 			ini_set('display_errors', 1);
 			ini_set("memory_limit", "10000M");
@@ -1134,10 +1132,13 @@ class ActivityController extends Controller {
 					'errors' => ['Please Select Activity Status'],
 				]);
 			}
+			$status_ids = implode(',',$request->status_ids);
+			dd($request->status_ids,$status_ids );
 			$activities = Activity::whereIn('status_id', $request->status_ids)
 				->whereDate('created_at', '>=', $range1)
 				->whereDate('created_at', '<=', $range2)
 			;
+			dd($request->all());
 
 			$total_count = $activities->count('id');
 
@@ -1290,14 +1291,6 @@ class ActivityController extends Controller {
 				});
 			})->download('xlsx');
 
-		} catch (\Exception $e) {
-			//dd($e);
-			dd($e);
-			return response()->json([
-					'success' => false,
-					'errors' => [$e->getline()],
-				]);
-		}
 
 	}
 

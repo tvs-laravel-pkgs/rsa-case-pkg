@@ -5,6 +5,8 @@ app.component('activityStatusList', {
         var self = this;
         self.hasPermission = HelperService.hasPermission;
         self.filter_img_url = filter_img_url;
+        self.export_activities = export_activities;
+        self.csrf = token;
         $http.get(
             activity_status_filter_url
         ).then(function(response) {
@@ -130,8 +132,40 @@ app.component('activityStatusList', {
             });
             $(function() {
         
-    });
+             });
+            self.pc_all = false;
             $rootScope.loading = false;
+            window.mdSelectOnKeyDownOverride = function(event) {
+            event.stopPropagation();
+            // NOTE: hack until this is fixed...
+            };
+            $scope.changeStatus = function(ids) {
+                console.log(ids);
+                if(ids){
+                    $size_rids = ids.length;
+                    if ($size_rids > 0) {
+                        $('#pc_sel_all').addClass('checked');
+                    }
+                }else{
+                    $('#pc_sel_all').removeClass('checked');
+                }
+            }
+            $scope.selectAll = function(val) {
+            console.log(val);
+            self.pc_all = (!self.pc_all);
+            if (!val) {
+                r_list = [];
+                angular.forEach(self.extras.status_list, function(value, key) {
+                    r_list.push(value.id);
+                });
+
+                $('#pc_sel_all').addClass('checked');
+            } else {
+                r_list = [];
+                $('#pc_sel_all').removeClass('checked');
+            }
+            self.status_ids = r_list;
+        }
             $scope.exportActivities = function(){
                 if($scope.export_excel_form.$valid){
                     //$('.approve-btn').button('loading');

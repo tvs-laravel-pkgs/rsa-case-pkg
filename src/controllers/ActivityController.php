@@ -1179,10 +1179,8 @@ class ActivityController extends Controller {
 				'ASP Service Type',
 				'ASP Activity Rejected Reason',
 				'ASP PO Accepted',
-				'Portal Status',
 				'Activity Status',
 				'Activity Description',
-				'Amount',
 				'Remarks',
 				
 			];
@@ -1192,11 +1190,11 @@ class ActivityController extends Controller {
 			$config_ids = array_merge($configs, $key_list);
 			foreach($config_ids as $key => $config_id){
 				$config = Config::where('id', $config_id)->first();
-				$activity_details_sub_header[0][$key] = str_replace("_", " ", strtolower($config->name));
+				$activity_details_header[0][] = str_replace("_", " ", strtolower($config->name));
 			}
 			$activity_details_data = [];
 			//dd($activities);
-			$activity_details_header = array_merge($activity_details_header, $activity_details_sub_header);
+			//$activity_details_header = array_merge($activity_details_header, $activity_details_sub_header);
 
 			foreach($activities->get() as $activity_key => $activity){
 				$activity_details_data[] =[
@@ -1216,6 +1214,13 @@ class ActivityController extends Controller {
 					$activity->case->vehicleModel->vehiclemake->name,
 					$activity->case->status->name,
 					$activity->financeStatus->name,
+					$activity->serviceType->name,
+					$activity->aspActivityRejectedReason ? $activity->aspActivityRejectedReason->name :'',
+					$activity->asp_po_accepted==1 ? "Yes" : "No",
+					$activity->activityStatus ? $activity->activityStatus->name :'',
+					$activity->description,
+					$activity->remarks,
+
 				];
 				foreach($config_ids as $config_key => $config_id) {
 					$config = Config::where('id', $config_id)->first();
@@ -1235,9 +1240,11 @@ class ActivityController extends Controller {
 				}
 
 			}
-			//dd($activity_details_sub_header,$activity_details_data);
+			$activity_details_data = array_merge($activity_details_header, $activity_details_data);
+
+			//dd($summary,$activity_details_header,$activity_details_data);
 			
-			Excel::create('activity_status_report', function ($excel) use ($summary) {
+			Excel::create('activity_status_report', function ($excel) use ($summary,$activity_details_header,$activity_details_data) {
 
 				$excel->sheet('Summary', function ($sheet) use ($summary) {
 					$sheet->fromArray($summary, NULL, 'A1', false, false);
@@ -1263,27 +1270,28 @@ class ActivityController extends Controller {
 					});*/
 					//dd($summary);
 				});
-//setAutoHeadingGeneration
 
 				$excel->sheet('Activity Informations', function ($sheet) use ($activity_details_header,$activity_details_data) {
-					$sheet->fromArray($activity_details_data, NULL, 'A1');
-					$sheet->row(1, $activity_details_header);
-					$sheet->fromArray($result);
+					$sheet->fromArray($activity_details_data, NULL, 'A1', false, false);
+					/*dd($activity_details_data);
+					$sheet->row(1, $activity_details_header);*/
+					/*$sheet->fromArray($result);
 					$sheet->cells('A1:CT1', function ($cells) {
 						$cells->setFont(array(
 							'size' => '10',
 							'bold' => true,
 						))->setBackground('#CCC9C9');
-					});
-
-
+					});*/
 				});
-
 			})->download('xlsx');
 
 		} catch (\Exception $e) {
+			//dd($e);
 			dd($e);
-			$message = ['error' => $e->getline()];
+			return response()->json([
+					'success' => false,
+					'errors' => [$e->getline()],
+				]);
 		}
 
 	}

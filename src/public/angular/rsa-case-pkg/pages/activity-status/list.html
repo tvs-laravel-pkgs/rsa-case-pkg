@@ -125,9 +125,9 @@
       <div class="modal-content">
         <div class="modal-header">
           <a href="#" type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <img class="close_btn" src="{{ asset('resources/assets/images/modal-close.svg') }}">
+            <img class="close_btn" src="{{ $ctrl.modal_close }}">
           </a>
-          <h4 class="modal-title">Export Tickets</h4>
+          <h4 class="modal-title">Export Activities</h4>
         </div>
         <form novalidate id="export_excel_form" method="post" name="export_excel_form">
           <div class="modal-body">
@@ -136,15 +136,19 @@
                 <div class="row">
                   <div class="col-md-12">
                     <div class="row"> 
-                       <div class="col-sm-6">
-                        <div class="input-text form-group">
-                              <label>Period<sup class="req">*</sup></label>                         
-                              <input class="form-control customForm-input" autocomplete="off" name="period" type="text" value='' ng-model ="$ctrl.period">  
-                        </div><!-- Field -->
+                        <div class="col-sm-6">
+                            <div class="input-text form-group">
+                                  <label>Period<sup class="req"  style="color:red">*</sup></label>                         
+                                  <input class="form-control customForm-input" autocomplete="off" name="period" type="text" value='' ng-model ="$ctrl.period" ng-required="true">
+                                  <div ng-show="export_excel_form.$submitted || export_excel_form.period.$touched">
+                                <span style="color:red" ng-show="export_excel_form.period.$error.required">Period is required.</span>
+                            </div>  
+                            </div><!-- Field -->
+                            
                         </div><!-- Column -->
                         <div class="col-sm-6">
                             <div class="input-text form-group">
-                              <label>Activity Status<sup class="req">*</sup></label>                         
+                              <label>Activity Status<sup class="req"  style="color:red">*</sup></label>                         
 
                                 <md-select ng-model="$ctrl.status_ids" md-on-close="clearSearchTerm()" name="activity_portal_status" data-md-container-class="selectdemoSelectHeader" multiple md-no-asterisk class="error_messages required" ng-required="true" placeholder="Select Activity Status">
                                     <md-select-header class="demo-select-header">
@@ -154,10 +158,14 @@
                                         <md-option ng-value="status.id" ng-repeat="status in $ctrl.extras.status_list |filter:searchTerm">{{status.name}}</md-option>
                                     </md-optgroup>
                                 </md-select>
+                                <div ng-show="export_excel_form.$submitted || export_excel_form.activity_portal_status.$touched">
+                                <span style="color:red" ng-show="export_excel_form.activity_portal_status.$error.required">Activity Status is required.</span>
                             </div>
+                            </div>
+                            
                         </div>
-                        </div>
-                       <div class="alert alert-danger">Sometimes Export may take few miniutes to export large amount of data. So please be patient.</div>
+                    </div>
+                    <div class="alert alert-danger">Sometimes Export may take few miniutes to export large amount of data. So please be patience.</div>
                     </div>
                   </div>
                 </div>

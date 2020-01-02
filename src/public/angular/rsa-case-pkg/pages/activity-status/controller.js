@@ -9,7 +9,7 @@ app.component('activityStatusList', {
             activity_status_filter_url
         ).then(function(response) {
             self.extras = response.data.extras;
-
+            self.modal_close = modal_close;
             var cols = [
                 { data: 'action', searchable: false },
                 { data: 'case_date', searchable: false },
@@ -134,14 +134,14 @@ app.component('activityStatusList', {
             $rootScope.loading = false;
             $scope.exportActivities = function(){
                 if($scope.export_excel_form.$valid){
-                    $('.approve_btn').button('loading');
+                    //$('.approve-btn').button('loading');
                     $http.post(
                         laravel_routes['exportActivities'], {
                             period: self.period,
                             status_ids: self.status_ids,
                         }
                     ).then(function(response) {
-                        $('.approve_btn').button('reset');
+                        $('.approve-btn').button('reset');
                         $("#export_excel_form").modal("hide");
                         if (!response.data.success) {
                             console.log(response.data.errors);
@@ -156,7 +156,6 @@ app.component('activityStatusList', {
                                 animation: {
                                     speed: 500 // unavailable - no need
                                 },
-
                             }).show();
                             setTimeout(function() {
                                 $noty.close();
@@ -180,9 +179,6 @@ app.component('activityStatusList', {
                                 $scope.$apply();
                             }, 1500);*/
                         }
-                        // item.selected = false;
-                        //$scope.getChannelDiscountAmounts();
-
                         }); 
                     }else{
                         $noty = new Noty({

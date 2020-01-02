@@ -12,6 +12,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	Route::get('/activity-status/get-list', 'ActivityController@getList')->name('getActivityStatusList');
 	Route::get('/activity-status/delete/{id}', 'ActivityController@delete')->name('deleteActivity');
 	Route::get('/activity-status/{view_type_id?}/view/{activity_status_id?}', 'ActivityController@viewActivityStatus')->name('viewActivityStatus');
+	Route::post('/activity-status/export', 'ActivityController@exportActivities')->name('exportActivities');
 
 	//ASP NEW ACTIVITY
 	Route::get('/new-activity/get-form-data/{id?}', 'ActivityController@activityNewGetFormData')->name('activityNewGetFormData');

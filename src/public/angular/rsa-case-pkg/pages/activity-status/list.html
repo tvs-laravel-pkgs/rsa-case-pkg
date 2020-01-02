@@ -129,39 +129,44 @@
           </a>
           <h4 class="modal-title">Export Tickets</h4>
         </div>
-                <form novalidate id="export_excel_form" method="post" name="export_excel_form">
-          <?php echo Form::open(['route' => 'exportASP', 'id' => 'export_excel_form']) ?>
+        <form novalidate id="export_excel_form" method="post" name="export_excel_form">
           <div class="modal-body">
-             <div class="approvalModal-wrapper">
-              <div class="viewData-threeColumn--wrapper">
+            <div class="approvalModal-wrapper">
+                <div class="viewData-threeColumn--wrapper">
                 <div class="row">
                   <div class="col-md-12">
                     <div class="row"> 
                        <div class="col-sm-6">
                         <div class="input-text form-group">
-                          <label>Period<sup class="req">*</sup></label>                         
-                          <input class="form-control customForm-input" autocomplete="off" name="period" type="text" value=''>  
+                              <label>Period<sup class="req">*</sup></label>                         
+                              <input class="form-control customForm-input" autocomplete="off" name="period" type="text" value='' ng-model ="$ctrl.period">  
                         </div><!-- Field -->
-                       </div><!-- Column -->
-
+                        </div><!-- Column -->
                         <div class="col-sm-6">
-                          <div class="input-text form-group">
-                            <label>Ticket Status<sup class="req">*</sup></label>  
-                               <?php echo Form::select('ticket_status[]',$ticket_statuses,'',['class' => 'multiselect-ui form-control ticket_statuses', 'autocomplete' => 'off', 'multiple'=>'','id'=>'multiselect-ui']); ?>   
-                          </div>
-                        </div>
+                            <div class="input-text form-group">
+                              <label>Activity Status<sup class="req">*</sup></label>                         
 
-                       </div>
+                                <md-select ng-model="$ctrl.status_ids" md-on-close="clearSearchTerm()" name="activity_portal_status" data-md-container-class="selectdemoSelectHeader" multiple md-no-asterisk class="error_messages required" ng-required="true" placeholder="Select Activity Status">
+                                    <md-select-header class="demo-select-header">
+                                        <input ng-model="searchTerm" type="search" placeholder="Search for a Activity Status" class="demo-header-searchbox md-text" onkeydown="mdSelectOnKeyDownOverride(event)">
+                                    </md-select-header>
+                                    <md-optgroup label="activity_portal_status">
+                                        <md-option ng-value="status.id" ng-repeat="status in $ctrl.extras.status_list |filter:searchTerm">{{status.name}}</md-option>
+                                    </md-optgroup>
+                                </md-select>
+                            </div>
+                        </div>
+                        </div>
                        <div class="alert alert-danger">Sometimes Export may take few miniutes to export large amount of data. So please be patient.</div>
                     </div>
                   </div>
                 </div>
              </div>
              <div class="approvalModal-btns">
-              <button type="submit" class="differed-btn blue approve-btn">Export</button>
+                <button type="submit" class="differed-btn blue approve-btn" ng-click="exportActivities()">Export</button>
              </div>
            </div>
-          <?php echo Form::close(); ?>    
+          </form> 
       </div>
     </div>
   </div>

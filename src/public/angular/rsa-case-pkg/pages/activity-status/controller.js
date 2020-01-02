@@ -124,8 +124,80 @@ app.component('activityStatusList', {
                 format: 'dd-mm-yyyy',
                 autoclose: true,
             });
-
+            $('input[name="period"]').daterangepicker({
+                startDate: moment().startOf('month'),
+                endDate: moment().endOf('month'),
+            });
+            $(function() {
+        
+    });
             $rootScope.loading = false;
+            $scope.exportActivities = function(){
+                if($scope.export_excel_form.$valid){
+                    $('.approve_btn').button('loading');
+                    $http.post(
+                        laravel_routes['exportActivities'], {
+                            period: self.period,
+                            status_ids: self.status_ids,
+                        }
+                    ).then(function(response) {
+                        $('.approve_btn').button('reset');
+                        $("#export_excel_form").modal("hide");
+                        if (!response.data.success) {
+                            console.log(response.data.errors);
+                            var errors = '';
+                            for (var i in response.data.errors) {
+                                errors += '<li>' + response.data.errors[i] + '</li>';
+                            }
+                            $noty = new Noty({
+                                type: 'error',
+                                layout: 'topRight',
+                                text: errors,
+                                animation: {
+                                    speed: 500 // unavailable - no need
+                                },
+
+                            }).show();
+                            setTimeout(function() {
+                                $noty.close();
+                            }, 1000);
+                            return;
+                        } else {
+                            $noty = new Noty({
+                                type: 'success',
+                                layout: 'topRight',
+                                text: response.data.message,
+                                animation: {
+                                    speed: 500
+                                }
+                            }).show();
+                            setTimeout(function() {
+                                $noty.close();
+                            }, 1000);
+
+                           /* setTimeout(function() {
+                                $location.path('/rsa-case-pkg/activity-verification/list');
+                                $scope.$apply();
+                            }, 1500);*/
+                        }
+                        // item.selected = false;
+                        //$scope.getChannelDiscountAmounts();
+
+                        }); 
+                    }else{
+                        $noty = new Noty({
+                        type: 'error',
+                        layout: 'topRight',
+                        text: "Please check all mandatory fields are filled!!",
+                        animation: {
+                            speed: 500
+                        }
+                    }).show();
+                    setTimeout(function() {
+                        $noty.close();
+                    }, 1000);
+                    }
+            }
         });
     }
 });

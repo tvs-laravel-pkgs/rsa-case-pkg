@@ -21,6 +21,8 @@ use Auth;
 use Carbon\Carbon;
 use DB;
 use Entrust;
+use Excel;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Validator;
@@ -1108,6 +1110,182 @@ class ActivityController extends Controller {
 			DB::rollBack();
 			return response()->json(['success' => false, 'errors' => ['Exception Error' => $e->getMessage()]]);
 		}
+	}
+
+	public function exportActivities(Request $request){
+		//dd($request->all());
+		try {
+			ini_set('max_execution_time', 0);
+			ini_set('display_errors', 1);
+			ini_set("memory_limit", "10000M");
+
+			$date = explode("-", $request->period);
+			$range1 = date("Y-m-d", strtotime($date[0]));
+			$range2 = date("Y-m-d", strtotime($date[1]));
+
+			if (empty($request->status_ids)) {
+				return response()->json([
+					'success' => false,
+					'errors' => ['Please Select Activity Status'],
+				]);
+			}
+			$activities = Activity::whereIn('status_id', $request->status_ids)
+				->whereDate('created_at', '>=', $range1)
+				->whereDate('created_at', '<=', $range2)
+			;
+
+			$total_count = $activities->count('id');
+
+			$count_splitup = Activity::join('activity_portal_statuses','activities.status_id','activity_portal_statuses.id')
+				->select(DB::raw('COUNT(activities.id) as activity_count'), 'status_id','activity_portal_statuses.name')
+				->whereIn('activities.status_id', $request->status_ids)
+				->whereDate('activities.created_at', '>=', $range1)
+				->whereDate('activities.created_at', '<=', $range2)
+				->groupBy('activity_portal_statuses.id')
+				->get()
+				->toArray()
+				;
+			if ($total_count == 0) {
+				return response()->json([
+					'success' => false,
+					'errors' => ['No activities found for given period & statuses'],
+				]);
+			}
+
+			$selected_statuses = $request->status_ids;
+			//dd($selected_statuses);
+			$summary = [['Period', date('d/M/Y', strtotime($range1)) . ' to ' . date('d/M/Y', strtotime($range2))], ['Status', 'Count']];
+			foreach ($count_splitup as $status_data) {
+				$summary[] = [$status_data['name'], $status_data['activity_count']];
+			}
+			$summary[] = ['Total', $total_count];
+			$activity_details_header[] = [
+				'Case Number',
+				'Case Date',
+				'Activity Number',
+				'Activity Date',
+				'ASP Name',
+				'ASP Code',
+				'ASP has GST',
+				'Workshop Name',
+				'Location',
+				'District',
+				'State',
+				'Vehicle Registration Number',
+				'Vehicle Model',
+				'Vehicle Make',
+				'Case Status',
+				'ASP Status',
+				'ASP Service Type',
+				'ASP Activity Rejected Reason',
+				'ASP PO Accepted',
+				'Portal Status',
+				'Activity Status',
+				'Activity Description',
+				'Amount',
+				'Remarks',
+				
+			];
+			$activity_details_sub_header = [];
+			$configs = Config::where('entity_type_id', 23)->pluck('id')->toArray();
+			$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 179, 182, 171, 175, 181];
+			$config_ids = array_merge($configs, $key_list);
+			foreach($config_ids as $key => $config_id){
+				$config = Config::where('id', $config_id)->first();
+				$activity_details_sub_header[0][$key] = str_replace("_", " ", strtolower($config->name));
+			}
+			$activity_details_data = [];
+			//dd($activities);
+			$activity_details_header = array_merge($activity_details_header, $activity_details_sub_header);
+
+			foreach($activities->get() as $activity_key => $activity){
+				$activity_details_data[] =[
+					$activity->case->number,
+					date('d/M/Y', strtotime($activity->case->created_at)),
+					$activity->number,
+					date('d/M/Y', strtotime($activity->created_at)),
+					$activity->asp->name,
+					$activity->asp->axpta_code,
+					$activity->asp->has_gst ? 'Yes' : 'No',
+					$activity->asp->workshop_name,
+					$activity->asp->location->name,
+					$activity->asp->district->name,
+					$activity->asp->state->name,
+					$activity->case->vehicle_registration_number,
+					$activity->case->vehicleModel->name,
+					$activity->case->vehicleModel->vehiclemake->name,
+					$activity->case->status->name,
+					$activity->financeStatus->name,
+				];
+				foreach($config_ids as $config_key => $config_id) {
+					$config = Config::where('id', $config_id)->first();
+					$detail = ActivityDetail::where('activity_id', $activity->id)->where('key_id', $config_id)->first();
+					if (strpos($config->name, '_charges') || strpos($config->name, 'amount') || strpos($config->name, 'collected') || strcmp("amount", $config->name) == 0) {
+						
+						if($detail){
+							$activity_details_data[$activity_key][] = ($detail->value!="") ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '';
+						}else{
+							$activity_details_data[$activity_key][] = '';
+						}
+
+					} else {
+
+						$activity_details_data[$activity_key][] = $detail ? $detail->value : '';
+					}
+				}
+
+			}
+			//dd($activity_details_sub_header,$activity_details_data);
+			
+			Excel::create('activity_status_report', function ($excel) use ($summary) {
+
+				$excel->sheet('Summary', function ($sheet) use ($summary) {
+					$sheet->fromArray($summary, NULL, 'A1', false, false);
+
+					/*$sheet->cells('A1:B1', function ($cells) {
+						$cells->setFont(array(
+							'size' => '10',
+							'bold' => true,
+						))->setBackground('#CCC9C9');
+					});
+					$sheet->cells('A2:B2', function ($cells) {
+						$cells->setFont(array(
+							'size' => '10',
+							'bold' => true,
+						))->setBackground('#F3F3F3');
+					});
+					$cell_number = count($request->status_ids) + 3;
+					$sheet->cells('A' . $cell_number . ':B' . $cell_number, function ($cell) {
+						$cell->setFont(array(
+							'size' => '10',
+							'bold' => true,
+						))->setBackground('#F3F3F3');
+					});*/
+					//dd($summary);
+				});
+//setAutoHeadingGeneration
+
+				$excel->sheet('Activity Informations', function ($sheet) use ($activity_details_header,$activity_details_data) {
+					$sheet->fromArray($activity_details_data, NULL, 'A1');
+					$sheet->row(1, $activity_details_header);
+					$sheet->fromArray($result);
+					$sheet->cells('A1:CT1', function ($cells) {
+						$cells->setFont(array(
+							'size' => '10',
+							'bold' => true,
+						))->setBackground('#CCC9C9');
+					});
+
+
+				});
+
+			})->download('xlsx');
+
+		} catch (\Exception $e) {
+			dd($e);
+			$message = ['error' => $e->getline()];
+		}
+
 	}
 
 }

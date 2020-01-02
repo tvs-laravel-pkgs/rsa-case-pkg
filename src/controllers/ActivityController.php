@@ -492,11 +492,16 @@ class ActivityController extends Controller {
 				$response = ['success' => false, 'errors' => ["Please contact administrator."]];
 				return response()->json($response);
 			} else {
-				$activity = Activity::join('cases', 'cases.id', 'activities.case_id')->where([
-					['activities.asp_id', Auth::user()->asp->id],
-					['activities.status_id', 2],
-					['activities.case_id', $case->id],
-				])->select('activities.id as id')->first();
+				$activity = Activity::join('cases', 'cases.id', 'activities.case_id')
+					->where([
+						['activities.asp_id', Auth::user()->asp->id],
+						// ['activities.status_id', 2],
+						['activities.case_id', $case->id],
+					])
+					->whereIn('activities.status_id', [2, 4])
+					->select('activities.id as id')
+					->first();
+
 				if (!$activity) {
 					$response = ['success' => false, 'errors' => ["Activity Not Found"]];
 					return response()->json($response);

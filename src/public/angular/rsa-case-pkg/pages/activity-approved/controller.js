@@ -277,8 +277,21 @@ app.component('approvedActivityInvoicePreview', {
                                     $noty.close();
                                 }, 5000);
                             } else {
-                                $location.path('/rsa-case-pkg/approved-activity/list');
-                                $scope.$apply();
+                                $noty = new Noty({
+                                    type: 'success',
+                                    layout: 'topRight',
+                                    text: res.message,
+                                    animation: {
+                                        speed: 500
+                                    }
+                                }).show();
+                                setTimeout(function() {
+                                    $noty.close();
+                                }, 1000);
+                                setTimeout(function() {
+                                    $location.path('/rsa-case-pkg/approved-activity/list');
+                                    $scope.$apply();
+                                }, 1500);
                             }
                         })
                         .fail(function(xhr) {

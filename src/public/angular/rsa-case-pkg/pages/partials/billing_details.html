@@ -1,7 +1,7 @@
 <!-- <?php echo Form::open(['route' => 'boApprove', 'id' => 'approve-form']); ?>
-			<?php echo Form::hidden('ticket_id', $ctrl.data.id); ?>
-			<?php echo Form::hidden('is_exceptional', 0, ['id' => 'is_exceptional']); ?>
-			<?php echo Form::hidden('exceptional_reason', '', ['id' => 'exceptional_reason']); ?> -->
+            <?php echo Form::hidden('ticket_id', $ctrl.data.id); ?>
+            <?php echo Form::hidden('is_exceptional', 0, ['id' => 'is_exceptional']); ?>
+            <?php echo Form::hidden('exceptional_reason', '', ['id' => 'exceptional_reason']); ?> -->
 <div class="viewData-wrapper">
     <div class="viewData-threeColumn--wrapper">
         <div class="row">
@@ -21,7 +21,7 @@
             <div class="col-xs-12 col-sm-4">
                 <ul class="viewData-threeColumn--group">
                     <li><img src="{{$ctrl.data.style_dot_image_url}}"></li>
-                    <!-- <li><img src="{{$ctr.data.style_service_type_image_url}}"></li>	 -->
+                    <!-- <li><img src="{{$ctr.data.style_service_type_image_url}}"></li>     -->
                     <li>
                         <p>Ticket Status</p>
                         <h3>{{$ctrl.data.case_status}}</h3>
@@ -31,11 +31,11 @@
         </div>
     </div>
     <!-- @if($mis_info->claim_status == 1)
-				<div class="differedTicket-reason">
-					<label>Reply from ASP/CC for defer</label>
-					<p>{{$mis_info->reason}}</p>
-				</div>
-	    		@endif -->
+                <div class="differedTicket-reason">
+                    <label>Reply from ASP/CC for defer</label>
+                    <p>{{$mis_info->reason}}</p>
+                </div>
+                @endif -->
     <form id="billing_form" method="post">
         <ul class="nav nav-tabs" role="tablist">
             <li role="presentation" class="  {{ ++$index ==1 ? 'active' : ''}}">
@@ -94,7 +94,7 @@
                                     <td style="text-align:left" class="" ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_km_travelled}}</td>
                                     <td style="text-align:left" ng-show="$ctrl.data.verification==1">
                                         <input oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" type="text" name="bo_km_travelled" ng-model="$ctrl.data.raw_bo_km_travelled" value="{{$ctrl.data.raw_bo_km_travelled}}" class="km_value" ng-keyup="calculate()"><br><br>
-                                        <span class="alert alert-danger" ng-show="$ctrl.show_km==1">Enter Value less than Asp Value</span>
+                                        <span class="alert alert-danger" ng-show="$ctrl.show_km==1">Enter value less than ASP value</span>
                                     </td>
                                 </tr>
                                 <tr>
@@ -104,7 +104,8 @@
                                     <td style="text-align:left" class="" ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_not_collected}}</td>
                                     <td style="text-align:left" class="" ng-show="$ctrl.data.verification==1">
                                         <input type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_not_collected" class="non_collected_amount" value="{{$ctrl.data.raw_bo_not_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
-                                        <input type="hidden" ng-model="$ctrl.data.raw_asp_not_collected" class="other_value" value="{{$ctrl.data.raw_asp_not_collected}}"><!-- <br><br><br>
+                                        <input type="hidden" ng-model="$ctrl.data.raw_asp_not_collected" class="other_value" value="{{$ctrl.data.raw_asp_not_collected}}">
+                                        <!-- <br><br><br>
                                         <span class="alert alert-danger" ng-show="($ctrl.data.raw_bo_not_collected>$ctrl.data.raw_asp_not_collected)">Enter Value less than Asp Value</span> -->
                                     </td>
                                 </tr>
@@ -122,20 +123,20 @@
                                 </tr>
                                 <!-- @if(!empty($ctrl.remarks_not_collected)) -->
                                 <!-- <tr>
-			<th scope="row">Remarks Comments for not collected charges</th>
-			<td>
-				{{ $ctrl.remarks_not_collected }}
-			</td>
-		</tr> -->
+            <th scope="row">Remarks Comments for not collected charges</th>
+            <td>
+                {{ $ctrl.remarks_not_collected }}
+            </td>
+        </tr> -->
                                 <!-- @endif
 
-		@if($ctrl.claim_status == 1) -->
+        @if($ctrl.claim_status == 1) -->
                                 <!-- <tr>
-			<th scope="row" class="alert-danger">Resolved Comments from ASP</th>
-			<td class="alert-danger">
-				{{ $ctrl.comments }}
-			</td>
-		</tr> -->
+            <th scope="row" class="alert-danger">Resolved Comments from ASP</th>
+            <td class="alert-danger">
+                {{ $ctrl.comments }}
+            </td>
+        </tr> -->
                                 <!-- @endif -->
                             </tbody>
                         </table>
@@ -149,8 +150,8 @@
                                          <th>Above {{ $ctrl.data.asp_service_type_data.range_limit }} (for every KM)</th>
                                          <th>Waiting Charge</th>
                                          <th>Empty Return Charge</th>
-                                        <th>Adjustment Type</th>
-                                        <th>Adjustment</th>
+                                                <th>Adjustment Type</th>
+                                                <th>Adjustment</th>
                                          </tr>
                                     </thead>
                                 <tbody>
@@ -190,8 +191,7 @@
                             <thead>
                                 <tr>
                                     <th>Price Calculation</th>
-                                <th style="text-align: right;">Amount in INR</th>
-                                    
+                                    <th style="text-align: right;">Amount in INR</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -236,9 +236,9 @@
                         </table>
                     </div>
                     <!-- @else
-								                <service-total-summary data="$ctrl.data"></service-total-summary>
+                                                <service-total-summary data="$ctrl.data"></service-total-summary>
 
-										@endif -->
+                                        @endif -->
                 </div><!-- tab-pane -->
                 <!-- @if(!empty($approved_view)) -->
                 <h3 class="mb-20">Approved Value Calculation</h3>
@@ -265,11 +265,11 @@
                                 </td>
                             </tr>
                             <!-- <tr class="active">
-			<td>Total Tax</td>
-			<td>
-				<div>{{$ctrl.data.bo_tax_amount | currency:"₹"}}</div>
-			</td>
-		</tr> -->
+            <td>Total Tax</td>
+            <td>
+                <div>{{$ctrl.data.bo_tax_amount | currency:"₹"}}</div>
+            </td>
+        </tr> -->
                         </tbody>
                     </table>
                 </div>
@@ -327,7 +327,7 @@
                     <input name="defer_to" type="hidden" value="{{config('constants.ticket_statuses.'.$defer_to)}}">
                     <textarea name="defer_reason" ng-model="$ctrl.defer_reason" value="{{$ctrl.defer_reason}}" rows='5' class="form-control" autocomplete="off" placeholder="Enter Reason" ng-required="true"></textarea>
                     <div ng-show="differForm.$submitted || differForm.defer_reason.$touched">
-                        <span style="color:red" ng-show="differForm.defer_reason.$error.required">Differ Reason is required.</span>
+                        <span style="color:red" ng-show="differForm.defer_reason.$error.required">Differ reason is required.</span>
                     </div>
                     <input type="hidden" value="{{$ctrl.data.bo_comments}}" ng-model="$ctrl.data.bo_comments">
                     <input type="hidden" value="{{$ctrl.data.deduction_reason}}" ng-model="$ctrl.data.deduction_reason">
@@ -368,16 +368,15 @@
                             <label>
                                 <input type="checkbox" ng-model="$ctrl.is_exceptional_check" name="is_exceptional_check" ng-true-value=1 ng-false-value=0> Mark this Approval as Exceptional</label>
                         </div>
-                        
                     </div>
-                    <textarea name = "exceptional_reason" ng-model="$ctrl.exceptional_reason" value ="{{$ctrl.exceptional_reason}}" rows ="5" class ="form-control" autocomplete="off" placeholder ="Reason for Exceptional" id ='exceptional_reason' ng-required="$ctrl.is_exceptional_check==1"></textarea>
+                    <textarea name="exceptional_reason" ng-model="$ctrl.exceptional_reason" value="{{$ctrl.exceptional_reason}}" rows="5" class="form-control" autocomplete="off" placeholder="Reason for Exceptional" id='exceptional_reason' ng-required="$ctrl.is_exceptional_check==1"></textarea>
                     <div ng-show="myForm.$submitted || myForm.exceptional_reason.$touched">
-                        <span style="color:red" ng-show="myForm.exceptional_reason.$error.required">Exceptional Reason is required.</span>
+                        <span style="color:red" ng-show="myForm.exceptional_reason.$error.required">Exceptional reason is required.</span>
                     </div>
                     <div class="clearfix"></div>
                     <div class="row">
-                    <button class="btn btn-primary yellow approve_btn" type="btn" ng-click="saveApproval()">Confirm</button>
-                </div>
+                        <button class="btn btn-primary yellow approve_btn mt-20" type="btn" ng-click="saveApproval()">Confirm</button>
+                    </div>
                 </div>
             </form>
         </div>

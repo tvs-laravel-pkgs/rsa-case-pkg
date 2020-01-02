@@ -252,9 +252,9 @@ app.component('billingDetails', {
             }
 
             $scope.saveApproval = function() {
-                if($scope.myForm.$valid){
+                if ($scope.myForm.$valid) {
                     $('.approve_btn').button('loading');
-                    
+
                     $http.post(
                         laravel_routes['approveActivity'], {
                             activity_id: self.data.activity_id,
@@ -273,7 +273,7 @@ app.component('billingDetails', {
                         }
                     ).then(function(response) {
                         $('.approve_btn').button('reset');
-                        
+
                         $("#confirm-ticket-modal").modal("hide");
 
                         if (!response.data.success) {
@@ -292,7 +292,7 @@ app.component('billingDetails', {
                             }).show();
                             setTimeout(function() {
                                 $noty.close();
-                            }, 1000);
+                            }, 2000);
                             return;
                         } else {
                             $noty = new Noty({
@@ -315,33 +315,33 @@ app.component('billingDetails', {
                         // item.selected = false;
                         //$scope.getChannelDiscountAmounts();
 
-                        }); 
-                    }
+                    });
+                }
             }
             $scope.differ = function() {
-                if($scope.differForm.$valid){
+                if ($scope.differForm.$valid) {
                     $('.differ_btn').button('loading');
                     $http.post(
-                    laravel_routes['saveActivityDiffer'], {
-                        activity_id: self.data.activity_id,
-                        defer_reason: self.defer_reason,
-                        bo_comments: self.data.bo_comments,
-                        deduction_reason: self.data.deduction_reason,
-                        case_number: self.data.number,
+                        laravel_routes['saveActivityDiffer'], {
+                            activity_id: self.data.activity_id,
+                            defer_reason: self.defer_reason,
+                            bo_comments: self.data.bo_comments,
+                            deduction_reason: self.data.deduction_reason,
+                            case_number: self.data.number,
 
-                        /*bo_km_travelled : self.data.bo_km_travelled,
-                        raw_asp_collected : self.data.raw_asp_collected,
-                        raw_asp_not_collected : self.data.raw_asp_not_collected,
-                        bo_deduction : self.data.bo_deduction,
-                        bo_po_amount : self.data.bo_po_amount,
-                        bo_net_amount : self.data.bo_net_amount,
-                        bo_amount : self.data.bo_amount,*/
+                            /*bo_km_travelled : self.data.bo_km_travelled,
+                            raw_asp_collected : self.data.raw_asp_collected,
+                            raw_asp_not_collected : self.data.raw_asp_not_collected,
+                            bo_deduction : self.data.bo_deduction,
+                            bo_po_amount : self.data.bo_po_amount,
+                            bo_net_amount : self.data.bo_net_amount,
+                            bo_amount : self.data.bo_amount,*/
 
-                    }
-                ).then(function(response) {
-                    $('.differ_btn').button('reset');
-                    
-                    $("#reject-modal").modal("hide");
+                        }
+                    ).then(function(response) {
+                        $('.differ_btn').button('reset');
+
+                        $("#reject-modal").modal("hide");
 
                         if (!response.data.success) {
                             var errors = '';
@@ -359,7 +359,7 @@ app.component('billingDetails', {
                             }).show();
                             setTimeout(function() {
                                 $noty.close();
-                            }, 1000);
+                            }, 2000);
                             return;
                         } else {
                             $noty = new Noty({
@@ -381,12 +381,12 @@ app.component('billingDetails', {
 
                         }
 
-                    // item.selected = false;
-                    //$scope.getChannelDiscountAmounts();
+                        // item.selected = false;
+                        //$scope.getChannelDiscountAmounts();
 
                     });
                 }
-                
+
 
             }
         }, 3000);
@@ -396,10 +396,10 @@ app.component('billingDetails', {
                 $scope.$apply();
             }
         }, 4000);
-        
+
         $scope.calculate = function() {
-            if(self.data.raw_bo_km_travelled>self.data.asp_km_travelled){
-                self.show_km=1;
+            if (self.data.raw_bo_km_travelled > self.data.asp_km_travelled) {
+                self.show_km = 1;
             }
             var amount = 0;
             if (self.data.asp_service_type_data.range_limit > self.data.raw_bo_km_travelled) {

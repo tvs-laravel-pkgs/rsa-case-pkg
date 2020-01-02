@@ -139,7 +139,7 @@ class ActivityController extends Controller {
 				}
 			}
 
-			if ($request->drop_location_type != 'Garage' && $request->drop_location_type != 'Dealer' && $request->drop_location_type != 'Customer Preferred') {
+			if ($request->drop_location_type && $request->drop_location_type != 'Garage' && $request->drop_location_type != 'Dealer' && $request->drop_location_type != 'Customer Preferred') {
 				return response()->json([
 					'success' => false,
 					'error' => 'Validation Error',
@@ -149,7 +149,7 @@ class ActivityController extends Controller {
 				], $this->successStatus);
 			}
 
-			if ($request->paid_to != 'ASP' && $request->paid_to != 'Online') {
+			if ($request->paid_to && $request->paid_to != 'ASP' && $request->paid_to != 'Online') {
 				return response()->json([
 					'success' => false,
 					'error' => 'Validation Error',
@@ -159,7 +159,7 @@ class ActivityController extends Controller {
 				], $this->successStatus);
 			}
 
-			if ($request->payment_mode != 'Cash' && $request->payment_mode != 'Paytm' && $request->payment_mode != 'Online') {
+			if ($request->payment_mode && $request->payment_mode != 'Cash' && $request->payment_mode != 'Paytm' && $request->payment_mode != 'Online') {
 				return response()->json([
 					'success' => false,
 					'error' => 'Validation Error',

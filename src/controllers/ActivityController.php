@@ -469,7 +469,7 @@ class ActivityController extends Controller {
 		]);
 
 		if ($validator->fails()) {
-			$response = ['success' => false, 'errors' => ["Activity Number is required"]];
+			$response = ['success' => false, 'errors' => ["Case number is required"]];
 			return response()->json($response);
 		}
 
@@ -484,10 +484,19 @@ class ActivityController extends Controller {
 		$case = RsaCase::where([
 			['number', $number],
 		])->first();
+
 		if (!$case) {
-			$response = ['success' => false, 'errors' => ["Case Not Found"]];
+			$response = ['success' => false, 'errors' => ["Case not found"]];
 			return response()->json($response);
 		} else {
+			$case_with_closed_status = RsaCase::where('number', $number)
+				->where('status_id', 4) //CLOSED
+				->first();
+			if (!$case_with_closed_status) {
+				$response = ['success' => false, 'errors' => ["Case is not closed"]];
+				return response()->json($response);
+			}
+
 			$case_date = date('Y-m-d', strtotime($case->created_at));
 			if ($case_date < $threeMonthsBefore) {
 				$response = ['success' => false, 'errors' => ["Please contact administrator."]];

@@ -306,6 +306,7 @@ class ActivityController extends Controller {
 			return response()->json([
 				'success' => true,
 				'message' => 'Activity saved successfully',
+				'activity' => $activity,
 			], $this->successStatus);
 		} catch (\Exception $e) {
 			DB::rollBack();

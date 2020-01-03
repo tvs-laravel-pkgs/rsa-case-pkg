@@ -109,6 +109,7 @@ class InvoiceController extends Controller {
 				return response()->json([
 					'success' => true,
 					'message' => 'Invoice created successfully',
+					'invoice' => $invoice_c['invoice'],
 				], $this->successStatus);
 			}
 

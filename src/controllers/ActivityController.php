@@ -1118,6 +1118,7 @@ class ActivityController extends Controller {
 	}
 
 	public function exportActivities(Request $request){
+		//dd($request->all(),is_array($request->status_ids));
 			ini_set('max_execution_time', 0);
 			ini_set('display_errors', 1);
 			ini_set("memory_limit", "10000M");
@@ -1132,19 +1133,20 @@ class ActivityController extends Controller {
 					'errors' => ['Please Select Activity Status'],
 				]);
 			}
-			$status_ids = implode(',',$request->status_ids);
-			dd($request->status_ids,$status_ids );
-			$activities = Activity::whereIn('status_id', $request->status_ids)
+			$status_ids = trim($request->status_ids,'""');
+			$status_ids = explode(',',$status_ids);
+			//dd($request->status_ids,$status_ids );
+			$activities = Activity::whereIn('status_id', $status_ids)
 				->whereDate('created_at', '>=', $range1)
 				->whereDate('created_at', '<=', $range2)
 			;
-			dd($request->all());
+			//dd($request->all());
 
 			$total_count = $activities->count('id');
 
 			$count_splitup = Activity::join('activity_portal_statuses','activities.status_id','activity_portal_statuses.id')
 				->select(DB::raw('COUNT(activities.id) as activity_count'), 'status_id','activity_portal_statuses.name')
-				->whereIn('activities.status_id', $request->status_ids)
+				->whereIn('activities.status_id', $status_ids)
 				->whereDate('activities.created_at', '>=', $range1)
 				->whereDate('activities.created_at', '<=', $range2)
 				->groupBy('activity_portal_statuses.id')
@@ -1158,7 +1160,7 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$selected_statuses = $request->status_ids;
+			$selected_statuses = $status_ids;
 			//dd($selected_statuses);
 			$summary = [['Period', date('d/M/Y', strtotime($range1)) . ' to ' . date('d/M/Y', strtotime($range2))], ['Status', 'Count']];
 			foreach ($count_splitup as $status_data) {

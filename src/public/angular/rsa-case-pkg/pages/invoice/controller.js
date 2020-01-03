@@ -129,7 +129,7 @@ app.component('invoiceView', {
             }
 
             setTimeout(function() {
-                $('#aspLogin-table').DataTable({
+                var dataTable = $('#aspLogin-table').DataTable({
                     "bLengthChange": false,
                     "paginate": false,
                     "oLanguage": { "sZeroRecords": "", "sEmptyTable": "" },

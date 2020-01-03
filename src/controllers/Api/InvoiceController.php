@@ -144,12 +144,14 @@ class InvoiceController extends Controller {
 				DB::raw("COUNT(activities.id) as no_of_tickets"),
 				// DB::raw("ROUND(SUM(activities.bo_invoice_amount),2) as invoice_amount"),
 				DB::raw("ROUND(Invoices.invoice_amount,2) as invoice_amount"),
+				'invoice_statuses.name as payment_status',
 				'asps.workshop_name as workshop_name',
 				'asps.asp_code as asp_code'
 			)
 				->where('activities.asp_id', '=', $asp->id)
 				->where('Invoices.flow_current_status', 'Waiting for Batch Generation')
 				->join('asps', 'Invoices.asp_id', '=', 'asps.id')
+				->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
 				->join('activities', 'Invoices.id', '=', 'activities.invoice_id');
 
 			if ($request->offset && $request->limit) {

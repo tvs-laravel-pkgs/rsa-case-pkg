@@ -161,8 +161,8 @@
                                                                                 <th>KM</th>
                                                                                 <th class="text-right">KM Charge</th>
                                                                                 <th class="text-right">Collected Amount</th>
-                                                                                <th class="text-right">Net Amount</th>
                                                                                 <th ng-if="$ctrl.asp.tax_calculation_method" class="text-right">Not Collected Amount</th>
+                                                                                <th class="text-right">Net Amount</th>
                                                                                 <th class="text-right">Tax %</th>
                                                                                 <th class="text-right">Tax Amount</th>
                                                                                 <th ng-if="!$ctrl.asp.tax_calculation_method" class="text-right">Not Collected Amount</th>
@@ -192,11 +192,11 @@
                                                                                 <td class="text-right">
                                                                                     {{activity.collect_value | number : 2}}
                                                                                 </td>
-                                                                                <td class="text-right">
-                                                                                    {{activity.net_value | number : 2}}
-                                                                                </td>
                                                                                 <td ng-if="$ctrl.asp.tax_calculation_method" class="text-right">
                                                                                     {{activity.not_collect_value | number : 2}}
+                                                                                </td>
+                                                                                <td class="text-right">
+                                                                                    {{activity.net_value | number : 2}}
                                                                                 </td>
                                                                                 <td class="text-right">
                                                                                     {{activity.total_tax_perc_value | number : 2}}
@@ -238,10 +238,10 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="viewData-accordion--btns">
+                                <!-- <div class="viewData-accordion--btns">
                                     <label>Total Net Amount <span><i class="fa fa-inr" aria-hidden="true"></i>{{$ctrl.invoice_amount}}</span></label>
                                     <div class="clearfix"></div>
-                                </div>
+                                </div> -->
                                 <div class="ccdv_btn multiUpload-wrapper" style="overflow: hidden; color: #333333; display: inline-grid; font-weight: 700; font-size: 20px; margin-top: 10px;">
                                     Download Invoice
                                     <a href="{{$ctrl.invoice_attachment_file}}" download>Download</a>

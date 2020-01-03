@@ -166,18 +166,19 @@
                                                                     <table id="invoice-preview-table" class="display table">
                                                                         <thead>
                                                                             <tr>
-                                                                                <th>Ticket Number</th>
-                                                                                <th>Ticket Date</th>
-                                                                                <th>Ticket Status</th>
-                                                                                <th>Call Center</th>
-                                                                                <th>Vehicle Registration Number</th>
+                                                                                <th>Case Number</th>
+                                                                                <th>Case Date</th>
+                                                                                <!-- <th>Vehicle Registration Number</th> -->
                                                                                 <th>Service Type</th>
                                                                                 <th>KM</th>
-                                                                                <th class="text-right">Net Amount</th>
+                                                                                <th class="text-right">KM Charge</th>
                                                                                 <th class="text-right">Collected Amount</th>
-                                                                                <th class="text-right">Total Tax</th>
-                                                                                <th class="text-right">Not Collected Amount</th>
-                                                                                <th class="text-right">Amount</th>
+                                                                                <th ng-if="$ctrl.asp.tax_calculation_method" class="text-right">Not Collected Amount</th>
+                                                                                <th class="text-right">Net Amount</th>
+                                                                                <th class="text-right">Tax %</th>
+                                                                                <th class="text-right">Tax Amount</th>
+                                                                                <th ng-if="!$ctrl.asp.tax_calculation_method" class="text-right">Not Collected Amount</th>
+                                                                                <th class="text-right">Invoice Amount</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
@@ -189,15 +190,9 @@
                                                                                 <td>
                                                                                     {{activity.date}}
                                                                                 </td>
-                                                                                <td>
-                                                                                    {{activity.status}}
-                                                                                </td>
-                                                                                <td>
-                                                                                    {{activity.callcenter}}
-                                                                                </td>
-                                                                                <td>
+                                                                                <!-- <td>
                                                                                     {{activity.vehicle_registration_number}}
-                                                                                </td>
+                                                                                </td> -->
                                                                                 <td>
                                                                                     {{activity.service_type}}
                                                                                 </td>
@@ -205,15 +200,24 @@
                                                                                     {{activity.km_value | number : 2}}
                                                                                 </td>
                                                                                 <td class="text-right">
-                                                                                    {{activity.net_value | number : 2}}
+                                                                                    {{activity.km_charge_value | number : 2}}
                                                                                 </td>
                                                                                 <td class="text-right">
                                                                                     {{activity.collect_value | number : 2}}
                                                                                 </td>
-                                                                                <td class="text-right">
-                                                                                    0
+                                                                                <td ng-if="$ctrl.asp.tax_calculation_method" class="text-right">
+                                                                                    {{activity.not_collect_value | number : 2}}
                                                                                 </td>
                                                                                 <td class="text-right">
+                                                                                    {{activity.net_value | number : 2}}
+                                                                                </td>
+                                                                                <td class="text-right">
+                                                                                    {{activity.total_tax_perc_value | number : 2}}
+                                                                                </td>
+                                                                                <td class="text-right">
+                                                                                    {{activity.total_tax_amount_value | number : 2}}
+                                                                                </td>
+                                                                                <td ng-if="!$ctrl.asp.tax_calculation_method" class="text-right">
                                                                                     {{activity.not_collect_value | number : 2}}
                                                                                 </td>
                                                                                 <td class="text-right">

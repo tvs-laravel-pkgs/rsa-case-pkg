@@ -392,7 +392,7 @@ class ActivityController extends Controller {
 			$mobile_number = $activity->asp->contact_number1;
 			$sms_message = 'BO_APPROVED';
 			$array = [$request->case_number];
-			// sendSMS2($sms_message, $mobile_number, $array);
+			sendSMS2($sms_message, $mobile_number, $array);
 
 			//sending notification to all BO users
 			$asp_user = $activity->asp->user_id;
@@ -716,7 +716,7 @@ class ActivityController extends Controller {
 			//sending confirmation SMS to ASP
 			$mobile_number = $activity->asp->contact_number1;
 			$sms_message = 'ASP_DATA_ENTRY_DONE';
-			$array = [$activity->number];
+			$array = [$activity->case->number];
 			// sendSMS2($sms_message, $mobile_number, $array);
 
 			//sending notification to all BO users
@@ -950,13 +950,20 @@ class ActivityController extends Controller {
 			]);
 		}
 
+		//CALCULATE TAX FOR INVOICE
+		Invoices::calculateTax($asp, $activity_ids);
+
 		$activities = Activity::join('cases', 'cases.id', 'activities.case_id')
 			->join('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->join('service_types', 'service_types.id', 'activities.service_type_id')
 			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftJoin('activity_details as km_charge', function ($join) {
 				$join->on('km_charge.activity_id', 'activities.id')
-					->where('km_charge.key_id', 158); //BO KM TRAVELLED
+					->where('km_charge.key_id', 172); //BO PO AMOUNT OR KM CHARGE
+			})
+			->leftJoin('activity_details as km_travelled', function ($join) {
+				$join->on('km_travelled.activity_id', 'activities.id')
+					->where('km_travelled.key_id', 158); //BO KM TRAVELLED
 			})
 			->leftJoin('activity_details as net_amount', function ($join) {
 				$join->on('net_amount.activity_id', 'activities.id')
@@ -970,10 +977,17 @@ class ActivityController extends Controller {
 				$join->on('not_collected_amount.activity_id', 'activities.id')
 					->where('not_collected_amount.key_id', 160); //BO NOT COLLECT AMOUNT
 			})
-
+			->leftJoin('activity_details as total_tax_perc', function ($join) {
+				$join->on('total_tax_perc.activity_id', 'activities.id')
+					->where('total_tax_perc.key_id', 185); //BO TOTAL TAX PERC
+			})
+			->leftJoin('activity_details as total_tax_amount', function ($join) {
+				$join->on('total_tax_amount.activity_id', 'activities.id')
+					->where('total_tax_amount.key_id', 179); //BO TOTAL TAX AMOUNT
+			})
 			->leftJoin('activity_details as total_amount', function ($join) {
 				$join->on('total_amount.activity_id', 'activities.id')
-					->where('total_amount.key_id', 182); //BO TOTAL AMOUNT
+					->where('total_amount.key_id', 182); //BO INVOICE AMOUNT
 			})
 			->select(
 				'activities.number',
@@ -984,11 +998,14 @@ class ActivityController extends Controller {
 				'call_centers.name as callcenter',
 				'cases.vehicle_registration_number',
 				'service_types.name as service_type',
-				'km_charge.value as km_value',
+				'km_charge.value as km_charge_value',
+				'km_travelled.value as km_value',
 				'not_collected_amount.value as not_collect_value',
 				'net_amount.value as net_value',
 				'collect_amount.value as collect_value',
-				'total_amount.value as total_value'
+				'total_amount.value as total_value',
+				'total_tax_perc.value as total_tax_perc_value',
+				'total_tax_amount.value as total_tax_amount_value'
 			)
 			->whereIn('activities.id', $activity_ids)
 			->groupBy('activities.id')

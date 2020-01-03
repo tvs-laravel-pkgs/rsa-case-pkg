@@ -214,6 +214,12 @@ app.component('approvedActivityInvoicePreview', {
             self.inv_date = response.data.inv_date;
             self.signature_attachment = response.data.signature_attachment;
 
+            if (self.asp.tax_calculation_method == '1') {
+                self.asp.tax_calculation_method = true;
+            } else {
+                self.asp.tax_calculation_method = false;
+            }
+
             setTimeout(function() {
                 $('#invoice-preview-table').DataTable({
                     "bLengthChange": false,

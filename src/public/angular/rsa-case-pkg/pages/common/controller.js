@@ -398,19 +398,37 @@ app.component('billingDetails', {
         }, 4000);
 
         $scope.calculate = function() {
-            if (self.data.raw_bo_km_travelled > self.data.asp_km_travelled) {
-                self.show_km = 1;
+            console.log(self.data);
+            if(self.data.finance_status.po_eligibility_type_id==341){
+                 below_amount = self.data.raw_bo_km_travelled == 0 ?  0 : self.data.asp_service_type_data.empty_return_range_price;
+            }else{
+                 below_amount = self.data.raw_bo_km_travelled == 0 ?  0 : self.data.asp_service_type_data.below_range_price;
             }
-            var amount = 0;
+            /*if (self.data.raw_bo_km_travelled > self.data.asp_km_travelled) {
+                self.show_km = 1;
+            }*/
             if (self.data.asp_service_type_data.range_limit > self.data.raw_bo_km_travelled) {
-                amount = self.data.asp_service_type_data.below_range_price;
+                above_amount = 0;
             } else {
                 excess = self.data.raw_bo_km_travelled - self.data.asp_service_type_data.range_limit;
-                amount = parseFloat(self.data.asp_service_type_data.below_range_price) + (parseFloat(excess) * parseFloat(self.data.asp_service_type_data.above_range_price));
+                above_amount = (parseFloat(excess) * parseFloat(self.data.asp_service_type_data.above_range_price));
             }
+            amount_wo_deduction = parseFloat(below_amount)+parseFloat(above_amount);
+            console.log(self.data.asp_service_type_data.adjustment_type);
+            console.log(amount_wo_deduction);
+            adjustment = 0;
+            if(self.data.asp_service_type_data.adjustment_type ==2){
+                adjustment = parseFloat(self.data.asp_service_type_data.adjustment);
+            }else if(self.data.asp_service_type_data.adjustment_type ==1){
+                adjustment = parseFloat(parseFloat(amount_wo_deduction) * (parseFloat(self.data.asp_service_type_data.adjustment) /100));
+                console.log(adjustment);
+            }
+                console.log(adjustment);
+
+            amount = parseFloat(amount_wo_deduction) + parseFloat(adjustment);
+            self.data.bo_deduction = parseFloat(adjustment);
             //amount = parseFloat(amount) + parseFloat(self.data.bo_deduction);
             self.data.bo_po_amount = amount;
-            self.data.bo_deduction = !$.isNumeric(self.data.bo_deduction) ? 0 : parseFloat(self.data.bo_deduction);
             //alert(self.data.raw_bo_km_travelled);
             /*total = 0;
             if(self.data.asp.tax_calculation_method){

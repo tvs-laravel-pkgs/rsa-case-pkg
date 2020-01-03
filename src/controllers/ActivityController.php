@@ -870,7 +870,7 @@ class ActivityController extends Controller {
 			->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
 			->where('users.id', Auth::id())
-			->where('activities.status_id', 11) //BO Approved - Waiting for Invoice Generation by ASP
+			->whereIn('activities.status_id', [11, 1]) //BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
 		;
 
 		if ($request->get('ticket_date')) {

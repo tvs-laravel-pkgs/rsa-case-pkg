@@ -1171,7 +1171,7 @@ class ActivityController extends Controller {
 				$summary[] = [$status_data['name'], $status_data['activity_count']];
 			}
 			$summary[] = ['Total', $total_count];
-			$activity_details_header[] = [
+			$activity_details_header = [
 				'Case Number',
 				'Case Date',
 				'Activity Number',
@@ -1196,13 +1196,12 @@ class ActivityController extends Controller {
 				'Activity Description',
 				'Remarks',
 			];
-			$activity_details_sub_header = [];
 			$configs = Config::where('entity_type_id', 23)->pluck('id')->toArray();
 			$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 179, 182, 171, 175, 181];
 			$config_ids = array_merge($configs, $key_list);
 			foreach($config_ids as $key => $config_id){
 				$config = Config::where('id', $config_id)->first();
-				$activity_details_header[0][] = str_replace("_", " ", strtolower($config->name));
+				$activity_details_header[] = str_replace("_", " ", strtolower($config->name));
 			}
 			$activity_details_data = [];
 			//dd($activities);
@@ -1251,12 +1250,13 @@ class ActivityController extends Controller {
 					}
 				}
 			}
-			//$activity_details_data = array_merge($activity_details_header, $activity_details_data);			
-			Excel::create('Activity Status Report', function ($excel) use ($summary,$activity_details_header,$activity_details_data) {
+			//$activity_details_data = array_merge($activity_details_header, $activity_details_data);
+			dd($activity_details_header,$activity_details_data);
+			/*Excel::create('Activity Status Report', function ($excel) use ($summary,$activity_details_header,$activity_details_data) {
 				$excel->sheet('Summary', function ($sheet) use ($summary) {
 					$sheet->fromArray($summary, NULL, 'A1');
 
-					/*$sheet->cells('A1:B1', function ($cells) {
+					$sheet->cells('A1:B1', function ($cells) {
 						$cells->setFont(array(
 							'size' => '10',
 							'bold' => true,
@@ -1274,14 +1274,66 @@ class ActivityController extends Controller {
 							'size' => '10',
 							'bold' => true,
 						))->setBackground('#F3F3F3');
-					});*/
+					});
 				});
 
 				$excel->sheet('Activity Informations', function ($sheet) use ($activity_details_header,$activity_details_data) {
 					$sheet->fromArray($activity_details_data, NULL, 'A1');
 					//$sheet->row(1, $activity_details_header);
 				});
-			})->export('xls');
+			})->export('xls');*/
+			$export = Excel::create('Activity Status Report', function ($excel) use ($summary,$activity_details_header,$activity_details_data) {
+			$excel->sheet('Summary', function ($sheet) use ($summary) {
+				$sheet->fromArray($summary, NULL, 'A1');
+				$sheet->row(1, function ($row) {
+					$row->setBackground('#bbc0c9');
+					$row->setFont(array(
+						'size' => '11',
+						'bold' => true,
+					));
+
+				});/*
+				$col_array = ['D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+				$col_array_pack = ['L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S'];
+				for ($i = 2; $i <= $number_of_data; $i++) {
+					for ($ij = 0; $ij < sizeof($col_array); $ij++) {
+						$sheet->cell($col_array[$ij] . $i, function ($color) {
+							$color->setBackground('#f7ddba');
+						});
+					}
+					for ($ij = 0; $ij < sizeof($col_array_pack); $ij++) {
+						$sheet->cell($col_array_pack[$ij] . $i, function ($color) {
+							$color->setBackground('#f5cc98');
+						});
+					}
+				}*/
+
+				/*$sheet->setColumnFormat(array(
+					    'D' => '#008686',
+				*/
+				/*$sheet->cells('D1:K1', function ($cells) {
+					    $cells->setBackground('#008686');
+					    $cells->setAlignment('center');
+				*/
+
+			});
+			$excel->sheet('Activity Informations', function ($sheet) use ($activity_details_header,$activity_details_data) {
+				//dd($margin_report_filter_data);
+				$sheet->fromArray($activity_details_data, NULL, 'A1');
+				$sheet->row(1, $activity_details_header);
+				$sheet->row(1, function ($row) {
+					$row->setBackground('#bbc0c9');
+					$row->setFont(array(
+						'size' => '11',
+						'bold' => true,
+					));
+
+				});
+
+			});
+			$excel->setActiveSheetIndex(0);
+
+		})->download('xls');
 			return redirect()->back()->with(['success' => 'exported!']);
 		}
 }

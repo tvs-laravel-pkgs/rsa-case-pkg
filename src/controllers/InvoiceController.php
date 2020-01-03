@@ -33,11 +33,13 @@ class InvoiceController extends Controller {
 			DB::raw("FORMAT(Invoices.invoice_amount,2) as invoice_amount"),
 			'asps.asp_code as asp_code',
 			'asps.workshop_name as workshop_name',
-			DB::raw("COUNT(activities.id) as no_of_tickets")
+			'invoice_statuses.name as payment_status',
+			DB::raw("COUNT(activities.id) as no_of_activities")
 		)
 			->join('asps', 'Invoices.asp_id', '=', 'asps.id')
 			->join('users', 'users.id', 'asps.user_id')
 			->join('activities', 'activities.invoice_id', '=', 'Invoices.id')
+			->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
 			->groupBy('Invoices.id')
 		;
 		if ($request->get('date')) {

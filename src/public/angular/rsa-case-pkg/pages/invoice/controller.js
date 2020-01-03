@@ -16,7 +16,8 @@ app.component('invoiceList', {
                 { data: 'invoice_date', searchable: false },
                 { data: 'asp_code', name: 'asps.asp_code', searchable: true },
                 { data: 'workshop_name', name: 'asps.workshop_name', searchable: true },
-                { data: 'no_of_tickets', searchable: false },
+                { data: 'no_of_activities', searchable: false },
+                { data: 'payment_status', name: 'invoice_statuses.name', searchable: true },
                 { data: 'invoice_amount', searchable: false },
             ];
 

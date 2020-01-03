@@ -270,7 +270,9 @@ class ActivityController extends Controller {
 			DB::raw('IF(Invoices.invoice_amount IS NULL,"-",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
 			DB::raw('IF(Invoices.invoice_amount IS NULL,"-",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
 			DB::raw('IF(Invoices.flow_current_status IS NULL,"-",Invoices.flow_current_status) as flow_current_status'),
-			DB::raw('IF(Invoices.start_date IS NULL,"-",DATE_FORMAT(Invoices.start_date,"%d-%m-%Y %H:%i:%s")) as invoice_date')
+			DB::raw('IF(Invoices.start_date IS NULL,"-",DATE_FORMAT(Invoices.start_date,"%d-%m-%Y %H:%i:%s")) as invoice_date'),
+			'activity_finance_statuses.po_eligibility_type_id',
+			'activities.finance_status_id'
 		)
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
@@ -318,11 +320,12 @@ class ActivityController extends Controller {
 			//dump($config->name,$this->data['activities'][$config->name]);
 		}
 		//dd($config->name,$this->data['activities']);
-		if ($this->data['activities']['asp_service_type_data']->adjustment_type == 1) {
+		/*if ($this->data['activities']['asp_service_type_data']->adjustment_type == 1) {
 			$this->data['activities']['bo_deduction'] = ($this->data['activities']['raw_bo_po_amount'] * $this->data['activities']['asp_service_type_data']->adjustment) / 100;
 		} else if ($this->data['activities']['asp_service_type_data']->adjustment_type == 2) {
+			//AMOUNT
 			$this->data['activities']['bo_deduction'] = $this->data['activities']['asp_service_type_data']->adjustment;
-		}
+		}*/
 
 		return response()->json(['success' => true, 'data' => $this->data]);
 
@@ -1094,20 +1097,20 @@ class ActivityController extends Controller {
 			}
 
 			$invoice_c = Invoices::createInvoice($asp, $request->crm_activity_ids, $invoice_no, $invoice_date, $value);
+			if (!$invoice_c['success']) {
+				return response()->json([
+					'success' => false,
+					'message' => $invoice_c['message'],
+				]);
+			}
 
 			DB::commit();
 
-			if ($invoice_c) {
+			if ($invoice_c['success']) {
 				return response()->json([
 					'success' => true,
 					'message' => 'Invoice created successfully',
 				]);
-			} else {
-				return response()->json([
-					'success' => false,
-					'message' => 'Invoice not created',
-				]);
-
 			}
 		} catch (\Exception $e) {
 			DB::rollBack();

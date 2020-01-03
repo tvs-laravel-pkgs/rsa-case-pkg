@@ -97,19 +97,19 @@ class InvoiceController extends Controller {
 				$invoice_date = new Carbon();
 			}
 			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $invoice_date);
+			if (!$invoice_c['success']) {
+				return response()->json([
+					'success' => false,
+					'message' => $invoice_c['message'],
+				], $this->successStatus);
+			}
 
 			DB::commit();
-			if ($invoice_c) {
+			if ($invoice_c['success']) {
 				return response()->json([
 					'success' => true,
 					'message' => 'Invoice created successfully',
 				], $this->successStatus);
-			} else {
-				return response()->json([
-					'success' => false,
-					'message' => 'Invoice not created',
-				], $this->successStatus);
-
 			}
 
 		} catch (\Exception $e) {

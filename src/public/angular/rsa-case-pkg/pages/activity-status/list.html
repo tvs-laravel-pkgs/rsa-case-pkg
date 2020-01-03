@@ -159,9 +159,10 @@
                                         <md-option ng-value="status.id" ng-repeat="status in $ctrl.extras.status_list |filter:searchTerm">{{status.name}}</md-option>
                                     </md-optgroup>
                                 </md-select>
+                                <input type="hidden" name="status_ids" value="{{$ctrl.status_ids}}" />
                                 <div ng-show="export_excel_form.$submitted || export_excel_form.activity_portal_status.$touched">
-                                <span style="color:red" ng-show="export_excel_form.activity_portal_status.$error.required">Activity Status is required.</span>
-                            </div>
+                                    <span style="color:red" ng-show="export_excel_form.activity_portal_status.$error.required">Activity Status is required.</span>
+                                </div>
                             </div>
                             
                         </div>

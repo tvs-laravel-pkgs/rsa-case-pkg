@@ -1333,7 +1333,7 @@ class ActivityController extends Controller {
 			});
 			$excel->setActiveSheetIndex(0);
 
-		})->download('xls');
+		})->excel('xls');
 			return redirect()->back()->with(['success' => 'exported!']);
 		}
 }

@@ -1191,10 +1191,10 @@ class ActivityController extends Controller {
 				'ASP Service Type',
 				'ASP Activity Rejected Reason',
 				'ASP PO Accepted',
+				'Portal Status',
 				'Activity Status',
 				'Activity Description',
 				'Remarks',
-				
 			];
 			$activity_details_sub_header = [];
 			$configs = Config::where('entity_type_id', 23)->pluck('id')->toArray();
@@ -1229,10 +1229,10 @@ class ActivityController extends Controller {
 					$activity->serviceType->name,
 					$activity->aspActivityRejectedReason ? $activity->aspActivityRejectedReason->name :'',
 					$activity->asp_po_accepted==1 ? "Yes" : "No",
+					$activity->status ? $activity->status->name :'',
 					$activity->activityStatus ? $activity->activityStatus->name :'',
 					$activity->description,
 					$activity->remarks,
-
 				];
 				foreach($config_ids as $config_key => $config_id) {
 					$config = Config::where('id', $config_id)->first();
@@ -1251,11 +1251,8 @@ class ActivityController extends Controller {
 					}
 				}
 			}
-			$activity_details_data = array_merge($activity_details_header, $activity_details_data);
-
-			//dd($summary,$activity_details_header,$activity_details_data);
-			
-			Excel::create('activity_status_report', function ($excel) use ($summary,$activity_details_header,$activity_details_data) {
+			//$activity_details_data = array_merge($activity_details_header, $activity_details_data);			
+			Excel::create('Activity Status Report', function ($excel) use ($summary,$activity_details_header,$activity_details_data) {
 				$excel->sheet('Summary', function ($sheet) use ($summary) {
 					$sheet->fromArray($summary, NULL, 'A1');
 
@@ -1280,9 +1277,9 @@ class ActivityController extends Controller {
 					});*/
 				});
 
-				$excel->sheet('Activity Informations', function ($sheet) use ($activity_details_data) {
+				$excel->sheet('Activity Informations', function ($sheet) use ($activity_details_header,$activity_details_data) {
 					$sheet->fromArray($activity_details_data, NULL, 'A1');
-					
+					//$sheet->row(1, $activity_details_header);
 				});
 			})->export('xls');
 			return redirect()->back()->with(['success' => 'exported!']);

@@ -113,7 +113,6 @@ app.component('activityStatusList', {
                     }
                 });
             }
-
             $('.filterToggle').click(function() {
                 $('#filterticket').toggleClass('open');
             });
@@ -136,8 +135,7 @@ app.component('activityStatusList', {
             self.pc_all = false;
             $rootScope.loading = false;
             window.mdSelectOnKeyDownOverride = function(event) {
-            event.stopPropagation();
-            // NOTE: hack until this is fixed...
+                event.stopPropagation();
             };
             $scope.changeStatus = function(ids) {
                 console.log(ids);
@@ -151,22 +149,21 @@ app.component('activityStatusList', {
                 }
             }
             $scope.selectAll = function(val) {
-            console.log(val);
-            self.pc_all = (!self.pc_all);
-            if (!val) {
-                r_list = [];
-                angular.forEach(self.extras.status_list, function(value, key) {
-                    r_list.push(value.id);
-                });
+                self.pc_all = (!self.pc_all);
+                if (!val) {
+                    r_list = [];
+                    angular.forEach(self.extras.status_list, function(value, key) {
+                        r_list.push(value.id);
+                    });
 
-                $('#pc_sel_all').addClass('checked');
-            } else {
-                r_list = [];
-                $('#pc_sel_all').removeClass('checked');
+                    $('#pc_sel_all').addClass('checked');
+                } else {
+                    r_list = [];
+                    $('#pc_sel_all').removeClass('checked');
+                }
+                self.status_ids = r_list;
             }
-            self.status_ids = r_list;
-        }
-            $scope.exportActivities = function(){
+            /*$scope.exportActivities = function(){
                 if($scope.export_excel_form.$valid){
                     //$('.approve-btn').button('loading');
                     $http.post(
@@ -207,11 +204,6 @@ app.component('activityStatusList', {
                             setTimeout(function() {
                                 $noty.close();
                             }, 1000);
-
-                           /* setTimeout(function() {
-                                $location.path('/rsa-case-pkg/activity-verification/list');
-                                $scope.$apply();
-                            }, 1500);*/
                         }
                         }); 
                     }else{
@@ -227,7 +219,7 @@ app.component('activityStatusList', {
                         $noty.close();
                     }, 1000);
                     }
-            }
+            }*/
         });
     }
 });

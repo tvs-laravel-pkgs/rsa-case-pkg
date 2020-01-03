@@ -317,10 +317,11 @@ class ActivityController extends Controller {
 			}
 			//dump($config->name,$this->data['activities'][$config->name]);
 		}
-		//dd($config->name,$this->data['activities']);
+		//PERCENTAGE
 		if ($this->data['activities']['asp_service_type_data']->adjustment_type == 1) {
 			$this->data['activities']['bo_deduction'] = ($this->data['activities']['raw_bo_po_amount'] * $this->data['activities']['asp_service_type_data']->adjustment) / 100;
 		} else if ($this->data['activities']['asp_service_type_data']->adjustment_type == 2) {
+			//AMOUNT
 			$this->data['activities']['bo_deduction'] = $this->data['activities']['asp_service_type_data']->adjustment;
 		}
 
@@ -1094,20 +1095,20 @@ class ActivityController extends Controller {
 			}
 
 			$invoice_c = Invoices::createInvoice($asp, $request->crm_activity_ids, $invoice_no, $invoice_date, $value);
+			if (!$invoice_c['success']) {
+				return response()->json([
+					'success' => false,
+					'message' => $invoice_c['message'],
+				]);
+			}
 
 			DB::commit();
 
-			if ($invoice_c) {
+			if ($invoice_c['success']) {
 				return response()->json([
 					'success' => true,
 					'message' => 'Invoice created successfully',
 				]);
-			} else {
-				return response()->json([
-					'success' => false,
-					'message' => 'Invoice not created',
-				]);
-
 			}
 		} catch (\Exception $e) {
 			DB::rollBack();

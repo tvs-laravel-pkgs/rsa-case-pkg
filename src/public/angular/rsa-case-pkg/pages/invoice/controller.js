@@ -120,22 +120,31 @@ app.component('invoiceView', {
             self.invoice = response.data.invoice;
             self.inv_no = response.data.inv_no;
             self.invoice_availability = response.data.invoice_availability;
+
+            if (self.asp.tax_calculation_method == '1') {
+                self.asp.tax_calculation_method = true;
+            } else {
+                self.asp.tax_calculation_method = false;
+            }
+
+            setTimeout(function() {
+                $('#aspLogin-table').DataTable({
+                    "bLengthChange": false,
+                    "paginate": false,
+                    "oLanguage": { "sZeroRecords": "", "sEmptyTable": "" },
+                });
+            }, 1000);
+
+            $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
+            $('.viewData-toggle--btn').click(function() {
+                $(this).toggleClass('viewData-toggle--btn_reverse');
+                $('.viewData-toggle--inner .viewData-threeColumn--wrapper').slideToggle();
+            });
+
             $rootScope.loading = false;
         });
 
-        setTimeout(function() {
-            $('#aspLogin-table').DataTable({
-                "bLengthChange": false,
-                "paginate": false,
-                "oLanguage": { "sZeroRecords": "", "sEmptyTable": "" },
-            });
-        }, 10);
 
-        $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
-        $('.viewData-toggle--btn').click(function() {
-            $(this).toggleClass('viewData-toggle--btn_reverse');
-            $('.viewData-toggle--inner .viewData-threeColumn--wrapper').slideToggle();
-        });
 
     }
 });

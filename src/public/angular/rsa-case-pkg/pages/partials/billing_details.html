@@ -219,7 +219,7 @@
                                 <tr ng-show="$ctrl.data.verification==1">
                                     <td>Discount (-)</td>
                                     <td>
-                                        <div><input type="text" ng-model="$ctrl.data.bo_deduction" class="deduction" value="{{$ctrl.data.bo_deduction}}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-keyup="calculate()"></div>
+                                        <div><input type="text" ng-model="$ctrl.data.bo_deduction" class="deduction" value="{{$ctrl.data.bo_deduction}}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-keyup="calculatePO()"></div>
                                     </td>
                                 </tr>
                                 <tr ng-show="$ctrl.data.verification==1">

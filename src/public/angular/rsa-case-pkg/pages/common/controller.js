@@ -396,17 +396,19 @@ app.component('billingDetails', {
                 $scope.$apply();
             }
         }, 4000);
-
+        $scope.calculatePO = function(){
+            total = (parseFloat(self.data.bo_po_amount) + parseFloat(self.data.raw_bo_not_collected)) - parseFloat(self.data.raw_bo_collected) - parseFloat(self.data.bo_deduction);
+            self.data.bo_net_amount = self.data.bo_amount = total;
+        }
         $scope.calculate = function() {
-            console.log(self.data);
             if(self.data.finance_status.po_eligibility_type_id==341){
                  below_amount = self.data.raw_bo_km_travelled == 0 ?  0 : self.data.asp_service_type_data.empty_return_range_price;
             }else{
                  below_amount = self.data.raw_bo_km_travelled == 0 ?  0 : self.data.asp_service_type_data.below_range_price;
             }
-            /*if (self.data.raw_bo_km_travelled > self.data.asp_km_travelled) {
+            if (self.data.raw_bo_km_travelled > self.data.asp_km_travelled) {
                 self.show_km = 1;
-            }*/
+            }
             if (self.data.asp_service_type_data.range_limit > self.data.raw_bo_km_travelled) {
                 above_amount = 0;
             } else {
@@ -414,57 +416,18 @@ app.component('billingDetails', {
                 above_amount = (parseFloat(excess) * parseFloat(self.data.asp_service_type_data.above_range_price));
             }
             amount_wo_deduction = parseFloat(below_amount)+parseFloat(above_amount);
-            console.log(self.data.asp_service_type_data.adjustment_type);
-            console.log(amount_wo_deduction);
             adjustment = 0;
             if(self.data.asp_service_type_data.adjustment_type ==2){
                 adjustment = parseFloat(self.data.asp_service_type_data.adjustment);
             }else if(self.data.asp_service_type_data.adjustment_type ==1){
                 adjustment = parseFloat(parseFloat(amount_wo_deduction) * (parseFloat(self.data.asp_service_type_data.adjustment) /100));
-                console.log(adjustment);
             }
-                console.log(adjustment);
-
             amount = parseFloat(amount_wo_deduction) + parseFloat(adjustment);
             self.data.bo_deduction = parseFloat(adjustment);
-            //amount = parseFloat(amount) + parseFloat(self.data.bo_deduction);
             self.data.bo_po_amount = amount;
-            //alert(self.data.raw_bo_km_travelled);
-            /*total = 0;
-            if(self.data.asp.tax_calculation_method){
-            total = parseFloat(amount) - (parseFloat(self.data.raw_asp_collected) + parseFloat(self.data.bo_deduction))
-
-            }else{
-            total = (parseFloat(amount) + parseFloat(self.data.raw_asp_not_collected)) - (parseFloat(self.data.raw_asp_collected) + parseFloat(self.data.bo_deduction))
-
-            }*/
             total = (parseFloat(amount) + parseFloat(self.data.raw_bo_not_collected)) - parseFloat(self.data.raw_bo_collected) - parseFloat(self.data.bo_deduction);
             self.data.bo_net_amount = self.data.bo_amount = total;
-
-            /*total_tax = 0;
-            taxes = self.data.asp.tax_group.taxes;
-            if(self.data.asp.has_gst){
-                total_tax = 0;
-                angular.forEach(taxes, function (value, key) { 
-                    console.log('value'); 
-                    console.log(value); 
-                    total_tax = parseFloat(total_tax) + parseFloat(value.tax_rate);
-                }); 
-                self.data.bo_tax_amount = parseFloat(((parseFloat(self.data.bo_net_amount) * parseFloat(total_tax)) / 100));
-                self.data.bo_amount = parseFloat(self.data.bo_net_amount) + self.data.bo_tax_amount;
-            }else{
-                self.data.bo_tax_amount = 0;
-                self.data.bo_amount = parseFloat(self.data.bo_net_amount) + self.data.bo_tax_amount;
-            }*/
-
-            console.log('self.data.bo_amount');
-            console.log(self.data.bo_amount);
-            /*if(self.data.asp.tax_calculation_method == 0){
-                self.data.bo_amount = parseFloat(self.data.bo_amount) + parseFloat(self.data.raw_asp_not_collected);
-            }*/
-            console.log('self.data.bo_amount');
-            console.log(self.data.bo_amount);
-
+            
         }
 
     }

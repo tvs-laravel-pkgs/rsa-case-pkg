@@ -306,16 +306,18 @@ app.component('deferredActivityUpdate', {
             rules: {
                 'km_travelled': {
                     required: true,
-                    number: true
+                    number: true,
                 },
                 'other_charge': {
-                    number: true
+                    number: true,
+                    required: true,
                 },
                 'remarks_not_collected': {
-                    required: true
+                    required: true,
                 },
                 'asp_collected_charges': {
-                    number: true
+                    number: true,
+                    required: true,
                 },
                 'map_attachment[]': {
                     // required: true,

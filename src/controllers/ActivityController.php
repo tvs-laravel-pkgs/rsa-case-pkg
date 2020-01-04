@@ -898,7 +898,7 @@ class ActivityController extends Controller {
 		return Datatables::of($activities)
 			->setRowAttr([
 				'id' => function ($activities) {
-					return route('angular') . '/#!/rsa-case-pkg/activity-status/view/' . $activities->id;
+					return route('angular') . '/#!/rsa-case-pkg/activity-status/1/view/' . $activities->id;
 				},
 			])
 			->addColumn('action', function ($activities) {
@@ -911,7 +911,7 @@ class ActivityController extends Controller {
 		if (empty($request->invoice_ids)) {
 			return response()->json([
 				'success' => false,
-				'errors' => ['Please select atleast one activity'],
+				'error' => 'Please select atleast one activity',
 			]);
 		}
 		$encryption_key = encryptString(implode('-', $request->invoice_ids));
@@ -990,7 +990,7 @@ class ActivityController extends Controller {
 					->where('total_amount.key_id', 182); //BO INVOICE AMOUNT
 			})
 			->select(
-				'activities.number',
+				'cases.number',
 				'activities.id',
 				'activities.crm_activity_id',
 				DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
@@ -1074,43 +1074,60 @@ class ActivityController extends Controller {
 				$value = $filename;
 			}
 
+			//GET ASP
+			$asp = ASP::where('id', $request->asp_id)->first();
+
 			//CHECK IF INVOICE ALREADY CREATED FOR ACTIVITY
 			$activities = Activity::select(
 				'invoice_id',
 				'crm_activity_id',
-				'number'
+				'number',
+				'asp_id'
 			)
 				->whereIn('crm_activity_id', $request->crm_activity_ids)
 				->get();
+
 			if (!empty($activities)) {
 				foreach ($activities as $key => $activity) {
+					//CHECK ASP MATCHES WITH ACTIVITY ASP
+					if ($activity->asp_id != $asp->id) {
+						return response()->json([
+							'success' => false,
+							'error' => 'ASP not matched for activity ID ' . $activity->crm_activity_id,
+						]);
+					}
+					//CHECK IF INVOICE ALREADY CREATED FOR ACTIVITY
 					if (!empty($activity->invoice_id)) {
 						return response()->json([
 							'success' => false,
-							'message' => 'Validation Error',
-							'errors' => 'Invoice already created for activity ' . $activity->number,
+							'error' => 'Invoice already created for activity ' . $activity->crm_activity_id,
 						]);
 					}
 				}
 			}
 
-			//GET ASP
-			$asp = ASP::where('id', $request->asp_id)->first();
 			//SELF INVOICE
 			if (!$asp->is_auto_invoice) {
 				if (!$request->invoice_no) {
 					return response()->json([
 						'success' => false,
-						'message' => 'Validation Error',
-						'errors' => 'Invoice number is required',
-					], $this->successStatus);
+						'error' => 'Invoice number is required',
+					]);
 				}
 				if (!$request->inv_date) {
 					return response()->json([
 						'success' => false,
-						'message' => 'Validation Error',
-						'errors' => 'Invoice date is required',
-					], $this->successStatus);
+						'error' => 'Invoice date is required',
+					]);
+				}
+
+				//CHECK INVOICE NUMBER EXIST
+				$is_invoice_no_exist = Invoices::where('invoice_no', $request->invoice_no)->first();
+				if ($is_invoice_no_exist) {
+					return response()->json([
+						'success' => false,
+						'error' => 'Invoice number already exist',
+					]);
 				}
 
 				$invoice_no = $request->invoice_no;

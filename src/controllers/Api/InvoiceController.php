@@ -40,10 +40,28 @@ class InvoiceController extends Controller {
 				], $this->successStatus);
 			}
 
-			//CHECK IF INVOICE ALREADY CREATED FOR ACTIVITY
-			$activities = Activity::select('invoice_id', 'crm_activity_id')->whereIn('crm_activity_id', $request->activity_id)->get();
+			//GET ASP
+			$asp = ASP::where('asp_code', $request->asp_code)->first();
+
+			$activities = Activity::select(
+				'invoice_id',
+				'crm_activity_id',
+				'asp_id'
+			)
+				->whereIn('crm_activity_id', $request->activity_id)
+				->get();
+
 			if (!empty($activities)) {
 				foreach ($activities as $key => $activity) {
+					//CHECK ASP MATCHES WITH ACTIVITY ASP
+					if ($activity->asp_id != $asp->id) {
+						return response()->json([
+							'success' => false,
+							'message' => 'Validation Error',
+							'errors' => 'ASP not matched for activity ID ' . $activity->crm_activity_id,
+						], $this->successStatus);
+					}
+					//CHECK IF INVOICE ALREADY CREATED FOR ACTIVITY
 					if (!empty($activity->invoice_id)) {
 						return response()->json([
 							'success' => false,
@@ -58,7 +76,8 @@ class InvoiceController extends Controller {
 			$activities_with_accepted = Activity::select('crm_activity_id', 'status_id')->whereIn('crm_activity_id', $request->activity_id)->get();
 			if (!empty($activities_with_accepted)) {
 				foreach ($activities_with_accepted as $key => $activity_accepted) {
-					if ($activity_accepted->status_id != 1) {
+					//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND BO Approved - Waiting for Invoice Generation by ASP)
+					if ($activity_accepted->status_id != 1 && $activity_accepted->status_id != 11) {
 						return response()->json([
 							'success' => false,
 							'message' => 'Validation Error',
@@ -68,8 +87,6 @@ class InvoiceController extends Controller {
 				}
 			}
 
-			//GET ASP
-			$asp = ASP::where('asp_code', $request->asp_code)->first();
 			//SELF INVOICE
 			if (!$asp->is_auto_invoice) {
 				if (!$request->invoice_number) {
@@ -86,6 +103,23 @@ class InvoiceController extends Controller {
 						'errors' => 'Invoice date is required',
 					], $this->successStatus);
 				}
+				if (!$request->invoice_copy) {
+					return response()->json([
+						'success' => false,
+						'message' => 'Validation Error',
+						'errors' => 'Invoice copy is required',
+					], $this->successStatus);
+				}
+
+				//CHECK INVOICE NUMBER EXIST
+				$is_invoice_no_exist = Invoices::where('invoice_no', $request->invoice_number)->first();
+				if ($is_invoice_no_exist) {
+					return response()->json([
+						'success' => false,
+						'message' => 'Validation Error',
+						'errors' => 'Invoice number already exist',
+					], $this->successStatus);
+				}
 
 				$invoice_no = $request->invoice_number;
 				$invoice_date = date('Y-m-d H:i:s', strtotime($request->invoice_date));
@@ -96,6 +130,8 @@ class InvoiceController extends Controller {
 				$invoice_no = generateAppInvoiceNumber();
 				$invoice_date = new Carbon();
 			}
+
+			//CREATE INVOICE
 			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $invoice_date);
 			if (!$invoice_c['success']) {
 				return response()->json([

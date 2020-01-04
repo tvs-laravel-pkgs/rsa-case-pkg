@@ -369,7 +369,7 @@ class ActivityController extends Controller {
 					$join->on('cc_po_amount.activity_id', 'activities.id')
 						->where('cc_po_amount.key_id', 180); //CC INVOICE AMOUNT
 				})
-				->where('activities.status_id', 1) //Case Closed - Waiting for ASP to Generate Invoice
+				->whereIn('activities.status_id', [11, 1]) //BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
 				->where('cases.status_id', 4) //case closed
 				->where('activities.asp_id', $asp->id)
 				->orderBy('activities.created_at', 'desc')

@@ -10,8 +10,10 @@ app.component('activityVerificationList', {
             activity_status_filter_url
         ).then(function(response) {
             self.extras = response.data.extras;
+            $(".for-below40").show();
+            $(".for-above40").hide();
 
-            var cols = [
+            var cols1 = [
                 { data: 'action', searchable: false },
                 { data: 'case_date', searchable: false },
                 { data: 'number', name: 'cases.number', searchable: true },
@@ -27,11 +29,11 @@ app.component('activityVerificationList', {
                 { data: 'call_center', name: 'call_centers.name', searchable: true },
             ];
 
-            var activities_verification_dt_config = JSON.parse(JSON.stringify(dt_config));
+            var activities_verification_below_40_dt_config = JSON.parse(JSON.stringify(dt_config));
 
-            $('#activities_verification_table').DataTable(
-                $.extend(activities_verification_dt_config, {
-                    columns: cols,
+            $('#below40-table').DataTable(
+                $.extend(activities_verification_below_40_dt_config, {
+                    columns: cols1,
                     ordering: false,
                     processing: true,
                     serverSide: true,
@@ -43,56 +45,138 @@ app.component('activityVerificationList', {
                     stateLoadCallback: function(settings) {
                         var state_save_val = JSON.parse(localStorage.getItem('SIDataTables_' + settings.sInstance));
                         if (state_save_val) {
-                            $('.filterTable').val(state_save_val.search.search);
+                            $('.for-below40 .filterTable').val(state_save_val.search.search);
                         }
                         return JSON.parse(localStorage.getItem('SIDataTables_' + settings.sInstance));
                     },
                     ajax: {
-                        url: activity_verification_get_list_url,
+                        url: activity_verification_bulk_get_list_url,
                         data: function(d) {
-                            d.ticket_date = $('#ticket_date').val();
-                            d.call_center_id = $('#call_center_id').val();
-                            d.case_number = $('#case_number').val();
-                            d.asp_code = $('#asp_code').val();
-                            d.service_type_id = $('#service_type_id').val();
-                            d.finance_status_id = $('#finance_status_id').val();
-                            d.status_id = $('#status_id').val();
-                            d.activity_status_id = $('#activity_status_id').val();
-                            d.client_id = $('#client_id').val();
+                            d.ticket_date = $('.for-below40 #ticket_date').val();
+                            d.call_center_id = $('.for-below40 #call_center_id').val();
+                            d.case_number = $('.for-below40 #case_number').val();
+                            d.asp_code = $('.for-below40 #asp_code').val();
+                            d.service_type_id = $('.for-below40 #service_type_id').val();
+                            d.finance_status_id = $('.for-below40 #finance_status_id').val();
+                            d.status_id = $('.for-below40 #status_id').val();
+                            d.activity_status_id = $('.for-below40 #activity_status_id').val();
+                            d.client_id = $('.for-below40 #client_id').val();
                         }
                     },
                     infoCallback: function(settings, start, end, max, total, pre) {
-                        $('.count').html(total + ' / ' + max + ' listings')
+                        $('.below40_count').html(total + ' / ' + max + ' listings')
                     },
                     initComplete: function() {},
                 }));
             $('.dataTables_length select').select2();
 
-            var dataTable = $('#activities_verification_table').dataTable();
+            var belowDataTable = $('#below40-table').dataTable();
 
-            $(".filterTable").keyup(function() {
-                dataTable.fnFilter(this.value);
+            $(".for-below40 .filterTable").keyup(function() {
+                belowDataTable.fnFilter(this.value);
             });
 
-            $('#ticket_date').on('change', function() {
-                dataTable.fnFilter();
+            $('.for-below40 #ticket_date').on('change', function() {
+                belowDataTable.fnFilter();
             });
 
-            $('#case_number,#asp_code').on('keyup', function() {
-                dataTable.fnFilter();
+            $('.for-below40 #case_number, .for-below40 #asp_code').on('keyup', function() {
+                belowDataTable.fnFilter();
             });
 
-            $scope.changeCommonFilter = function(val, id) {
-                $('#' + id).val(val);
-                dataTable.fnFilter();
+            $scope.changeCommonFilterBelow = function(val, id) {
+                $('.for-below40 #' + id).val(val);
+                belowDataTable.fnFilter();
             };
 
-            $scope.refresh = function() {
-                $('#activities_verification_table').DataTable().ajax.reload();
+            $scope.belowRefresh = function() {
+                $('#below40-table').DataTable().ajax.reload();
+            };
+            $('.for-below40 .filterToggle').click(function() {
+                $('.for-below40 #filterticket').toggleClass('open');
+            });
+
+            var cols2 = [
+                { data: 'case_date', searchable: false },
+                { data: 'number', name: 'cases.number', searchable: true },
+                { data: 'asp_code', name: 'asps.asp_code', searchable: true },
+                { data: 'crm_activity_id', searchable: false },
+                // { data: 'activity_number', name: 'activities.number', searchable: true },
+                { data: 'sub_service', name: 'service_types.name', searchable: true },
+                { data: 'finance_status', name: 'activity_finance_statuses.name', searchable: true },
+                // { data: 'asp_status', name: 'activity_asp_statuses.name', searchable: true },
+                { data: 'status', name: 'activity_portal_statuses.name', searchable: true },
+                { data: 'activity_status', name: 'activity_statuses.name', searchable: true },
+                { data: 'client', name: 'clients.name', searchable: true },
+                { data: 'call_center', name: 'call_centers.name', searchable: true },
+            ];
+
+            var activities_verification_above_40_dt_config = JSON.parse(JSON.stringify(dt_config));
+
+            $('#above40-table').DataTable(
+                $.extend(activities_verification_above_40_dt_config, {
+                    columns: cols2,
+                    ordering: false,
+                    processing: true,
+                    serverSide: true,
+                    "scrollX": true,
+                    stateSave: true,
+                    stateSaveCallback: function(settings, data) {
+                        localStorage.setItem('SIDataTables_' + settings.sInstance, JSON.stringify(data));
+                    },
+                    stateLoadCallback: function(settings) {
+                        var state_save_val = JSON.parse(localStorage.getItem('SIDataTables_' + settings.sInstance));
+                        if (state_save_val) {
+                            $('.for-above40 .filterTable').val(state_save_val.search.search);
+                        }
+                        return JSON.parse(localStorage.getItem('SIDataTables_' + settings.sInstance));
+                    },
+                    ajax: {
+                        url: activity_verification_individual_get_list_url,
+                        data: function(d) {
+                            d.ticket_date = $('.for-above40 #ticket_date').val();
+                            d.call_center_id = $('.for-above40 #call_center_id').val();
+                            d.case_number = $('.for-above40 #case_number').val();
+                            d.asp_code = $('.for-above40 #asp_code').val();
+                            d.service_type_id = $('.for-above40 #service_type_id').val();
+                            d.finance_status_id = $('.for-above40 #finance_status_id').val();
+                            d.status_id = $('.for-above40 #status_id').val();
+                            d.activity_status_id = $('.for-above40 #activity_status_id').val();
+                            d.client_id = $('.for-above40 #client_id').val();
+                        }
+                    },
+                    infoCallback: function(settings, start, end, max, total, pre) {
+                        $('.above40_count').html(total + ' / ' + max + ' listings')
+                    },
+                    initComplete: function() {},
+                }));
+            $('.dataTables_length select').select2();
+
+            var aboveDataTable = $('#above40-table').dataTable();
+
+            $(".for-above40 .filterTable").keyup(function() {
+                aboveDataTable.fnFilter(this.value);
+            });
+
+            $('.for-above40 #ticket_date').on('change', function() {
+                aboveDataTable.fnFilter();
+            });
+
+            $('.for-above40 #case_number, .for-above40 #asp_code').on('keyup', function() {
+                aboveDataTable.fnFilter();
+            });
+
+            $scope.changeCommonFilterAbove = function(val, id) {
+                $('.for-above40 #' + id).val(val);
+                aboveDataTable.fnFilter();
             };
 
-            $('.filterToggle').click(function() {
-                $('#filterticket').toggleClass('open');
+            $scope.aboveRefresh = function() {
+                $('#above40-table').DataTable().ajax.reload();
+            };
+
+            $('.for-above40 .filterToggle').click(function() {
+                $('.for-above40 #filterticket').toggleClass('open');
             });
 
             $('.close-filter, .filter-overlay').click(function() {
@@ -103,9 +187,37 @@ app.component('activityVerificationList', {
                 format: 'dd-mm-yyyy',
                 autoclose: true,
             });
+
+            $('#select_all_checkbox').click(function() {
+                if ($(this).prop("checked")) {
+                    $(".child_select_all").prop("checked", true);
+                } else {
+                    $(".child_select_all").prop("checked", false);
+                }
+            });
+
+
+            $(".for-empty-return").hide();
+            $(".below40-tab").click(function() {
+                $(".for-below40").show();
+                $(".for-above40,.for-empty-return").hide();
+            });
+            $(".above40-tab").click(function() {
+                $(".for-above40").show();
+                $(".for-below40,.for-empty-return").hide();
+            });
+            $(".empty-return-tab").click(function() {
+                $(".for-empty-return").show();
+                $(".for-below40,.for-above40").hide();
+            });
+            $scope.tabChange = function(add_id, remove_id) {
+                $('#' + add_id + '-table').DataTable().ajax.reload();
+                $('#' + add_id).addClass('active in');
+                $('#' + remove_id).removeClass('active in');
+            }
+
             $rootScope.loading = false;
         });
-
     }
 });
 //------------------------------------------------------------------------------------------------------------------------

@@ -135,7 +135,7 @@ class ActivityController extends Controller {
 		return response()->json(['success' => true]);
 	}
 
-	public function getVerificationList(Request $request) {
+	public function getBulkVerificationList(Request $request) {
 		$activities = Activity::select(
 			'activities.id',
 			'activities.crm_activity_id',
@@ -162,7 +162,7 @@ class ActivityController extends Controller {
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 		// ->where('activities.asp_accepted_cc_details', '!=', 1)
-			->whereIn('activities.status_id', [5, 6, 8, 9])
+			->whereIn('activities.status_id', [5, 8])
 			->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
 		;
@@ -202,15 +202,89 @@ class ActivityController extends Controller {
 			}
 		}
 		return Datatables::of($activities)
-			->addColumn('action', function ($activity) {
-				$verification_id = 2;
-				$action = '<div class="dataTable-actions">
-								<a href="#!/rsa-case-pkg/activity-verification/' . $verification_id . '/view/' . $activity->id . '">
-					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
-					            </a>
-					            </div>';
-				return $action;
+			->setRowAttr([
+				'id' => function ($activities) {
+					return route('angular') . '/#!/rsa-case-pkg/activity-verification/2/view/' . $activities->id;
+				},
+			])
+			->addColumn('action', function ($activities) {
+				return '<input type="checkbox" class="ticket_id no-link child_select_all" name="activity_ids[]" value="' . $activities->id . '">';
 			})
+			->make(true);
+	}
+
+	public function getIndividualVerificationList(Request $request) {
+		$activities = Activity::select(
+			'activities.id',
+			'activities.crm_activity_id',
+			'activities.number as activity_number',
+			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			'cases.number',
+			'asps.asp_code',
+			'service_types.name as sub_service',
+			// 'activity_asp_statuses.name as asp_status',
+			'activity_finance_statuses.name as finance_status',
+			'activity_portal_statuses.name as status',
+			'activity_statuses.name as activity_status',
+			'clients.name as client',
+			'call_centers.name as call_center'
+		)
+			->leftjoin('asps', 'asps.id', 'activities.asp_id')
+			->leftjoin('users', 'users.id', 'asps.user_id')
+			->leftjoin('cases', 'cases.id', 'activities.case_id')
+			->leftjoin('clients', 'clients.id', 'cases.client_id')
+			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
+			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
+		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
+			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
+			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
+		// ->where('activities.asp_accepted_cc_details', '!=', 1)
+			->whereIn('activities.status_id', [6, 9])
+			->orderBy('cases.date', 'DESC')
+			->groupBy('activities.id')
+		;
+
+		if ($request->get('ticket_date')) {
+			$activities->whereRaw('DATE_FORMAT(cases.date,"%d-%m-%Y") =  "' . $request->get('ticket_date') . '"');
+		}
+		if ($request->get('call_center_id')) {
+			$activities->where('cases.call_center_id', $request->get('call_center_id'));
+		}
+		if ($request->get('case_number')) {
+			$activities->where('cases.number', 'LIKE', '%' . $request->get('case_number') . '%');
+		}
+		if ($request->get('asp_code')) {
+			$activities->where('asps.asp_code', 'LIKE', '%' . $request->get('asp_code') . '%');
+		}
+		if ($request->get('service_type_id')) {
+			$activities->where('activities.service_type_id', $request->get('service_type_id'));
+		}
+		if ($request->get('finance_status_id')) {
+			$activities->where('activities.finance_status_id', $request->get('finance_status_id'));
+		}
+		if ($request->get('status_id')) {
+			$activities->where('activities.status_id', $request->get('status_id'));
+		}
+		if ($request->get('activity_status_id')) {
+			$activities->where('activities.activity_status_id', $request->get('activity_status_id'));
+		}
+		if ($request->get('client_id')) {
+			$activities->where('cases.client_id', $request->get('client_id'));
+		}
+
+		if (!Entrust::can('verify-all-activities')) {
+			if (Entrust::can('verify-mapped-activities')) {
+				$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
+				$activities->whereIn('asps.state_id', $states);
+			}
+		}
+		return Datatables::of($activities)
+			->setRowAttr([
+				'id' => function ($activities) {
+					return route('angular') . '/#!/rsa-case-pkg/activity-verification/2/view/' . $activities->id;
+				},
+			])
 			->make(true);
 	}
 

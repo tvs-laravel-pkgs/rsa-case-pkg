@@ -36,7 +36,8 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	//ACTIVITY VERIFICATION
 	Route::get('/activity-verification/{view_type_id?}/view/{activity_status_id?}', 'ActivityController@viewActivityStatus')->name('viewActivityStatus');
 
-	Route::get('/activity-verification/get-list', 'ActivityController@getVerificationList')->name('getActivityVerificationList');
+	Route::get('/activity-verification/bulk/get-list', 'ActivityController@getBulkVerificationList')->name('getBulkActivityVerificationList');
+	Route::get('/activity-verification/individual/get-list', 'ActivityController@getIndividualVerificationList')->name('getIndividualActivityVerificationList');
 	Route::post('/activity-verification/saveDiffer', 'ActivityController@saveActivityDiffer')->name('saveActivityDiffer');
 	Route::post('/activity-verification/approve', 'ActivityController@approveActivity')->name('approveActivity');
 

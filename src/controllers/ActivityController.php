@@ -271,7 +271,9 @@ class ActivityController extends Controller {
 			DB::raw('IF(Invoices.invoice_amount IS NULL,"-",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
 			DB::raw('IF(Invoices.invoice_amount IS NULL,"-",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
 			DB::raw('IF(Invoices.flow_current_status IS NULL,"-",Invoices.flow_current_status) as flow_current_status'),
-			DB::raw('IF(Invoices.start_date IS NULL,"-",DATE_FORMAT(Invoices.start_date,"%d-%m-%Y %H:%i:%s")) as invoice_date')
+			DB::raw('IF(Invoices.start_date IS NULL,"-",DATE_FORMAT(Invoices.start_date,"%d-%m-%Y %H:%i:%s")) as invoice_date'),
+			'activity_finance_statuses.po_eligibility_type_id',
+			'activities.finance_status_id'
 		)
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
@@ -319,11 +321,12 @@ class ActivityController extends Controller {
 			//dump($config->name,$this->data['activities'][$config->name]);
 		}
 		//dd($config->name,$this->data['activities']);
-		if ($this->data['activities']['asp_service_type_data']->adjustment_type == 1) {
+		/*if ($this->data['activities']['asp_service_type_data']->adjustment_type == 1) {
 			$this->data['activities']['bo_deduction'] = ($this->data['activities']['raw_bo_po_amount'] * $this->data['activities']['asp_service_type_data']->adjustment) / 100;
 		} else if ($this->data['activities']['asp_service_type_data']->adjustment_type == 2) {
+			//AMOUNT
 			$this->data['activities']['bo_deduction'] = $this->data['activities']['asp_service_type_data']->adjustment;
-		}
+		}*/
 
 		return response()->json(['success' => true, 'data' => $this->data]);
 
@@ -390,7 +393,7 @@ class ActivityController extends Controller {
 			$mobile_number = $activity->asp->contact_number1;
 			$sms_message = 'BO_APPROVED';
 			$array = [$request->case_number];
-			// sendSMS2($sms_message, $mobile_number, $array);
+			sendSMS2($sms_message, $mobile_number, $array);
 
 			//sending notification to all BO users
 			$asp_user = $activity->asp->user_id;
@@ -467,7 +470,7 @@ class ActivityController extends Controller {
 		]);
 
 		if ($validator->fails()) {
-			$response = ['success' => false, 'errors' => ["Activity Number is required"]];
+			$response = ['success' => false, 'errors' => ["Case number is required"]];
 			return response()->json($response);
 		}
 
@@ -482,10 +485,19 @@ class ActivityController extends Controller {
 		$case = RsaCase::where([
 			['number', $number],
 		])->first();
+
 		if (!$case) {
-			$response = ['success' => false, 'errors' => ["Case Not Found"]];
+			$response = ['success' => false, 'errors' => ["Case not found"]];
 			return response()->json($response);
 		} else {
+			$case_with_closed_status = RsaCase::where('number', $number)
+				->where('status_id', 4) //CLOSED
+				->first();
+			if (!$case_with_closed_status) {
+				$response = ['success' => false, 'errors' => ["Case is not closed"]];
+				return response()->json($response);
+			}
+
 			$case_date = date('Y-m-d', strtotime($case->created_at));
 			if ($case_date < $threeMonthsBefore) {
 				$response = ['success' => false, 'errors' => ["Please contact administrator."]];
@@ -705,7 +717,7 @@ class ActivityController extends Controller {
 			//sending confirmation SMS to ASP
 			$mobile_number = $activity->asp->contact_number1;
 			$sms_message = 'ASP_DATA_ENTRY_DONE';
-			$array = [$activity->number];
+			$array = [$activity->case->number];
 			// sendSMS2($sms_message, $mobile_number, $array);
 
 			//sending notification to all BO users
@@ -859,7 +871,7 @@ class ActivityController extends Controller {
 			->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
 			->where('users.id', Auth::id())
-			->where('activities.status_id', 11) //BO Approved - Waiting for Invoice Generation by ASP
+			->whereIn('activities.status_id', [11, 1]) //BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
 		;
 
 		if ($request->get('ticket_date')) {
@@ -887,7 +899,7 @@ class ActivityController extends Controller {
 		return Datatables::of($activities)
 			->setRowAttr([
 				'id' => function ($activities) {
-					return route('angular') . '/#!/rsa-case-pkg/activity-status/view/' . $activities->id;
+					return route('angular') . '/#!/rsa-case-pkg/activity-status/1/view/' . $activities->id;
 				},
 			])
 			->addColumn('action', function ($activities) {
@@ -900,7 +912,7 @@ class ActivityController extends Controller {
 		if (empty($request->invoice_ids)) {
 			return response()->json([
 				'success' => false,
-				'errors' => ['Please select atleast one activity'],
+				'error' => 'Please select atleast one activity',
 			]);
 		}
 		$encryption_key = encryptString(implode('-', $request->invoice_ids));
@@ -939,13 +951,20 @@ class ActivityController extends Controller {
 			]);
 		}
 
+		//CALCULATE TAX FOR INVOICE
+		Invoices::calculateTax($asp, $activity_ids);
+
 		$activities = Activity::join('cases', 'cases.id', 'activities.case_id')
 			->join('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->join('service_types', 'service_types.id', 'activities.service_type_id')
 			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftJoin('activity_details as km_charge', function ($join) {
 				$join->on('km_charge.activity_id', 'activities.id')
-					->where('km_charge.key_id', 158); //BO KM TRAVELLED
+					->where('km_charge.key_id', 172); //BO PO AMOUNT OR KM CHARGE
+			})
+			->leftJoin('activity_details as km_travelled', function ($join) {
+				$join->on('km_travelled.activity_id', 'activities.id')
+					->where('km_travelled.key_id', 158); //BO KM TRAVELLED
 			})
 			->leftJoin('activity_details as net_amount', function ($join) {
 				$join->on('net_amount.activity_id', 'activities.id')
@@ -959,13 +978,20 @@ class ActivityController extends Controller {
 				$join->on('not_collected_amount.activity_id', 'activities.id')
 					->where('not_collected_amount.key_id', 160); //BO NOT COLLECT AMOUNT
 			})
-
+			->leftJoin('activity_details as total_tax_perc', function ($join) {
+				$join->on('total_tax_perc.activity_id', 'activities.id')
+					->where('total_tax_perc.key_id', 185); //BO TOTAL TAX PERC
+			})
+			->leftJoin('activity_details as total_tax_amount', function ($join) {
+				$join->on('total_tax_amount.activity_id', 'activities.id')
+					->where('total_tax_amount.key_id', 179); //BO TOTAL TAX AMOUNT
+			})
 			->leftJoin('activity_details as total_amount', function ($join) {
 				$join->on('total_amount.activity_id', 'activities.id')
-					->where('total_amount.key_id', 182); //BO TOTAL AMOUNT
+					->where('total_amount.key_id', 182); //BO INVOICE AMOUNT
 			})
 			->select(
-				'activities.number',
+				'cases.number',
 				'activities.id',
 				'activities.crm_activity_id',
 				DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
@@ -973,11 +999,14 @@ class ActivityController extends Controller {
 				'call_centers.name as callcenter',
 				'cases.vehicle_registration_number',
 				'service_types.name as service_type',
-				'km_charge.value as km_value',
+				'km_charge.value as km_charge_value',
+				'km_travelled.value as km_value',
 				'not_collected_amount.value as not_collect_value',
 				'net_amount.value as net_value',
 				'collect_amount.value as collect_value',
-				'total_amount.value as total_value'
+				'total_amount.value as total_value',
+				'total_tax_perc.value as total_tax_perc_value',
+				'total_tax_amount.value as total_tax_amount_value'
 			)
 			->whereIn('activities.id', $activity_ids)
 			->groupBy('activities.id')
@@ -1046,43 +1075,60 @@ class ActivityController extends Controller {
 				$value = $filename;
 			}
 
+			//GET ASP
+			$asp = ASP::where('id', $request->asp_id)->first();
+
 			//CHECK IF INVOICE ALREADY CREATED FOR ACTIVITY
 			$activities = Activity::select(
 				'invoice_id',
 				'crm_activity_id',
-				'number'
+				'number',
+				'asp_id'
 			)
 				->whereIn('crm_activity_id', $request->crm_activity_ids)
 				->get();
+
 			if (!empty($activities)) {
 				foreach ($activities as $key => $activity) {
+					//CHECK ASP MATCHES WITH ACTIVITY ASP
+					if ($activity->asp_id != $asp->id) {
+						return response()->json([
+							'success' => false,
+							'error' => 'ASP not matched for activity ID ' . $activity->crm_activity_id,
+						]);
+					}
+					//CHECK IF INVOICE ALREADY CREATED FOR ACTIVITY
 					if (!empty($activity->invoice_id)) {
 						return response()->json([
 							'success' => false,
-							'message' => 'Validation Error',
-							'errors' => 'Invoice already created for activity ' . $activity->number,
+							'error' => 'Invoice already created for activity ' . $activity->crm_activity_id,
 						]);
 					}
 				}
 			}
 
-			//GET ASP
-			$asp = ASP::where('id', $request->asp_id)->first();
 			//SELF INVOICE
 			if (!$asp->is_auto_invoice) {
 				if (!$request->invoice_no) {
 					return response()->json([
 						'success' => false,
-						'message' => 'Validation Error',
-						'errors' => 'Invoice number is required',
-					], $this->successStatus);
+						'error' => 'Invoice number is required',
+					]);
 				}
 				if (!$request->inv_date) {
 					return response()->json([
 						'success' => false,
-						'message' => 'Validation Error',
-						'errors' => 'Invoice date is required',
-					], $this->successStatus);
+						'error' => 'Invoice date is required',
+					]);
+				}
+
+				//CHECK INVOICE NUMBER EXIST
+				$is_invoice_no_exist = Invoices::where('invoice_no', $request->invoice_no)->first();
+				if ($is_invoice_no_exist) {
+					return response()->json([
+						'success' => false,
+						'error' => 'Invoice number already exist',
+					]);
 				}
 
 				$invoice_no = $request->invoice_no;
@@ -1095,20 +1141,20 @@ class ActivityController extends Controller {
 			}
 
 			$invoice_c = Invoices::createInvoice($asp, $request->crm_activity_ids, $invoice_no, $invoice_date, $value);
+			if (!$invoice_c['success']) {
+				return response()->json([
+					'success' => false,
+					'message' => $invoice_c['message'],
+				]);
+			}
 
 			DB::commit();
 
-			if ($invoice_c) {
+			if ($invoice_c['success']) {
 				return response()->json([
 					'success' => true,
 					'message' => 'Invoice created successfully',
 				]);
-			} else {
-				return response()->json([
-					'success' => false,
-					'message' => 'Invoice not created',
-				]);
-
 			}
 		} catch (\Exception $e) {
 			DB::rollBack();

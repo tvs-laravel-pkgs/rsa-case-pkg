@@ -33,11 +33,13 @@ class InvoiceController extends Controller {
 			DB::raw("FORMAT(Invoices.invoice_amount,2) as invoice_amount"),
 			'asps.asp_code as asp_code',
 			'asps.workshop_name as workshop_name',
-			DB::raw("COUNT(activities.id) as no_of_tickets")
+			'invoice_statuses.name as payment_status',
+			DB::raw("COUNT(activities.id) as no_of_activities")
 		)
 			->join('asps', 'Invoices.asp_id', '=', 'asps.id')
 			->join('users', 'users.id', 'asps.user_id')
 			->join('activities', 'activities.invoice_id', '=', 'Invoices.id')
+			->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
 			->groupBy('Invoices.id')
 		;
 		if ($request->get('date')) {
@@ -102,7 +104,11 @@ class InvoiceController extends Controller {
 			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftJoin('activity_details as km_charge', function ($join) {
 				$join->on('km_charge.activity_id', 'activities.id')
-					->where('km_charge.key_id', 158); //BO KM TRAVELLED
+					->where('km_charge.key_id', 172); //BO PO AMOUNT OR KM CHARGE
+			})
+			->leftJoin('activity_details as km_travelled', function ($join) {
+				$join->on('km_travelled.activity_id', 'activities.id')
+					->where('km_travelled.key_id', 158); //BO KM TRAVELLED
 			})
 			->leftJoin('activity_details as net_amount', function ($join) {
 				$join->on('net_amount.activity_id', 'activities.id')
@@ -116,12 +122,35 @@ class InvoiceController extends Controller {
 				$join->on('not_collected_amount.activity_id', 'activities.id')
 					->where('not_collected_amount.key_id', 160); //BO NOT COLLECT AMOUNT
 			})
-
+			->leftJoin('activity_details as total_tax_perc', function ($join) {
+				$join->on('total_tax_perc.activity_id', 'activities.id')
+					->where('total_tax_perc.key_id', 185); //BO TOTAL TAX PERC
+			})
+			->leftJoin('activity_details as total_tax_amount', function ($join) {
+				$join->on('total_tax_amount.activity_id', 'activities.id')
+					->where('total_tax_amount.key_id', 179); //BO TOTAL TAX AMOUNT
+			})
 			->leftJoin('activity_details as total_amount', function ($join) {
 				$join->on('total_amount.activity_id', 'activities.id')
 					->where('total_amount.key_id', 182); //BO TOTAL AMOUNT
 			})
-			->select('activities.number', DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'), 'activity_portal_statuses.name as status', 'call_centers.name as callcenter', 'cases.vehicle_registration_number', 'service_types.name as service_type', 'km_charge.value as km_value', 'not_collected_amount.value as not_collect_value', 'net_amount.value as net_value', 'collect_amount.value as collect_value', 'total_amount.value as total_value')
+			->select(
+				// 'activities.number',
+				'cases.number',
+				DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
+				'activity_portal_statuses.name as status',
+				'call_centers.name as callcenter',
+				'cases.vehicle_registration_number',
+				'service_types.name as service_type',
+				'km_charge.value as km_charge_value',
+				'km_travelled.value as km_value',
+				'not_collected_amount.value as not_collect_value',
+				'net_amount.value as net_value',
+				'collect_amount.value as collect_value',
+				'total_amount.value as total_value',
+				'total_tax_perc.value as total_tax_perc_value',
+				'total_tax_amount.value as total_tax_amount_value'
+			)
 			->where('invoice_id', $invoice_id)
 			->groupBy('activities.id')
 			->get();

@@ -74,7 +74,14 @@ app.component('invoiceList', {
                         }
                     },
                     infoCallback: function(settings, start, end, max, total, pre) {
-                        $('.count').html(total + ' / ' + max + ' listings')
+                        $('.count').html(total + ' / ' + max + ' listings');
+                        if ($('#submit').length > 0) {
+                            if (!total) {
+                                $('#submit').hide();
+                            } else {
+                                $('#submit').show();
+                            }
+                        }
                     },
                     initComplete: function() {},
                 }));
@@ -118,6 +125,36 @@ app.component('invoiceList', {
                     $(".child_select_all").prop("checked", true);
                 } else {
                     $(".child_select_all").prop("checked", false);
+                }
+            });
+
+            var form_id = '#invoice_export';
+            var v = jQuery(form_id).validate({
+                rules: {
+                    'invoice_ids[]': {
+                        required: true,
+                    },
+                },
+                messages: {
+                    'invoice_ids[]': {
+                        required: "Please Select Invoice",
+                    },
+                },
+                errorPlacement: function(error, element) {
+                    $noty = new Noty({
+                        type: 'error',
+                        layout: 'topRight',
+                        text: 'Please Select Invoice',
+                        animation: {
+                            speed: 500 // unavailable - no need
+                        },
+                    }).show();
+                    setTimeout(function() {
+                        $noty.close();
+                    }, 1000);
+                },
+                submitHandler: function(form) {
+                    $('#invoice_export').submit();
                 }
             });
 

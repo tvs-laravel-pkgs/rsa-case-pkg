@@ -130,8 +130,8 @@ app.component('activityStatusList', {
                 endDate: moment().endOf('month'),
             });
             $(function() {
-        
-             });
+
+            });
             self.pc_all = false;
             $rootScope.loading = false;
             window.mdSelectOnKeyDownOverride = function(event) {
@@ -139,12 +139,12 @@ app.component('activityStatusList', {
             };
             $scope.changeStatus = function(ids) {
                 console.log(ids);
-                if(ids){
+                if (ids) {
                     $size_rids = ids.length;
                     if ($size_rids > 0) {
                         $('#pc_sel_all').addClass('checked');
                     }
-                }else{
+                } else {
                     $('#pc_sel_all').removeClass('checked');
                 }
             }
@@ -221,57 +221,57 @@ app.component('activityStatusList', {
                     }
             }*/
             //Jquery Validation
-        var form_id = '#export_excel_form';
-        var v = jQuery(form_id).validate({
-            /*invalidHandler: function(event, validator) {
-                var errors = validator.numberOfInvalids();
-                $(".alert-danger").show();
-                var errors = validator.numberOfInvalids();
-                if (errors) {
-                    var message = errors == 1 ?
-                        'Please correct the following error:\n' :
-                        'Please correct the following ' + errors + ' errors.\n';
-                    var errors = "";
-                    if (validator.errorList.length > 0) {
-                        for (x = 0; x < validator.errorList.length; x++) {
-                            errors += "\n\u25CF " + validator.errorList[x].message;
+            var form_id = '#export_excel_form';
+            var v = jQuery(form_id).validate({
+                /*invalidHandler: function(event, validator) {
+                    var errors = validator.numberOfInvalids();
+                    $(".alert-danger").show();
+                    var errors = validator.numberOfInvalids();
+                    if (errors) {
+                        var message = errors == 1 ?
+                            'Please correct the following error:\n' :
+                            'Please correct the following ' + errors + ' errors.\n';
+                        var errors = "";
+                        if (validator.errorList.length > 0) {
+                            for (x = 0; x < validator.errorList.length; x++) {
+                                errors += "\n\u25CF " + validator.errorList[x].message;
+                            }
                         }
+                        $(".alert-danger").html(message + errors);
                     }
-                    $(".alert-danger").html(message + errors);
-                }
-                validator.focusInvalid();
+                    validator.focusInvalid();
 
-                $("html, body").animate({ scrollTop: 0 });
-            },*/
-           // errorContainer: '.grouped-error',
-            rules: {
-                'period': {
-                    required: true,
+                    $("html, body").animate({ scrollTop: 0 });
+                },*/
+                // errorContainer: '.grouped-error',
+                rules: {
+                    'period': {
+                        required: true,
+                    },
+                    'status_ids': {
+                        required: true,
+                    },
+
                 },
-                'status_ids[]': {
-                    required: true,
+                messages: {
+                    'period': {
+                        required: "Please Select Period",
+                    },
+                    'status_ids': {
+                        required: "Please Selecet Statuses",
+                    },
                 },
-                
-            },
-            messages: {
-                'period': {
-                    required: "Please Select Period",
+                errorPlacement: function(error, element) {
+                    if (element.attr("type") == "checkbox") {
+                        error.insertBefore($(element).parents('.checkboxList'));
+                    } else {
+                        error.insertAfter($(element));
+                    }
                 },
-                'status_ids': {
-                    required: "Please Selecet Statuses",
-                },
-            },
-            errorPlacement: function(error, element) {
-                if (element.attr("type") == "checkbox") {
-                    error.insertBefore($(element).parents('.checkboxList'));
-                } else {
-                    error.insertAfter($(element));
+                submitHandler: function(form) {
+                    $('#export_excel_form').submit();
                 }
-            },
-            submitHandler: function(form) {
-                $('#export_excel_form').submit();
-            }
-        });
+            });
         });
     }
 });

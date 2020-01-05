@@ -1162,151 +1162,148 @@ class ActivityController extends Controller {
 		}
 	}
 
-	public function exportActivities(Request $request){
-		//dd($request->all(),is_array($request->status_ids));
-			ini_set('max_execution_time', 0);
-			ini_set('display_errors', 1);
-			ini_set("memory_limit", "10000M");
-			ob_end_clean();
-			ob_start();
-			$date = explode("-", $request->period);
-			$range1 = date("Y-m-d", strtotime($date[0]));
-			$range2 = date("Y-m-d", strtotime($date[1]));
+	public function exportActivities(Request $request) {
+		// dd($request->all(), is_array($request->status_ids));
+		ini_set('max_execution_time', 0);
+		ini_set('display_errors', 1);
+		ini_set("memory_limit", "10000M");
+		ob_end_clean();
+		ob_start();
+		$date = explode("-", $request->period);
+		$range1 = date("Y-m-d", strtotime($date[0]));
+		$range2 = date("Y-m-d", strtotime($date[1]));
 
-			if (empty($request->status_ids)) {
-				return redirect()->back()->with(['success' => false,'errors' => 'Please Select Activity Status']);
+		if (empty($request->status_ids)) {
+			return redirect()->back()->with([
+				'success' => false,
+				'errors' => ['Please Select Activity Status'],
+			]);
+		}
 
-				/*return response()->json([
-					'success' => false,
-					'errors' => ['Please Select Activity Status'],
-				]);*/
-			}
-			$status_ids = trim($request->status_ids,'""');
-			$status_ids = explode(',',$status_ids);
-			//dd($request->status_ids,$status_ids );
-			$activities = Activity::whereIn('status_id', $status_ids)
-				->whereDate('created_at', '>=', $range1)
-				->whereDate('created_at', '<=', $range2)
-			;
-			//dd($request->all());
+		$status_ids = trim($request->status_ids, '""');
+		$status_ids = explode(',', $status_ids);
+		//dd($request->status_ids,$status_ids );
+		$activities = Activity::whereIn('status_id', $status_ids)
+			->whereDate('created_at', '>=', $range1)
+			->whereDate('created_at', '<=', $range2)
+		;
+		//dd($request->all());
 
-			$total_count = $activities->count('id');
+		$total_count = $activities->count('id');
 
-			$count_splitup = Activity::join('activity_portal_statuses','activities.status_id','activity_portal_statuses.id')
-				->select(DB::raw('COUNT(activities.id) as activity_count'), 'status_id','activity_portal_statuses.name')
-				->whereIn('activities.status_id', $status_ids)
-				->whereDate('activities.created_at', '>=', $range1)
-				->whereDate('activities.created_at', '<=', $range2)
-				->groupBy('activity_portal_statuses.id')
-				->get()
-				->toArray()
-				;
-			if ($total_count == 0) {
-			return redirect()->back()->with(['success' => false,'errors' => 'Please Select Activity Status']);
+		$count_splitup = Activity::join('activity_portal_statuses', 'activities.status_id', 'activity_portal_statuses.id')
+			->select(DB::raw('COUNT(activities.id) as activity_count'), 'status_id', 'activity_portal_statuses.name')
+			->whereIn('activities.status_id', $status_ids)
+			->whereDate('activities.created_at', '>=', $range1)
+			->whereDate('activities.created_at', '<=', $range2)
+			->groupBy('activity_portal_statuses.id')
+			->get()
+			->toArray()
+		;
+		if ($total_count == 0) {
+			return redirect()->back()->with([
+				'success' => false,
+				'errors' => ['Please Select Activity Status'],
+			]);
+		}
 
-				/*return response()->json([
-					'success' => false,
-					'errors' => ['No activities found for given period & statuses'],
-				]);*/
-			}
+		$selected_statuses = $status_ids;
+		//dd($selected_statuses);
+		$summary[] = ['Period', date('d/M/Y', strtotime($range1)) . ' to ' . date('d/M/Y', strtotime($range2))];
+		$summary[] = ['Status', 'Count'];
 
-			$selected_statuses = $status_ids;
-			//dd($selected_statuses);
-			$summary[] = ['Period', date('d/M/Y', strtotime($range1)) . ' to ' . date('d/M/Y', strtotime($range2))];
-			$summary[] = ['Status', 'Count'];
+		foreach ($count_splitup as $status_data) {
+			$summary[] = [$status_data['name'], $status_data['activity_count']];
+		}
+		$summary[] = ['Total', $total_count];
+		$activity_details_header = [
+			'Case Number',
+			'Case Date',
+			'Activity Number',
+			'Activity Date',
+			'ASP Name',
+			'ASP Code',
+			'ASP has GST',
+			'Workshop Name',
+			'Location',
+			'District',
+			'State',
+			'Vehicle Registration Number',
+			'Vehicle Model',
+			'Vehicle Make',
+			'Case Status',
+			'ASP Status',
+			'ASP Service Type',
+			'ASP Activity Rejected Reason',
+			'ASP PO Accepted',
+			'Portal Status',
+			'Activity Status',
+			'Activity Description',
+			'Remarks',
+		];
+		$configs = Config::where('entity_type_id', 23)->pluck('id')->toArray();
+		$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 179, 182, 171, 175, 181];
+		$config_ids = array_merge($configs, $key_list);
+		foreach ($config_ids as $key => $config_id) {
+			$config = Config::where('id', $config_id)->first();
+			$activity_details_header[] = str_replace("_", " ", strtolower($config->name));
+		}
+		$activity_details_data = [];
+		//dd($activities);
+		//$activity_details_header = array_merge($activity_details_header, $activity_details_sub_header);
 
-			foreach ($count_splitup as $status_data) {
-				$summary[] = [$status_data['name'], $status_data['activity_count']];
-			}
-			$summary[] = ['Total', $total_count];
-			$activity_details_header = [
-				'Case Number',
-				'Case Date',
-				'Activity Number',
-				'Activity Date',
-				'ASP Name',
-				'ASP Code',
-				'ASP has GST',
-				'Workshop Name',
-				'Location',
-				'District',
-				'State',
-				'Vehicle Registration Number',
-				'Vehicle Model',
-				'Vehicle Make',
-				'Case Status',
-				'ASP Status',
-				'ASP Service Type',
-				'ASP Activity Rejected Reason',
-				'ASP PO Accepted',
-				'Portal Status',
-				'Activity Status',
-				'Activity Description',
-				'Remarks',
+		foreach ($activities->get() as $activity_key => $activity) {
+			$activity_details_data[] = [
+				$activity->case->number,
+				date('d/M/Y', strtotime($activity->case->date)),
+				$activity->number,
+				date('d/M/Y', strtotime($activity->created_at)),
+				$activity->asp->name,
+				$activity->asp->axpta_code,
+				$activity->asp->has_gst ? 'Yes' : 'No',
+				$activity->asp->workshop_name,
+				$activity->asp->location->name,
+				$activity->asp->district->name,
+				$activity->asp->state->name,
+				$activity->case->vehicle_registration_number,
+				$activity->case->vehicleModel->name,
+				$activity->case->vehicleModel->vehiclemake->name,
+				$activity->case->status->name,
+				$activity->financeStatus->name,
+				$activity->serviceType->name,
+				$activity->aspActivityRejectedReason ? $activity->aspActivityRejectedReason->name : '',
+				$activity->asp_po_accepted == 1 ? "Yes" : "No",
+				$activity->status ? $activity->status->name : '',
+				$activity->activityStatus ? $activity->activityStatus->name : '',
+				$activity->description,
+				$activity->remarks,
 			];
-			$configs = Config::where('entity_type_id', 23)->pluck('id')->toArray();
-			$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 179, 182, 171, 175, 181];
-			$config_ids = array_merge($configs, $key_list);
-			foreach($config_ids as $key => $config_id){
+			foreach ($config_ids as $config_key => $config_id) {
 				$config = Config::where('id', $config_id)->first();
-				$activity_details_header[] = str_replace("_", " ", strtolower($config->name));
-			}
-			$activity_details_data = [];
-			//dd($activities);
-			//$activity_details_header = array_merge($activity_details_header, $activity_details_sub_header);
+				$detail = ActivityDetail::where('activity_id', $activity->id)->where('key_id', $config_id)->first();
+				if (strcmp('amount', $config->name) == 0 || strpos($config->name, '_charges') || strpos($config->name, 'Amount') || strpos($config->name, 'Collected')) {
 
-			foreach($activities->get() as $activity_key => $activity){
-				$activity_details_data[] =[
-					$activity->case->number,
-					date('d/M/Y', strtotime($activity->case->date)),
-					$activity->number,
-					date('d/M/Y', strtotime($activity->created_at)),
-					$activity->asp->name,
-					$activity->asp->axpta_code,
-					$activity->asp->has_gst ? 'Yes' : 'No',
-					$activity->asp->workshop_name,
-					$activity->asp->location->name,
-					$activity->asp->district->name,
-					$activity->asp->state->name,
-					$activity->case->vehicle_registration_number,
-					$activity->case->vehicleModel->name,
-					$activity->case->vehicleModel->vehiclemake->name,
-					$activity->case->status->name,
-					$activity->financeStatus->name,
-					$activity->serviceType->name,
-					$activity->aspActivityRejectedReason ? $activity->aspActivityRejectedReason->name :'',
-					$activity->asp_po_accepted==1 ? "Yes" : "No",
-					$activity->status ? $activity->status->name :'',
-					$activity->activityStatus ? $activity->activityStatus->name :'',
-					$activity->description,
-					$activity->remarks,
-				];
-				foreach($config_ids as $config_key => $config_id) {
-					$config = Config::where('id', $config_id)->first();
-					$detail = ActivityDetail::where('activity_id', $activity->id)->where('key_id', $config_id)->first();
-					if (strcmp('amount', $config->name) == 0 || strpos($config->name, '_charges') || strpos($config->name, 'Amount') || strpos($config->name, 'Collected')) {
-						
-						if($detail){
-							$activity_details_data[$activity_key][] = ($detail->value!="") ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '';
-						}else{
-							$activity_details_data[$activity_key][] = '';
-						}
-
+					if ($detail) {
+						$activity_details_data[$activity_key][] = ($detail->value != "") ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '';
 					} else {
-
-						$activity_details_data[$activity_key][] = $detail ? $detail->value : '';
+						$activity_details_data[$activity_key][] = '';
 					}
+
+				} else {
+
+					$activity_details_data[$activity_key][] = $detail ? $detail->value : '';
 				}
 			}
-			//$activity_details_data = array_merge($activity_details_header, $activity_details_data);
-			//dd($activity_details_header,$activity_details_data);
+		}
+		//$activity_details_data = array_merge($activity_details_header, $activity_details_data);
+		//dd($activity_details_header,$activity_details_data);
 
-			Excel::create('Activity Status Report', function ($excel) use ($summary,$activity_details_header,$activity_details_data) {
-				$excel->sheet('Summary', function ($sheet) use ($summary) {
-					//dd($summary);
-					$sheet->fromArray($summary, NULL, 'A1');
+		Excel::create('Activity Status Report', function ($excel) use ($summary, $activity_details_header, $activity_details_data) {
+			$excel->sheet('Summary', function ($sheet) use ($summary) {
+				//dd($summary);
+				$sheet->fromArray($summary, NULL, 'A1');
 
-					/*$sheet->cells('A1:B1', function ($cells) {
+				/*$sheet->cells('A1:B1', function ($cells) {
 						$cells->setFont(array(
 							'size' => '10',
 							'bold' => true,
@@ -1325,20 +1322,20 @@ class ActivityController extends Controller {
 							'bold' => true,
 						))->setBackground('#F3F3F3');
 					});*/
-				});
+			});
 
-				$excel->sheet('Activity Informations', function ($sheet) use ($activity_details_header,$activity_details_data) {
-					$sheet->fromArray($activity_details_data, NULL, 'A1');
-					$sheet->row(1, $activity_details_header);
-					$sheet->cells('A1:BV1', function ($cells) {
-						$cells->setFont(array(
-							'size' => '10',
-							'bold' => true,
-						))->setBackground('#CCC9C9');
-					});
+			$excel->sheet('Activity Informations', function ($sheet) use ($activity_details_header, $activity_details_data) {
+				$sheet->fromArray($activity_details_data, NULL, 'A1');
+				$sheet->row(1, $activity_details_header);
+				$sheet->cells('A1:BV1', function ($cells) {
+					$cells->setFont(array(
+						'size' => '10',
+						'bold' => true,
+					))->setBackground('#CCC9C9');
 				});
-			})->export('xls');
-			
-			return redirect()->back()->with(['success' => 'exported!']);
-		}
+			});
+		})->export('xls');
+
+		return redirect()->back()->with(['success' => 'exported!']);
+	}
 }

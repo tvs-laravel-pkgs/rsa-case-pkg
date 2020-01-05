@@ -40,6 +40,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	Route::get('/activity-verification/individual/get-list', 'ActivityController@getIndividualVerificationList')->name('getIndividualActivityVerificationList');
 	Route::post('/activity-verification/saveDiffer', 'ActivityController@saveActivityDiffer')->name('saveActivityDiffer');
 	Route::post('/activity-verification/approve', 'ActivityController@approveActivity')->name('approveActivity');
+	Route::post('/activity-verification/bulk-approve', 'ActivityController@bulkApproveActivity')->name('bulkApproveActivity');
 
 	//INVOICE
 	Route::get('/invoice/get-filter-data/{type_id}', 'InvoiceController@getFilterData')->name('getFilterData');

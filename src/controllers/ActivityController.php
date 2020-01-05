@@ -408,7 +408,6 @@ class ActivityController extends Controller {
 
 	public function approveActivity(Request $request) {
 		//dd($request->all());
-		//dd('dd');
 		DB::beginTransaction();
 		try {
 			$activity = Activity::findOrFail($request->activity_id);
@@ -479,6 +478,62 @@ class ActivityController extends Controller {
 			return response()->json([
 				'success' => true,
 				'message' => 'Activity approved successfully.',
+			]);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json(['success' => false, 'errors' => ['Exception Error' => $e->getMessage()]]);
+		}
+	}
+
+	public function bulkApproveActivity(Request $request) {
+		//dd($request->all());
+		DB::beginTransaction();
+		try {
+			if (empty($request->activity_ids)) {
+				return response()->json([
+					'success' => false,
+					'error' => ['Please select atleast one activity'],
+				]);
+			}
+
+			$activities = Activity::where('id', $request->activity_ids)->get();
+			if (count($activities) == 0) {
+				return response()->json([
+					'success' => false,
+					'error' => ['Activities not found'],
+				]);
+			}
+
+			foreach ($activities as $key => $activity) {
+
+				$activity->status_id = 11;
+				$activity->save();
+
+				$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_BULK');
+				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_APPROVED');
+				logActivity2(config('constants.entity_types.ticket'), $activity->id, [
+					'Status' => $log_status,
+					'Waiting for' => $log_waiting,
+
+				]);
+
+				$mobile_number = $activity->asp->contact_number1;
+				$sms_message = 'BO_APPROVED';
+				$array = [$request->case_number];
+				sendSMS2($sms_message, $mobile_number, $array);
+
+				//sending notification to all BO users
+				$asp_user = $activity->asp->user_id;
+				$noty_message_template = 'BO_APPROVED';
+				$number = [$request->case_number];
+				notify2($noty_message_template, $asp_user, config('constants.alert_type.blue'), $number);
+			}
+
+			DB::commit();
+			return response()->json([
+				'success' => true,
+				'message' => 'Activities approved successfully.',
 			]);
 
 		} catch (\Exception $e) {
@@ -745,10 +800,20 @@ class ActivityController extends Controller {
 				$is_bulk = false;
 
 			}
-			if ($is_bulk) {
-				$activity->status_id = 5;
+			//ASP DATA ENTRY - NEW
+			if ($request->data_reentry) {
+				if ($is_bulk) {
+					$activity->status_id = 8;
+				} else {
+					$activity->status_id = 9;
+				}
 			} else {
-				$activity->status_id = 6;
+				//ASP DATA RE-ENTRY - DEFERRED
+				if ($is_bulk) {
+					$activity->status_id = 5;
+				} else {
+					$activity->status_id = 6;
+				}
 			}
 
 			$activity->service_type_id = $request->asp_service_type_id;

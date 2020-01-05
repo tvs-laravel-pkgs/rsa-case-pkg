@@ -1,6 +1,6 @@
 app.component('activityVerificationList', {
     templateUrl: activity_verification_list_template_url,
-    controller: function($http, $window, HelperService, $scope, $rootScope, $route) {
+    controller: function($http, $window, HelperService, $scope, $rootScope, $route, $location) {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
@@ -65,6 +65,11 @@ app.component('activityVerificationList', {
                     },
                     infoCallback: function(settings, start, end, max, total, pre) {
                         $('.below40_count').html(total + ' / ' + max + ' listings')
+                        if (!total) {
+                            $('#submit').hide();
+                        } else {
+                            $('#submit').show();
+                        }
                     },
                     initComplete: function() {},
                 }));
@@ -92,9 +97,81 @@ app.component('activityVerificationList', {
             $scope.belowRefresh = function() {
                 $('#below40-table').DataTable().ajax.reload();
             };
+
             $('.for-below40 .filterToggle').click(function() {
                 $('.for-below40 #filterticket').toggleClass('open');
             });
+
+            var form_id = form_ids = '#bulk_verification';
+            var v = jQuery(form_ids).validate({
+                ignore: '',
+                rules: {
+                    // 'invoice_ids[]': {
+                    //     required: true,// },
+                },
+                invalidHandler: function(event, validator) {
+                    $noty = new Noty({
+                        type: 'error',
+                        layout: 'topRight',
+                        text: 'Please select atleast one activity',
+                    }).show();
+                    setTimeout(function() {
+                        $noty.close();
+                    }, 1000);
+                },
+                submitHandler: function(form) {
+                    let formData = new FormData($(form_id)[0]);
+                    $('#submit').button('loading');
+                    $.ajax({
+                            url: laravel_routes['bulkApproveActivity'],
+                            method: "POST",
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                        })
+                        .done(function(res) {
+                            // console.log(res);
+                            if (!res.success) {
+                                $('#submit').button('reset');
+                                $noty = new Noty({
+                                    type: 'error',
+                                    layout: 'topRight',
+                                    text: res.error,
+                                }).show();
+                                setTimeout(function() {
+                                    $noty.close();
+                                }, 2000);
+                            } else {
+                                $noty = new Noty({
+                                    type: 'success',
+                                    layout: 'topRight',
+                                    text: response.message,
+                                    animation: {
+                                        speed: 500
+                                    }
+                                }).show();
+                                setTimeout(function() {
+                                    $noty.close();
+                                }, 1000);
+
+                                $location.path('/rsa-case-pkg/activity-verification/list');
+                                $scope.$apply();
+                            }
+                        })
+                        .fail(function(xhr) {
+                            $('#submit').button('reset');
+                            $noty = new Noty({
+                                type: 'error',
+                                layout: 'topRight',
+                                text: 'Something went wrong at server',
+                            }).show();
+                            setTimeout(function() {
+                                $noty.close();
+                            }, 2000);
+                        });
+                },
+            });
+
 
             var cols2 = [
                 { data: 'case_date', searchable: false },

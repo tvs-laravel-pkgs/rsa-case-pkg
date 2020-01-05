@@ -28,7 +28,7 @@ app.config(['$routeProvider', function($routeProvider) {
         template: '<activity-status-delete></activity-status-delete>',
         title: 'Activity Status Delete',
     }).
-    
+
     //ACTIVITY VERIFICATION
     when('/rsa-case-pkg/activity-verification/list', {
         template: '<activity-verification-list></activity-verification-list>',
@@ -68,7 +68,7 @@ app.config(['$routeProvider', function($routeProvider) {
     }).
 
     //ASP INVOICES
-    when('/rsa-case-pkg/invoice/list', {
+    when('/rsa-case-pkg/invoice/list/:type_id', {
         template: '<invoice-list></invoice-list>',
         title: 'Invoices',
     }).

@@ -204,27 +204,91 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_order' => 99,
 				'parent' => null,
 				'name' => 'asp-invoices',
-				'display_name' => 'ASP Invoices',
+				'display_name' => 'ASP Invoices Menu',
+			],
+			//UNPAID
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'asp-unpaid-invoices',
+				'display_name' => 'ASP Unpaid Invoices',
 			],
 			[
 				'display_order' => 6,
-				'parent' => 'asp-invoices',
-				'name' => 'view-all-asp-invoices',
+				'parent' => 'asp-unpaid-invoices',
+				'name' => 'view-all-asp-unpaid-invoices',
 				'display_name' => 'View All',
 			],
 			[
 				'display_order' => 6,
-				'parent' => 'asp-invoices',
-				'name' => 'view-only-state-asp-invoices',
+				'parent' => 'asp-unpaid-invoices',
+				'name' => 'view-only-state-asp-unpaid-invoices',
 				'display_name' => 'Only State Mapped',
 			],
 			[
 				'display_order' => 6,
-				'parent' => 'asp-invoices',
-				'name' => 'view-only-own-asp-invoices',
+				'parent' => 'asp-unpaid-invoices',
+				'name' => 'view-only-own-asp-unpaid-invoices',
+				'display_name' => 'Only Own',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-unpaid-invoices',
+				'name' => 'export-asp-unpaid-invoices',
+				'display_name' => 'Export',
+			],
+
+			//PAYMENT INPROGRESS
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'asp-payment-inprogress-invoices',
+				'display_name' => 'ASP Payment Inprogress Invoices',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-payment-inprogress-invoices',
+				'name' => 'view-all-asp-payment-inprogress-invoices',
+				'display_name' => 'View All',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-payment-inprogress-invoices',
+				'name' => 'view-only-state-asp-payment-inprogress-invoices',
+				'display_name' => 'Only State Mapped',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-payment-inprogress-invoices',
+				'name' => 'view-only-own-asp-payment-inprogress-invoices',
 				'display_name' => 'Only Own',
 			],
 
+			//PAID
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'asp-paid-invoices',
+				'display_name' => 'ASP Paid Invoices',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-paid-invoices',
+				'name' => 'view-all-asp-paid-invoices',
+				'display_name' => 'View All',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-paid-invoices',
+				'name' => 'view-only-state-asp-paid-invoices',
+				'display_name' => 'Only State Mapped',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-paid-invoices',
+				'name' => 'view-only-own-asp-paid-invoices',
+				'display_name' => 'Only Own',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

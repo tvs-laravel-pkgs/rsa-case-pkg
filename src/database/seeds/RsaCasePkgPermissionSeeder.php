@@ -289,6 +289,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'view-only-own-asp-paid-invoices',
 				'display_name' => 'Only Own',
 			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-paid-invoices',
+				'name' => 'view-invoice-payment-info',
+				'display_name' => 'View Payment Info',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

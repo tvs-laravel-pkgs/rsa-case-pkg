@@ -7,6 +7,7 @@ use App\Attachment;
 use App\Http\Controllers\Admin\AxaptaExportController;
 use App\Http\Controllers\Controller;
 use App\Invoices;
+use App\InvoiceVoucher;
 use App\StateUser;
 use Auth;
 use DB;
@@ -102,8 +103,8 @@ class InvoiceController extends Controller {
 
 		return Datatables::of($invoices)
 			->setRowAttr([
-				'id' => function ($invoices) {
-					return route('angular') . '/#!/rsa-case-pkg/invoice/view/' . $invoices->id;
+				'id' => function ($invoices) use ($request) {
+					return route('angular') . '/#!/rsa-case-pkg/invoice/view/' . $invoices->id . '/' . $request->type_id;
 				},
 			])
 			->filterColumn('invoice_no', function ($query, $keyword) {
@@ -124,7 +125,7 @@ class InvoiceController extends Controller {
 		return $response;
 	}
 
-	public function viewInvoice($invoice_id) {
+	public function viewInvoice($invoice_id, $type_id) {
 
 		$this->data['invoice'] = $invoice = Invoices::where('Invoices.id', $invoice_id)->
 			select(
@@ -143,6 +144,22 @@ class InvoiceController extends Controller {
 			->join('asps', 'asps.id', '=', 'Invoices.asp_id')
 			->groupBy('Invoices.id')
 			->first();
+
+		if (!$invoice) {
+			return response()->json([
+				'success' => false,
+				'errors' => ['Invoice not found'],
+			]);
+		}
+
+		if ($type_id == 1) {
+			$title = 'Unpaid Invoice';
+		} elseif ($type_id == 2) {
+			$title = 'Payment Inprogress';
+		} elseif ($type_id == 3) {
+			$title = 'Paid Invoice';
+		}
+		$this->data['title'] = $title;
 
 		$activities = Activity::join('cases', 'cases.id', 'activities.case_id')
 			->join('call_centers', 'call_centers.id', 'cases.call_center_id')
@@ -251,6 +268,15 @@ class InvoiceController extends Controller {
 		} else {
 			$this->data['bank_ifsc_code'] = $invoice->bank_ifsc_code;
 		}
+
+		$this->data['invoice_vouchers_amount'] = InvoiceVoucher::select(
+			DB::raw("SUM(paid_amount) as total_amount")
+		)->where('invoice_id', $invoice_id)
+			->groupBy('invoice_id')
+			->first();
+
+		$this->data['invoice_vouchers'] = InvoiceVoucher::with('invoice')->where('invoice_id', $invoice_id)->get();
+		$this->data['success'] = true;
 
 		return response()->json($this->data);
 	}
@@ -367,4 +393,9 @@ class InvoiceController extends Controller {
 			return redirect()->back()->with($message)->withInput();
 		}
 	}
+
+	public function getPaymentInfo($invoice_id) {
+		return InvoiceVoucher::getASPInvoicePaymentInfo($invoice_id);
+	}
+
 }

@@ -739,6 +739,7 @@ class ActivityController extends Controller {
 			$not_collect_charges = $this->data['activities']['cc_not_collected_amount'];
 			$asp_km = empty($request->km_travelled) ? 0 : $request->km_travelled;
 			$asp_other = empty($request->other_charge) ? 0 : $request->other_charge;
+
 			$is_bulk = true;
 
 			//1. checking MIS and ASP Service
@@ -801,7 +802,7 @@ class ActivityController extends Controller {
 
 			}
 			//ASP DATA ENTRY - NEW
-			if ($request->data_reentry) {
+			if ($request->data_reentry == '1') {
 				if ($is_bulk) {
 					$activity->status_id = 8;
 				} else {

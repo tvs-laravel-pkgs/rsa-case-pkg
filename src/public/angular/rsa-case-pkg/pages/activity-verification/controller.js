@@ -121,8 +121,8 @@ app.component('activityVerificationList', {
                         })
                         .done(function(res) {
                             // console.log(res);
+                            $('#submit').button('reset');
                             if (!res.success) {
-                                $('#submit').button('reset');
                                 $noty = new Noty({
                                     type: 'error',
                                     layout: 'topRight',
@@ -143,7 +143,6 @@ app.component('activityVerificationList', {
                                 setTimeout(function() {
                                     $noty.close();
                                 }, 1000);
-
                                 $('#below40-table').DataTable().ajax.reload();
                             }
                         })

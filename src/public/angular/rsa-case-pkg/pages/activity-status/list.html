@@ -21,10 +21,9 @@
                     <div class="dataTable-top--right_wrapper">
                         <ul class="dataTable-top--right_group list-inline">
                             <!-- <div class="float-right"> -->
-                               <li> <button class="btn btn-md preview-batch export" data-toggle="modal" data-target="#asp_excel_export">Export</button></li>
+                            <li ng-if="$ctrl.canExportActivity"> <button class="btn btn-md preview-batch export" data-toggle="modal" data-target="#asp_excel_export">Export</button></li>
                             <!-- </div> -->
                             <!-- <li><a href="javascript:void(0)" class="btn btn-md" ng-click="">Export</a></li> -->
-
                             <li><input class="filterTable" type="text" placeholder="Search"></li>
                             <li><a href="javascript:void(0)" class="btn btn-md" ng-click="refresh()">Refresh</a></li>
                             <li>
@@ -119,63 +118,62 @@
         </div>
     </div>
 </div>
-<!-- Modal --> 
-  <div class="modal fade asp_for_find" id="asp_excel_export" role="dialog">
+<!-- Modal -->
+<div class="modal fade asp_for_find" id="asp_excel_export" role="dialog">
     <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <a href="#" type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <img class="close_btn" src="{{ $ctrl.modal_close }}">
-          </a>
-          <h4 class="modal-title">Export Activities</h4>
-        </div>
-        <form id="export_excel_form" name="export_excel_form" action="{{$ctrl.export_activities}}" method="post">
-            <input type="hidden" name="_token" value="{{$ctrl.csrf}}" />
-          <div class="modal-body">
-            <div class="approvalModal-wrapper">
-                <div class="viewData-threeColumn--wrapper">
-                <div class="row">
-                  <div class="col-md-12">
-                    <div class="row"> 
-                        <div class="col-sm-6">
-                            <div class="input-text form-group">
-                                  <label>Period<sup class="req"  style="color:red">*</sup></label>                         
-                                  <input class="form-control customForm-input" autocomplete="off" name="period" type="text" value='' ng-model ="$ctrl.period" ng-required="true">
-                                  <div ng-show="export_excel_form.$submitted || export_excel_form.period.$touched">
-                                    <span style="color:red" ng-show="export_excel_form.period.$error.required">Period is required.</span>
-                            </div>  
-                            </div><!-- Field -->
-                            
-                        </div><!-- Column -->
-                        <div class="col-sm-6">
-                            <div class="input-text form-group">
-                              <label>Activity Status<sup class="req"  style="color:red">*</sup></label>
-                                <md-select ng-model="$ctrl.status_ids" md-on-close="clearSearchTerm()" name="status_ids" data-md-container-class="selectdemoSelectHeader" multiple md-no-asterisk class="error_messages required" ng-required="true" placeholder="Select Activity Status" ng-change="changeStatus($ctrl.status_ids)">
-                                    <md-select-header class="demo-select-header mdselect-header">
-                                        <input ng-model="searchTerm" type="search" placeholder="Search for a Activity Status" class="demo-header-searchbox md-text" onkeydown="mdSelectOnKeyDownOverride(event)">
-                                    </md-select-header>
-                                    <md-optgroup label="activity_portal_status">
-                                        <md-button class="select-all-button" layout-fill ng-value="$ctrl.pc_all" ng-click="selectAll($ctrl.pc_all)" id="pc_sel_all">All</md-button>
-                                        <md-option ng-value="status.id" ng-repeat="status in $ctrl.extras.status_list |filter:searchTerm">{{status.name}}</md-option>
-                                    </md-optgroup>
-                                </md-select>
-                                <input type="hidden" name="status_ids" value="{{$ctrl.status_ids}}" />
-                                <div ng-show="export_excel_form.$submitted || export_excel_form.status_ids.$touched">
-                                    <span style="color:red" ng-show="export_excel_form.status_ids.$error.required">Activity Status is required.</span>
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <img class="close_btn" src="{{ $ctrl.modal_close }}">
+                </a>
+                <h4 class="modal-title">Export Activities</h4>
+            </div>
+            <form id="export_excel_form" name="export_excel_form" action="{{$ctrl.export_activities}}" method="post">
+                <input type="hidden" name="_token" value="{{$ctrl.csrf}}" />
+                <div class="modal-body">
+                    <div class="approvalModal-wrapper">
+                        <div class="viewData-threeColumn--wrapper">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                <label>Period<sup class="req" style="color:red">*</sup></label>
+                                                <input class="form-control customForm-input" autocomplete="off" name="period" type="text" value='' ng-model="$ctrl.period" ng-required="true">
+                                                <div ng-show="export_excel_form.$submitted || export_excel_form.period.$touched">
+                                                    <span style="color:red" ng-show="export_excel_form.period.$error.required">Period is required.</span>
+                                                </div>
+                                            </div><!-- Field -->
+                                        </div><!-- Column -->
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                <label>Activity Status<sup class="req" style="color:red">*</sup></label>
+                                                <md-select ng-model="$ctrl.status_ids" md-on-close="clearSearchTerm()" name="status_ids" data-md-container-class="selectdemoSelectHeader" multiple md-no-asterisk class="error_messages required" ng-required="true" placeholder="Select Activity Status" ng-change="changeStatus($ctrl.status_ids)">
+                                                    <md-select-header class="demo-select-header mdselect-header">
+                                                        <input ng-model="searchTerm" type="search" placeholder="Search for a Activity Status" class="demo-header-searchbox md-text" onkeydown="mdSelectOnKeyDownOverride(event)">
+                                                    </md-select-header>
+                                                    <md-optgroup label="activity_portal_status">
+                                                        <md-button class="select-all-button" layout-fill ng-value="$ctrl.pc_all" ng-click="selectAll($ctrl.pc_all)" id="pc_sel_all">All</md-button>
+                                                        <md-option ng-value="status.id" ng-repeat="status in $ctrl.extras.status_list |filter:searchTerm">{{status.name}}</md-option>
+                                                    </md-optgroup>
+                                                </md-select>
+                                                <input type="hidden" name="status_ids" value="{{$ctrl.status_ids}}" />
+                                                <div ng-show="export_excel_form.$submitted || export_excel_form.status_ids.$touched">
+                                                    <span style="color:red" ng-show="export_excel_form.status_ids.$error.required">Activity Status is required.</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-danger">Sometimes Export may take few miniutes to export large amount of data. So please be patience.</div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="alert alert-danger">Sometimes Export may take few miniutes to export large amount of data. So please be patience.</div>
+                    <div class="approvalModal-btns">
+                        <button type="submit" class="differed-btn blue approve-btn" ng-disabled="export_excel_form.status_ids.$invalid || export_excel_form.period.$invalid">Export</button>
                     </div>
-                  </div>
                 </div>
-             </div>
-             <div class="approvalModal-btns">
-                <button type="submit" class="differed-btn blue approve-btn" ng-disabled ="export_excel_form.status_ids.$invalid || export_excel_form.period.$invalid">Export</button>
-             </div>
-           </div>
-          </form> 
-      </div>
+            </form>
+        </div>
     </div>
-  </div>
+</div>

@@ -1117,7 +1117,7 @@ class ActivityController extends Controller {
 	}
 
 	public function exportActivities(Request $request){
-		//dd($request->all(),is_array($request->status_ids));
+		//dd($request->all());
 			ini_set('max_execution_time', 0);
 			ini_set('display_errors', 1);
 			ini_set("memory_limit", "10000M");

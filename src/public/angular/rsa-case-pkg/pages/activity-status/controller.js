@@ -11,6 +11,8 @@ app.component('activityStatusList', {
             activity_status_filter_url
         ).then(function(response) {
             self.extras = response.data.extras;
+            console.log(response.data.extras.status_list);
+            self.status_list = response.data.extras.status_list;
             self.modal_close = modal_close;
             var cols = [
                 { data: 'action', searchable: false },
@@ -163,6 +165,57 @@ app.component('activityStatusList', {
                 }
                 self.status_ids = r_list;
             }
+
+            /*$scope.exportActivities = function(){
+                if($scope.export_excel_form.$valid){
+                    alert(self.period);
+                    $http({
+                        method: 'POST',
+                        url: laravel_routes['exportActivities'],
+                        data: { status_ids: self.status_ids, period: self.period },
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+                    }).success(function(data) {
+                            console.log(data)
+
+                           $noty = new Noty({
+                                type: 'error',
+                                layout: 'topRight',
+                                text: 'Export',
+                                animation: {
+                                    speed: 500
+                                }
+                            }).show();
+                            setTimeout(function() {
+                                $noty.close();
+                            }, 1000);
+                        }).error(function(data) {
+                            console.log(data)
+                            $noty = new Noty({
+                                type: 'error',
+                                layout: 'topRight',
+                                text: 'Export',
+                                animation: {
+                                    speed: 500
+                                }
+                            }).show();
+                            setTimeout(function() {
+                                $noty.close();
+                            }, 1000);
+                    });
+                }else{
+                     $noty = new Noty({
+                                type: 'error',
+                                layout: 'topRight',
+                                text: 'Please Fill all required Field',
+                                animation: {
+                                    speed: 500
+                                }
+                            }).show();
+                            setTimeout(function() {
+                                $noty.close();
+                            }, 1000);
+                }
+            }*/
             /*$scope.exportActivities = function(){
                 if($scope.export_excel_form.$valid){
                     //$('.approve-btn').button('loading');
@@ -221,9 +274,9 @@ app.component('activityStatusList', {
                     }
             }*/
             //Jquery Validation
-        var form_id = '#export_excel_form';
+        /*var form_id = '#export_excel_form';
         var v = jQuery(form_id).validate({
-            /*invalidHandler: function(event, validator) {
+            invalidHandler: function(event, validator) {
                 var errors = validator.numberOfInvalids();
                 $(".alert-danger").show();
                 var errors = validator.numberOfInvalids();
@@ -242,7 +295,7 @@ app.component('activityStatusList', {
                 validator.focusInvalid();
 
                 $("html, body").animate({ scrollTop: 0 });
-            },*/
+            },
            // errorContainer: '.grouped-error',
             rules: {
                 'period': {
@@ -271,7 +324,7 @@ app.component('activityStatusList', {
             submitHandler: function(form) {
                 $('#export_excel_form').submit();
             }
-        });
+        });*/
         });
     }
 });

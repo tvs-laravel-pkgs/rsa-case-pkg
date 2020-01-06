@@ -160,11 +160,10 @@
                                     </md-optgroup>
                                 </md-select>
                                 <input type="hidden" name="status_ids" value="{{$ctrl.status_ids}}" />
-                                <div ng-show="export_excel_form.$submitted || export_excel_form.activity_portal_status.$touched">
-                                    <span style="color:red" ng-show="export_excel_form.activity_portal_status.$error.required">Activity Status is required.</span>
+                                <div ng-show="export_excel_form.$submitted || export_excel_form.status_ids.$touched">
+                                    <span style="color:red" ng-show="export_excel_form.status_ids.$error.required">Activity Status is required.</span>
                                 </div>
                             </div>
-                            
                         </div>
                     </div>
                     <div class="alert alert-danger">Sometimes Export may take few miniutes to export large amount of data. So please be patience.</div>
@@ -173,7 +172,7 @@
                 </div>
              </div>
              <div class="approvalModal-btns">
-                <button type="submit" class="differed-btn blue approve-btn">Export</button>
+                <button type="submit" class="differed-btn blue approve-btn" ng-disabled ="export_excel_form.status_ids.$invalid || export_excel_form.period.$invalid">Export</button>
              </div>
            </div>
           </form> 

@@ -1,41 +1,5 @@
-<!-- <?php echo Form::open(['route' => 'boApprove', 'id' => 'approve-form']); ?>
-            <?php echo Form::hidden('ticket_id', $ctrl.data.id); ?>
-            <?php echo Form::hidden('is_exceptional', 0, ['id' => 'is_exceptional']); ?>
-            <?php echo Form::hidden('exceptional_reason', '', ['id' => 'exceptional_reason']); ?> -->
+<br />
 <div class="viewData-wrapper">
-    <div class="viewData-threeColumn--wrapper">
-        <div class="row">
-            <div class="col-xs-12 col-sm-4">
-                <ul class="viewData-threeColumn--group">
-                    <!-- <li><img src="{{$ctr.data.style_car_image_url}}"></li> -->
-                    <li><img src="{{$ctrl.data.style_dot_image_url}}"></li>
-                    <li>
-                        <p>Vehicle Details</p>
-                        <h3>
-                            {{$ctrl.data.vehicle_registration_number}} |
-                            {{$ctrl.data.vehicle_model}} - {{$ctrl.data.vehicle_make}}
-                        </h3>
-                    </li>
-                </ul>
-            </div>
-            <div class="col-xs-12 col-sm-4">
-                <ul class="viewData-threeColumn--group">
-                    <li><img src="{{$ctrl.data.style_dot_image_url}}"></li>
-                    <!-- <li><img src="{{$ctr.data.style_service_type_image_url}}"></li>     -->
-                    <li>
-                        <p>Ticket Status</p>
-                        <h3>{{$ctrl.data.case_status}}</h3>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-    <!-- @if($mis_info->claim_status == 1)
-                <div class="differedTicket-reason">
-                    <label>Reply from ASP/CC for defer</label>
-                    <p>{{$mis_info->reason}}</p>
-                </div>
-                @endif -->
     <form id="billing_form" method="post">
         <ul class="nav nav-tabs" role="tablist">
             <li role="presentation" class="  {{ ++$index ==1 ? 'active' : ''}}">
@@ -48,12 +12,12 @@
         <div class="tab-content boxed-tab">
             <div role="tabpanel" class="tab-pane active" id="info-{{$index}}">
                 <div class="viewData-form--row">
-                    <label>ASP Status</label>
                     <div class="clearfix"></div>
                     <div class="row">
-                        <div class="col-xs-12 col-sm-6">
+                        <div class="col-xs-12 col-sm-3">
                             <div class="viewData-form--group">
                                 <div class="form-group">
+                                    <label>Payment Eligibility Status</label>
                                     <input class="form-control viewData-input mis-serv-km" name="label" type="text" value="{{$ctrl.data.asp_status}}" readonly>
                                 </div>
                             </div>
@@ -69,7 +33,7 @@
                     <!-- @if(!empty($approved_view)) -->
                     <!-- <price-comparison data="$ctrl.data"></price-comparison> -->
                     <!-- @else -->
-                    <h3 class="mt-30 mb-20">Price Comparision</h3>
+                    <h3 class="mt-30 mb-20">Data Comparision</h3>
                     <div class="table-responsive">
                         <table class="table table-responsive table-bordered table-wide style-normal">
                             <thead>
@@ -105,8 +69,6 @@
                                     <td style="text-align:left" class="" ng-show="$ctrl.data.verification==1">
                                         <input type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_not_collected" class="non_collected_amount" value="{{$ctrl.data.raw_bo_not_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                         <input type="hidden" ng-model="$ctrl.data.raw_asp_not_collected" class="other_value" value="{{$ctrl.data.raw_asp_not_collected}}">
-                                        <!-- <br><br><br>
-                                        <span class="alert alert-danger" ng-show="($ctrl.data.raw_bo_not_collected>$ctrl.data.raw_asp_not_collected)">Enter Value less than Asp Value</span> -->
                                     </td>
                                 </tr>
                                 <tr>
@@ -117,44 +79,32 @@
                                     <td style="text-align:left" ng-show="$ctrl.data.verification==1">
                                         <input type="text" name="bo_collected" ng-model="$ctrl.data.raw_bo_collected" class="collected_amount" value="{{$ctrl.data.raw_bo_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                         <input type="hidden" ng-model="$ctrl.data.raw_asp_collected" class="collected_value" value="{{$ctrl.data.raw_asp_collected}}">
-                                        <!-- <br><br><br>
-                                        <span class="alert alert-danger" ng-show="($ctrl.data.raw_bo_collected>$ctrl.data.raw_asp_collected)">Enter Value less than Asp Value</span> -->
                                     </td>
                                 </tr>
-                                <!-- @if(!empty($ctrl.remarks_not_collected)) -->
-                                <!-- <tr>
-            <th scope="row">Remarks Comments for not collected charges</th>
-            <td>
-                {{ $ctrl.remarks_not_collected }}
-            </td>
-        </tr> -->
-                                <!-- @endif
-
-        @if($ctrl.claim_status == 1) -->
-                                <!-- <tr>
-            <th scope="row" class="alert-danger">Resolved Comments from ASP</th>
-            <td class="alert-danger">
-                {{ $ctrl.comments }}
-            </td>
-        </tr> -->
-                                <!-- @endif -->
                             </tbody>
                         </table>
                     </div>
-                    <h3 class="mt-30 mb-20">Price Info</h3>
+                    <h3 class="mt-30 mb-20">Rate Card Info</h3>
                     <div class="table-responsive">
                         <table class="table  table-bordered table-wide style-normal">
-                                <thead>
-                                     <tr class="warning">
-                                         <th>Below {{ $ctrl.data.asp_service_type_data.range_limit }}</th>
-                                         <th>Above {{ $ctrl.data.asp_service_type_data.range_limit }} <br/> (for every KM)</th>
-                                         <th>Waiting Charge</th>
-                                         <th>Empty Return Charge</th>
-                                                <th>Adjustment Type</th>
-                                                <th>Adjustment</th>
-                                         </tr>
-                                    </thead>
-                                <tbody>
+
+                            <thead>
+                                <tr class="warning">
+                                    <th>
+                                        Below {{ $ctrl.data.asp_service_type_data.range_limit }}
+                                    </th>
+                                    <th>
+                                        Above {{ $ctrl.data.asp_service_type_data.range_limit }} <br/>(for every KM)
+                                    </th>
+                                    <th>
+                                        Empty Return Charge
+                                    </th>
+                                    <th>Adjustment Type</th>
+                                    <th>Adjustment</th>
+                                    <th>Waiting Charge</th>     
+                                </tr>
+                            </thead>
+                            <tbody>
                                      <tr class="active">
                                          <th>
                                                  {{$ctrl.data.asp_service_type_data.below_range_price}}
@@ -164,10 +114,6 @@
                                          <td>
                                                  {{$ctrl.data.asp_service_type_data.above_range_price}}
                                                         <input class="form-control viewData-input  above_40 hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.above_range_price}}">
-                                             </td>
-                                         <td>
-                                                 {{$ctrl.data.asp_service_type_data.waiting_charge_per_hour}}
-                                                        <input class="form-control viewData-input waiting_charge hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.waiting_charge_per_hour}}">
                                              </td>
                                                 <td>
                                                  {{$ctrl.data.asp_service_type_data.empty_return_range_price }}
@@ -181,6 +127,10 @@
                                                         {{$ctrl.data.asp_service_type_data.adjustment}}
                                                         <input class="form-control viewData-input adjustment hide_temp" disabled="disabled" type="text" value="{{ $ctrl.data.asp_service_type_data.adjustment }}">
                                                     </td>
+                                         <td>
+                                                 {{$ctrl.data.asp_service_type_data.waiting_charge_per_hour}}
+                                                        <input class="form-control viewData-input waiting_charge hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.waiting_charge_per_hour}}">
+                                             </td>
                                             </tr>
                                     </tbody>
                         </table>
@@ -190,7 +140,7 @@
                         <table class="table table-bordered table-wide style-normal">
                             <thead>
                                 <tr>
-                                    <th>Price Calculation</th>
+                                    <th>Payout Calculation</th>
                                     <th style="text-align: right;">Amount in INR</th>
                                 </tr>
                             </thead>
@@ -219,7 +169,7 @@
                                 <tr ng-show="$ctrl.data.verification==1">
                                     <td>Discount (-)</td>
                                     <td>
-                                        <div><input type="text" ng-model="$ctrl.data.bo_deduction" class="deduction" value="{{$ctrl.data.bo_deduction}}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-keyup="calculate()"></div>
+                                        <div><input type="text" ng-model="$ctrl.data.bo_deduction" class="deduction" value="{{$ctrl.data.bo_deduction}}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-keyup="calculatePO()"></div>
                                     </td>
                                 </tr>
                                 <tr ng-show="$ctrl.data.verification==1">
@@ -232,72 +182,26 @@
                                         <textarea name="bo_comments" ng-model="$ctrl.data.bo_comments" class="form-control" value="{{$ctrl.data.bo_comments}}" placeholder="Enter Comments" rows="3"></textarea>
                                     </td>
                                 </tr>
+                                <tr class="warning" ng-show="$ctrl.data.verification==0">
+                                    <td>Payout Amount</td>
+                                    <td>
+                                        <div ng-show="$ctrl.data.bo_net_amount!=0">₹{{$ctrl.data.bo_net_amount}}</div>
+                                        <div ng-show="$ctrl.data.bo_net_amount==0">₹{{$ctrl.data.bo_net_amount}}</div>
+                                    </td>
+                                </tr>
+                                <tr class="warning" ng-show="$ctrl.data.verification==1">
+                                    <td>Payout Amount</td>
+                                    <td>
+                                        <div>{{$ctrl.data.bo_net_amount| currency:"₹"}}</div>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
-                    <!-- @else
-                                                <service-total-summary data="$ctrl.data"></service-total-summary>
-
-                                        @endif -->
                 </div><!-- tab-pane -->
-                <!-- @if(!empty($approved_view)) -->
-                <h3 class="mb-20">Approved Value Calculation</h3>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-wide style-normal table-label-hide">
-                        <thead>
-                            <tr>
-                                <th>Description</th>
-                                <th style="text-align: right;">Amount in INR</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="warning" ng-show="$ctrl.data.verification==0">
-                                <td>Net Amount</td>
-                                <td>
-                                    <div ng-show="$ctrl.data.bo_net_amount!=0">₹{{$ctrl.data.bo_net_amount}}</div>
-                                    <div ng-show="$ctrl.data.bo_net_amount==0">₹{{$ctrl.data.bo_net_amount}}</div>
-                                </td>
-                            </tr>
-                            <tr class="warning" ng-show="$ctrl.data.verification==1">
-                                <td>Net Amount</td>
-                                <td>
-                                    <div>{{$ctrl.data.bo_net_amount| currency:"₹"}}</div>
-                                </td>
-                            </tr>
-                            <!-- <tr class="active">
-            <td>Total Tax</td>
-            <td>
-                <div>{{$ctrl.data.bo_tax_amount | currency:"₹"}}</div>
-            </td>
-        </tr> -->
-                        </tbody>
-                    </table>
-                </div>
-                <div class="table-data-footer" ng-show="$ctrl.data.verification==0">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h4 class="title">APPROVED VALUE</h4>
-                        </div>
-                        <div class="col-md-6 text-right">
-                            <!-- <h4 class="price" ng-show="$ctrl.data.bo_amount!=0">₹{{$ctrl.data.bo_amount}}</h4> -->
-                            <h4 class="price">₹{{$ctrl.data.bo_amount}}</h4>
-                            <ul class="inline-btns">
-                                <!-- <li><a href="javascript:;" id="reject-ticket" class="differed-btn btn btn-primary blue">REJECT</a></li> -->
-                                <!-- <li><a href="javascript:;" id="defer-ticket" class="differed-btn btn btn-primary blue">DEFER</a></li> -->
-                                <!-- @if(empty($approved_view)) -->
-                                <!-- <li><button type="submit" class="differed-btn btn btn-primary blue">APPROVE</button></li> -->
-                                <!-- @endif -->
-                            </ul>
-                        </div>
-                    </div>
-                </div>
                 <div class="table-data-footer" ng-show="$ctrl.data.verification==1">
                     <div class="row">
-                        <div class="col-md-6">
-                            <h4 class="title">APPROVED VALUE</h4>
-                        </div>
-                        <div class="col-md-6 text-right">
-                            <h4 class="price">{{$ctrl.data.bo_amount | currency:"₹"}}</h4>
+                        <div class="col-md-offset-6 col-md-6 text-right">
                             <ul class="inline-btns">
                                 <li><a href="javascript:;" id="reject-ticket" class="differed-btn btn btn-primary blue" ng-click="deferTicket()">DEFER</a></li>
                                 <li><button type="button" id="accept-ticket" class="differed-btn btn btn-primary blue" ng-click="approveTicket()">APPROVE</button></li>
@@ -305,9 +209,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- @else -->
-                <!--  <ticket-total-summary data="$ctrl.data"></ticket-total-summary> -->
-                <!-- @endif -->
             </div><!-- tab-content -->
     </form>
 </div>

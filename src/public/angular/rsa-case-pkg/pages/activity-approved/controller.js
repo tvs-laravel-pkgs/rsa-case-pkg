@@ -60,6 +60,11 @@ app.component('approvedActivityList', {
                     },
                     infoCallback: function(settings, start, end, max, total, pre) {
                         $('.count').html(total + ' / ' + max + ' listings')
+                        if (!total) {
+                            $('#submit').hide();
+                        } else {
+                            $('#submit').show();
+                        }
                     },
                     initComplete: function() {},
                 }));
@@ -137,7 +142,7 @@ app.component('approvedActivityList', {
                             contentType: false,
                         })
                         .done(function(res) {
-                            // console.log(res.success);
+                            // console.log(res);
                             if (!res.success) {
                                 $('#submit').button('reset');
                                 $noty = new Noty({
@@ -214,6 +219,12 @@ app.component('approvedActivityInvoicePreview', {
             self.inv_date = response.data.inv_date;
             self.signature_attachment = response.data.signature_attachment;
 
+            if (self.asp.tax_calculation_method == '1') {
+                self.asp.tax_calculation_method = true;
+            } else {
+                self.asp.tax_calculation_method = false;
+            }
+
             setTimeout(function() {
                 $('#invoice-preview-table').DataTable({
                     "bLengthChange": false,
@@ -265,7 +276,7 @@ app.component('approvedActivityInvoicePreview', {
                             contentType: false,
                         })
                         .done(function(res) {
-                            // console.log(res.success);
+                            // console.log(res);
                             if (!res.success) {
                                 $('#submit').button('reset');
                                 $noty = new Noty({

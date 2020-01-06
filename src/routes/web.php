@@ -36,15 +36,19 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	//ACTIVITY VERIFICATION
 	Route::get('/activity-verification/{view_type_id?}/view/{activity_status_id?}', 'ActivityController@viewActivityStatus')->name('viewActivityStatus');
 
-	Route::get('/activity-verification/get-list', 'ActivityController@getVerificationList')->name('getActivityVerificationList');
+	Route::get('/activity-verification/bulk/get-list', 'ActivityController@getBulkVerificationList')->name('getBulkActivityVerificationList');
+	Route::get('/activity-verification/individual/get-list', 'ActivityController@getIndividualVerificationList')->name('getIndividualActivityVerificationList');
 	Route::post('/activity-verification/saveDiffer', 'ActivityController@saveActivityDiffer')->name('saveActivityDiffer');
 	Route::post('/activity-verification/approve', 'ActivityController@approveActivity')->name('approveActivity');
+	Route::post('/activity-verification/bulk-approve', 'ActivityController@bulkApproveActivity')->name('bulkApproveActivity');
 
 	//INVOICE
-	Route::get('/invoice/get-filter-data', 'InvoiceController@getFilterData')->name('getFilterData');
+	Route::get('/invoice/get-filter-data/{type_id}', 'InvoiceController@getFilterData')->name('getFilterData');
 	Route::get('/invoice/get-list', 'InvoiceController@getList')->name('getListData');
-	Route::get('/invoice/view/{id}', 'InvoiceController@viewInvoice')->name('viewInvoice');
+	Route::get('/invoice/view/{id}/{type_id}', 'InvoiceController@viewInvoice')->name('viewInvoice');
 	Route::get('/invoice/download/{id}', 'InvoiceController@downloadInvoice')->name('downloadInvoice');
+	Route::post('/invoice/export', 'InvoiceController@export')->name('exportInvoice');
+	Route::get('/invoice/get/payment-info/{id}', 'InvoiceController@getPaymentInfo')->name('getPaymentInfo');
 
 	//BATCH GENERATION
 	Route::get('/batch-generation/get-list', 'BatchController@getList')->name('getListData');

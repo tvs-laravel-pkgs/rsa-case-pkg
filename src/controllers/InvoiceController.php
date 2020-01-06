@@ -4,21 +4,37 @@ namespace Abs\RsaCasePkg;
 use Abs\RsaCasePkg\Activity;
 use App\Asp;
 use App\Attachment;
+use App\Http\Controllers\Admin\AxaptaExportController;
 use App\Http\Controllers\Controller;
 use App\Invoices;
+use App\InvoiceVoucher;
 use App\StateUser;
 use Auth;
 use DB;
 use Entrust;
+use Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Yajra\Datatables\Datatables;
 
 class InvoiceController extends Controller {
+	protected $getaxapta;
+	public function __construct(AxaptaExportController $getaxapta) {
+		$this->getaxapta = $getaxapta;
+	}
 
-	public function getFilterData() {
+	public function getFilterData($type_id) {
+		if ($type_id == 1) {
+			$title = 'Unpaid Invoices';
+		} elseif ($type_id == 2) {
+			$title = 'Payment Inprogress';
+		} elseif ($type_id == 3) {
+			$title = 'Paid Invoices';
+		}
+
 		$this->data['extras'] = [
 			'asp_list' => collect(Asp::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select ASP']),
+			'title' => $title,
 		];
 		return response()->json($this->data);
 	}
@@ -42,30 +58,60 @@ class InvoiceController extends Controller {
 			->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
 			->groupBy('Invoices.id')
 		;
+
 		if ($request->get('date')) {
 			$invoices->whereRaw('DATE_FORMAT(Invoices.created_at,"%d-%m-%Y") =  "' . $request->get('date') . '"');
 		}
-		if (!Entrust::can('view-all-activities')) {
-			if (Entrust::can('view-mapped-state-activities')) {
-				$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
-				$invoices->whereIn('asps.state_id', $states);
+
+		//UNPAID
+		if ($request->type_id == 1) {
+			$invoices->whereIn('Invoices.status_id', [1, 2]); //PAYMENT PENDING && INPROGRESS
+			if (!Entrust::can('view-all-asp-unpaid-invoices')) {
+				if (Entrust::can('view-only-state-asp-unpaid-invoices')) {
+					$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
+					$invoices->whereIn('asps.state_id', $states);
+				}
+				if (Entrust::can('view-only-own-asp-unpaid-invoices')) {
+					$invoices->where('users.id', Auth::id());
+				}
 			}
-			if (Entrust::can('view-own-activities')) {
-				$invoices->where('users.id', Auth::id());
+		} elseif ($request->type_id == 2) {
+			//PAYMENT INPROGRESS
+			$invoices->where('Invoices.status_id', 2); //PAYMENT INPROGRESS
+			if (!Entrust::can('view-all-asp-payment-inprogress-invoices')) {
+				if (Entrust::can('view-only-state-asp-payment-inprogress-invoices')) {
+					$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
+					$invoices->whereIn('asps.state_id', $states);
+				}
+				if (Entrust::can('view-only-own-asp-payment-inprogress-invoices')) {
+					$invoices->where('users.id', Auth::id());
+				}
+			}
+		} elseif ($request->type_id == 3) {
+			//PAID
+			$invoices->where('Invoices.status_id', 3); //PAYMENT PAID
+			if (!Entrust::can('view-all-asp-paid-invoices')) {
+				if (Entrust::can('view-only-state-asp-paid-invoices')) {
+					$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
+					$invoices->whereIn('asps.state_id', $states);
+				}
+				if (Entrust::can('view-only-own-asp-paid-invoices')) {
+					$invoices->where('users.id', Auth::id());
+				}
 			}
 		}
 
 		return Datatables::of($invoices)
+			->setRowAttr([
+				'id' => function ($invoices) use ($request) {
+					return route('angular') . '/#!/rsa-case-pkg/invoice/view/' . $invoices->id . '/' . $request->type_id;
+				},
+			])
 			->filterColumn('invoice_no', function ($query, $keyword) {
 				$query->whereRaw("CONCAT(Invoices.invoice_no,'-',Invoices.id) like ?", ["%{$keyword}%"]);
 			})
 			->addColumn('action', function ($invoices) {
-				$action = '<div class="dataTable-actions">
-				<a href="#!/rsa-case-pkg/invoice/view/' . $invoices->id . '">
-					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
-					            </a>';
-				$action .= '</div>';
-				return $action;
+				return '<input type="checkbox" class="ticket_id no-link child_select_all" name="invoice_ids[]" value="' . $invoices->id . '">';
 			})
 			->make(true);
 	}
@@ -78,7 +124,8 @@ class InvoiceController extends Controller {
 		ob_end_clean();
 		return $response;
 	}
-	public function viewInvoice($invoice_id) {
+
+	public function viewInvoice($invoice_id, $type_id) {
 
 		$this->data['invoice'] = $invoice = Invoices::where('Invoices.id', $invoice_id)->
 			select(
@@ -97,6 +144,22 @@ class InvoiceController extends Controller {
 			->join('asps', 'asps.id', '=', 'Invoices.asp_id')
 			->groupBy('Invoices.id')
 			->first();
+
+		if (!$invoice) {
+			return response()->json([
+				'success' => false,
+				'errors' => ['Invoice not found'],
+			]);
+		}
+
+		if ($type_id == 1) {
+			$title = 'Unpaid Invoice';
+		} elseif ($type_id == 2) {
+			$title = 'Payment Inprogress';
+		} elseif ($type_id == 3) {
+			$title = 'Paid Invoice';
+		}
+		$this->data['title'] = $title;
 
 		$activities = Activity::join('cases', 'cases.id', 'activities.case_id')
 			->join('call_centers', 'call_centers.id', 'cases.call_center_id')
@@ -206,7 +269,133 @@ class InvoiceController extends Controller {
 			$this->data['bank_ifsc_code'] = $invoice->bank_ifsc_code;
 		}
 
+		$this->data['invoice_vouchers_amount'] = InvoiceVoucher::select(
+			DB::raw("SUM(paid_amount) as total_amount")
+		)->where('invoice_id', $invoice_id)
+			->groupBy('invoice_id')
+			->first();
+
+		$this->data['invoice_vouchers'] = InvoiceVoucher::with('invoice')->where('invoice_id', $invoice_id)->get();
+		$this->data['success'] = true;
+
 		return response()->json($this->data);
+	}
+
+	public function export(Request $request) {
+		// dd($request->all());
+		try
+		{
+			ini_set('max_execution_time', 0);
+			ini_set('display_errors', 1);
+			ini_set('memory_limit', '5000M');
+
+			if (empty($request->invoice_ids)) {
+				return redirect()->back()->with('error', "Please Select Invoice");
+			}
+
+			$invoice_ids = $request->invoice_ids;
+
+			$activities = Activity::select(
+				'activities.*',
+				'cases.number as ticket_number',
+				'cases.vehicle_registration_number',
+				'vehicle_models.name as vehicle_model',
+				'vehicle_makes.name as vehicle_make',
+				'cases.membership_type as type_of_eligibility',
+				'service_types.name as service_type',
+				DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as ticket_date_time'),
+				DB::raw('DATE_FORMAT(cases.created_at,"%d-%m-%Y %H:%i:%s") as created_at'),
+				'asps.axpta_code as axpta_code',
+				'asps.workshop_name as workshop_name',
+				DB::raw("(CASE WHEN (asps.is_auto_invoice = 1) THEN CONCAT(Invoices.invoice_no,'-',Invoices.id) ELSE Invoices.invoice_no END) as invoice_no"),
+				'Invoices.created_at as created_at',
+				'asps.asp_code as asp_code',
+				'locations.name as location_name',
+				'states.name as state_name',
+				'asps.gst_registration_number as gst_registration_number',
+				'asps.tax_calculation_method as tax_calculation_method',
+				'asps.bank_name as bank_name',
+				'asps.has_gst',
+				'asps.bank_account_number as bank_account_number',
+				'asps.bank_ifsc_code as bank_ifsc_code',
+				'asps.pan_number as pan_number',
+				'asps.check_in_favour as check_in_favour',
+				'clients.financial_dimension',
+				'bo_invoice_amount.value as invoice_amount',
+				'bo_km_travelled.value as bo_km',
+				'bo_payout_amount.value as payout_amount',
+				'bo_collected.value as bo_collected_charges',
+				'bo_not_collected.value as bo_other_charges',
+				'activities.bo_comments as comments'
+			)
+				->join('cases', 'cases.id', '=', 'activities.case_id')
+				->join('clients', 'clients.id', '=', 'cases.client_id')
+				->join('asps', 'asps.id', '=', 'activities.asp_id')
+				->join('locations', 'locations.id', '=', 'asps.location_id')
+				->join('states', 'states.id', '=', 'asps.state_id')
+				->join('Invoices', 'Invoices.id', '=', 'activities.invoice_id')
+				->join('vehicle_models', 'vehicle_models.id', '=', 'cases.vehicle_model_id')
+				->join('vehicle_makes', 'vehicle_makes.id', '=', 'vehicle_models.vehicle_make_id')
+				->join('service_types', 'service_types.id', '=', 'activities.service_type_id')
+				->leftJoin('activity_details as bo_km_travelled', function ($join) {
+					$join->on('bo_km_travelled.activity_id', 'activities.id')
+						->where('bo_km_travelled.key_id', 158); //BO KM TRAVELLED
+				})
+				->leftJoin('activity_details as bo_payout_amount', function ($join) {
+					$join->on('bo_payout_amount.activity_id', 'activities.id')
+						->where('bo_payout_amount.key_id', 172); //BO PAYOUT AMOUNT
+				})
+				->leftJoin('activity_details as bo_collected', function ($join) {
+					$join->on('bo_collected.activity_id', 'activities.id')
+						->where('bo_collected.key_id', 159); //BO COLLECTED
+				})
+				->leftJoin('activity_details as bo_not_collected', function ($join) {
+					$join->on('bo_not_collected.activity_id', 'activities.id')
+						->where('bo_not_collected.key_id', 160); //BO NOT COLLECTED
+				})
+				->leftJoin('activity_details as bo_invoice_amount', function ($join) {
+					$join->on('bo_invoice_amount.activity_id', 'activities.id')
+						->where('bo_invoice_amount.key_id', 182); //BO INVOICE AMOUNT
+				})
+				->whereIn('Invoices.id', $invoice_ids)
+				->orderBy('activities.asp_id')
+				->get();
+
+			$exportInfo = $this->getaxapta->startExportInvoice($invoice_ids, $activities);
+			$exportSheet2Info = $this->getaxapta->startSheet2ExportInvoice($invoice_ids, $activities);
+
+			if (!$exportInfo) {
+				return back()->withErrors(['exportError', $exportInfo]);
+			}
+			if (!$exportSheet2Info) {
+				return back()->withErrors(['exportError', $exportSheet2Info]);
+			}
+
+			Excel::create('Axapta_export_' . date('Y-m-d H:i:s'), function ($axaptaInfo) use ($exportInfo, $exportSheet2Info) {
+				$axaptaInfo->sheet('Summary', function ($sheet) use ($exportInfo) {
+					$sheet->cell(1, function ($row) {
+						$row->setBackground('#CCCCCC');
+					});
+					$sheet->fromArray($exportInfo);
+				});
+				$axaptaInfo->sheet('Details', function ($sheet) use ($exportSheet2Info) {
+					$sheet->cell(1, function ($row) {
+						$row->setBackground('#CCCCCC');
+					});
+					$sheet->fromArray($exportSheet2Info);
+				});
+
+			})->export('xls');
+
+		} catch (\Exception $e) {
+			dd($e);
+			$message = ['error' => $e->getMessage()];
+			return redirect()->back()->with($message)->withInput();
+		}
+	}
+
+	public function getPaymentInfo($invoice_id) {
+		return InvoiceVoucher::getASPInvoicePaymentInfo($invoice_id);
 	}
 
 }

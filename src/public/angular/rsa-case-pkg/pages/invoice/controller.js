@@ -1,17 +1,40 @@
 app.component('invoiceList', {
     templateUrl: invoice_list_template_url,
-    controller: function($http, $window, HelperService, $scope, $rootScope) {
+    controller: function($http, $window, HelperService, $scope, $rootScope, $routeParams) {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
         self.filter_img_url = filter_img_url;
+        if (typeof($routeParams.type_id) == 'undefined') {
+            $location.path('/page-not-found');
+            $scope.$apply();
+            return;
+        }
+
+        if ($routeParams.type_id != 1 && $routeParams.type_id != 2 && $routeParams.type_id != 3) {
+            $location.path('/page-not-found');
+            $scope.$apply();
+            return;
+        }
+        self.type_id = $routeParams.type_id;
+        self.export_invoices_url = export_invoices;
+        self.csrf = token;
+        self.canExport = canExport;
+
         $http.get(
-            invoice_filter_url
+            invoice_filter_url + '/' + $routeParams.type_id
         ).then(function(response) {
             self.extras = response.data.extras;
 
-            var cols = [
-                { data: 'action', searchable: false },
+            if (self.type_id == 1 && self.canExport) {
+                var col1 = [
+                    { data: 'action', searchable: false },
+                ];
+            } else {
+                var col1 = [];
+            }
+
+            var col2 = [
                 { data: 'invoice_no', name: 'invoice_no', searchable: true },
                 { data: 'invoice_date', searchable: false },
                 { data: 'asp_code', name: 'asps.asp_code', searchable: true },
@@ -20,6 +43,8 @@ app.component('invoiceList', {
                 { data: 'payment_status', name: 'invoice_statuses.name', searchable: true },
                 { data: 'invoice_amount', searchable: false },
             ];
+
+            var cols = $.merge(col1, col2);
 
             var activities_status_dt_config = JSON.parse(JSON.stringify(dt_config));
 
@@ -45,10 +70,18 @@ app.component('invoiceList', {
                         url: invoice_get_list_url,
                         data: function(d) {
                             d.date = $('#date').val();
+                            d.type_id = self.type_id;
                         }
                     },
                     infoCallback: function(settings, start, end, max, total, pre) {
-                        $('.count').html(total + ' / ' + max + ' listings')
+                        $('.count').html(total + ' / ' + max + ' listings');
+                        if ($('#submit').length > 0) {
+                            if (!total) {
+                                $('#submit').hide();
+                            } else {
+                                $('#submit').show();
+                            }
+                        }
                     },
                     initComplete: function() {},
                 }));
@@ -87,6 +120,45 @@ app.component('invoiceList', {
                 autoclose: true,
             });
 
+            $('#select_all_checkbox').click(function() {
+                if ($(this).prop("checked")) {
+                    $(".child_select_all").prop("checked", true);
+                } else {
+                    $(".child_select_all").prop("checked", false);
+                }
+            });
+
+            var form_id = '#invoice_export';
+            var v = jQuery(form_id).validate({
+                rules: {
+                    'invoice_ids[]': {
+                        required: true,
+                    },
+                },
+                messages: {
+                    'invoice_ids[]': {
+                        required: "Please Select Invoice",
+                    },
+                },
+                errorPlacement: function(error, element) {
+                    $noty = new Noty({
+                        type: 'error',
+                        layout: 'topRight',
+                        text: 'Please Select Invoice',
+                        animation: {
+                            speed: 500 // unavailable - no need
+                        },
+                    }).show();
+                    setTimeout(function() {
+                        $noty.close();
+                    }, 1000);
+                },
+                submitHandler: function(form) {
+                    $('#invoice_export').submit();
+                }
+            });
+
+
             $rootScope.loading = false;
         });
     }
@@ -104,12 +176,49 @@ app.component('invoiceView', {
         self.filter_img_url = filter_img_url;
         self.type_id = $routeParams.type_id;
         self.invoice_pdf_generate_url = invoice_pdf_generate_url;
-        get_view_data_url = typeof($routeParams.id) == 'undefined' ? invoice_view_data_url : invoice_view_data_url + '/' + $routeParams.id;
+        self.canViewPaymentInfo = canViewPaymentInfo;
+
+        if (typeof($routeParams.type_id) == 'undefined') {
+            $location.path('/page-not-found');
+            $scope.$apply();
+            return;
+        }
+
+        if ($routeParams.type_id != 1 && $routeParams.type_id != 2 && $routeParams.type_id != 3) {
+            $location.path('/page-not-found');
+            $scope.$apply();
+            return;
+        }
+
+        get_view_data_url = typeof($routeParams.id) == 'undefined' ? invoice_view_data_url : invoice_view_data_url + '/' + $routeParams.id + '/' + $routeParams.type_id;
+
         $http.get(
             get_view_data_url
         ).then(function(response) {
-            // console.log(response.data);
+            if (!response.data.success) {
+                var errors = '';
+                for (var i in response.data.errors) {
+                    errors += '<li>' + response.data.errors[i] + '</li>';
+                }
+                $noty = new Noty({
+                    type: 'error',
+                    layout: 'topRight',
+                    text: errors,
+                    animation: {
+                        speed: 500 // unavailable - no need
+                    },
+
+                }).show();
+                setTimeout(function() {
+                    $noty.close();
+                }, 1000);
+                $location.path('/rsa-case-pkg/invoice/list/' + $routeParams.type_id);
+                // $scope.$apply();
+                return;
+            }
+
             self.period = response.data.period;
+            self.title = response.data.title;
             self.asp = response.data.asp;
             self.rsa_address = response.data.rsa_address;
             self.activities = response.data.activities;
@@ -121,6 +230,8 @@ app.component('invoiceView', {
             self.invoice = response.data.invoice;
             self.inv_no = response.data.inv_no;
             self.invoice_availability = response.data.invoice_availability;
+            self.invoice_vouchers_amount = response.data.invoice_vouchers_amount;
+            self.invoice_vouchers = response.data.invoice_vouchers;
 
             if (self.asp.tax_calculation_method == '1') {
                 self.asp.tax_calculation_method = true;
@@ -136,11 +247,47 @@ app.component('invoiceView', {
                 });
             }, 1000);
 
+            setTimeout(function() {
+                if (self.canViewPaymentInfo) {
+                    var paymentDataTable = $('#aspPaymentInfo-table').DataTable({
+                        "bLengthChange": false,
+                        "paginate": false,
+                        "oLanguage": { "sZeroRecords": "", "sEmptyTable": "" },
+                    });
+                }
+            }, 1500);
+
             $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
             $('.viewData-toggle--btn').click(function() {
                 $(this).toggleClass('viewData-toggle--btn_reverse');
                 $('.viewData-toggle--inner .viewData-threeColumn--wrapper').slideToggle();
             });
+
+            $scope.getPaymenyInfo = function() {
+                $http.get(
+                    get_invoice_payment_info_url + '/' + $routeParams.id
+                ).then(function(response) {
+                    console.log(response);
+                    if (!response.data.success) {
+                        $noty = new Noty({
+                            type: 'error',
+                            layout: 'topRight',
+                            text: response.data.error,
+                            animation: {
+                                speed: 500 // unavailable - no need
+                            },
+
+                        }).show();
+                        setTimeout(function() {
+                            $noty.close();
+                        }, 1000);
+                    } else {
+                        self.invoice_vouchers_amount = response.data.data.invoice_vouchers_amount;
+                        self.invoice_vouchers = response.data.data.invoice_vouchers;
+                        $scope.$apply();
+                    }
+                });
+            }
 
             $rootScope.loading = false;
         });

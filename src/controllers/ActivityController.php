@@ -135,7 +135,7 @@ class ActivityController extends Controller {
 		return response()->json(['success' => true]);
 	}
 
-	public function getVerificationList(Request $request) {
+	public function getBulkVerificationList(Request $request) {
 		$activities = Activity::select(
 			'activities.id',
 			'activities.crm_activity_id',
@@ -162,7 +162,7 @@ class ActivityController extends Controller {
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 		// ->where('activities.asp_accepted_cc_details', '!=', 1)
-			->whereIn('activities.status_id', [5, 6, 8, 9])
+			->whereIn('activities.status_id', [5, 8])
 			->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
 		;
@@ -202,15 +202,89 @@ class ActivityController extends Controller {
 			}
 		}
 		return Datatables::of($activities)
-			->addColumn('action', function ($activity) {
-				$verification_id = 2;
-				$action = '<div class="dataTable-actions">
-								<a href="#!/rsa-case-pkg/activity-verification/' . $verification_id . '/view/' . $activity->id . '">
-					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
-					            </a>
-					            </div>';
-				return $action;
+			->setRowAttr([
+				'id' => function ($activities) {
+					return route('angular') . '/#!/rsa-case-pkg/activity-verification/2/view/' . $activities->id;
+				},
+			])
+			->addColumn('action', function ($activities) {
+				return '<input type="checkbox" class="ticket_id no-link child_select_all" name="activity_ids[]" value="' . $activities->id . '">';
 			})
+			->make(true);
+	}
+
+	public function getIndividualVerificationList(Request $request) {
+		$activities = Activity::select(
+			'activities.id',
+			'activities.crm_activity_id',
+			'activities.number as activity_number',
+			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			'cases.number',
+			'asps.asp_code',
+			'service_types.name as sub_service',
+			// 'activity_asp_statuses.name as asp_status',
+			'activity_finance_statuses.name as finance_status',
+			'activity_portal_statuses.name as status',
+			'activity_statuses.name as activity_status',
+			'clients.name as client',
+			'call_centers.name as call_center'
+		)
+			->leftjoin('asps', 'asps.id', 'activities.asp_id')
+			->leftjoin('users', 'users.id', 'asps.user_id')
+			->leftjoin('cases', 'cases.id', 'activities.case_id')
+			->leftjoin('clients', 'clients.id', 'cases.client_id')
+			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
+			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
+		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
+			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
+			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
+		// ->where('activities.asp_accepted_cc_details', '!=', 1)
+			->whereIn('activities.status_id', [6, 9])
+			->orderBy('cases.date', 'DESC')
+			->groupBy('activities.id')
+		;
+
+		if ($request->get('ticket_date')) {
+			$activities->whereRaw('DATE_FORMAT(cases.date,"%d-%m-%Y") =  "' . $request->get('ticket_date') . '"');
+		}
+		if ($request->get('call_center_id')) {
+			$activities->where('cases.call_center_id', $request->get('call_center_id'));
+		}
+		if ($request->get('case_number')) {
+			$activities->where('cases.number', 'LIKE', '%' . $request->get('case_number') . '%');
+		}
+		if ($request->get('asp_code')) {
+			$activities->where('asps.asp_code', 'LIKE', '%' . $request->get('asp_code') . '%');
+		}
+		if ($request->get('service_type_id')) {
+			$activities->where('activities.service_type_id', $request->get('service_type_id'));
+		}
+		if ($request->get('finance_status_id')) {
+			$activities->where('activities.finance_status_id', $request->get('finance_status_id'));
+		}
+		if ($request->get('status_id')) {
+			$activities->where('activities.status_id', $request->get('status_id'));
+		}
+		if ($request->get('activity_status_id')) {
+			$activities->where('activities.activity_status_id', $request->get('activity_status_id'));
+		}
+		if ($request->get('client_id')) {
+			$activities->where('cases.client_id', $request->get('client_id'));
+		}
+
+		if (!Entrust::can('verify-all-activities')) {
+			if (Entrust::can('verify-mapped-activities')) {
+				$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
+				$activities->whereIn('asps.state_id', $states);
+			}
+		}
+		return Datatables::of($activities)
+			->setRowAttr([
+				'id' => function ($activities) {
+					return route('angular') . '/#!/rsa-case-pkg/activity-verification/2/view/' . $activities->id;
+				},
+			])
 			->make(true);
 	}
 
@@ -334,7 +408,6 @@ class ActivityController extends Controller {
 
 	public function approveActivity(Request $request) {
 		//dd($request->all());
-		//dd('dd');
 		DB::beginTransaction();
 		try {
 			$activity = Activity::findOrFail($request->activity_id);
@@ -405,6 +478,62 @@ class ActivityController extends Controller {
 			return response()->json([
 				'success' => true,
 				'message' => 'Activity approved successfully.',
+			]);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json(['success' => false, 'errors' => ['Exception Error' => $e->getMessage()]]);
+		}
+	}
+
+	public function bulkApproveActivity(Request $request) {
+		//dd($request->all());
+		DB::beginTransaction();
+		try {
+			if (empty($request->activity_ids)) {
+				return response()->json([
+					'success' => false,
+					'error' => ['Please select atleast one activity'],
+				]);
+			}
+
+			$activities = Activity::where('id', $request->activity_ids)->get();
+			if (count($activities) == 0) {
+				return response()->json([
+					'success' => false,
+					'error' => ['Activities not found'],
+				]);
+			}
+
+			foreach ($activities as $key => $activity) {
+
+				$activity->status_id = 11;
+				$activity->save();
+
+				$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_BULK');
+				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_APPROVED');
+				logActivity2(config('constants.entity_types.ticket'), $activity->id, [
+					'Status' => $log_status,
+					'Waiting for' => $log_waiting,
+
+				]);
+
+				$mobile_number = $activity->asp->contact_number1;
+				$sms_message = 'BO_APPROVED';
+				$array = [$request->case_number];
+				sendSMS2($sms_message, $mobile_number, $array);
+
+				//sending notification to all BO users
+				$asp_user = $activity->asp->user_id;
+				$noty_message_template = 'BO_APPROVED';
+				$number = [$request->case_number];
+				notify2($noty_message_template, $asp_user, config('constants.alert_type.blue'), $number);
+			}
+
+			DB::commit();
+			return response()->json([
+				'success' => true,
+				'message' => 'Activities approved successfully.',
 			]);
 
 		} catch (\Exception $e) {
@@ -610,6 +739,7 @@ class ActivityController extends Controller {
 			$not_collect_charges = $this->data['activities']['cc_not_collected_amount'];
 			$asp_km = empty($request->km_travelled) ? 0 : $request->km_travelled;
 			$asp_other = empty($request->other_charge) ? 0 : $request->other_charge;
+
 			$is_bulk = true;
 
 			//1. checking MIS and ASP Service
@@ -671,10 +801,20 @@ class ActivityController extends Controller {
 				$is_bulk = false;
 
 			}
-			if ($is_bulk) {
-				$activity->status_id = 5;
+			//ASP DATA ENTRY - NEW
+			if ($request->data_reentry == '1') {
+				if ($is_bulk) {
+					$activity->status_id = 8;
+				} else {
+					$activity->status_id = 9;
+				}
 			} else {
-				$activity->status_id = 6;
+				//ASP DATA RE-ENTRY - DEFERRED
+				if ($is_bulk) {
+					$activity->status_id = 5;
+				} else {
+					$activity->status_id = 6;
+				}
 			}
 
 			$activity->service_type_id = $request->asp_service_type_id;
@@ -1192,6 +1332,8 @@ class ActivityController extends Controller {
 
 			$total_count = $activities->count('id');
 
+			if ($total_count == 0) {
+			return redirect()->back()->with(['success' => false,'errors' => 'Please Select Activity Status']);
 			$count_splitup = Activity::join('activity_portal_statuses','activities.status_id','activity_portal_statuses.id')
 				->select(DB::raw('COUNT(activities.id) as activity_count'), 'status_id','activity_portal_statuses.name')
 				->whereIn('activities.status_id', $status_ids)
@@ -1201,8 +1343,6 @@ class ActivityController extends Controller {
 				->get()
 				->toArray()
 				;
-			if ($total_count == 0) {
-			return redirect()->back()->with(['success' => false,'errors' => 'Please Select Activity Status']);
 
 				/*return response()->json([
 					'success' => false,
@@ -1210,103 +1350,103 @@ class ActivityController extends Controller {
 				]);*/
 			}
 
-			$selected_statuses = $status_ids;
-			//dd($selected_statuses);
-			$summary[] = ['Period', date('d/M/Y', strtotime($range1)) . ' to ' . date('d/M/Y', strtotime($range2))];
-			$summary[] = ['Status', 'Count'];
+		$selected_statuses = $status_ids;
+		//dd($selected_statuses);
+		$summary[] = ['Period', date('d/M/Y', strtotime($range1)) . ' to ' . date('d/M/Y', strtotime($range2))];
+		$summary[] = ['Status', 'Count'];
 
-			foreach ($count_splitup as $status_data) {
-				$summary[] = [$status_data['name'], $status_data['activity_count']];
-			}
-			$summary[] = ['Total', $total_count];
-			$activity_details_header = [
-				'Case Number',
-				'Case Date',
-				'Activity Number',
-				'Activity Date',
-				'ASP Name',
-				'ASP Code',
-				'ASP has GST',
-				'Workshop Name',
-				'Location',
-				'District',
-				'State',
-				'Vehicle Registration Number',
-				'Vehicle Model',
-				'Vehicle Make',
-				'Case Status',
-				'ASP Status',
-				'ASP Service Type',
-				'ASP Activity Rejected Reason',
-				'ASP PO Accepted',
-				'Portal Status',
-				'Activity Status',
-				'Activity Description',
-				'Remarks',
+		foreach ($count_splitup as $status_data) {
+			$summary[] = [$status_data['name'], $status_data['activity_count']];
+		}
+		$summary[] = ['Total', $total_count];
+		$activity_details_header = [
+			'Case Number',
+			'Case Date',
+			'Activity Number',
+			'Activity Date',
+			'ASP Name',
+			'ASP Code',
+			'ASP has GST',
+			'Workshop Name',
+			'Location',
+			'District',
+			'State',
+			'Vehicle Registration Number',
+			'Vehicle Model',
+			'Vehicle Make',
+			'Case Status',
+			'ASP Status',
+			'ASP Service Type',
+			'ASP Activity Rejected Reason',
+			'ASP PO Accepted',
+			'Portal Status',
+			'Activity Status',
+			'Activity Description',
+			'Remarks',
+		];
+		$configs = Config::where('entity_type_id', 23)->pluck('id')->toArray();
+		$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 179, 182, 171, 175, 181];
+		$config_ids = array_merge($configs, $key_list);
+		foreach ($config_ids as $key => $config_id) {
+			$config = Config::where('id', $config_id)->first();
+			$activity_details_header[] = str_replace("_", " ", strtolower($config->name));
+		}
+		$activity_details_data = [];
+		//dd($activities);
+		//$activity_details_header = array_merge($activity_details_header, $activity_details_sub_header);
+
+		foreach ($activities->get() as $activity_key => $activity) {
+			$activity_details_data[] = [
+				$activity->case->number,
+				date('d/M/Y', strtotime($activity->case->date)),
+				$activity->number,
+				date('d/M/Y', strtotime($activity->created_at)),
+				$activity->asp->name,
+				$activity->asp->axpta_code,
+				$activity->asp->has_gst ? 'Yes' : 'No',
+				$activity->asp->workshop_name,
+				$activity->asp->location->name,
+				$activity->asp->district->name,
+				$activity->asp->state->name,
+				$activity->case->vehicle_registration_number,
+				$activity->case->vehicleModel->name,
+				$activity->case->vehicleModel->vehiclemake->name,
+				$activity->case->status->name,
+				$activity->financeStatus->name,
+				$activity->serviceType->name,
+				$activity->aspActivityRejectedReason ? $activity->aspActivityRejectedReason->name : '',
+				$activity->asp_po_accepted == 1 ? "Yes" : "No",
+				$activity->status ? $activity->status->name : '',
+				$activity->activityStatus ? $activity->activityStatus->name : '',
+				$activity->description,
+				$activity->remarks,
 			];
-			$configs = Config::where('entity_type_id', 23)->pluck('id')->toArray();
-			$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 179, 182, 171, 175, 181];
-			$config_ids = array_merge($configs, $key_list);
-			foreach($config_ids as $key => $config_id){
+			foreach ($config_ids as $config_key => $config_id) {
 				$config = Config::where('id', $config_id)->first();
-				$activity_details_header[] = str_replace("_", " ", strtolower($config->name));
-			}
-			$activity_details_data = [];
-			//dd($activities);
-			//$activity_details_header = array_merge($activity_details_header, $activity_details_sub_header);
+				$detail = ActivityDetail::where('activity_id', $activity->id)->where('key_id', $config_id)->first();
+				if (strcmp('amount', $config->name) == 0 || strpos($config->name, '_charges') || strpos($config->name, 'Amount') || strpos($config->name, 'Collected')) {
 
-			foreach($activities->get() as $activity_key => $activity){
-				$activity_details_data[] =[
-					$activity->case->number,
-					date('d/M/Y', strtotime($activity->case->date)),
-					$activity->number,
-					date('d/M/Y', strtotime($activity->created_at)),
-					$activity->asp->name,
-					$activity->asp->axpta_code,
-					$activity->asp->has_gst ? 'Yes' : 'No',
-					$activity->asp->workshop_name,
-					$activity->asp->location->name,
-					$activity->asp->district->name,
-					$activity->asp->state->name,
-					$activity->case->vehicle_registration_number,
-					$activity->case->vehicleModel->name,
-					$activity->case->vehicleModel->vehiclemake->name,
-					$activity->case->status->name,
-					$activity->financeStatus->name,
-					$activity->serviceType->name,
-					$activity->aspActivityRejectedReason ? $activity->aspActivityRejectedReason->name :'',
-					$activity->asp_po_accepted==1 ? "Yes" : "No",
-					$activity->status ? $activity->status->name :'',
-					$activity->activityStatus ? $activity->activityStatus->name :'',
-					$activity->description,
-					$activity->remarks,
-				];
-				foreach($config_ids as $config_key => $config_id) {
-					$config = Config::where('id', $config_id)->first();
-					$detail = ActivityDetail::where('activity_id', $activity->id)->where('key_id', $config_id)->first();
-					if (strcmp('amount', $config->name) == 0 || strpos($config->name, '_charges') || strpos($config->name, 'Amount') || strpos($config->name, 'Collected')) {
-						
-						if($detail){
-							$activity_details_data[$activity_key][] = ($detail->value!="") ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '';
-						}else{
-							$activity_details_data[$activity_key][] = '';
-						}
-
+					if ($detail) {
+						$activity_details_data[$activity_key][] = ($detail->value != "") ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '';
 					} else {
-
-						$activity_details_data[$activity_key][] = $detail ? $detail->value : '';
+						$activity_details_data[$activity_key][] = '';
 					}
+
+				} else {
+
+					$activity_details_data[$activity_key][] = $detail ? $detail->value : '';
 				}
 			}
-			//$activity_details_data = array_merge($activity_details_header, $activity_details_data);
-			//dd($activity_details_header,$activity_details_data);
+		}
+		//$activity_details_data = array_merge($activity_details_header, $activity_details_data);
+		//dd($activity_details_header,$activity_details_data);
 
-			Excel::create('Activity Status Report', function ($excel) use ($summary,$activity_details_header,$activity_details_data) {
-				$excel->sheet('Summary', function ($sheet) use ($summary) {
-					//dd($summary);
-					$sheet->fromArray($summary, NULL, 'A1');
+		Excel::create('Activity Status Report', function ($excel) use ($summary, $activity_details_header, $activity_details_data) {
+			$excel->sheet('Summary', function ($sheet) use ($summary) {
+				//dd($summary);
+				$sheet->fromArray($summary, NULL, 'A1');
 
-					/*$sheet->cells('A1:B1', function ($cells) {
+				/*$sheet->cells('A1:B1', function ($cells) {
 						$cells->setFont(array(
 							'size' => '10',
 							'bold' => true,
@@ -1325,20 +1465,20 @@ class ActivityController extends Controller {
 							'bold' => true,
 						))->setBackground('#F3F3F3');
 					});*/
-				});
+			});
 
-				$excel->sheet('Activity Informations', function ($sheet) use ($activity_details_header,$activity_details_data) {
-					$sheet->fromArray($activity_details_data, NULL, 'A1');
-					$sheet->row(1, $activity_details_header);
-					$sheet->cells('A1:BV1', function ($cells) {
-						$cells->setFont(array(
-							'size' => '10',
-							'bold' => true,
-						))->setBackground('#CCC9C9');
-					});
+			$excel->sheet('Activity Informations', function ($sheet) use ($activity_details_header, $activity_details_data) {
+				$sheet->fromArray($activity_details_data, NULL, 'A1');
+				$sheet->row(1, $activity_details_header);
+				$sheet->cells('A1:BV1', function ($cells) {
+					$cells->setFont(array(
+						'size' => '10',
+						'bold' => true,
+					))->setBackground('#CCC9C9');
 				});
-			})->export('xls');
-			
-			return redirect()->back()->with(['success' => 'exported!']);
-		}
+			});
+		})->export('xls');
+
+		return redirect()->back()->with(['success' => 'exported!']);
+	}
 }

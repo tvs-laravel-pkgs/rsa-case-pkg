@@ -2,8 +2,7 @@
     <div class="mobile-breadcrumbs-wrapper">
         <ul class="mobile-breadcrumbs-group list-inline">
             <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
-            <li ng-if="$ctrl.type_id == 2"><a href="#!/rsa-case-pkg/batch-generation/list">Batch Generation</a></li>
-            <li ng-if="$ctrl.type_id != 2"><a href="#!/rsa-case-pkg/invoice/list">Invoice</a></li>
+            <li><a href="#!/rsa-case-pkg/invoice/list/{{$ctrl.type_id}}">{{$ctrl.title}}</a></li>
         </ul>
     </div>
 </div>
@@ -254,6 +253,66 @@
                                     System Invoice
                                     <a href="{{$ctrl.invoice_pdf_generate_url}}/{{$ctrl.invoice.id}}" class="approve-btn pull-left preview-batch">Download</a>
                                 </div> -->
+                                <div ng-if="$ctrl.canViewPaymentInfo && $ctrl.type_id == 3" class="tab-content">
+                                    <div id="bill" class="tab-pane fade in active">
+                                        <div class="viewData-wrapper" style="padding-top: 30px;">
+                                            <div class="viewData-toggle--wrapper">
+                                                <label class="title-label" style="margin: 0; margin-right: 25px; display: inline-block; vertical-align: middle;">Payment Details</label>
+                                                <button type="button" id="refresh_asp_invoice_payment_info_btn" class="btn btn-primary btn-green" ng-click="getPaymenyInfo()">Refresh</button>
+                                                <div class="noToggle--inner" style="margin-top: 15px;">
+                                                    <!-- <div class="row viewData-identification--wrapper"> -->
+                                                    <div class="row">
+                                                        <div class="viewData-form--wrapper">
+                                                            <div id="about40" class="tab-pane fade in active">
+                                                                <p class="p-l-20">
+                                                                </p>
+                                                                <div class="table-responsive">
+                                                                    <table id="aspPaymentInfo-table" class="display table">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>Transaction Date</th>
+                                                                                <th>Voucher</th>
+                                                                                <th>Invoice</th>
+                                                                                <th>Invoice Date</th>
+                                                                                <th>Payment Reference</th>
+                                                                                <th>Amount Difference</th>
+                                                                                <th>Payment Amount</th>
+                                                                                <th>TDS</th>
+                                                                                <th>TCS</th>
+                                                                                <th>Amount</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody id="aspPaymentInfo-tbody">
+                                                                            <tr ng-repeat="(index, invoice_voucher) in $ctrl.invoice_vouchers">
+                                                                                <td>{{invoice_voucher.date}}</td>
+                                                                                <td>{{invoice_voucher.number}}</td>
+                                                                                <td>{{invoice_voucher.invoice.invoice_no}}</td>
+                                                                                <td>{{invoice_voucher.document_date}}</td>
+                                                                                <td>{{invoice_voucher.payment_reference}}</td>
+                                                                                <td>{{invoice_voucher.penny_difference}}</td>
+                                                                                <td>{{invoice_voucher.invoice_amount}}</td>
+                                                                                <td>{{invoice_voucher.tds}}</td>
+                                                                                <td>{{invoice_voucher.tcs_amount_in}}</td>
+                                                                                <td>{{invoice_voucher.paid_amount}}</td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div><!-- Responsive -->
+                                                                <div class="netamount pull-right">
+                                                                    <span>Total</span>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                    <span class="amount">
+                                                                        <i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.invoice_vouchers_amount ? $ctrl.invoice_vouchers_amount.total_amount : '0.00'}}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="clearfix"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

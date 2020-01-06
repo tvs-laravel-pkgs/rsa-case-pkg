@@ -1,6 +1,6 @@
 app.component('activityStatusList', {
     templateUrl: activity_status_list_template_url,
-    controller: function($http, $window, HelperService, $scope, $rootScope) {
+    controller: function($http, $window, HelperService, $scope, $rootScope,$mdSelect) {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
@@ -11,7 +11,7 @@ app.component('activityStatusList', {
             activity_status_filter_url
         ).then(function(response) {
             self.extras = response.data.extras;
-            console.log(response.data.extras.status_list);
+            response.data.extras.status_list.splice(0, 1);
             self.status_list = response.data.extras.status_list;
             self.modal_close = modal_close;
             var cols = [
@@ -31,7 +31,7 @@ app.component('activityStatusList', {
             ];
 
             var activities_status_dt_config = JSON.parse(JSON.stringify(dt_config));
-
+            
             $('#activities_status_table').DataTable(
                 $.extend(activities_status_dt_config, {
                     columns: cols,
@@ -131,23 +131,26 @@ app.component('activityStatusList', {
                 startDate: moment().startOf('month'),
                 endDate: moment().endOf('month'),
             });
-            $(function() {
-
-            });
+            
             self.pc_all = false;
             $rootScope.loading = false;
             window.mdSelectOnKeyDownOverride = function(event) {
                 event.stopPropagation();
             };
+            $('.modal').bind('click', function(event) {
+                    if ($('.md-select-menu-container').hasClass('md-active')) {
+                        $mdSelect.hide();
+                    }
+                });
             $scope.changeStatus = function(ids) {
                 console.log(ids);
                 if (ids) {
                     $size_rids = ids.length;
                     if ($size_rids > 0) {
-                        $('#pc_sel_all').addClass('checked');
+                        $('#pc_sel_all').addClass('pc_sel_all');
                     }
                 } else {
-                    $('#pc_sel_all').removeClass('checked');
+                    $('#pc_sel_all').removeClass('pc_sel_all');
                 }
             }
             $scope.selectAll = function(val) {
@@ -158,10 +161,10 @@ app.component('activityStatusList', {
                         r_list.push(value.id);
                     });
 
-                    $('#pc_sel_all').addClass('checked');
+                    $('#pc_sel_all').addClass('pc_sel_all');
                 } else {
                     r_list = [];
-                    $('#pc_sel_all').removeClass('checked');
+                    $('#pc_sel_all').removeClass('pc_sel_all');
                 }
                 self.status_ids = r_list;
             }
@@ -273,71 +276,7 @@ app.component('activityStatusList', {
                     }, 1000);
                     }
             }*/
-            //Jquery Validation
-
-            var form_id = '#export_excel_form';
-            var v = jQuery(form_id).validate({
-                /*invalidHandler: function(event, validator) {
-                    var errors = validator.numberOfInvalids();
-                    $(".alert-danger").show();
-                    var errors = validator.numberOfInvalids();
-                    if (errors) {
-                        var message = errors == 1 ?
-                            'Please correct the following error:\n' :
-                            'Please correct the following ' + errors + ' errors.\n';
-                        var errors = "";
-                        if (validator.errorList.length > 0) {
-                            for (x = 0; x < validator.errorList.length; x++) {
-                                errors += "\n\u25CF " + validator.errorList[x].message;
-                            }
-                        }
-                        $(".alert-danger").html(message + errors);
-                    }
-                    validator.focusInvalid();
-
-                    $("html, body").animate({ scrollTop: 0 });
-                },*/
-                // errorContainer: '.grouped-error',
-                rules: {
-                    'period': {
-                        required: true,
-                    },
-                    'status_ids': {
-                        required: true,
-                    },
-
-                $("html, body").animate({ scrollTop: 0 });
-            },
-           // errorContainer: '.grouped-error',
-            rules: {
-                'period': {
-                    required: true,
-                },
-                'status_ids[]': {
-                    required: true,
-
-                },
-                messages: {
-                    'period': {
-                        required: "Please Select Period",
-                    },
-                    'status_ids': {
-                        required: "Please Selecet Statuses",
-                    },
-                },
-                errorPlacement: function(error, element) {
-                    if (element.attr("type") == "checkbox") {
-                        error.insertBefore($(element).parents('.checkboxList'));
-                    } else {
-                        error.insertAfter($(element));
-                    }
-                },
-                submitHandler: function(form) {
-                    $('#export_excel_form').submit();
-                }
-
-            });
-        });
+        });       
     }
 });
 //------------------------------------------------------------------------------------------------------------------------
@@ -409,6 +348,11 @@ app.component('activityStatusView', {
             self.data.verification = 0;
 
             console.log(self.data);
+            $('').slideDown();
+            $('#viewData-toggle--btn1').click(function() {
+                $(this).toggleClass('viewData-toggle--btn_reverse');
+                $('').slideToggle();
+            });
             $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
             $('.viewData-toggle--btn').click(function() {
                 $(this).toggleClass('viewData-toggle--btn_reverse');

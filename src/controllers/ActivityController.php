@@ -389,7 +389,9 @@ class ActivityController extends Controller {
 				$this->data['activities'][$config->name] = $detail->value ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '-';
 				$raw_key_name = 'raw_' . $config->name;
 				$this->data['activities'][$raw_key_name] = $detail->value ? $detail->value : '-';
-			} else {
+			} else if(strpos($config->name, 'date')){
+				$this->data['activities'][$config->name] = $detail->value ?  date("d-m-Y H:i:s", strtotime($detail->value)) : '-';
+			}else {
 				$this->data['activities'][$config->name] = $detail->value ? $detail->value : '-';
 			}
 			//dump($config->name,$this->data['activities'][$config->name]);
@@ -1323,7 +1325,7 @@ class ActivityController extends Controller {
 			}
 			$status_ids = trim($request->status_ids,'""');
 			$status_ids = explode(',',$status_ids);
-			//dd($request->status_ids,$status_ids );
+			//dump($request->status_ids,count($status_ids));
 			$activities = Activity::whereIn('status_id', $status_ids)
 				->whereDate('created_at', '>=', $range1)
 				->whereDate('created_at', '<=', $range2)
@@ -1331,33 +1333,37 @@ class ActivityController extends Controller {
 			//dd($request->all());
 
 			$total_count = $activities->count('id');
-
 			if ($total_count == 0) {
-			return redirect()->back()->with(['success' => false,'errors' => 'Please Select Activity Status']);
-			$count_splitup = Activity::join('activity_portal_statuses','activities.status_id','activity_portal_statuses.id')
-				->select(DB::raw('COUNT(activities.id) as activity_count'), 'status_id','activity_portal_statuses.name')
-				->whereIn('activities.status_id', $status_ids)
-				->whereDate('activities.created_at', '>=', $range1)
-				->whereDate('activities.created_at', '<=', $range2)
-				->groupBy('activity_portal_statuses.id')
-				->get()
-				->toArray()
-				;
+				return redirect()->back()->with(['success' => false,'errors' => 'Please Select Activity Status']);
+
+			
 
 				/*return response()->json([
 					'success' => false,
 					'errors' => ['No activities found for given period & statuses'],
 				]);*/
 			}
+			foreach ($status_ids as $key => $status_id) {
+				# code...
+			$count_splitup[] = Activity::rightJoin('activity_portal_statuses','activities.status_id','activity_portal_statuses.id')
+				->select(DB::raw('COUNT(activities.id) as activity_count'), 'activity_portal_statuses.id','activity_portal_statuses.name')
+				->where('activity_portal_statuses.id', $status_id)
+				->whereDate('activities.created_at', '>=', $range1)
+				->whereDate('activities.created_at', '<=', $range2)
+				//->groupBy('activity_portal_statuses.id')
+				->first();
+			}
 
+				//dd($count_splitup);
 		$selected_statuses = $status_ids;
 		//dd($selected_statuses);
-		$summary[] = ['Period', date('d/M/Y', strtotime($range1)) . ' to ' . date('d/M/Y', strtotime($range2))];
+		$summary_period = ['Period', date('d/M/Y', strtotime($range1)) . ' to ' . date('d/M/Y', strtotime($range2))];
 		$summary[] = ['Status', 'Count'];
 
 		foreach ($count_splitup as $status_data) {
 			$summary[] = [$status_data['name'], $status_data['activity_count']];
 		}
+		//dd('ss',$summary);
 		$summary[] = ['Total', $total_count];
 		$activity_details_header = [
 			'Case Number',
@@ -1398,9 +1404,9 @@ class ActivityController extends Controller {
 		foreach ($activities->get() as $activity_key => $activity) {
 			$activity_details_data[] = [
 				$activity->case->number,
-				date('d/M/Y', strtotime($activity->case->date)),
+				date('d-m-Y', strtotime($activity->case->date)),
 				$activity->number,
-				date('d/M/Y', strtotime($activity->created_at)),
+				date('d-m-Y', strtotime($activity->created_at)),
 				$activity->asp->name,
 				$activity->asp->axpta_code,
 				$activity->asp->has_gst ? 'Yes' : 'No',
@@ -1424,10 +1430,15 @@ class ActivityController extends Controller {
 			foreach ($config_ids as $config_key => $config_id) {
 				$config = Config::where('id', $config_id)->first();
 				$detail = ActivityDetail::where('activity_id', $activity->id)->where('key_id', $config_id)->first();
-				if (strcmp('amount', $config->name) == 0 || strpos($config->name, '_charges') || strpos($config->name, 'Amount') || strpos($config->name, 'Collected')) {
+				if (strcmp('amount', $config->name) == 0 || strpos($config->name, '_charges') || strpos($config->name, 'Amount') || strpos($config->name, 'Collected') || strpos($config->name, 'date')) {
 
 					if ($detail) {
-						$activity_details_data[$activity_key][] = ($detail->value != "") ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '';
+						if(strpos($config->name, 'date')){
+							$activity_details_data[$activity_key][] = ($detail->value != "") ?	date('d-m-Y H:i:s',strtotime($detail->value)) : '';
+						}else{
+							$activity_details_data[$activity_key][] = ($detail->value != "") ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '';
+						}
+						
 					} else {
 						$activity_details_data[$activity_key][] = '';
 					}
@@ -1440,13 +1451,13 @@ class ActivityController extends Controller {
 		}
 		//$activity_details_data = array_merge($activity_details_header, $activity_details_data);
 		//dd($activity_details_header,$activity_details_data);
-
-		Excel::create('Activity Status Report', function ($excel) use ($summary, $activity_details_header, $activity_details_data) {
-			$excel->sheet('Summary', function ($sheet) use ($summary) {
+		Excel::create('Activity Status Report', function ($excel) use ($summary, $activity_details_header, $activity_details_data,$status_ids,$summary_period) {
+			$excel->sheet('Summary', function ($sheet) use ($summary,$status_ids,$summary_period) {
 				//dd($summary);
 				$sheet->fromArray($summary, NULL, 'A1');
+				$sheet->row(1, $summary_period);
 
-				/*$sheet->cells('A1:B1', function ($cells) {
+				$sheet->cells('A1:B1', function ($cells) {
 						$cells->setFont(array(
 							'size' => '10',
 							'bold' => true,
@@ -1458,13 +1469,13 @@ class ActivityController extends Controller {
 							'bold' => true,
 						))->setBackground('#F3F3F3');
 					});
-					$cell_number = count($request->status_ids) + 3;
+					$cell_number = count($status_ids) + 3;
 					$sheet->cells('A' . $cell_number . ':B' . $cell_number, function ($cell) {
 						$cell->setFont(array(
 							'size' => '10',
 							'bold' => true,
 						))->setBackground('#F3F3F3');
-					});*/
+					});
 			});
 
 			$excel->sheet('Activity Informations', function ($sheet) use ($activity_details_header, $activity_details_data) {

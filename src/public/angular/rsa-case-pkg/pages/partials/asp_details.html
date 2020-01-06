@@ -1,11 +1,11 @@
 <div class="viewData-wrapper">
     <div class="viewData-toggle--wrapper">
         <div class="viewData-toggle--wrapper">
-            <div class="viewData-toggle--inner">
+            <div class="viewData-toggle--inner viewData-toggle--inner1">
                 <h2 class="viewData-toggle--title pull-left">
                     Case Details
                 </h2>
-                <span class="viewData-toggle--btn pull-right"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+                <span class="viewData-toggle--btn pull-right " id="viewData-toggle--btn1"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
                 <div class="clearfix"></div>
                 <ul>
                     <li>Case # : <span>{{$ctrl.data.number}}</span></li>
@@ -19,7 +19,7 @@
                     </li>
                 </ul>
                 <div class="clearfix"></div>
-                <div class="viewData-threeColumn--wrapper">
+                <div class="viewData-threeColumn--wrapper viewData-threeColumn--wrapper1">
                     <div class="row">
                         <div class="col-xs-12 col-sm-4">
                             <ul class="viewData-threeColumn--group">
@@ -33,7 +33,7 @@
                         </div>
                         <div class="col-xs-12 col-sm-4">
                             <ul class="viewData-threeColumn--group">
-                                <li><img src="{{ $ctrl.data.style_phone_image_url}}"></li>
+                                <li><img src="./resources/assets/images/ic-phone.svg"></li>
                                 <li>
                                     <p>
                                         Customer Contact Number : <br />
@@ -44,7 +44,7 @@
                         </div>
                         <div class="col-xs-12 col-sm-4">
                             <ul class="viewData-threeColumn--group">
-                                <li><img src="{{ $ctrl.data.style_profile_image_url}}"></li>
+                                <li><img src="{{ $ctrl.data.style_phone_image_url}}"></li>
                                 <li>
                                     <p>
                                         Vehicle Details : <br />
@@ -99,7 +99,7 @@
                 </div>
                 <div class="col-xs-12 col-sm-4">
                     <ul class="viewData-threeColumn--group">
-                        <li><img src="{{ $ctrl.data.style_phone_image_url}}"></li>
+                        <li><img src="./resources/assets/images/ic-phone.svg"></li>
                         <li>
                             <p>{{$ctrl.data.asp.contact_number1}}<br><a href="javascript:;">{{$ctrl.data.asp.email}}</a></p>
                         </li>

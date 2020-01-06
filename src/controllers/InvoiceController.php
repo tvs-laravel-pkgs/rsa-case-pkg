@@ -55,7 +55,7 @@ class InvoiceController extends Controller {
 			->join('asps', 'Invoices.asp_id', '=', 'asps.id')
 			->join('users', 'users.id', 'asps.user_id')
 			->join('activities', 'activities.invoice_id', '=', 'Invoices.id')
-			->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
+			->join('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
 			->groupBy('Invoices.id')
 		;
 
@@ -65,7 +65,7 @@ class InvoiceController extends Controller {
 
 		//UNPAID
 		if ($request->type_id == 1) {
-			$invoices->whereIn('Invoices.status_id', [1, 2]); //PAYMENT PENDING && INPROGRESS
+			$invoices->whereIn('Invoices.status_id', [1, 3]); //PAYMENT PENDING && INPROGRESS
 			if (!Entrust::can('view-all-asp-unpaid-invoices')) {
 				if (Entrust::can('view-only-state-asp-unpaid-invoices')) {
 					$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
@@ -77,7 +77,7 @@ class InvoiceController extends Controller {
 			}
 		} elseif ($request->type_id == 2) {
 			//PAYMENT INPROGRESS
-			$invoices->where('Invoices.status_id', 2); //PAYMENT INPROGRESS
+			$invoices->where('Invoices.status_id', 3); //PAYMENT INPROGRESS
 			if (!Entrust::can('view-all-asp-payment-inprogress-invoices')) {
 				if (Entrust::can('view-only-state-asp-payment-inprogress-invoices')) {
 					$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
@@ -89,7 +89,7 @@ class InvoiceController extends Controller {
 			}
 		} elseif ($request->type_id == 3) {
 			//PAID
-			$invoices->where('Invoices.status_id', 3); //PAYMENT PAID
+			$invoices->where('Invoices.status_id', 2); //PAYMENT PAID
 			if (!Entrust::can('view-all-asp-paid-invoices')) {
 				if (Entrust::can('view-only-state-asp-paid-invoices')) {
 					$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
@@ -290,7 +290,7 @@ class InvoiceController extends Controller {
 			ini_set('memory_limit', '5000M');
 
 			if (empty($request->invoice_ids)) {
-				return redirect()->back()->with('error', "Please Select Invoice");
+				return redirect()->route('angular') . '/#!/rsa-case-pkg/invoice/list/1';
 			}
 
 			$invoice_ids = $request->invoice_ids;
@@ -365,10 +365,12 @@ class InvoiceController extends Controller {
 			$exportSheet2Info = $this->getaxapta->startSheet2ExportInvoice($invoice_ids, $activities);
 
 			if (!$exportInfo) {
-				return back()->withErrors(['exportError', $exportInfo]);
+				// return back()->withErrors(['exportError', $exportInfo]);
+				return redirect()->route('angular') . '/#!/rsa-case-pkg/invoice/list/1';
 			}
 			if (!$exportSheet2Info) {
-				return back()->withErrors(['exportError', $exportSheet2Info]);
+				// return back()->withErrors(['exportError', $exportSheet2Info]);
+				return redirect()->route('angular') . '/#!/rsa-case-pkg/invoice/list/1';
 			}
 
 			Excel::create('Axapta_export_' . date('Y-m-d H:i:s'), function ($axaptaInfo) use ($exportInfo, $exportSheet2Info) {

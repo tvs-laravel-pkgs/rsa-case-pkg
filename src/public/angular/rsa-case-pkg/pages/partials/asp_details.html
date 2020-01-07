@@ -5,7 +5,7 @@
                 <h2 class="viewData-toggle--title pull-left">
                     Case Details
                 </h2>
-                <span class="viewData-toggle--btn pull-right " id="viewData-toggle--btn1"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+                <span class="viewData-toggle--btn pull-right" id="viewData-toggle--btn1"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
                 <div class="clearfix"></div>
                 <ul>
                     <li>Case # : <span>{{$ctrl.data.number}}</span></li>
@@ -19,7 +19,7 @@
                     </li>
                 </ul>
                 <div class="clearfix"></div>
-                <div class="viewData-threeColumn--wrapper viewData-threeColumn--wrapper1">
+                <div class="viewData-threeColumn--wrapper viewData-threeColumn--wrapper1" id="viewData-threeColumn--wrapper1">
                     <div class="row">
                         <div class="col-xs-12 col-sm-4">
                             <ul class="viewData-threeColumn--group">
@@ -63,11 +63,11 @@
 </div>
 <br />
 <div class="viewData-toggle--wrapper">
-    <div class="viewData-toggle--inner">
+    <div class="viewData-toggle--inner mt-30">
         <h2 class="viewData-toggle--title pull-left">
             ASP Details
         </h2>
-        <span class="viewData-toggle--btn pull-right"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+        <span class="viewData-toggle--btn pull-right" id= "viewData-toggle--btnasp"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
         <div class="clearfix"></div>
         <ul>
             <li>ASP Code : <span>{{$ctrl.data.asp.asp_code}}</span></li>
@@ -87,7 +87,7 @@
             </li>
         </ul>
         <div class="clearfix"></div>
-        <div class="viewData-threeColumn--wrapper">
+        <div class="viewData-threeColumn--wrapper" id="viewData-threeColumn--wrapperasp">
             <div class="row">
                 <div class="col-xs-12 col-sm-4">
                     <ul class="viewData-threeColumn--group">

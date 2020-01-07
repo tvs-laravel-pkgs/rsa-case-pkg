@@ -346,11 +346,7 @@ app.component('activityVerificationView', {
             self.data.style_modal_close_image_url = style_modal_close_image_url;
             self.data.style_question_image_url = style_question_image_url;
             self.data.verification = 1;
-            $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
-            $('.viewData-toggle--btn').click(function() {
-                $(this).toggleClass('viewData-toggle--btn_reverse');
-                $('.viewData-toggle--inner .viewData-threeColumn--wrapper').slideToggle();
-            });
+            
             $rootScope.loading = false;
             self.data.cc_net_amount = self.data.cc_po_amount - self.data.bo_not_collected;
             $scope.differ = function() {
@@ -404,6 +400,15 @@ app.component('activityVerificationView', {
                     item.selected = false;
                 });
             }
+            $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
+            $('#viewData-toggle--btn1').click(function() {
+                $(this).toggleClass('viewData-toggle--btn_reverse');
+                $('#viewData-threeColumn--wrapper1').slideToggle();
+            });
+            $('#viewData-toggle--btnasp').click(function() {
+                $(this).toggleClass('viewData-toggle--btn_reverse');
+                $('#viewData-threeColumn--wrapperasp').slideToggle();
+            });
         });
     }
 

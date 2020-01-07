@@ -25,6 +25,7 @@ use Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Validator;
+use Session;
 use Yajra\Datatables\Datatables;
 
 class ActivityController extends Controller {
@@ -1306,6 +1307,19 @@ class ActivityController extends Controller {
 
 	public function exportActivities(Request $request){
 		//dd($request->all());
+		$error_messages = [
+				'status_ids.required' => "Please Select Activity Status",
+			];
+
+			$validator = Validator::make($request->all(), [
+				'status_ids' => [
+					'required:true',
+				],
+			], $error_messages);
+
+			if (empty($request->status_ids)) {
+				return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['errors' => $validator->errors()->all()]);
+			}
 			ini_set('max_execution_time', 0);
 			ini_set('display_errors', 1);
 			ini_set("memory_limit", "10000M");
@@ -1315,37 +1329,19 @@ class ActivityController extends Controller {
 			$range1 = date("Y-m-d", strtotime($date[0]));
 			$range2 = date("Y-m-d", strtotime($date[1]));
 
-			if (empty($request->status_ids)) {
-				return redirect()->back()->with(['success' => false,'errors' => 'Please Select Activity Status']);
-
-				/*return response()->json([
-					'success' => false,
-					'errors' => ['Please Select Activity Status'],
-				]);*/
-			}
 			$status_ids = trim($request->status_ids,'""');
 			$status_ids = explode(',',$status_ids);
-			//dump($request->status_ids,count($status_ids));
 			$activities = Activity::whereIn('status_id', $status_ids)
 				->whereDate('created_at', '>=', $range1)
 				->whereDate('created_at', '<=', $range2)
 			;
-			//dd($request->all());
 
 			$total_count = $activities->count('id');
 			if ($total_count == 0) {
-				return redirect()->back()->with(['success' => false,'errors' => 'Please Select Activity Status']);
-
-			
-
-				/*return response()->json([
-					'success' => false,
-					'errors' => ['No activities found for given period & statuses'],
-				]);*/
+				return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['errors' => ['No activities found for given period & statuses']]);
 			}
 			foreach ($status_ids as $key => $status_id) {
-				# code...
-			$count_splitup[] = Activity::rightJoin('activity_portal_statuses','activities.status_id','activity_portal_statuses.id')
+				$count_splitup[] = Activity::rightJoin('activity_portal_statuses','activities.status_id','activity_portal_statuses.id')
 				->select(DB::raw('COUNT(activities.id) as activity_count'), 'activity_portal_statuses.id','activity_portal_statuses.name')
 				->where('activity_portal_statuses.id', $status_id)
 				->whereDate('activities.created_at', '>=', $range1)
@@ -1409,7 +1405,7 @@ class ActivityController extends Controller {
 				date('d-m-Y', strtotime($activity->created_at)),
 				$activity->asp->name,
 				$activity->asp->axpta_code,
-				$activity->asp->has_gst ? 'Yes' : 'No',
+				$activity->asp->has_gst ? 'Yes' : $activity->asp->has_gst=="NULL" ?'' : 'No',
 				$activity->asp->workshop_name,
 				$activity->asp->location->name,
 				$activity->asp->district->name,

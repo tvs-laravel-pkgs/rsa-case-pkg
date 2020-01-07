@@ -31,7 +31,7 @@ app.component('activityStatusList', {
             ];
 
             var activities_status_dt_config = JSON.parse(JSON.stringify(dt_config));
-            
+
             $('#activities_status_table').DataTable(
                 $.extend(activities_status_dt_config, {
                     columns: cols,
@@ -168,114 +168,25 @@ app.component('activityStatusList', {
                 }
                 self.status_ids = r_list;
             }
-
-            /*$scope.exportActivities = function(){
-                if($scope.export_excel_form.$valid){
-                    alert(self.period);
-                    $http({
-                        method: 'POST',
-                        url: laravel_routes['exportActivities'],
-                        data: { status_ids: self.status_ids, period: self.period },
-                        headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-                    }).success(function(data) {
-                            console.log(data)
-
-                           $noty = new Noty({
-                                type: 'error',
-                                layout: 'topRight',
-                                text: 'Export',
-                                animation: {
-                                    speed: 500
-                                }
-                            }).show();
-                            setTimeout(function() {
-                                $noty.close();
-                            }, 1000);
-                        }).error(function(data) {
-                            console.log(data)
-                            $noty = new Noty({
-                                type: 'error',
-                                layout: 'topRight',
-                                text: 'Export',
-                                animation: {
-                                    speed: 500
-                                }
-                            }).show();
-                            setTimeout(function() {
-                                $noty.close();
-                            }, 1000);
-                    });
-                }else{
-                     $noty = new Noty({
-                                type: 'error',
-                                layout: 'topRight',
-                                text: 'Please Fill all required Field',
-                                animation: {
-                                    speed: 500
-                                }
-                            }).show();
-                            setTimeout(function() {
-                                $noty.close();
-                            }, 1000);
+            $("form[name='export_excel_form']").validate({
+                rules: {
+                  status_ids: {
+                    required: true,
+                  },
+                  period: {
+                    required: true,
+                  }
+                },
+                messages: {
+                  period: "Please Select Period",
+                  status_ids: "Please Select Activity Status",
+                },
+               
+                submitHandler: function(form) {
+                  form.submit();
                 }
-            }*/
-            /*$scope.exportActivities = function(){
-                if($scope.export_excel_form.$valid){
-                    //$('.approve-btn').button('loading');
-                    $http.post(
-                        laravel_routes['exportActivities'], {
-                            period: self.period,
-                            status_ids: self.status_ids,
-                        }
-                    ).then(function(response) {
-                        $('.approve-btn').button('reset');
-                        $("#export_excel_form").modal("hide");
-                        if (!response.data.success) {
-                            console.log(response.data.errors);
-                            var errors = '';
-                            for (var i in response.data.errors) {
-                                errors += '<li>' + response.data.errors[i] + '</li>';
-                            }
-                            $noty = new Noty({
-                                type: 'error',
-                                layout: 'topRight',
-                                text: errors,
-                                animation: {
-                                    speed: 500 // unavailable - no need
-                                },
-                            }).show();
-                            setTimeout(function() {
-                                $noty.close();
-                            }, 1000);
-                            return;
-                        } else {
-                            $noty = new Noty({
-                                type: 'success',
-                                layout: 'topRight',
-                                text: response.data.message,
-                                animation: {
-                                    speed: 500
-                                }
-                            }).show();
-                            setTimeout(function() {
-                                $noty.close();
-                            }, 1000);
-                        }
-                        }); 
-                    }else{
-                        $noty = new Noty({
-                        type: 'error',
-                        layout: 'topRight',
-                        text: "Please check all mandatory fields are filled!!",
-                        animation: {
-                            speed: 500
-                        }
-                    }).show();
-                    setTimeout(function() {
-                        $noty.close();
-                    }, 1000);
-                    }
-            }*/
+              });
+            
         });       
     }
 });
@@ -347,16 +258,14 @@ app.component('activityStatusView', {
             self.data.style_phone_image_url = style_car_image_url;
             self.data.verification = 0;
 
-            console.log(self.data);
-            $('').slideDown();
+            $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
             $('#viewData-toggle--btn1').click(function() {
                 $(this).toggleClass('viewData-toggle--btn_reverse');
-                $('').slideToggle();
+                $('#viewData-threeColumn--wrapper1').slideToggle();
             });
-            $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
-            $('.viewData-toggle--btn').click(function() {
+            $('#viewData-toggle--btnasp').click(function() {
                 $(this).toggleClass('viewData-toggle--btn_reverse');
-                $('.viewData-toggle--inner .viewData-threeColumn--wrapper').slideToggle();
+                $('#viewData-threeColumn--wrapperasp').slideToggle();
             });
             $rootScope.loading = false;
         });

@@ -116,7 +116,7 @@ class ActivityController extends Controller {
 			->addColumn('action', function ($activity) {
 				$status_id = 1;
 
-				$action = '<div class="dataTable-actions">
+				$action = '<div class="dataTable-actions wid-100">
 				<a href="#!/rsa-case-pkg/activity-status/' . $status_id . '/view/' . $activity->id . '">
 					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
 					            </a>';
@@ -316,6 +316,7 @@ class ActivityController extends Controller {
 			DB::raw('DATE_FORMAT(activities.created_at,"%d-%m-%Y %H:%i:%s") as activity_date'),
 			//DB::raw('DATE_FORMAT(asps.asp_reached_date,"%d-%m-%Y %H:%i:%s") as asp_r_date'),
 			'cases.number',
+			'cases.customer_name as customer_name',
 			'activities.number as activity_number',
 			'activities.asp_po_accepted as asp_po_accepted',
 			'activities.deduction_reason as deduction_reason',
@@ -338,15 +339,15 @@ class ActivityController extends Controller {
 			'call_centers.name as call_center',
 			'asp_po_rejected_reason',
 			'activities.description as description',
-			DB::raw('IF(activities.remarks IS NULL,"activities.remarks","-") as remarks'),
+			DB::raw('IF(activities.remarks IS NULL,"-",activities.remarks) as remarks'),
 			//'activities.remarks as remarks',
 			'cases.*',
-			DB::raw('IF(Invoices.invoice_no IS NULL,"-","Invoices.invoice_no") as invoice_no'),
+			DB::raw('IF(Invoices.invoice_no IS NULL,"-",Invoices.invoice_no) as invoice_no'),
 			//DB::RAW('invoices.invoice_no) as invoice_no',
 			DB::raw('IF(Invoices.invoice_amount IS NULL,"-",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
 			DB::raw('IF(Invoices.invoice_amount IS NULL,"-",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
 			DB::raw('IF(Invoices.flow_current_status IS NULL,"-",Invoices.flow_current_status) as flow_current_status'),
-			DB::raw('IF(Invoices.start_date IS NULL,"-",DATE_FORMAT(Invoices.start_date,"%d-%m-%Y %H:%i:%s")) as invoice_date'),
+			DB::raw('IF(Invoices.start_date IS NULL,"-",DATE_FORMAT(Invoices.start_date,"%d-%m-%Y")) as invoice_date'),
 			'activity_finance_statuses.po_eligibility_type_id',
 			'activities.finance_status_id'
 		)
@@ -951,7 +952,7 @@ class ActivityController extends Controller {
 
 		return Datatables::of($activities)
 			->addColumn('action', function ($activity) {
-				$action = '<div class="dataTable-actions">
+				$action = '<div class="dataTable-actions ">
 				<a href="#!/rsa-case-pkg/deferred-activity/update/' . $activity->id . '">
 					                <i class="fa fa-pencil dataTable-icon--edit" aria-hidden="true"></i>
 					            </a></div>';
@@ -1366,9 +1367,15 @@ class ActivityController extends Controller {
 			'Case Date',
 			'Activity Number',
 			'Activity Date',
+			'Customer Name',
+			'Customer Contact Number',
 			'ASP Name',
 			'ASP Code',
+			'ASP Contact Number',
+			'ASP EMail',
 			'ASP has GST',
+			'ASP Type',
+			'Auto Invoice',
 			'Workshop Name',
 			'Location',
 			'District',
@@ -1377,18 +1384,27 @@ class ActivityController extends Controller {
 			'Vehicle Model',
 			'Vehicle Make',
 			'Case Status',
-			'ASP Status',
+			'Payment Eligibility Status',
 			'ASP Service Type',
 			'ASP Activity Rejected Reason',
 			'ASP PO Accepted',
+			'ASP PO Rejected Reason',
 			'Portal Status',
 			'Activity Status',
 			'Activity Description',
 			'Remarks',
+			'Invoice Number',
+			'Invoice Date',
+			'Invoice Amount',
+			'Invoice Status',
+			'Payment Date',
+			'Payment Mode',
+			'Paid Amount',
 		];
 		$configs = Config::where('entity_type_id', 23)->pluck('id')->toArray();
-		$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 179, 182, 171, 175, 181];
+		$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 179, 176, 172, 173, 182, 171, 175, 181];
 		$config_ids = array_merge($configs, $key_list);
+		//dd($config_ids);
 		foreach ($config_ids as $key => $config_id) {
 			$config = Config::where('id', $config_id)->first();
 			$activity_details_header[] = str_replace("_", " ", strtolower($config->name));
@@ -1396,16 +1412,22 @@ class ActivityController extends Controller {
 		$activity_details_data = [];
 		//dd($activities);
 		//$activity_details_header = array_merge($activity_details_header, $activity_details_sub_header);
-
+		//dd($activity->asp->has_gst);
 		foreach ($activities->get() as $activity_key => $activity) {
 			$activity_details_data[] = [
 				$activity->case->number,
-				date('d-m-Y', strtotime($activity->case->date)),
+				date('d-m-Y H:i:s', strtotime($activity->case->date)),
 				$activity->number,
-				date('d-m-Y', strtotime($activity->created_at)),
+				date('d-m-Y H:i:s', strtotime($activity->created_at)),
+				$activity->case->customer_name,
+				$activity->case->customer_contact_number,
 				$activity->asp->name,
 				$activity->asp->axpta_code,
-				$activity->asp->has_gst ? 'Yes' : $activity->asp->has_gst=="NULL" ?'' : 'No',
+				$activity->asp->contact_number1,
+				$activity->asp->email,
+				$activity->asp->has_gst ?'Yes' : 'No',
+				$activity->asp->is_self==1 ?'Self' : 'Non Self',
+				$activity->asp->is_auto_invoice==1 ?'Yes' : 'No',
 				$activity->asp->workshop_name,
 				$activity->asp->location->name,
 				$activity->asp->district->name,
@@ -1417,11 +1439,19 @@ class ActivityController extends Controller {
 				$activity->financeStatus->name,
 				$activity->serviceType->name,
 				$activity->aspActivityRejectedReason ? $activity->aspActivityRejectedReason->name : '',
-				$activity->asp_po_accepted == 1 ? "Yes" : "No",
+				$activity->asp_po_accepted!=NULL ?  ($activity->asp_po_accepted==1 ?'Yes' : 'No') :'',
+				$activity->aspPoRejectedReason ? $activity->aspPoRejectedReason->name : '',
 				$activity->status ? $activity->status->name : '',
 				$activity->activityStatus ? $activity->activityStatus->name : '',
-				$activity->description,
-				$activity->remarks,
+				$activity->description!=NULL ? $activity->description : '',
+				$activity->remarks!=NULL ? $activity->remarks : '',
+				$activity->invoice ? ($activity->asp->is_auto_invoice==1 ? ($activity->invoice->invoice_no.'-'. $activity->invoice->id) : $activity->invoice->invoice_no) : '',
+				$activity->invoice ? date('d-m-Y', strtotime($activity->invoice->start_date)): '',
+				$activity->invoice ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice->invoice_amount, 2))): '',
+				$activity->invoice ? ($activity->invoice->invoiceStatus ? $activity->invoice->invoiceStatus->name :'') : '',
+				'',
+				'',
+				'',
 			];
 			foreach ($config_ids as $config_key => $config_id) {
 				$config = Config::where('id', $config_id)->first();
@@ -1477,7 +1507,7 @@ class ActivityController extends Controller {
 			$excel->sheet('Activity Informations', function ($sheet) use ($activity_details_header, $activity_details_data) {
 				$sheet->fromArray($activity_details_data, NULL, 'A1');
 				$sheet->row(1, $activity_details_header);
-				$sheet->cells('A1:BV1', function ($cells) {
+				$sheet->cells('A1:CH1', function ($cells) {
 					$cells->setFont(array(
 						'size' => '10',
 						'bold' => true,

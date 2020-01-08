@@ -14,12 +14,9 @@
                 <div class="viewData-form--row">
                     <div class="clearfix"></div>
                     <div class="row">
-                        <div class="col-xs-12 col-sm-3">
+                        <div class="col-xs-12 col-sm-12">
                             <div class="viewData-form--group">
-                                <div class="form-group">
-                                    <label>Payment Eligibility Status</label>
-                                    <input class="form-control viewData-input mis-serv-km" name="label" type="text" value="{{$ctrl.data.asp_status}}" readonly>
-                                </div>
+                                <h4 class="margin-0">Payment Eligibility Status : <span class="orange-txt">{{$ctrl.data.asp_status}}</span></h4>
                             </div>
                         </div>
                         <div class="col-xs-12 col-sm-6">
@@ -33,7 +30,7 @@
                     <!-- @if(!empty($approved_view)) -->
                     <!-- <price-comparison data="$ctrl.data"></price-comparison> -->
                     <!-- @else -->
-                    <h3 class="mt-30 mb-20">Data Comparision</h3>
+                    <h3 class=" mb-20 mt-0">Data Comparision</h3>
                     <div class="table-responsive">
                         <table class="table table-responsive table-bordered table-wide style-normal">
                             <thead>

@@ -83,7 +83,7 @@ class Activity extends Model {
 	}
 
 	public function invoice() {
-		return $this->belongsTo('App\Invoice', 'invoice_id');
+		return $this->belongsTo('App\Invoices', 'invoice_id');
 	}
 
 	public function status() {

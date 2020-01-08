@@ -136,15 +136,15 @@ app.component('invoiceList', {
                     },
                 },
                 messages: {
-                    'invoice_ids[]': {
-                        required: "Please Select Invoice",
-                    },
+                    // 'invoice_ids[]': {
+                    //     required: "Please Select Invoice",
+                    // },
                 },
                 errorPlacement: function(error, element) {
                     $noty = new Noty({
                         type: 'error',
                         layout: 'topRight',
-                        text: 'Please Select Invoice',
+                        text: 'Please select atleast one invoice',
                         animation: {
                             speed: 500 // unavailable - no need
                         },

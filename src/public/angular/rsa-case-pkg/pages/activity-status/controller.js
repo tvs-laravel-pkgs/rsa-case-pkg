@@ -1,11 +1,13 @@
 app.component('activityStatusList', {
     templateUrl: activity_status_list_template_url,
-    controller: function($http, $window, HelperService, $scope, $rootScope,$mdSelect) {
+    controller: function($http, $window, HelperService, $scope, $rootScope, $mdSelect) {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
         self.filter_img_url = filter_img_url;
         self.export_activities = export_activities;
+        self.canExportActivity = canExportActivity;
+
         self.csrf = token;
         $http.get(
             activity_status_filter_url
@@ -131,17 +133,17 @@ app.component('activityStatusList', {
                 startDate: moment().startOf('month'),
                 endDate: moment().endOf('month'),
             });
-            
+
             self.pc_all = false;
             $rootScope.loading = false;
             window.mdSelectOnKeyDownOverride = function(event) {
                 event.stopPropagation();
             };
             $('.modal').bind('click', function(event) {
-                    if ($('.md-select-menu-container').hasClass('md-active')) {
-                        $mdSelect.hide();
-                    }
-                });
+                if ($('.md-select-menu-container').hasClass('md-active')) {
+                    $mdSelect.hide();
+                }
+            });
             $scope.changeStatus = function(ids) {
                 console.log(ids);
                 if (ids) {
@@ -188,6 +190,7 @@ app.component('activityStatusList', {
               });
             
         });       
+
     }
 });
 //------------------------------------------------------------------------------------------------------------------------

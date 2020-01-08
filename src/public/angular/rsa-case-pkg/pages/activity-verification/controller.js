@@ -109,16 +109,6 @@ app.component('activityVerificationList', {
                     // 'invoice_ids[]': {
                     //     required: true,// },
                 },
-                invalidHandler: function(event, validator) {
-                    $noty = new Noty({
-                        type: 'error',
-                        layout: 'topRight',
-                        text: 'Please select atleast one activity',
-                    }).show();
-                    setTimeout(function() {
-                        $noty.close();
-                    }, 1000);
-                },
                 submitHandler: function(form) {
                     let formData = new FormData($(form_id)[0]);
                     $('#submit').button('loading');
@@ -131,8 +121,8 @@ app.component('activityVerificationList', {
                         })
                         .done(function(res) {
                             // console.log(res);
+                            $('#submit').button('reset');
                             if (!res.success) {
-                                $('#submit').button('reset');
                                 $noty = new Noty({
                                     type: 'error',
                                     layout: 'topRight',
@@ -145,7 +135,7 @@ app.component('activityVerificationList', {
                                 $noty = new Noty({
                                     type: 'success',
                                     layout: 'topRight',
-                                    text: response.message,
+                                    text: res.message,
                                     animation: {
                                         speed: 500
                                     }
@@ -153,9 +143,7 @@ app.component('activityVerificationList', {
                                 setTimeout(function() {
                                     $noty.close();
                                 }, 1000);
-
-                                $location.path('/rsa-case-pkg/activity-verification/list');
-                                $scope.$apply();
+                                $('#below40-table').DataTable().ajax.reload();
                             }
                         })
                         .fail(function(xhr) {

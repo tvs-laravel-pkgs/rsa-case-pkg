@@ -21,10 +21,9 @@
                     <div class="dataTable-top--right_wrapper">
                         <ul class="dataTable-top--right_group list-inline">
                             <!-- <div class="float-right"> -->
-                               <li> <button class="btn btn-md preview-batch export" data-toggle="modal" data-target="#asp_excel_export">Export</button></li>
+                            <li ng-if="$ctrl.canExportActivity"> <button class="btn btn-md preview-batch export" data-toggle="modal" data-target="#asp_excel_export">Export</button></li>
                             <!-- </div> -->
                             <!-- <li><a href="javascript:void(0)" class="btn btn-md" ng-click="">Export</a></li> -->
-
                             <li><input class="filterTable" type="text" placeholder="Search"></li>
                             <li><a href="javascript:void(0)" class="btn btn-md" ng-click="refresh()">Refresh</a></li>
                             <li>
@@ -119,8 +118,8 @@
         </div>
     </div>
 </div>
-<!-- Modal --> 
-  <div class="modal fade asp_for_find" id="asp_excel_export" role="dialog">
+<!-- Modal -->
+<div class="modal fade asp_for_find" id="asp_excel_export" role="dialog">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
@@ -159,19 +158,16 @@
                                 </md-select>
                                 <input type="hidden" name="status_ids" value="{{$ctrl.status_ids}}" />
                                 
+
                             </div>
                         </div>
-                    </div>
-                    <div class="alert alert-danger">Sometimes Export may take few miniutes to export large amount of data. So please be patience.</div>
-                    </div>
-                  </div>
+                     </div>
+                     <div class="approvalModal-btns">
+                        <button type="submit" class="differed-btn blue approve-btn">Export</button>
+                     </div>
                 </div>
-             </div>
-             <div class="approvalModal-btns">
-                <button type="submit" class="differed-btn blue approve-btn">Export</button>
-             </div>
-           </div>
-          </form> 
+            </form> 
       </div>
+
     </div>
-  </div>
+</div>

@@ -391,9 +391,9 @@ class ActivityController extends Controller {
 				$this->data['activities'][$config->name] = $detail->value ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '-';
 				$raw_key_name = 'raw_' . $config->name;
 				$this->data['activities'][$raw_key_name] = $detail->value ? $detail->value : '-';
-			} else if(strpos($config->name, 'date')){
-				$this->data['activities'][$config->name] = $detail->value ?  date("d-m-Y H:i:s", strtotime($detail->value)) : '-';
-			}else {
+			} else if (strpos($config->name, 'date')) {
+				$this->data['activities'][$config->name] = $detail->value ? date("d-m-Y H:i:s", strtotime($detail->value)) : '-';
+			} else {
 				$this->data['activities'][$config->name] = $detail->value ? $detail->value : '-';
 			}
 			//dump($config->name,$this->data['activities'][$config->name]);
@@ -497,7 +497,7 @@ class ActivityController extends Controller {
 			if (empty($request->activity_ids)) {
 				return response()->json([
 					'success' => false,
-					'error' => ['Please select atleast one activity'],
+					'error' => 'Please select atleast one activity',
 				]);
 			}
 
@@ -505,7 +505,7 @@ class ActivityController extends Controller {
 			if (count($activities) == 0) {
 				return response()->json([
 					'success' => false,
-					'error' => ['Activities not found'],
+					'error' => 'Activities not found',
 				]);
 			}
 
@@ -524,13 +524,13 @@ class ActivityController extends Controller {
 
 				$mobile_number = $activity->asp->contact_number1;
 				$sms_message = 'BO_APPROVED';
-				$array = [$request->case_number];
+				$array = [$activity->case->number];
 				sendSMS2($sms_message, $mobile_number, $array);
 
 				//sending notification to all BO users
 				$asp_user = $activity->asp->user_id;
 				$noty_message_template = 'BO_APPROVED';
-				$number = [$request->case_number];
+				$number = [$activity->case->number];
 				notify2($noty_message_template, $asp_user, config('constants.alert_type.blue'), $number);
 			}
 
@@ -1306,7 +1306,7 @@ class ActivityController extends Controller {
 		}
 	}
 
-	public function exportActivities(Request $request){
+	public function exportActivities(Request $request) {
 		//dd($request->all());
 		$error_messages = [
 				'status_ids.required' => "Please Select Activity Status",
@@ -1344,23 +1344,21 @@ class ActivityController extends Controller {
 			foreach ($status_ids as $key => $status_id) {
 				$count_splitup[] = Activity::rightJoin('activity_portal_statuses','activities.status_id','activity_portal_statuses.id')
 				->select(DB::raw('COUNT(activities.id) as activity_count'), 'activity_portal_statuses.id','activity_portal_statuses.name')
+
 				->where('activity_portal_statuses.id', $status_id)
 				->whereDate('activities.created_at', '>=', $range1)
 				->whereDate('activities.created_at', '<=', $range2)
-				//->groupBy('activity_portal_statuses.id')
+			//->groupBy('activity_portal_statuses.id')
 				->first();
-			}
+		}
 
-				//dd($count_splitup);
 		$selected_statuses = $status_ids;
-		//dd($selected_statuses);
 		$summary_period = ['Period', date('d/M/Y', strtotime($range1)) . ' to ' . date('d/M/Y', strtotime($range2))];
 		$summary[] = ['Status', 'Count'];
 
 		foreach ($count_splitup as $status_data) {
 			$summary[] = [$status_data['name'], $status_data['activity_count']];
 		}
-		//dd('ss',$summary);
 		$summary[] = ['Total', $total_count];
 		$activity_details_header = [
 			'Case Number',
@@ -1459,12 +1457,12 @@ class ActivityController extends Controller {
 				if (strcmp('amount', $config->name) == 0 || strpos($config->name, '_charges') || strpos($config->name, 'Amount') || strpos($config->name, 'Collected') || strpos($config->name, 'date')) {
 
 					if ($detail) {
-						if(strpos($config->name, 'date')){
-							$activity_details_data[$activity_key][] = ($detail->value != "") ?	date('d-m-Y H:i:s',strtotime($detail->value)) : '';
-						}else{
+						if (strpos($config->name, 'date')) {
+							$activity_details_data[$activity_key][] = ($detail->value != "") ? date('d-m-Y H:i:s', strtotime($detail->value)) : '';
+						} else {
 							$activity_details_data[$activity_key][] = ($detail->value != "") ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '';
 						}
-						
+
 					} else {
 						$activity_details_data[$activity_key][] = '';
 					}
@@ -1477,31 +1475,31 @@ class ActivityController extends Controller {
 		}
 		//$activity_details_data = array_merge($activity_details_header, $activity_details_data);
 		//dd($activity_details_header,$activity_details_data);
-		Excel::create('Activity Status Report', function ($excel) use ($summary, $activity_details_header, $activity_details_data,$status_ids,$summary_period) {
-			$excel->sheet('Summary', function ($sheet) use ($summary,$status_ids,$summary_period) {
+		Excel::create('Activity Status Report', function ($excel) use ($summary, $activity_details_header, $activity_details_data, $status_ids, $summary_period) {
+			$excel->sheet('Summary', function ($sheet) use ($summary, $status_ids, $summary_period) {
 				//dd($summary);
 				$sheet->fromArray($summary, NULL, 'A1');
 				$sheet->row(1, $summary_period);
 
 				$sheet->cells('A1:B1', function ($cells) {
-						$cells->setFont(array(
-							'size' => '10',
-							'bold' => true,
-						))->setBackground('#CCC9C9');
-					});
-					$sheet->cells('A2:B2', function ($cells) {
-						$cells->setFont(array(
-							'size' => '10',
-							'bold' => true,
-						))->setBackground('#F3F3F3');
-					});
-					$cell_number = count($status_ids) + 3;
-					$sheet->cells('A' . $cell_number . ':B' . $cell_number, function ($cell) {
-						$cell->setFont(array(
-							'size' => '10',
-							'bold' => true,
-						))->setBackground('#F3F3F3');
-					});
+					$cells->setFont(array(
+						'size' => '10',
+						'bold' => true,
+					))->setBackground('#CCC9C9');
+				});
+				$sheet->cells('A2:B2', function ($cells) {
+					$cells->setFont(array(
+						'size' => '10',
+						'bold' => true,
+					))->setBackground('#F3F3F3');
+				});
+				$cell_number = count($status_ids) + 3;
+				$sheet->cells('A' . $cell_number . ':B' . $cell_number, function ($cell) {
+					$cell->setFont(array(
+						'size' => '10',
+						'bold' => true,
+					))->setBackground('#F3F3F3');
+				});
 			});
 
 			$excel->sheet('Activity Informations', function ($sheet) use ($activity_details_header, $activity_details_data) {

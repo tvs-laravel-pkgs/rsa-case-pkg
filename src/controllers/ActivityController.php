@@ -1384,7 +1384,7 @@ class ActivityController extends Controller {
 			'Vehicle Model',
 			'Vehicle Make',
 			'Case Status',
-			'Payment Eligibility Status',
+			'Finance Status',
 			'ASP Service Type',
 			'ASP Activity Rejected Reason',
 			'ASP PO Accepted',

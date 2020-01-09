@@ -25,7 +25,7 @@ class InvoiceController extends Controller {
 
 	public function getFilterData($type_id) {
 		if ($type_id == 1) {
-			$title = 'Unpaid Invoices';
+			$title = 'Waiting for Finance Process';
 		} elseif ($type_id == 2) {
 			$title = 'Payment Inprogress';
 		} elseif ($type_id == 3) {
@@ -153,7 +153,7 @@ class InvoiceController extends Controller {
 		}
 
 		if ($type_id == 1) {
-			$title = 'Unpaid Invoice';
+			$title = 'Waiting for Finance Process';
 		} elseif ($type_id == 2) {
 			$title = 'Payment Inprogress';
 		} elseif ($type_id == 3) {

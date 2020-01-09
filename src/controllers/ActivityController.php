@@ -108,7 +108,8 @@ class ActivityController extends Controller {
 				$activities->whereIn('asps.state_id', $states);
 			}
 			if (Entrust::can('view-own-activities')) {
-				$activities->where('users.id', Auth::id());
+				$activities->where('users.id', Auth::id())
+					->whereNotIn('activities.status_id', [2, 4]);
 			}
 		}
 		return Datatables::of($activities)
@@ -770,8 +771,8 @@ class ActivityController extends Controller {
 				}
 			}
 
-			//checking ASP KMs exceed 40 KMs
-			if ($asp_km > 40) {
+			//checking ASP KMs exceed ASP service type range limit
+			if ($asp_km > $range_limit) {
 				$is_bulk = false;
 
 			}

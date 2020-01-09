@@ -428,6 +428,81 @@ class Activity extends Model {
 
 	}
 
+	public static function importFromExcel($job) {
+		try {
+			$response = ImportCronJob::getRecordsFromExcel($job, 'BN');
+			$rows = $response['rows'];
+			$header = $response['header'];			$all_error_records = [];
+			foreach ($rows as $k => $row) {
+				$record = [];
+				foreach ($header as $key => $column) {
+					if (!$column) {
+						continue;
+					} else {
+						$record[$column] = trim($row[$key]);
+					}
+				}				
+				$original_record = $record;
+				$status = [];
+				$status['errors'] = [];				
+
+				if (empty($record['Case Number'])) {
+					$status['errors'][] = 'Case Number is empty';
+				}				
+
+				if (empty($record['Case Date'])) {
+					$status['errors'][] = 'Date of printing is empty';
+				}				
+
+				if (empty($record['Point'])) {
+					$status['errors'][] = 'Point is empty';
+				}				
+
+				if (empty($record['Pack Size'])) {
+					$status['errors'][] = 'Pack Size is empty';
+				}
+				if (count($status['errors']) > 0) {
+					// dump($status['errors']);
+					$original_record['Record No'] = $k + 1;
+					$original_record['Error Details'] = implode(',', $status['errors']);
+					$all_error_records[] = $original_record;
+					$job->incrementError();
+					continue;
+				}				
+
+				DB::beginTransaction();
+				$coupon = Coupon::create([
+					'company_id' => $job->company_id,
+					'code' => $record['Code'], //ITEM
+					'date' => date('Y-m-d', PHPExcel_Shared_Date::ExcelToPHP($record['Date of Printing'])),
+					'point' => $record['Point'],
+					'pack_size' => $record['Pack Size'],
+					'status_id' => 7400,
+					'created_by_id' => $job->created_by_id,
+					'updated_at' => NULL,
+				]);				
+				$encrypted_qr_code = $coupon->code . ', ' . date('d-m-Y', strtotime($coupon->date));
+				$qr_code = base64_decode(DNS2D::getBarcodePNG($encrypted_qr_code, "QRCODE", 30, 30));
+				$qr_destination = 'public/wad-qr-coupons/'; // . date('d-m-Y', strtotime($coupon->date)) . '/';
+				//UPDATING PROGRESS FOR EVERY FIVE RECORDS
+				if (($k + 1) % 5 == 0) {
+					$job->save();
+				}
+			}			//COMPLETED or completed with errors
+			$job->status_id = $job->error_count == 0 ? 7202 : 7205;
+			$job->save();			
+
+			ImportCronJob::generateImportReport([
+				'job' => $job,
+				'all_error_records' => $all_error_records,
+			]);		} catch (\Throwable $e) {
+			$job->status_id = 7203; //Error
+			$job->error_details = 'Error:' . $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(); //Error
+			$job->save();
+			dump($job->error_details);
+		}	
+	}
+
 	private function calculateKMCharge($price, $km) {
 		if ($this->financeStatus->po_eligibility_type_id == 341) {
 			// Empty Return Payout

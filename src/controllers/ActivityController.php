@@ -603,7 +603,7 @@ class ActivityController extends Controller {
 		]);
 
 		if ($validator->fails()) {
-			$response = ['success' => false, 'errors' => ["Case number is required"]];
+			$response = ['success' => false, 'errors' => ["Ticket number is required"]];
 			return response()->json($response);
 		}
 
@@ -614,20 +614,21 @@ class ActivityController extends Controller {
 
 		//FOR CHANGE REQUEST BY TVS TEAM DATE GIVEN IN STATIC
 		// $threeMonthsBefore = "2019-04-01";
-
-		$case = RsaCase::where([
-			['number', $number],
-		])->first();
+		$asp = Asp::where('id', Auth::user()->asp->id)->first();
+		$case = RsaCase::where(function($q) use( $number) {
+			        $q->where('number', $number)
+			          ->orWhere('vehicle_registration_number', $number);
+			    })->first();
 
 		if (!$case) {
-			$response = ['success' => false, 'errors' => ["Case not found"]];
+			$response = ['success' => false, 'errors' => ["Ticket not found"]];
 			return response()->json($response);
 		} else {
 			$case_with_closed_status = RsaCase::where('number', $number)
 				->where('status_id', 4) //CLOSED
 				->first();
 			if (!$case_with_closed_status) {
-				$response = ['success' => false, 'errors' => ["Case is not closed"]];
+				$response = ['success' => false, 'errors' => ["Ticket is not closed"]];
 				return response()->json($response);
 			}
 
@@ -636,7 +637,14 @@ class ActivityController extends Controller {
 				$response = ['success' => false, 'errors' => ["Please contact administrator."]];
 				return response()->json($response);
 			} else {
-				$activity = Activity::join('cases', 'cases.id', 'activities.case_id')
+				$activity_asp = Activity::join('cases', 'cases.id', 'activities.case_id')
+					->where([
+						['activities.asp_id', Auth::user()->asp->id],
+						['activities.case_id', $case->id],
+					])
+					->first();
+				if($activity_asp){
+					$activity = Activity::join('cases', 'cases.id', 'activities.case_id')
 					->where([
 						['activities.asp_id', Auth::user()->asp->id],
 						// ['activities.status_id', 2],
@@ -645,13 +653,16 @@ class ActivityController extends Controller {
 					->whereIn('activities.status_id', [2, 4])
 					->select('activities.id as id')
 					->first();
-
-				if (!$activity) {
+					if (!$activity) {
 					$response = ['success' => false, 'errors' => ["Activity Not Found"]];
 					return response()->json($response);
-				} else {
-					$response = ['success' => true, 'activity_id' => $activity->id];
-					return response()->json($response);
+					} else {
+						$response = ['success' => true, 'activity_id' => $activity->id];
+						return response()->json($response);
+					}
+				}else {
+						$response = ['success' => false, 'errors' => ["Ticket is not attended by ". Auth::user()->asp->asp_code ." as per CRM"]];
+						return response()->json($response);
 				}
 			}
 		}

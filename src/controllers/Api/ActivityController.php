@@ -411,7 +411,8 @@ class ActivityController extends Controller {
 				'crm_activity_id' => $request->crm_activity_id,
 			])->first();
 
-			if ($activity->status_id != 1) {
+			//ALLOW REJECTION ONLY FOR (BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice)
+			if ($activity->status_id != 1 && $activity->status_id != 11) {
 				return response()->json([
 					'success' => false,
 					'error' => 'Rejection not allowed',

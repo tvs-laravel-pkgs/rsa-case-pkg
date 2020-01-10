@@ -1272,7 +1272,7 @@ class ActivityController extends Controller {
 			}
 
 			//SELF INVOICE
-			if (!$asp->is_auto_invoice) {
+			if ($asp->has_gst && !$asp->is_auto_invoice) {
 				if (!$request->invoice_no) {
 					return response()->json([
 						'success' => false,

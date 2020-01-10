@@ -56,6 +56,7 @@ class InvoiceController extends Controller {
 			->join('users', 'users.id', 'asps.user_id')
 			->join('activities', 'activities.invoice_id', '=', 'Invoices.id')
 			->join('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
+			->orderBy('Invoices.created_at', 'desc')
 			->groupBy('Invoices.id')
 		;
 

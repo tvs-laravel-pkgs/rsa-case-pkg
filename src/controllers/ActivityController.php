@@ -33,8 +33,8 @@ class ActivityController extends Controller {
 		$this->data['extras'] = [
 			'call_center_list' => collect(CallCenter::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Call Center']),
 			'service_type_list' => collect(ServiceType::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Sub Service']),
-			'finance_status_list' => collect(ActivityFinanceStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Status']),
-			'status_list' => collect(ActivityPortalStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Status']),
+			'finance_status_list' => collect(ActivityFinanceStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Finance Status']),
+			'status_list' => collect(ActivityPortalStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Portal Status']),
 			'activity_status_list' => collect(ActivityStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Activity Status']),
 			'client_list' => collect(Client::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Client']),
 		];
@@ -55,6 +55,7 @@ class ActivityController extends Controller {
 			'activity_portal_statuses.name as status',
 			'activity_statuses.name as activity_status',
 			'clients.name as client',
+			'configs.name as source',
 			'call_centers.name as call_center'
 		)
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
@@ -63,6 +64,7 @@ class ActivityController extends Controller {
 			->leftjoin('clients', 'clients.id', 'cases.client_id')
 			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
+			->leftjoin('configs', 'configs.id', 'activities.data_src_id')
 		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
@@ -149,6 +151,7 @@ class ActivityController extends Controller {
 			'activity_finance_statuses.name as finance_status',
 			'activity_portal_statuses.name as status',
 			'activity_statuses.name as activity_status',
+			'configs.name as source',
 			'clients.name as client',
 			'call_centers.name as call_center'
 		)
@@ -158,6 +161,7 @@ class ActivityController extends Controller {
 			->leftjoin('clients', 'clients.id', 'cases.client_id')
 			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
+			->leftjoin('configs', 'configs.id', 'activities.data_src_id')
 		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
@@ -227,6 +231,7 @@ class ActivityController extends Controller {
 			'activity_finance_statuses.name as finance_status',
 			'activity_portal_statuses.name as status',
 			'activity_statuses.name as activity_status',
+			'configs.name as source',
 			'clients.name as client',
 			'call_centers.name as call_center'
 		)
@@ -236,6 +241,7 @@ class ActivityController extends Controller {
 			->leftjoin('clients', 'clients.id', 'cases.client_id')
 			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
+			->leftjoin('configs', 'configs.id', 'activities.data_src_id')
 		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
@@ -615,10 +621,10 @@ class ActivityController extends Controller {
 		//FOR CHANGE REQUEST BY TVS TEAM DATE GIVEN IN STATIC
 		// $threeMonthsBefore = "2019-04-01";
 		$asp = Asp::where('id', Auth::user()->asp->id)->first();
-		$case = RsaCase::where(function($q) use( $number) {
-			        $q->where('number', $number)
-			          ->orWhere('vehicle_registration_number', $number);
-			    })->first();
+		$case = RsaCase::where(function ($q) use ($number) {
+			$q->where('number', $number)
+				->orWhere('vehicle_registration_number', $number);
+		})->first();
 
 		if (!$case) {
 			$response = ['success' => false, 'errors' => ["Ticket not found"]];
@@ -643,26 +649,26 @@ class ActivityController extends Controller {
 						['activities.case_id', $case->id],
 					])
 					->first();
-				if($activity_asp){
+				if ($activity_asp) {
 					$activity = Activity::join('cases', 'cases.id', 'activities.case_id')
-					->where([
-						['activities.asp_id', Auth::user()->asp->id],
-						// ['activities.status_id', 2],
-						['activities.case_id', $case->id],
-					])
-					->whereIn('activities.status_id', [2, 4])
-					->select('activities.id as id')
-					->first();
+						->where([
+							['activities.asp_id', Auth::user()->asp->id],
+							// ['activities.status_id', 2],
+							['activities.case_id', $case->id],
+						])
+						->whereIn('activities.status_id', [2, 4])
+						->select('activities.id as id')
+						->first();
 					if (!$activity) {
-					$response = ['success' => false, 'errors' => ["Activity Not Found"]];
-					return response()->json($response);
+						$response = ['success' => false, 'errors' => ["Activity Not Found"]];
+						return response()->json($response);
 					} else {
 						$response = ['success' => true, 'activity_id' => $activity->id];
 						return response()->json($response);
 					}
-				}else {
-						$response = ['success' => false, 'errors' => ["Ticket is not attended by ". Auth::user()->asp->asp_code ." as per CRM"]];
-						return response()->json($response);
+				} else {
+					$response = ['success' => false, 'errors' => ["Ticket is not attended by " . Auth::user()->asp->asp_code . " as per CRM"]];
+					return response()->json($response);
 				}
 			}
 		}

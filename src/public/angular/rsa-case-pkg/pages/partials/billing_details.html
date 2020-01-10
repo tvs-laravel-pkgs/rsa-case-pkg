@@ -81,6 +81,21 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="viewData-form--row">
+                        <div class="clearfix"></div>
+                            <div class="row">
+                                <div class="col-xs-12 col-sm-2">
+                                    <div class="viewData-form--group">
+                                        <h4 class="">Paid To: <span class="orange-txt">{{$ctrl.data.paid_to}}</span></h4>
+                                    </div>
+                                </div>
+                                <div class="col-xs-12 col-sm-2">
+                                    <div class="viewData-form--group">
+                                        <h4>Payment: <span class="orange-txt">{{$ctrl.data.payment_mode}}</span></h4>
+                                    </div>
+                                </div>
+                            </div>
+                    </div>
                     <h3 class="mt-30 mb-20">Rate Card Info</h3>
                     <div class="table-responsive">
                         <table class="table  table-bordered table-wide style-normal">
@@ -132,6 +147,7 @@
                                     </tbody>
                         </table>
                     </div>
+                    
                     <!-- @if(!empty($approved_view)) -->
                     <div class="table-responsive">
                         <table class="table table-bordered table-wide style-normal">
@@ -163,7 +179,7 @@
                                         <div ng-show="$ctrl.data.verification==1">{{$ctrl.data.raw_bo_collected | currency:"₹"}}</div>
                                     </td>
                                 </tr>
-                                <tr ng-show="$ctrl.data.verification==1">
+                                <tr ng-show="$ctrl.data.verification==1 && $ctrl.data.asp.app_user==1">
                                     <td>Discount (-)</td>
                                     <td>
                                         <div><input type="text" ng-model="$ctrl.data.bo_deduction" class="deduction" value="{{$ctrl.data.bo_deduction}}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-keyup="calculatePO()"></div>

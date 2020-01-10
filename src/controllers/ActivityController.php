@@ -342,9 +342,22 @@ class ActivityController extends Controller {
 			DB::raw('IF(activities.remarks IS NULL,"-",activities.remarks) as remarks'),
 			//'activities.remarks as remarks',
 			'cases.*',
-			DB::raw('IF(Invoices.invoice_no IS NULL,"-",Invoices.invoice_no) as invoice_no'),
+			DB::raw('CASE
+				    	WHEN (Invoices.invoice_no IS NOT NULL)
+			    		THEN 
+			    			CASE
+			    				WHEN (asps.is_auto_invoice = 1)
+			   					THEN 
+			    					CONCAT(Invoices.invoice_no,"-",Invoices.id)
+			    				ELSE 
+			    					Invoices.invoice_no
+			    			END
+			    		ELSE
+			    			"-"
+					END as invoice_no'),
 			//DB::RAW('invoices.invoice_no) as invoice_no',
 			DB::raw('IF(Invoices.invoice_amount IS NULL,"-",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
+			DB::raw('IF((asps.has_gst =1 && asps.is_auto_invoice=0),"NO","Yes") as auto_invoice'),
 			DB::raw('IF(Invoices.invoice_amount IS NULL,"-",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
 			DB::raw('IF(Invoices.flow_current_status IS NULL,"-",Invoices.flow_current_status) as flow_current_status'),
 			DB::raw('IF(Invoices.start_date IS NULL,"-",DATE_FORMAT(Invoices.start_date,"%d-%m-%Y")) as invoice_date'),

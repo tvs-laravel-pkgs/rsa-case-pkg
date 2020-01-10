@@ -81,9 +81,8 @@
                 <span ng-show="$ctrl.data.asp.has_gst">Yes</span>
                 <span ng-show="!($ctrl.data.asp.has_gst)">No</span>
             </li>
-            <li ng-show="$ctrl.data.asp.has_gst && $ctrl.data.asp.is_self">Auto Invoice :
-                <span ng-show="$ctrl.data.asp.is_auto_invoice">Yes</span>
-                <span ng-show="!($ctrl.data.asp.is_auto_invoice)">No</span>
+            <li>Auto Invoice :
+                <span>{{$ctrl.data.auto_invoice}}</span>
             </li>
         </ul>
         <div class="clearfix"></div>

@@ -25,7 +25,6 @@ use Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Validator;
-use Session;
 use Yajra\Datatables\Datatables;
 
 class ActivityController extends Controller {
@@ -109,7 +108,8 @@ class ActivityController extends Controller {
 				$activities->whereIn('asps.state_id', $states);
 			}
 			if (Entrust::can('view-own-activities')) {
-				$activities->where('users.id', Auth::id());
+				$activities->where('users.id', Auth::id())
+					->whereNotIn('activities.status_id', [2, 4]);
 			}
 		}
 		return Datatables::of($activities)
@@ -795,8 +795,8 @@ class ActivityController extends Controller {
 				}
 			}
 
-			//checking ASP KMs exceed 40 KMs
-			if ($asp_km > 40) {
+			//checking ASP KMs exceed ASP service type range limit
+			if ($asp_km > $range_limit) {
 				$is_bulk = false;
 
 			}
@@ -1238,7 +1238,10 @@ class ActivityController extends Controller {
 				$max_id = Invoices::selectRaw("Max(id) as id")->first();
 				if (!empty($max_id)) {
 					$ids = $max_id->id + 1;
-					$filename = "Invoice" . $ids . "." . $extension;} else { $filename = "Invoice1" . "." . $extension;}
+					$filename = "Invoice" . $ids . "." . $extension;
+				} else {
+					$filename = "Invoice1" . "." . $extension;
+				}
 				$status = $request->file("filename")->storeAs($destination, $filename);
 				$value = $filename;
 			}
@@ -1333,41 +1336,41 @@ class ActivityController extends Controller {
 	public function exportActivities(Request $request) {
 		//dd($request->all());
 		$error_messages = [
-				'status_ids.required' => "Please Select Activity Status",
-			];
+			'status_ids.required' => "Please Select Activity Status",
+		];
 
-			$validator = Validator::make($request->all(), [
-				'status_ids' => [
-					'required:true',
-				],
-			], $error_messages);
+		$validator = Validator::make($request->all(), [
+			'status_ids' => [
+				'required:true',
+			],
+		], $error_messages);
 
-			if (empty($request->status_ids)) {
-				return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['errors' => $validator->errors()->all()]);
-			}
-			ini_set('max_execution_time', 0);
-			ini_set('display_errors', 1);
-			ini_set("memory_limit", "10000M");
-			ob_end_clean();
-			ob_start();
-			$date = explode("-", $request->period);
-			$range1 = date("Y-m-d", strtotime($date[0]));
-			$range2 = date("Y-m-d", strtotime($date[1]));
+		if (empty($request->status_ids)) {
+			return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['errors' => $validator->errors()->all()]);
+		}
+		ini_set('max_execution_time', 0);
+		ini_set('display_errors', 1);
+		ini_set("memory_limit", "10000M");
+		ob_end_clean();
+		ob_start();
+		$date = explode("-", $request->period);
+		$range1 = date("Y-m-d", strtotime($date[0]));
+		$range2 = date("Y-m-d", strtotime($date[1]));
 
-			$status_ids = trim($request->status_ids,'""');
-			$status_ids = explode(',',$status_ids);
-			$activities = Activity::whereIn('status_id', $status_ids)
-				->whereDate('created_at', '>=', $range1)
-				->whereDate('created_at', '<=', $range2)
-			;
+		$status_ids = trim($request->status_ids, '""');
+		$status_ids = explode(',', $status_ids);
+		$activities = Activity::whereIn('status_id', $status_ids)
+			->whereDate('created_at', '>=', $range1)
+			->whereDate('created_at', '<=', $range2)
+		;
 
-			$total_count = $activities->count('id');
-			if ($total_count == 0) {
-				return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['errors' => ['No activities found for given period & statuses']]);
-			}
-			foreach ($status_ids as $key => $status_id) {
-				$count_splitup[] = Activity::rightJoin('activity_portal_statuses','activities.status_id','activity_portal_statuses.id')
-				->select(DB::raw('COUNT(activities.id) as activity_count'), 'activity_portal_statuses.id','activity_portal_statuses.name')
+		$total_count = $activities->count('id');
+		if ($total_count == 0) {
+			return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['errors' => ['No activities found for given period & statuses']]);
+		}
+		foreach ($status_ids as $key => $status_id) {
+			$count_splitup[] = Activity::rightJoin('activity_portal_statuses', 'activities.status_id', 'activity_portal_statuses.id')
+				->select(DB::raw('COUNT(activities.id) as activity_count'), 'activity_portal_statuses.id', 'activity_portal_statuses.name')
 
 				->where('activity_portal_statuses.id', $status_id)
 				->whereDate('activities.created_at', '>=', $range1)
@@ -1447,9 +1450,9 @@ class ActivityController extends Controller {
 				$activity->asp->axpta_code,
 				$activity->asp->contact_number1,
 				$activity->asp->email,
-				$activity->asp->has_gst ?'Yes' : 'No',
-				$activity->asp->is_self==1 ?'Self' : 'Non Self',
-				$activity->asp->is_auto_invoice==1 ?'Yes' : 'No',
+				$activity->asp->has_gst ? 'Yes' : 'No',
+				$activity->asp->is_self == 1 ? 'Self' : 'Non Self',
+				$activity->asp->is_auto_invoice == 1 ? 'Yes' : 'No',
 				$activity->asp->workshop_name,
 				$activity->asp->location->name,
 				$activity->asp->district->name,
@@ -1461,16 +1464,16 @@ class ActivityController extends Controller {
 				$activity->financeStatus->name,
 				$activity->serviceType->name,
 				$activity->aspActivityRejectedReason ? $activity->aspActivityRejectedReason->name : '',
-				$activity->asp_po_accepted!=NULL ?  ($activity->asp_po_accepted==1 ?'Yes' : 'No') :'',
+				$activity->asp_po_accepted != NULL ? ($activity->asp_po_accepted == 1 ? 'Yes' : 'No') : '',
 				$activity->aspPoRejectedReason ? $activity->aspPoRejectedReason->name : '',
 				$activity->status ? $activity->status->name : '',
 				$activity->activityStatus ? $activity->activityStatus->name : '',
-				$activity->description!=NULL ? $activity->description : '',
-				$activity->remarks!=NULL ? $activity->remarks : '',
-				$activity->invoice ? ($activity->asp->is_auto_invoice==1 ? ($activity->invoice->invoice_no.'-'. $activity->invoice->id) : $activity->invoice->invoice_no) : '',
-				$activity->invoice ? date('d-m-Y', strtotime($activity->invoice->start_date)): '',
-				$activity->invoice ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice->invoice_amount, 2))): '',
-				$activity->invoice ? ($activity->invoice->invoiceStatus ? $activity->invoice->invoiceStatus->name :'') : '',
+				$activity->description != NULL ? $activity->description : '',
+				$activity->remarks != NULL ? $activity->remarks : '',
+				$activity->invoice ? ($activity->asp->is_auto_invoice == 1 ? ($activity->invoice->invoice_no . '-' . $activity->invoice->id) : $activity->invoice->invoice_no) : '',
+				$activity->invoice ? date('d-m-Y', strtotime($activity->invoice->start_date)) : '',
+				$activity->invoice ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice->invoice_amount, 2))) : '',
+				$activity->invoice ? ($activity->invoice->invoiceStatus ? $activity->invoice->invoiceStatus->name : '') : '',
 				'',
 				'',
 				'',

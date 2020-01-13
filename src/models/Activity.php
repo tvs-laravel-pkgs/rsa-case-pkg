@@ -2,36 +2,34 @@
 
 namespace Abs\RsaCasePkg;
 
+use Abs\HelperPkg\Traits\SeederTrait;
+use Abs\ImportCronJobPkg\ImportCronJob;
 use Abs\RsaCasePkg\ActivityAspStatus;
+use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
 use Abs\RsaCasePkg\AspPoRejectedReason;
-use App\ServiceType;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Abs\RsaCasePkg\CaseCancelledReason;
 use Abs\RsaCasePkg\CaseStatus;
 use Abs\RsaCasePkg\RsaCase;
-use App\CallCenter;
-use App\Client;
-use App\Http\Controllers\Controller;
-use App\Subject;
-use App\VehicleMake;
-use App\VehicleModel;
-use DB;
-use Illuminate\Http\Request;
-use Validator;
-use Abs\HelperPkg\Traits\SeederTrait;
-use Abs\RsaCasePkg\ActivityDetail;
 use App\Asp;
 use App\AspServiceType;
 use App\Attachment;
+use App\CallCenter;
+use App\Client;
 use App\Company;
 use App\Config;
+use App\ServiceType;
+use App\Subject;
+use App\VehicleMake;
+use App\VehicleModel;
 use Auth;
+use DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Validation\Rule;
+use Validator;
 
 class Activity extends Model {
 	use SeederTrait;
@@ -454,45 +452,37 @@ class Activity extends Model {
 			$rows = $response['rows'];
 			$header = $response['header'];
 			$all_error_records = [];
-
 			foreach ($rows as $k => $row) {
 				$record = [];
 				foreach ($header as $key => $column) {
 					if (!$column) {
 						continue;
 					} else {
-						$record[$column] = trim($row[$key]);
+						$header_col = str_replace(' ', '_', strtolower($column));
+						$record[$header_col] = $row[$key];
 					}
 				}
 				$original_record = $record;
 				$status = [];
 				$status['errors'] = [];
-
+				// dd($record);
+				$save_eligible = true;
 				DB::beginTransaction();
-
-				//Dont allow updations if current status is Cancelled or Closed
-				$case = RsaCase::where([
-					'company_id' => 1,
-					'number' => $record['case_number'],
-				])->first();
-				if ($case && ($case->status_id == 3 || $case->status_id == 4)) {
-					$status['errors'][] = 'Update not allowed - Case already ' . $case->status->name;
-				}
 
 				$validator = Validator::make($record, [
 					//CASE
 					'case_number' => 'required|string|max:32',
-					'case_date' => 'required|date_format:"Y-m-d H:i:s"',
-					'case_data_filled_date' => 'required|date_format:"Y-m-d H:i:s"',
+					'case_date' => 'required',
+					'case_data_filled_date' => 'required',
 					'case_description' => 'nullable|string|max:255',
 					'status' => 'required|string|max:191|exists:case_statuses,name',
 					'cancel_reason' => 'nullable|string|max:100|exists:case_cancelled_reasons,name',
 					'call_center' => 'required|string|max:64|exists:call_centers,name',
 					'client' => 'required|string|max:124|exists:clients,name',
 					'customer_name' => 'required|string|max:128',
-					'customer_contact_number' => 'required|string|min:10|max:10',
+					// 'customer_contact_number' => 'required|numeric|min:10|max:10',
 					'contact_name' => 'nullable|string|max:128',
-					'contact_number' => 'nullable|string|min:10|max:10',
+					'contact_number' => 'nullable|numeric|min:10|max:10',
 					'vehicle_make' => 'required|string|max:191|exists:vehicle_makes,name',
 					'vehicle_model' => 'nullable|string|max:191|exists:vehicle_models,name',
 					'vehicle_registration_number' => 'required|string|max:191',
@@ -529,7 +519,7 @@ class Activity extends Model {
 					'cc_total_km' => 'nullable|numeric',
 					'activity_description' => 'nullable|string|max:255',
 					'activity_remarks' => 'nullable|string|max:255',
-					'asp_reached_date' => 'nullable|date_format:"Y-m-d H:i:s"',
+					// 'asp_reached_date' => 'nullable|date_format:"Y-m-d H:i:s"',
 					'asp_start_location' => 'nullable|string|max:256',
 					'asp_end_location' => 'nullable|string|max:256',
 					'onward_google_km' => 'nullable|numeric',
@@ -557,33 +547,62 @@ class Activity extends Model {
 				]);
 
 				if ($validator->fails()) {
-					$status['errors'][] = $validator->errors()->all();
+					$status['errors'] = $validator->errors()->all();
+					$save_eligible = false;
+				}
+
+				//Dont allow updations if current status is Cancelled or Closed
+				$case = RsaCase::where([
+					'company_id' => 1,
+					'number' => $record['case_number'],
+				])->first();
+				if ($case && ($case->status_id == 3 || $case->status_id == 4)) {
+					$status['errors'][] = 'Update not allowed - Case already ' . $case->status->name;
+					$save_eligible = false;
 				}
 
 				//CASE VALIDATION START
 				//ALLOW ONLY LETTERS AND NUMBERS
 				if (!preg_match("/^[a-zA-Z0-9]+$/", $record['case_number'])) {
 					$status['errors'][] = 'Invalid Case Number';
+					$save_eligible = false;
 				}
 
-				$status = CaseStatus::where('name', $record['status'])->where('company_id', 1)->first();
+				$case_status = CaseStatus::where('name', $record['status'])->where('company_id', 1)->first();
+				if (!$case_status) {
+					$save_eligible = false;
+				}
 				$call_center = CallCenter::where('name', $record['call_center'])->first();
+				if (!$call_center) {
+					$save_eligible = false;
+				}
 				$client = Client::where('name', $record['client'])->first();
+				if (!$client) {
+					$save_eligible = false;
+				}
 				$vehicle_make = VehicleMake::where('name', $record['vehicle_make'])->first();
+				if (!$vehicle_make) {
+					$save_eligible = false;
+				}
 
 				//CASE STATUS IS CANCELLED - CANCEL REASON IS MANDATORY
-				if ($status->id == 3) {
+				if ($case_status && $case_status->id == 3) {
 					if (!$record['cancel_reason']) {
 						$status['errors'][] = 'Cancel reason is required';
+						$save_eligible = false;
 					}
 				}
 				//VEHICLE MODEL GOT BY VEHICLE MAKE
 				$vehicle_model_by_make = VehicleModel::where('name', $record['vehicle_model'])->where('vehicle_make_id', $vehicle_make->id)->first();
 				if (!$vehicle_model_by_make) {
 					$status['errors'][] = 'Selected vehicle make doesn"t matches with vehicle model';
+					$save_eligible = false;
 				}
 
 				$subject = Subject::where('name', $record['subject'])->first();
+				if (!$subject) {
+					$save_eligible = false;
+				}
 				$cancel_reason = CaseCancelledReason::where('name', $record['cancel_reason'])->where('company_id', 1)->first();
 				if (!$cancel_reason) {
 					$cancel_reason_id = NULL;
@@ -599,77 +618,50 @@ class Activity extends Model {
 				//CASE NEW
 				if (!$case->exists) {
 					//WITH CANCELLED OR CLOSED STATUS
-					if ($status->id == 3 || $status->id == 4) {
+					if ($case_status && ($case_status->id == 3 || $case_status->id == 4)) {
 						$status['errors'][] = 'Case should not start with cancelled or closed status';
+						$save_eligible = false;
 					}
 				}
 				//CASE VALIDATION END
-
-				//CASE SAVE
-				$case->fill($record);
-				$case->number = $record['case_number'];
-				$case->date = $record['case_date'];
-				$case->data_filled_date = $record['case_data_filled_date'];
-				$case->description = $record['case_description'];
-				$case->status_id = $status->id;
-				$case->cancel_reason_id = $cancel_reason_id;
-				$case->call_center_id = $call_center->id;
-				$case->client_id = $client->id;
-				$case->vehicle_model_id = $vehicle_model_by_make->id;
-				$case->subject_id = $subject->id;
-				$case->save();
-
-				if ($case->status_id == 3) {
-					//CANCELLED
-					$case
-						->activities()
-						->update([
-							// Not Eligible for Payout
-							'status_id' => 15,
-						]);
-				}
-				if ($case->status_id == 4) {
-					//CLOSED
-					$case
-						->activities()
-						->where([
-							// Invoice Amount Calculated - Waiting for Case Closure
-							'status_id' => 10,
-						])
-						->update([
-							// Case Closed - Waiting for ASP to Generate Invoice
-							'status_id' => 1,
-						]);
-				}
 
 				//ACTIVITY VALIDATION START
 				$asp = Asp::where('asp_code', $record['asp_code'])->first();
 
 				//CHECK ASP IS NOT ACTIVE
-				if (!$asp->is_active) {
+				if ($asp && !$asp->is_active) {
 					$status['errors'][] = 'ASP is inactive';
+					$save_eligible = false;
 				}
 
 				//ASP ACCEPTED CC DETAILS == 0 -- REASON IS MANDATORY
 				if (!$record['asp_accepted_cc_details']) {
 					if (!$record['asp_rejected_cc_details_reason']) {
 						$status['errors'][] = 'Reason for ASP rejected cc details is required';
+						$save_eligible = false;
 					}
 				}
 
 				if ($record['drop_location_type'] && strtolower($record['drop_location_type']) != 'garage' && strtolower($record['drop_location_type']) != 'dealer' && strtolower($record['drop_location_type']) != 'customer preferred') {
 					$status['errors'][] = 'Invalid drop_location_type';
+					$save_eligible = false;
 				}
 
 				if ($record['paid_to'] && strtolower($record['paid_to']) != 'asp' && strtolower($record['paid_to']) != 'online') {
 					$status['errors'][] = 'Invalid paid_to';
+					$save_eligible = false;
 				}
 
 				if ($record['payment_mode'] && strtolower($record['payment_mode']) != 'cash' && strtolower($record['payment_mode']) != 'paytm' && strtolower($record['payment_mode']) != 'online') {
 					$status['errors'][] = 'Invalid payment_mode';
+					$save_eligible = false;
 				}
 
 				$service_type = ServiceType::where('name', $record['sub_service'])->first();
+				if (!$service_type) {
+					$save_eligible = false;
+				}
+
 				$asp_status = ActivityAspStatus::where('name', $record['asp_activity_status'])->where('company_id', 1)->first();
 				if (!$asp_status) {
 					$asp_activity_status_id = NULL;
@@ -684,13 +676,6 @@ class Activity extends Model {
 					$asp_activity_rejected_reason_id = $asp_activity_rejected_reason->id;
 				}
 
-				$asp_po_rejected_reason = AspPoRejectedReason::where('name', $record['asp_po_rejected_reason'])->where('company_id', 1)->first();
-				if (!$asp_po_rejected_reason) {
-					$asp_po_rejected_reason_id = NULL;
-				} else {
-					$asp_po_rejected_reason_id = $asp_po_rejected_reason->id;
-				}
-
 				$activity_status = ActivityStatus::where('name', $record['activity_status'])->where('company_id', 1)->first();
 				if (!$activity_status) {
 					$activity_status_id = NULL;
@@ -698,99 +683,133 @@ class Activity extends Model {
 					$activity_status_id = $activity_status->id;
 				}
 
-				$case = RsaCase::where('number', $record['case_number'])->first();
-				//CHECK CASE IS CLOSED
-				// if ($case->status_id == 4) {
-				// 	return response()->json([
-				// 		'success' => false,
-				// 		'error' => 'Validation Error',
-				// 		'errors' => [
-				// 			'Case already closed',
-				// 		],
-				// 	], $this->successStatus);
-				// }
+				//SAVE CASE AND ACTIVITY
+				if ($save_eligible) {
 
-				$activity = new Activity([
-					'crm_activity_id' => $record['crm_activity_id'],
-				]);
-				$activity->fill($record);
+					$case->fill($record);
+					$case->number = $record['case_number'];
+					// $case->date = $record['case_date'];
+					// $case->data_filled_date = $record['case_data_filled_date'];
+					$case->description = $record['case_description'];
+					$case->status_id = $case_status->id;
+					$case->cancel_reason_id = $cancel_reason_id;
+					$case->call_center_id = $call_center->id;
+					$case->client_id = $client->id;
+					$case->vehicle_model_id = $vehicle_model_by_make->id;
+					$case->subject_id = $subject->id;
+					$case->save();
 
-				$finance_status = ActivityFinanceStatus::where([
-					'company_id' => 1,
-					'name' => $record['finance_status'],
-				])->first();
-				$activity->finance_status_id = $finance_status->id;
-
-				$activity->asp_id = $asp->id;
-				$activity->case_id = $case->id;
-				$activity->service_type_id = $service_type->id;
-				$activity->asp_activity_status_id = $asp_activity_status_id;
-				$activity->asp_activity_rejected_reason_id = $asp_activity_rejected_reason_id;
-
-				//ASP ACCEPTED CC DETAILS == 1 AND ACTIVITY STATUS SUCCESSFUL OLD
-				// if ($request->asp_accepted_cc_details && $activity_status_id == 7) {
-				//ASP ACCEPTED CC DETAILS == 1
-				if ($record['asp_accepted_cc_details']) {
-					//Invoice Amount Calculated - Waiting for Case Closure
-					$activity->status_id = 10;
-				} else {
-					//ASP Rejected CC Details - Waiting for ASP Data Entry
-					$activity->status_id = 2;
-				}
-				$activity->activity_status_id = $activity_status_id;
-				$activity->data_src_id = 262; //BO MANUAL
-				$activity->save();
-				$activity->number = 'ACT' . $activity->id;
-				$activity->save();
-
-				if ($case->status_id == 3) {
-					//CANCELLED
-					$activity->update([
-						// Not Eligible for Payout
-						'status_id' => 15,
-					]);
-				}
-
-				// CHECK CASE IS CLOSED
-				if ($case->status_id == 4) {
-					$activity->where([
-						// Invoice Amount Calculated - Waiting for Case Closure
-						'status_id' => 10,
-					])
-						->update([
-							// Case Closed - Waiting for ASP to Generate Invoice
-							'status_id' => 1,
-						]);
-				}
-
-				//SAVING ACTIVITY DETAILS
-				$activity_fields = Config::where('entity_type_id', 23)->get();
-				foreach ($activity_fields as $key => $activity_field) {
-					$detail = ActivityDetail::firstOrNew([
-						'company_id' => 1,
-						'activity_id' => $activity->id,
-						'key_id' => $activity_field->id,
-					]);
-					$detail->value = $record[$activity_field->name];
-					$detail->save();
-				}
-
-				//CALCULATE PAYOUT ONLY IF FINANCE STATUS OF ACTIVITY IS ELIBLE FOR PO
-				if ($activity->financeStatus->po_eligibility_type_id == 342) {
-					//No Payout status
-					$activity->status_id = 15;
-					$activity->save();
-				} else {
-					$response = $activity->calculatePayoutAmount('CC');
-					$status['errors'][] = $response['error'];
+					if ($case->status_id == 3) {
+						//CANCELLED
+						$case
+							->activities()
+							->update([
+								// Not Eligible for Payout
+								'status_id' => 15,
+							]);
 					}
-				}
+					if ($case->status_id == 4) {
+						//CLOSED
+						$case
+							->activities()
+							->where([
+								// Invoice Amount Calculated - Waiting for Case Closure
+								'status_id' => 10,
+							])
+							->update([
+								// Case Closed - Waiting for ASP to Generate Invoice
+								'status_id' => 1,
+							]);
+					}
 
-				//MARKING AS OWN PATROL ACTIVITY
-				if ($activity->asp->workshop_type == 1) {
-					//Own Patrol Activity - Not Eligible for Payout
-					$activity->status_id = 16;
+					$activity = new Activity([
+						'crm_activity_id' => $record['crm_activity_id'],
+					]);
+					$activity->fill($record);
+
+					$finance_status = ActivityFinanceStatus::where([
+						'company_id' => 1,
+						'name' => $record['finance_status'],
+					])->first();
+					$activity->finance_status_id = $finance_status->id;
+
+					$activity->asp_id = $asp->id;
+					$activity->case_id = $case->id;
+					$activity->service_type_id = $service_type->id;
+					$activity->asp_activity_status_id = $asp_activity_status_id;
+					$activity->asp_activity_rejected_reason_id = $asp_activity_rejected_reason_id;
+					$activity->description = $record['activity_description'];
+					$activity->remarks = $record['activity_remarks'];
+
+					//ASP ACCEPTED CC DETAILS == 1 AND ACTIVITY STATUS SUCCESSFUL OLD
+					// if ($request->asp_accepted_cc_details && $activity_status_id == 7) {
+					//ASP ACCEPTED CC DETAILS == 1
+					if ($record['asp_accepted_cc_details']) {
+						//Invoice Amount Calculated - Waiting for Case Closure
+						$activity->status_id = 10;
+					} else {
+						//ASP Rejected CC Details - Waiting for ASP Data Entry
+						$activity->status_id = 2;
+					}
+					$activity->reason_for_asp_rejected_cc_details = $record['asp_rejected_cc_details_reason'];
+					$activity->activity_status_id = $activity_status_id;
+					$activity->data_src_id = 262; //BO MANUAL
 					$activity->save();
+					$activity->number = 'ACT' . $activity->id;
+					$activity->save();
+
+					if ($case->status_id == 3) {
+						//CANCELLED
+						$activity->update([
+							// Not Eligible for Payout
+							'status_id' => 15,
+						]);
+					}
+
+					// CHECK CASE IS CLOSED
+					if ($case->status_id == 4) {
+						$activity->where([
+							// Invoice Amount Calculated - Waiting for Case Closure
+							'status_id' => 10,
+						])
+							->update([
+								// Case Closed - Waiting for ASP to Generate Invoice
+								'status_id' => 1,
+							]);
+					}
+
+					//SAVING ACTIVITY DETAILS
+					$activity_fields = Config::where('entity_type_id', 23)->get();
+					foreach ($activity_fields as $key => $activity_field) {
+						if (isset($record[$activity_field->name])) {
+							$detail = ActivityDetail::firstOrNew([
+								'company_id' => 1,
+								'activity_id' => $activity->id,
+								'key_id' => $activity_field->id,
+							]);
+							$detail->value = $record[$activity_field->name];
+							$detail->save();
+						}
+					}
+
+					//CALCULATE PAYOUT ONLY IF FINANCE STATUS OF ACTIVITY IS ELIBLE FOR PO
+					if ($activity->financeStatus->po_eligibility_type_id == 342) {
+						//No Payout status
+						$activity->status_id = 15;
+						$activity->save();
+					} else {
+						$response = $activity->calculatePayoutAmount('CC');
+						if (!$response['success']) {
+							$status['errors'][] = $response['error'];
+						}
+					}
+
+					//MARKING AS OWN PATROL ACTIVITY
+					if ($activity->asp->workshop_type == 1) {
+						//Own Patrol Activity - Not Eligible for Payout
+						$activity->status_id = 16;
+						$activity->save();
+					}
 				}
 
 				if (count($status['errors']) > 0) {
@@ -802,22 +821,23 @@ class Activity extends Model {
 					continue;
 				}
 
-				DB::commit();
-
 				//UPDATING PROGRESS FOR EVERY FIVE RECORDS
 				if (($k + 1) % 5 == 0) {
 					$job->save();
 				}
+
+				DB::commit();
 			} //COMPLETED or completed with errors
 
-			$job->status_id = $job->error_count == 0 ? 7202 : 7205;
+			$job->status_id = $job->error_count == 0 ? 7202 : 7204;
 			$job->save();
 
 			ImportCronJob::generateImportReport([
 				'job' => $job,
 				'all_error_records' => $all_error_records,
 			]);
-		} catch (\Throwable $e) {
+
+		} catch (\Exception $e) {
 			$job->status_id = 7203; //Error
 			$job->error_details = 'Error:' . $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(); //Error
 			$job->save();

@@ -627,7 +627,9 @@ class Activity extends Model {
 
 				//ACTIVITY VALIDATION START
 				$asp = Asp::where('asp_code', $record['asp_code'])->first();
-
+				if (!$asp) {
+					$save_eligible = false;
+				}
 				//CHECK ASP IS NOT ACTIVE
 				if ($asp && !$asp->is_active) {
 					$status['errors'][] = 'ASP is inactive';
@@ -683,6 +685,13 @@ class Activity extends Model {
 					$activity_status_id = $activity_status->id;
 				}
 
+				$finance_status = ActivityFinanceStatus::where([
+					'company_id' => 1,
+					'name' => $record['finance_status'],
+				])->first();
+				if (!$finance_status) {
+					$save_eligible = false;
+				}
 				//SAVE CASE AND ACTIVITY
 				if ($save_eligible) {
 
@@ -727,10 +736,6 @@ class Activity extends Model {
 					]);
 					$activity->fill($record);
 
-					$finance_status = ActivityFinanceStatus::where([
-						'company_id' => 1,
-						'name' => $record['finance_status'],
-					])->first();
 					$activity->finance_status_id = $finance_status->id;
 
 					$activity->asp_id = $asp->id;

@@ -415,7 +415,6 @@ app.component('billingDetails', {
         }
         $scope.calculate = function() {
         console.log(self.data);
-
             if(self.data.finance_status.po_eligibility_type_id==341){
                  below_amount = self.data.raw_bo_km_travelled == 0 ?  0 : self.data.asp_service_type_data.empty_return_range_price;
             }else{

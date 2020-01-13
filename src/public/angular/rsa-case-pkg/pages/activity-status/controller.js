@@ -7,6 +7,7 @@ app.component('activityStatusList', {
         self.filter_img_url = filter_img_url;
         self.export_activities = export_activities;
         self.canExportActivity = canExportActivity;
+        self.canImportActivity = canImportActivity;
 
         self.csrf = token;
         $http.get(

@@ -33,8 +33,8 @@ class ActivityController extends Controller {
 		$this->data['extras'] = [
 			'call_center_list' => collect(CallCenter::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Call Center']),
 			'service_type_list' => collect(ServiceType::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Sub Service']),
-			'finance_status_list' => collect(ActivityFinanceStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Status']),
-			'status_list' => collect(ActivityPortalStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Status']),
+			'finance_status_list' => collect(ActivityFinanceStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Finance Status']),
+			'status_list' => collect(ActivityPortalStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Portal Status']),
 			'activity_status_list' => collect(ActivityStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Activity Status']),
 			'client_list' => collect(Client::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Client']),
 		];
@@ -55,6 +55,7 @@ class ActivityController extends Controller {
 			'activity_portal_statuses.name as status',
 			'activity_statuses.name as activity_status',
 			'clients.name as client',
+			'configs.name as source',
 			'call_centers.name as call_center'
 		)
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
@@ -63,6 +64,7 @@ class ActivityController extends Controller {
 			->leftjoin('clients', 'clients.id', 'cases.client_id')
 			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
+			->leftjoin('configs', 'configs.id', 'activities.data_src_id')
 		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
@@ -108,14 +110,15 @@ class ActivityController extends Controller {
 				$activities->whereIn('asps.state_id', $states);
 			}
 			if (Entrust::can('view-own-activities')) {
-				$activities->where('users.id', Auth::id());
+				$activities->where('users.id', Auth::id())
+					->whereNotIn('activities.status_id', [2, 4]);
 			}
 		}
 		return Datatables::of($activities)
 			->addColumn('action', function ($activity) {
 				$status_id = 1;
 
-				$action = '<div class="dataTable-actions">
+				$action = '<div class="dataTable-actions wid-100">
 				<a href="#!/rsa-case-pkg/activity-status/' . $status_id . '/view/' . $activity->id . '">
 					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
 					            </a>';
@@ -148,6 +151,7 @@ class ActivityController extends Controller {
 			'activity_finance_statuses.name as finance_status',
 			'activity_portal_statuses.name as status',
 			'activity_statuses.name as activity_status',
+			'configs.name as source',
 			'clients.name as client',
 			'call_centers.name as call_center'
 		)
@@ -157,6 +161,7 @@ class ActivityController extends Controller {
 			->leftjoin('clients', 'clients.id', 'cases.client_id')
 			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
+			->leftjoin('configs', 'configs.id', 'activities.data_src_id')
 		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
@@ -226,6 +231,7 @@ class ActivityController extends Controller {
 			'activity_finance_statuses.name as finance_status',
 			'activity_portal_statuses.name as status',
 			'activity_statuses.name as activity_status',
+			'configs.name as source',
 			'clients.name as client',
 			'call_centers.name as call_center'
 		)
@@ -235,6 +241,7 @@ class ActivityController extends Controller {
 			->leftjoin('clients', 'clients.id', 'cases.client_id')
 			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
+			->leftjoin('configs', 'configs.id', 'activities.data_src_id')
 		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
@@ -315,6 +322,7 @@ class ActivityController extends Controller {
 			DB::raw('DATE_FORMAT(activities.created_at,"%d-%m-%Y %H:%i:%s") as activity_date'),
 			//DB::raw('DATE_FORMAT(asps.asp_reached_date,"%d-%m-%Y %H:%i:%s") as asp_r_date'),
 			'cases.number',
+			'cases.customer_name as customer_name',
 			'activities.number as activity_number',
 			'activities.asp_po_accepted as asp_po_accepted',
 			'activities.deduction_reason as deduction_reason',
@@ -337,15 +345,28 @@ class ActivityController extends Controller {
 			'call_centers.name as call_center',
 			'asp_po_rejected_reason',
 			'activities.description as description',
-			DB::raw('IF(activities.remarks IS NULL,"activities.remarks","-") as remarks'),
+			DB::raw('IF(activities.remarks IS NULL,"-",activities.remarks) as remarks'),
 			//'activities.remarks as remarks',
 			'cases.*',
-			DB::raw('IF(Invoices.invoice_no IS NULL,"-","Invoices.invoice_no") as invoice_no'),
+			DB::raw('CASE
+				    	WHEN (Invoices.invoice_no IS NOT NULL)
+			    		THEN 
+			    			CASE
+			    				WHEN (asps.is_auto_invoice = 1)
+			   					THEN 
+			    					CONCAT(Invoices.invoice_no,"-",Invoices.id)
+			    				ELSE 
+			    					Invoices.invoice_no
+			    			END
+			    		ELSE
+			    			"-"
+					END as invoice_no'),
 			//DB::RAW('invoices.invoice_no) as invoice_no',
 			DB::raw('IF(Invoices.invoice_amount IS NULL,"-",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
+			DB::raw('IF((asps.has_gst =1 && asps.is_auto_invoice=0),"NO","Yes") as auto_invoice'),
 			DB::raw('IF(Invoices.invoice_amount IS NULL,"-",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
 			DB::raw('IF(Invoices.flow_current_status IS NULL,"-",Invoices.flow_current_status) as flow_current_status'),
-			DB::raw('IF(Invoices.start_date IS NULL,"-",DATE_FORMAT(Invoices.start_date,"%d-%m-%Y %H:%i:%s")) as invoice_date'),
+			DB::raw('IF(Invoices.start_date IS NULL,"-",DATE_FORMAT(Invoices.start_date,"%d-%m-%Y")) as invoice_date'),
 			'activity_finance_statuses.po_eligibility_type_id',
 			'activities.finance_status_id'
 		)
@@ -601,7 +622,7 @@ class ActivityController extends Controller {
 		]);
 
 		if ($validator->fails()) {
-			$response = ['success' => false, 'errors' => ["Case number is required"]];
+			$response = ['success' => false, 'errors' => ["Ticket number is required"]];
 			return response()->json($response);
 		}
 
@@ -612,20 +633,21 @@ class ActivityController extends Controller {
 
 		//FOR CHANGE REQUEST BY TVS TEAM DATE GIVEN IN STATIC
 		// $threeMonthsBefore = "2019-04-01";
-
-		$case = RsaCase::where([
-			['number', $number],
-		])->first();
+		$asp = Asp::where('id', Auth::user()->asp->id)->first();
+		$case = RsaCase::where(function ($q) use ($number) {
+			$q->where('number', $number)
+				->orWhere('vehicle_registration_number', $number);
+		})->first();
 
 		if (!$case) {
-			$response = ['success' => false, 'errors' => ["Case not found"]];
+			$response = ['success' => false, 'errors' => ["Ticket not found"]];
 			return response()->json($response);
 		} else {
 			$case_with_closed_status = RsaCase::where('number', $number)
 				->where('status_id', 4) //CLOSED
 				->first();
 			if (!$case_with_closed_status) {
-				$response = ['success' => false, 'errors' => ["Case is not closed"]];
+				$response = ['success' => false, 'errors' => ["Ticket is not closed"]];
 				return response()->json($response);
 			}
 
@@ -634,21 +656,31 @@ class ActivityController extends Controller {
 				$response = ['success' => false, 'errors' => ["Please contact administrator."]];
 				return response()->json($response);
 			} else {
-				$activity = Activity::join('cases', 'cases.id', 'activities.case_id')
+				$activity_asp = Activity::join('cases', 'cases.id', 'activities.case_id')
 					->where([
 						['activities.asp_id', Auth::user()->asp->id],
-						// ['activities.status_id', 2],
 						['activities.case_id', $case->id],
 					])
-					->whereIn('activities.status_id', [2, 4])
-					->select('activities.id as id')
 					->first();
-
-				if (!$activity) {
-					$response = ['success' => false, 'errors' => ["Activity Not Found"]];
-					return response()->json($response);
+				if ($activity_asp) {
+					$activity = Activity::join('cases', 'cases.id', 'activities.case_id')
+						->where([
+							['activities.asp_id', Auth::user()->asp->id],
+							// ['activities.status_id', 2],
+							['activities.case_id', $case->id],
+						])
+						->whereIn('activities.status_id', [2, 4])
+						->select('activities.id as id')
+						->first();
+					if (!$activity) {
+						$response = ['success' => false, 'errors' => ["Activity Not Found"]];
+						return response()->json($response);
+					} else {
+						$response = ['success' => true, 'activity_id' => $activity->id];
+						return response()->json($response);
+					}
 				} else {
-					$response = ['success' => true, 'activity_id' => $activity->id];
+					$response = ['success' => false, 'errors' => ["Ticket is not attended by " . Auth::user()->asp->asp_code . " as per CRM"]];
 					return response()->json($response);
 				}
 			}
@@ -769,8 +801,8 @@ class ActivityController extends Controller {
 				}
 			}
 
-			//checking ASP KMs exceed 40 KMs
-			if ($asp_km > 40) {
+			//checking ASP KMs exceed ASP service type range limit
+			if ($asp_km > $range_limit) {
 				$is_bulk = false;
 
 			}
@@ -950,7 +982,7 @@ class ActivityController extends Controller {
 
 		return Datatables::of($activities)
 			->addColumn('action', function ($activity) {
-				$action = '<div class="dataTable-actions">
+				$action = '<div class="dataTable-actions ">
 				<a href="#!/rsa-case-pkg/deferred-activity/update/' . $activity->id . '">
 					                <i class="fa fa-pencil dataTable-icon--edit" aria-hidden="true"></i>
 					            </a></div>';
@@ -1212,7 +1244,10 @@ class ActivityController extends Controller {
 				$max_id = Invoices::selectRaw("Max(id) as id")->first();
 				if (!empty($max_id)) {
 					$ids = $max_id->id + 1;
-					$filename = "Invoice" . $ids . "." . $extension;} else { $filename = "Invoice1" . "." . $extension;}
+					$filename = "Invoice" . $ids . "." . $extension;
+				} else {
+					$filename = "Invoice1" . "." . $extension;
+				}
 				$status = $request->file("filename")->storeAs($destination, $filename);
 				$value = $filename;
 			}
@@ -1250,7 +1285,7 @@ class ActivityController extends Controller {
 			}
 
 			//SELF INVOICE
-			if (!$asp->is_auto_invoice) {
+			if ($asp->has_gst && !$asp->is_auto_invoice) {
 				if (!$request->invoice_no) {
 					return response()->json([
 						'success' => false,
@@ -1306,6 +1341,19 @@ class ActivityController extends Controller {
 
 	public function exportActivities(Request $request) {
 		//dd($request->all());
+		$error_messages = [
+			'status_ids.required' => "Please Select Activity Status",
+		];
+
+		$validator = Validator::make($request->all(), [
+			'status_ids' => [
+				'required:true',
+			],
+		], $error_messages);
+
+		if (empty($request->status_ids)) {
+			return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['errors' => $validator->errors()->all()]);
+		}
 		ini_set('max_execution_time', 0);
 		ini_set('display_errors', 1);
 		ini_set("memory_limit", "10000M");
@@ -1315,36 +1363,21 @@ class ActivityController extends Controller {
 		$range1 = date("Y-m-d", strtotime($date[0]));
 		$range2 = date("Y-m-d", strtotime($date[1]));
 
-		if (empty($request->status_ids)) {
-			return redirect()->back()->with(['success' => false, 'errors' => 'Please Select Activity Status']);
-
-			/*return response()->json([
-					'success' => false,
-					'errors' => ['Please Select Activity Status'],
-				]);*/
-		}
 		$status_ids = trim($request->status_ids, '""');
 		$status_ids = explode(',', $status_ids);
-		//dump($request->status_ids,count($status_ids));
 		$activities = Activity::whereIn('status_id', $status_ids)
 			->whereDate('created_at', '>=', $range1)
 			->whereDate('created_at', '<=', $range2)
 		;
-		//dd($request->all());
 
 		$total_count = $activities->count('id');
 		if ($total_count == 0) {
-			return redirect()->back()->with(['success' => false, 'errors' => 'Please Select Activity Status']);
-
-			/*return response()->json([
-					'success' => false,
-					'errors' => ['No activities found for given period & statuses'],
-				]);*/
+			return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['errors' => ['No activities found for given period & statuses']]);
 		}
 		foreach ($status_ids as $key => $status_id) {
-			# code...
 			$count_splitup[] = Activity::rightJoin('activity_portal_statuses', 'activities.status_id', 'activity_portal_statuses.id')
 				->select(DB::raw('COUNT(activities.id) as activity_count'), 'activity_portal_statuses.id', 'activity_portal_statuses.name')
+
 				->where('activity_portal_statuses.id', $status_id)
 				->whereDate('activities.created_at', '>=', $range1)
 				->whereDate('activities.created_at', '<=', $range2)
@@ -1352,25 +1385,28 @@ class ActivityController extends Controller {
 				->first();
 		}
 
-		//dd($count_splitup);
 		$selected_statuses = $status_ids;
-		//dd($selected_statuses);
 		$summary_period = ['Period', date('d/M/Y', strtotime($range1)) . ' to ' . date('d/M/Y', strtotime($range2))];
 		$summary[] = ['Status', 'Count'];
 
 		foreach ($count_splitup as $status_data) {
 			$summary[] = [$status_data['name'], $status_data['activity_count']];
 		}
-		//dd('ss',$summary);
 		$summary[] = ['Total', $total_count];
 		$activity_details_header = [
 			'Case Number',
 			'Case Date',
 			'Activity Number',
 			'Activity Date',
+			'Customer Name',
+			'Customer Contact Number',
 			'ASP Name',
 			'ASP Code',
+			'ASP Contact Number',
+			'ASP EMail',
 			'ASP has GST',
+			'ASP Type',
+			'Auto Invoice',
 			'Workshop Name',
 			'Location',
 			'District',
@@ -1379,18 +1415,27 @@ class ActivityController extends Controller {
 			'Vehicle Model',
 			'Vehicle Make',
 			'Case Status',
-			'ASP Status',
+			'Finance Status',
 			'ASP Service Type',
 			'ASP Activity Rejected Reason',
 			'ASP PO Accepted',
+			'ASP PO Rejected Reason',
 			'Portal Status',
 			'Activity Status',
 			'Activity Description',
 			'Remarks',
+			'Invoice Number',
+			'Invoice Date',
+			'Invoice Amount',
+			'Invoice Status',
+			'Payment Date',
+			'Payment Mode',
+			'Paid Amount',
 		];
 		$configs = Config::where('entity_type_id', 23)->pluck('id')->toArray();
-		$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 179, 182, 171, 175, 181];
+		$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 179, 176, 172, 173, 182, 171, 175, 181];
 		$config_ids = array_merge($configs, $key_list);
+		//dd($config_ids);
 		foreach ($config_ids as $key => $config_id) {
 			$config = Config::where('id', $config_id)->first();
 			$activity_details_header[] = str_replace("_", " ", strtolower($config->name));
@@ -1398,16 +1443,22 @@ class ActivityController extends Controller {
 		$activity_details_data = [];
 		//dd($activities);
 		//$activity_details_header = array_merge($activity_details_header, $activity_details_sub_header);
-
+		//dd($activity->asp->has_gst);
 		foreach ($activities->get() as $activity_key => $activity) {
 			$activity_details_data[] = [
 				$activity->case->number,
-				date('d-m-Y', strtotime($activity->case->date)),
+				date('d-m-Y H:i:s', strtotime($activity->case->date)),
 				$activity->number,
-				date('d-m-Y', strtotime($activity->created_at)),
+				date('d-m-Y H:i:s', strtotime($activity->created_at)),
+				$activity->case->customer_name,
+				$activity->case->customer_contact_number,
 				$activity->asp->name,
 				$activity->asp->axpta_code,
+				$activity->asp->contact_number1,
+				$activity->asp->email,
 				$activity->asp->has_gst ? 'Yes' : 'No',
+				$activity->asp->is_self == 1 ? 'Self' : 'Non Self',
+				$activity->asp->is_auto_invoice == 1 ? 'Yes' : 'No',
 				$activity->asp->workshop_name,
 				$activity->asp->location->name,
 				$activity->asp->district->name,
@@ -1419,11 +1470,19 @@ class ActivityController extends Controller {
 				$activity->financeStatus->name,
 				$activity->serviceType->name,
 				$activity->aspActivityRejectedReason ? $activity->aspActivityRejectedReason->name : '',
-				$activity->asp_po_accepted == 1 ? "Yes" : "No",
+				$activity->asp_po_accepted != NULL ? ($activity->asp_po_accepted == 1 ? 'Yes' : 'No') : '',
+				$activity->aspPoRejectedReason ? $activity->aspPoRejectedReason->name : '',
 				$activity->status ? $activity->status->name : '',
 				$activity->activityStatus ? $activity->activityStatus->name : '',
-				$activity->description,
-				$activity->remarks,
+				$activity->description != NULL ? $activity->description : '',
+				$activity->remarks != NULL ? $activity->remarks : '',
+				$activity->invoice ? ($activity->asp->is_auto_invoice == 1 ? ($activity->invoice->invoice_no . '-' . $activity->invoice->id) : $activity->invoice->invoice_no) : '',
+				$activity->invoice ? date('d-m-Y', strtotime($activity->invoice->start_date)) : '',
+				$activity->invoice ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice->invoice_amount, 2))) : '',
+				$activity->invoice ? ($activity->invoice->invoiceStatus ? $activity->invoice->invoiceStatus->name : '') : '',
+				'',
+				'',
+				'',
 			];
 			foreach ($config_ids as $config_key => $config_id) {
 				$config = Config::where('id', $config_id)->first();
@@ -1479,7 +1538,7 @@ class ActivityController extends Controller {
 			$excel->sheet('Activity Informations', function ($sheet) use ($activity_details_header, $activity_details_data) {
 				$sheet->fromArray($activity_details_data, NULL, 'A1');
 				$sheet->row(1, $activity_details_header);
-				$sheet->cells('A1:BV1', function ($cells) {
+				$sheet->cells('A1:CH1', function ($cells) {
 					$cells->setFont(array(
 						'size' => '10',
 						'bold' => true,

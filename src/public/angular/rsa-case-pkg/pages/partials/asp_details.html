@@ -5,10 +5,10 @@
                 <h2 class="viewData-toggle--title pull-left">
                     Case Details
                 </h2>
-                <span class="viewData-toggle--btn pull-right " id="viewData-toggle--btn1"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+                <span class="viewData-toggle--btn pull-right" id="viewData-toggle--btn1"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
                 <div class="clearfix"></div>
                 <ul>
-                    <li>Case # : <span>{{$ctrl.data.number}}</span></li>
+                    <li>Case Number : <span>{{$ctrl.data.number}}</span></li>
                     <li>Case Status : <span>{{$ctrl.data.case_status}}</span></li>
                     <li>Case Date : <span>{{$ctrl.data.case_date}}</span></li>
                     <li>
@@ -19,14 +19,14 @@
                     </li>
                 </ul>
                 <div class="clearfix"></div>
-                <div class="viewData-threeColumn--wrapper viewData-threeColumn--wrapper1">
+                <div class="viewData-threeColumn--wrapper viewData-threeColumn--wrapper1" id="viewData-threeColumn--wrapper1">
                     <div class="row">
                         <div class="col-xs-12 col-sm-4">
                             <ul class="viewData-threeColumn--group">
-                                <li><img src="{{ $ctrl.data.style_location_image_url}}"></li>
+                                <li><img src="{{ $ctrl.data.style_profile_image_url}}"></li>
                                 <li>
                                     <p>
-                                        Customer Name : <br /> {{$ctrl.data.case_date}}
+                                        Customer Name : <br /> {{$ctrl.data.customer_name}}
                                     </p>
                                 </li>
                             </ul>
@@ -63,11 +63,11 @@
 </div>
 <br />
 <div class="viewData-toggle--wrapper">
-    <div class="viewData-toggle--inner">
+    <div class="viewData-toggle--inner mt-30">
         <h2 class="viewData-toggle--title pull-left">
             ASP Details
         </h2>
-        <span class="viewData-toggle--btn pull-right"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+        <span class="viewData-toggle--btn pull-right" id= "viewData-toggle--btnasp"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
         <div class="clearfix"></div>
         <ul>
             <li>ASP Code : <span>{{$ctrl.data.asp.asp_code}}</span></li>
@@ -81,13 +81,12 @@
                 <span ng-show="$ctrl.data.asp.has_gst">Yes</span>
                 <span ng-show="!($ctrl.data.asp.has_gst)">No</span>
             </li>
-            <li ng-show="$ctrl.data.asp.has_gst && $ctrl.data.asp.is_self">Auto Invoice :
-                <span ng-show="$ctrl.data.asp.is_auto_invoice">Yes</span>
-                <span ng-show="!($ctrl.data.asp.is_auto_invoice)">No</span>
+            <li>Auto Invoice :
+                <span>{{$ctrl.data.auto_invoice}}</span>
             </li>
         </ul>
         <div class="clearfix"></div>
-        <div class="viewData-threeColumn--wrapper">
+        <div class="viewData-threeColumn--wrapper" id="viewData-threeColumn--wrapperasp">
             <div class="row">
                 <div class="col-xs-12 col-sm-4">
                     <ul class="viewData-threeColumn--group">

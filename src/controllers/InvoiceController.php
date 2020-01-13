@@ -25,7 +25,7 @@ class InvoiceController extends Controller {
 
 	public function getFilterData($type_id) {
 		if ($type_id == 1) {
-			$title = 'Unpaid Invoices';
+			$title = 'Waiting for Finance Process';
 		} elseif ($type_id == 2) {
 			$title = 'Payment Inprogress';
 		} elseif ($type_id == 3) {
@@ -56,6 +56,7 @@ class InvoiceController extends Controller {
 			->join('users', 'users.id', 'asps.user_id')
 			->join('activities', 'activities.invoice_id', '=', 'Invoices.id')
 			->join('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
+			->orderBy('Invoices.created_at', 'desc')
 			->groupBy('Invoices.id')
 		;
 
@@ -153,7 +154,7 @@ class InvoiceController extends Controller {
 		}
 
 		if ($type_id == 1) {
-			$title = 'Unpaid Invoice';
+			$title = 'Waiting for Finance Process';
 		} elseif ($type_id == 2) {
 			$title = 'Payment Inprogress';
 		} elseif ($type_id == 3) {

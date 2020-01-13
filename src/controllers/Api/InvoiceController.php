@@ -8,6 +8,7 @@ use App\Invoices;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use URL;
 use Validator;
 
@@ -22,7 +23,7 @@ class InvoiceController extends Controller {
 				'asp_code' => 'required|string|exists:asps,asp_code',
 				'invoice_number' => 'nullable|string',
 				'invoice_date' => 'nullable|string|date_format:"Y-m-d"',
-				'invoice_copy' => 'nullable',
+				'invoice_copy' => 'nullable|image',
 			]);
 			if ($validator->fails()) {
 				return response()->json([
@@ -88,7 +89,7 @@ class InvoiceController extends Controller {
 			}
 
 			//SELF INVOICE
-			if (!$asp->is_auto_invoice) {
+			if ($asp->has_gst && !$asp->is_auto_invoice) {
 				if (!$request->invoice_number) {
 					return response()->json([
 						'success' => false,
@@ -103,13 +104,13 @@ class InvoiceController extends Controller {
 						'errors' => 'Invoice date is required',
 					], $this->successStatus);
 				}
-				if (!$request->invoice_copy) {
-					return response()->json([
-						'success' => false,
-						'message' => 'Validation Error',
-						'errors' => 'Invoice copy is required',
-					], $this->successStatus);
-				}
+				// if (!$request->invoice_copy) {
+				// 	return response()->json([
+				// 		'success' => false,
+				// 		'message' => 'Validation Error',
+				// 		'errors' => 'Invoice copy is required',
+				// 	], $this->successStatus);
+				// }
 
 				//CHECK INVOICE NUMBER EXIST
 				$is_invoice_no_exist = Invoices::where('invoice_no', $request->invoice_number)->first();
@@ -131,8 +132,27 @@ class InvoiceController extends Controller {
 				$invoice_date = new Carbon();
 			}
 
+			//STORE ATTACHMENT
+			$value = "";
+			if ($request->hasFile("invoice_copy")) {
+				$destination = aspInvoiceAttachmentPath();
+				$status = Storage::makeDirectory($destination, 0777);
+				$extension = $request->file("invoice_copy")->getClientOriginalExtension();
+				$max_id = Invoices::selectRaw("Max(id) as id")->first();
+
+				if (!empty($max_id)) {
+					$ids = $max_id->id + 1;
+					$filename = "Invoice" . $ids . "." . $extension;
+				} else {
+					$filename = "Invoice1" . "." . $extension;
+				}
+				$status = $request->file("invoice_copy")->storeAs($destination, $filename);
+				$value = $filename;
+			}
+
 			//CREATE INVOICE
-			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $invoice_date);
+			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $invoice_date, $value);
+
 			if (!$invoice_c['success']) {
 				return response()->json([
 					'success' => false,

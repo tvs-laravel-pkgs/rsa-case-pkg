@@ -414,6 +414,8 @@ app.component('billingDetails', {
             self.data.bo_net_amount = self.data.bo_amount = total;
         }
         $scope.calculate = function() {
+        console.log(self.data);
+
             if(self.data.finance_status.po_eligibility_type_id==341){
                  below_amount = self.data.raw_bo_km_travelled == 0 ?  0 : self.data.asp_service_type_data.empty_return_range_price;
             }else{
@@ -430,11 +432,14 @@ app.component('billingDetails', {
             }
             amount_wo_deduction = parseFloat(below_amount)+parseFloat(above_amount);
             adjustment = 0;
-            if(self.data.asp_service_type_data.adjustment_type ==2){
-                adjustment = parseFloat(self.data.asp_service_type_data.adjustment);
-            }else if(self.data.asp_service_type_data.adjustment_type ==1){
-                adjustment = parseFloat(parseFloat(amount_wo_deduction) * (parseFloat(self.data.asp_service_type_data.adjustment) /100));
+            if(self.data.asp.app_user){
+                if(self.data.asp_service_type_data.adjustment_type ==2){
+                    adjustment = parseFloat(self.data.asp_service_type_data.adjustment);
+                }else if(self.data.asp_service_type_data.adjustment_type ==1){
+                    adjustment = parseFloat(parseFloat(amount_wo_deduction) * (parseFloat(self.data.asp_service_type_data.adjustment) /100));
+                }
             }
+            
             amount = parseFloat(amount_wo_deduction) + parseFloat(adjustment);
             self.data.bo_deduction = parseFloat(adjustment);
             self.data.bo_po_amount = amount;

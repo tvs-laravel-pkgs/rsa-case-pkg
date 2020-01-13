@@ -63,7 +63,7 @@
                                                 <input type="hidden" name="finance_status_id" value="" id="finance_status_id">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.status_id" ng-change="changeCommonFilter($ctrl.status_id,'status_id')" placeholder="Select Status">
+                                                <md-select ng-model="$ctrl.status_id" ng-change="changeCommonFilter($ctrl.status_id,'status_id')" placeholder="Select Portal Status">
                                                     <md-option ng-repeat="val in $ctrl.extras.status_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="status_id" value="" id="status_id">
@@ -103,6 +103,7 @@
                             <th>Case Number</th>
                             <th>ASP Code</th>
                             <th>CRM Activity ID</th>
+                            <th>Source</th>
                             <!-- <th>Activity Number</th> -->
                             <th>Service</th>
                             <!-- <th>ASP Status</th> -->
@@ -140,9 +141,6 @@
                                             <div class="input-text form-group">
                                                 <label>Period<sup class="req" style="color:red">*</sup></label>
                                                 <input class="form-control customForm-input" autocomplete="off" name="period" type="text" value='' ng-model="$ctrl.period" ng-required="true">
-                                                <div ng-show="export_excel_form.$submitted || export_excel_form.period.$touched">
-                                                    <span style="color:red" ng-show="export_excel_form.period.$error.required">Period is required.</span>
-                                                </div>
                                             </div><!-- Field -->
                                         </div><!-- Column -->
                                         <div class="col-sm-6">
@@ -158,21 +156,13 @@
                                                     </md-optgroup>
                                                 </md-select>
                                                 <input type="hidden" name="status_ids" value="{{$ctrl.status_ids}}" />
-                                                <div ng-show="export_excel_form.$submitted || export_excel_form.status_ids.$touched">
-                                                    <span style="color:red" ng-show="export_excel_form.status_ids.$error.required">Activity Status is required.</span>
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="alert alert-danger">Sometimes Export may take few miniutes to export large amount of data. So please be patience.</div>
+                                    <div class="approvalModal-btns">
+                                        <button type="submit" class="differed-btn blue approve-btn">Export</button>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="approvalModal-btns">
-                        <button type="submit" class="differed-btn blue approve-btn" ng-disabled="export_excel_form.status_ids.$invalid || export_excel_form.period.$invalid">Export</button>
-                    </div>
-                </div>
             </form>
         </div>
     </div>

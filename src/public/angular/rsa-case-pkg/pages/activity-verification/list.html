@@ -142,7 +142,7 @@
                                                 <input type="hidden" name="finance_status_id" value="" id="finance_status_id">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.above_status_id" ng-change="changeCommonFilterAbove($ctrl.above_status_id,'status_id')" placeholder="Select Status">
+                                                <md-select ng-model="$ctrl.above_status_id" ng-change="changeCommonFilterAbove($ctrl.above_status_id,'status_id')" placeholder="Select Portal Status">
                                                     <md-option ng-repeat="val in $ctrl.extras.status_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="status_id" value="" id="status_id">
@@ -186,6 +186,7 @@
                                             <th>Case Number</th>
                                             <th>ASP Code</th>
                                             <th>CRM Activity ID</th>
+                                            <th>Source</th>
                                             <!-- <th>Activity Number</th> -->
                                             <th>Service</th>
                                             <!-- <th>ASP Status</th> -->
@@ -208,6 +209,7 @@
                                         <th>Case Number</th>
                                         <th>ASP Code</th>
                                         <th>CRM Activity ID</th>
+                                        <th>Source</th>
                                         <!-- <th>Activity Number</th> -->
                                         <th>Service</th>
                                         <!-- <th>ASP Status</th> -->

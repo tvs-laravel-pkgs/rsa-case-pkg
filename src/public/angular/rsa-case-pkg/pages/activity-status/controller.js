@@ -22,6 +22,7 @@ app.component('activityStatusList', {
                 { data: 'number', name: 'cases.number', searchable: true },
                 { data: 'asp_code', name: 'asps.asp_code', searchable: true },
                 { data: 'crm_activity_id', searchable: false },
+                { data: 'source', name: 'configs.name', searchable: true },
                 // { data: 'activity_number', name: 'activities.number', searchable: true },
                 { data: 'sub_service', name: 'service_types.name', searchable: true },
                 { data: 'finance_status', name: 'activity_finance_statuses.name', searchable: true },
@@ -172,24 +173,24 @@ app.component('activityStatusList', {
             }
             $("form[name='export_excel_form']").validate({
                 rules: {
-                  status_ids: {
-                    required: true,
-                  },
-                  period: {
-                    required: true,
-                  }
+                    status_ids: {
+                        required: true,
+                    },
+                    period: {
+                        required: true,
+                    }
                 },
                 messages: {
-                  period: "Please Select Period",
-                  status_ids: "Please Select Activity Status",
+                    period: "Please Select Period",
+                    status_ids: "Please Select Activity Status",
                 },
-               
+
                 submitHandler: function(form) {
-                  form.submit();
+                    form.submit();
                 }
-              });
-            
-        });       
+            });
+
+        });
 
     }
 });

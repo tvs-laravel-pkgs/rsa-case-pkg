@@ -23,7 +23,7 @@ class InvoiceController extends Controller {
 				'asp_code' => 'required|string|exists:asps,asp_code',
 				'invoice_number' => 'nullable|string',
 				'invoice_date' => 'nullable|string|date_format:"Y-m-d"',
-				'invoice_copy' => 'nullable',
+				'invoice_copy' => 'nullable|image',
 			]);
 			if ($validator->fails()) {
 				return response()->json([
@@ -89,7 +89,7 @@ class InvoiceController extends Controller {
 			}
 
 			//SELF INVOICE
-			if (!$asp->is_auto_invoice) {
+			if ($asp->has_gst && !$asp->is_auto_invoice) {
 				if (!$request->invoice_number) {
 					return response()->json([
 						'success' => false,
@@ -104,13 +104,13 @@ class InvoiceController extends Controller {
 						'errors' => 'Invoice date is required',
 					], $this->successStatus);
 				}
-				if (!$request->invoice_copy) {
-					return response()->json([
-						'success' => false,
-						'message' => 'Validation Error',
-						'errors' => 'Invoice copy is required',
-					], $this->successStatus);
-				}
+				// if (!$request->invoice_copy) {
+				// 	return response()->json([
+				// 		'success' => false,
+				// 		'message' => 'Validation Error',
+				// 		'errors' => 'Invoice copy is required',
+				// 	], $this->successStatus);
+				// }
 
 				//CHECK INVOICE NUMBER EXIST
 				$is_invoice_no_exist = Invoices::where('invoice_no', $request->invoice_number)->first();

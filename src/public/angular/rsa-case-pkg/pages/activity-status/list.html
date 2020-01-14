@@ -21,6 +21,11 @@
                     <div class="dataTable-top--right_wrapper">
                         <ul class="dataTable-top--right_group list-inline">
                             <!-- <div class="float-right"> -->
+                            <li ng-if="$ctrl.canImportActivity">
+                                <a href="#!/import-cron-job-pkg/import-job/form/1" class="btn btn-md">
+                                    Import
+                                </a>
+                            </li>
                             <li ng-if="$ctrl.canExportActivity"> <button class="btn btn-md preview-batch export" data-toggle="modal" data-target="#asp_excel_export">Export</button></li>
                             <!-- </div> -->
                             <!-- <li><a href="javascript:void(0)" class="btn btn-md" ng-click="">Export</a></li> -->

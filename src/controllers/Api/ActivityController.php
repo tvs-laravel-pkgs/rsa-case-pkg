@@ -355,7 +355,7 @@ class ActivityController extends Controller {
 				->join('cases', 'cases.id', 'activities.case_id')
 				->leftJoin('activity_details as bo_km_charge', function ($join) {
 					$join->on('bo_km_charge.activity_id', 'activities.id')
-						->where('bo_km_charge.key_id', 152); //BO KM Charge
+						->where('bo_km_charge.key_id', 172); //BO KM Charge OR PAYOUT AMOUNT
 				})
 				->leftJoin('activity_details as bo_not_collected_amount', function ($join) {
 					$join->on('bo_not_collected_amount.activity_id', 'activities.id')

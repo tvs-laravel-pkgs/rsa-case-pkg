@@ -29,6 +29,7 @@ use DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Validation\Rule;
+use PHPExcel_Style_NumberFormat;
 use Validator;
 
 class Activity extends Model {
@@ -447,11 +448,13 @@ class Activity extends Model {
 	}
 
 	public static function importFromExcel($job) {
+		DB::beginTransaction();
 		try {
 			$response = ImportCronJob::getRecordsFromExcel($job, 'BN');
 			$rows = $response['rows'];
 			$header = $response['header'];
 			$all_error_records = [];
+			$updated_count = 0;
 			foreach ($rows as $k => $row) {
 				$record = [];
 				foreach ($header as $key => $column) {
@@ -467,7 +470,6 @@ class Activity extends Model {
 				$status['errors'] = [];
 				// dd($record);
 				$save_eligible = true;
-				DB::beginTransaction();
 
 				$validator = Validator::make($record, [
 					//CASE
@@ -482,7 +484,7 @@ class Activity extends Model {
 					'customer_name' => 'required|string|max:128',
 					// 'customer_contact_number' => 'required|numeric|min:10|max:10',
 					'contact_name' => 'nullable|string|max:128',
-					'contact_number' => 'nullable|numeric|min:10|max:10',
+					// 'contact_number' => 'nullable|numeric|min:10|max:10',
 					'vehicle_make' => 'required|string|max:191|exists:vehicle_makes,name',
 					'vehicle_model' => 'nullable|string|max:191|exists:vehicle_models,name',
 					'vehicle_registration_number' => 'required|string|max:191',
@@ -497,7 +499,7 @@ class Activity extends Model {
 					'bd_city' => 'nullable|string|max:128',
 					'bd_state' => 'nullable|string|max:50|exists:states,name',
 					//ACTIVITY
-					'crm_activity_id' => 'required|numeric|unique:activities',
+					'crm_activity_id' => 'required|numeric',
 					'asp_code' => 'required|string|max:24|exists:asps,asp_code',
 					'sub_service' => 'required|string|max:50|exists:service_types,name',
 					'asp_accepted_cc_details' => 'required|numeric',
@@ -519,7 +521,7 @@ class Activity extends Model {
 					'cc_total_km' => 'nullable|numeric',
 					'activity_description' => 'nullable|string|max:255',
 					'activity_remarks' => 'nullable|string|max:255',
-					// 'asp_reached_date' => 'nullable|date_format:"Y-m-d H:i:s"',
+					'asp_reached_date' => 'nullable',
 					'asp_start_location' => 'nullable|string|max:256',
 					'asp_end_location' => 'nullable|string|max:256',
 					'onward_google_km' => 'nullable|numeric',
@@ -622,6 +624,8 @@ class Activity extends Model {
 						$status['errors'][] = 'Case should not start with cancelled or closed status';
 						$save_eligible = false;
 					}
+				} else {
+					// $updated_count++;
 				}
 				//CASE VALIDATION END
 
@@ -695,10 +699,17 @@ class Activity extends Model {
 				//SAVE CASE AND ACTIVITY
 				if ($save_eligible) {
 
+					$case_date = PHPExcel_Style_NumberFormat::toFormattedString($record['case_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
+					$case_date = date('Y-m-d H:i:s', strtotime($case_date));
+					$case_data_filled_date = PHPExcel_Style_NumberFormat::toFormattedString($record['case_data_filled_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
+					$case_data_filled_date = date('Y-m-d H:i:s', strtotime($case_data_filled_date));
+					$asp_reached_date = PHPExcel_Style_NumberFormat::toFormattedString($record['asp_reached_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
+					$record['asp_reached_date'] = date('Y-m-d H:i:s', strtotime($asp_reached_date));
+
 					$case->fill($record);
 					$case->number = $record['case_number'];
-					// $case->date = $record['case_date'];
-					// $case->data_filled_date = $record['case_data_filled_date'];
+					$case->date = $case_date;
+					$case->data_filled_date = $case_data_filled_date;
 					$case->description = $record['case_description'];
 					$case->status_id = $case_status->id;
 					$case->cancel_reason_id = $cancel_reason_id;
@@ -731,62 +742,65 @@ class Activity extends Model {
 							]);
 					}
 
-					$activity = new Activity([
-						'crm_activity_id' => $record['crm_activity_id'],
-					]);
-					$activity->fill($record);
+					$activity_exist = Activity::where('crm_activity_id', $record['crm_activity_id'])->first();
 
-					$activity->finance_status_id = $finance_status->id;
-
-					$activity->asp_id = $asp->id;
-					$activity->case_id = $case->id;
-					$activity->service_type_id = $service_type->id;
-					$activity->asp_activity_status_id = $asp_activity_status_id;
-					$activity->asp_activity_rejected_reason_id = $asp_activity_rejected_reason_id;
-					$activity->description = $record['activity_description'];
-					$activity->remarks = $record['activity_remarks'];
-
-					//ASP ACCEPTED CC DETAILS == 1 AND ACTIVITY STATUS SUCCESSFUL OLD
-					// if ($request->asp_accepted_cc_details && $activity_status_id == 7) {
-					//ASP ACCEPTED CC DETAILS == 1
-					if ($record['asp_accepted_cc_details']) {
-						//Invoice Amount Calculated - Waiting for Case Closure
-						$activity->status_id = 10;
-					} else {
-						//ASP Rejected CC Details - Waiting for ASP Data Entry
-						$activity->status_id = 2;
-					}
-					$activity->reason_for_asp_rejected_cc_details = $record['asp_rejected_cc_details_reason'];
-					$activity->activity_status_id = $activity_status_id;
-					$activity->data_src_id = 262; //BO MANUAL
-					$activity->save();
-					$activity->number = 'ACT' . $activity->id;
-					$activity->save();
-
-					if ($case->status_id == 3) {
-						//CANCELLED
-						$activity->update([
-							// Not Eligible for Payout
-							'status_id' => 15,
+					if (!$activity_exist) {
+						$activity = new Activity([
+							'crm_activity_id' => $record['crm_activity_id'],
 						]);
-					}
+						$activity->fill($record);
 
-					// CHECK CASE IS CLOSED
-					if ($case->status_id == 4) {
-						$activity->where([
-							// Invoice Amount Calculated - Waiting for Case Closure
-							'status_id' => 10,
-						])
-							->update([
-								// Case Closed - Waiting for ASP to Generate Invoice
-								'status_id' => 1,
+						$activity->finance_status_id = $finance_status->id;
+
+						$activity->asp_id = $asp->id;
+						$activity->case_id = $case->id;
+						$activity->service_type_id = $service_type->id;
+						$activity->asp_activity_status_id = $asp_activity_status_id;
+						$activity->asp_activity_rejected_reason_id = $asp_activity_rejected_reason_id;
+						$activity->description = $record['activity_description'];
+						$activity->remarks = $record['activity_remarks'];
+
+						//ASP ACCEPTED CC DETAILS == 1 AND ACTIVITY STATUS SUCCESSFUL OLD
+						// if ($request->asp_accepted_cc_details && $activity_status_id == 7) {
+						//ASP ACCEPTED CC DETAILS == 1
+						if ($record['asp_accepted_cc_details']) {
+							//Invoice Amount Calculated - Waiting for Case Closure
+							$activity->status_id = 10;
+						} else {
+							//ASP Rejected CC Details - Waiting for ASP Data Entry
+							$activity->status_id = 2;
+						}
+						$activity->reason_for_asp_rejected_cc_details = $record['asp_rejected_cc_details_reason'];
+						$activity->activity_status_id = $activity_status_id;
+						$activity->data_src_id = 262; //BO MANUAL
+						$activity->save();
+						$activity->number = 'ACT' . $activity->id;
+						$activity->save();
+
+						if ($case->status_id == 3) {
+							//CANCELLED
+							$activity->update([
+								// Not Eligible for Payout
+								'status_id' => 15,
 							]);
-					}
+						}
 
-					//SAVING ACTIVITY DETAILS
-					$activity_fields = Config::where('entity_type_id', 23)->get();
-					foreach ($activity_fields as $key => $activity_field) {
-						if (isset($record[$activity_field->name])) {
+						// CHECK CASE IS CLOSED
+						if ($case->status_id == 4) {
+							$activity->where([
+								// Invoice Amount Calculated - Waiting for Case Closure
+								'status_id' => 10,
+							])
+								->update([
+									// Case Closed - Waiting for ASP to Generate Invoice
+									'status_id' => 1,
+								]);
+						}
+
+						//SAVING ACTIVITY DETAILS
+						$activity_fields = Config::where('entity_type_id', 23)->get();
+						foreach ($activity_fields as $key => $activity_field) {
+							// if (isset($record[$activity_field->name])) {
 							$detail = ActivityDetail::firstOrNew([
 								'company_id' => 1,
 								'activity_id' => $activity->id,
@@ -794,27 +808,29 @@ class Activity extends Model {
 							]);
 							$detail->value = $record[$activity_field->name];
 							$detail->save();
+							// }
+						}
+
+						//CALCULATE PAYOUT ONLY IF FINANCE STATUS OF ACTIVITY IS ELIBLE FOR PO
+						if ($activity->financeStatus->po_eligibility_type_id == 342) {
+							//No Payout status
+							$activity->status_id = 15;
+							$activity->save();
+						} else {
+							$response = $activity->calculatePayoutAmount('CC');
+							if (!$response['success']) {
+								$status['errors'][] = $response['error'];
+							}
+						}
+
+						//MARKING AS OWN PATROL ACTIVITY
+						if ($activity->asp->workshop_type == 1) {
+							//Own Patrol Activity - Not Eligible for Payout
+							$activity->status_id = 16;
+							$activity->save();
 						}
 					}
 
-					//CALCULATE PAYOUT ONLY IF FINANCE STATUS OF ACTIVITY IS ELIBLE FOR PO
-					if ($activity->financeStatus->po_eligibility_type_id == 342) {
-						//No Payout status
-						$activity->status_id = 15;
-						$activity->save();
-					} else {
-						$response = $activity->calculatePayoutAmount('CC');
-						if (!$response['success']) {
-							$status['errors'][] = $response['error'];
-						}
-					}
-
-					//MARKING AS OWN PATROL ACTIVITY
-					if ($activity->asp->workshop_type == 1) {
-						//Own Patrol Activity - Not Eligible for Payout
-						$activity->status_id = 16;
-						$activity->save();
-					}
 				}
 
 				if (count($status['errors']) > 0) {
@@ -822,19 +838,27 @@ class Activity extends Model {
 					$original_record['Record No'] = $k + 1;
 					$original_record['Error Details'] = implode(',', $status['errors']);
 					$all_error_records[] = $original_record;
-					$job->incrementError();
+					// $job->incrementError();
+					$job->error_count++;
+					$job->processed_count++;
+					$job->remaining_count--;
 					continue;
 				}
 
 				//UPDATING PROGRESS FOR EVERY FIVE RECORDS
-				if (($k + 1) % 5 == 0) {
-					$job->save();
-				}
+				// if (($k + 1) % 5 == 0) {
+				$job->new_count++;
+				$job->processed_count++;
+				$job->remaining_count--;
+				$job->save();
+				// }
 
-				DB::commit();
 			} //COMPLETED or completed with errors
-
-			$job->status_id = $job->error_count == 0 ? 7202 : 7204;
+			$job->error_count;
+			$job->processed_count;
+			$job->remaining_count;
+			// $job->updated_count = $updated_count;
+			$job->status_id = $job->error_count == 0 ? 7202 : 7203;
 			$job->save();
 
 			ImportCronJob::generateImportReport([
@@ -842,10 +866,13 @@ class Activity extends Model {
 				'all_error_records' => $all_error_records,
 			]);
 
+			DB::commit();
+
 		} catch (\Exception $e) {
 			$job->status_id = 7203; //Error
 			$job->error_details = 'Error:' . $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(); //Error
 			$job->save();
+			DB::commit();
 			dump($job->error_details);
 		}
 	}

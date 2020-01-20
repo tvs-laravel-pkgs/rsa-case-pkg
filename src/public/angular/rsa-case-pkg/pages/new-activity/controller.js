@@ -251,7 +251,7 @@ app.component('newActivityUpdateDetails', {
             },
             messages: {
                 'km_travelled': {
-                    required: "Please Enter Kilo Meter Value",
+                    required: "Please Enter KM Travelled",
                 },
                 'km_tother_chargeravelled': {
                     required: "Please Enter Other Charge Value",

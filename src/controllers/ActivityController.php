@@ -34,6 +34,7 @@ class ActivityController extends Controller {
 			'call_center_list' => collect(CallCenter::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Call Center']),
 			'service_type_list' => collect(ServiceType::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Sub Service']),
 			'finance_status_list' => collect(ActivityFinanceStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Finance Status']),
+			'portal_status_list' => collect(ActivityPortalStatus::select('name', 'id')->where('company_id', 1)->get()),
 			'status_list' => collect(ActivityPortalStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Portal Status']),
 			'activity_status_list' => collect(ActivityStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Activity Status']),
 			'client_list' => collect(Client::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Client']),
@@ -320,16 +321,29 @@ class ActivityController extends Controller {
 			'activities.id as activity_id',
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			DB::raw('DATE_FORMAT(activities.created_at,"%d-%m-%Y %H:%i:%s") as activity_date'),
-			/*DB::raw('IF(deduction_reason IS NULL,"-",deduction_reason) as deduction_reason'),
-			DB::raw('IF(bo_comments IS NULL,"-",bo_comments) as bo_comments'),
-			DB::raw('IF(defer_reason IS NULL,"-",defer_reason) as defer_reason'),*/
+			DB::raw('IF(activities.deduction_reason IS NULL,"-",deduction_reason) as deduction_reason'),
+			DB::raw('IF(activities.bo_comments IS NULL,"-",bo_comments) as bo_comments'),
+			DB::raw('IF(activities.defer_reason IS NULL,"-",defer_reason) as defer_reason'),
 			'cases.number',
 			'cases.customer_name as customer_name',
 			'activities.number as activity_number',
 			'activities.asp_po_accepted as asp_po_accepted',
-			'activities.deduction_reason as deduction_reason',
 			'activities.defer_reason as defer_reason',
-			'activities.bo_comments as bo_comments',
+			'activities.is_exceptional_check as is_exceptional_check',
+			DB::raw('CASE
+				    	WHEN (activities.is_exceptional_check = 1)
+			    		THEN
+			    			CASE
+			    				WHEN (activities.exceptional_reason IS NULL)
+			   					THEN
+			    					"-"
+			    				ELSE
+			    					activities.exceptional_reason
+			    			END
+			    		ELSE
+			    			"-"
+					END as exceptional_reason'),
+			//'activities.bo_comments as bo_comments',
 			'cases.vehicle_registration_number',
 			'case_statuses.name as case_status',
 			'vehicle_models.name as vehicle_model',
@@ -353,12 +367,12 @@ class ActivityController extends Controller {
 			'cases.*',
 			DB::raw('CASE
 				    	WHEN (Invoices.invoice_no IS NOT NULL)
-			    		THEN 
+			    		THEN
 			    			CASE
 			    				WHEN (asps.is_auto_invoice = 1)
-			   					THEN 
+			   					THEN
 			    					CONCAT(Invoices.invoice_no,"-",Invoices.id)
-			    				ELSE 
+			    				ELSE
 			    					Invoices.invoice_no
 			    			END
 			    		ELSE
@@ -646,14 +660,27 @@ class ActivityController extends Controller {
 			$response = ['success' => false, 'errors' => ["Ticket not found"]];
 			return response()->json($response);
 		} else {
-			$case_with_closed_status = RsaCase::where('number', $number)
+			$case_with_cancelled_status = RsaCase::where(function ($q) use ($number) {
+				$q->where('number', $number)
+					->orWhere('vehicle_registration_number', $number);
+			})
+				->where('status_id', 3) //CANCELLED
+				->first();
+			if ($case_with_cancelled_status) {
+				$response = ['success' => false, 'errors' => ["Ticket is cancelled"]];
+				return response()->json($response);
+			}
+			$case_with_closed_status = RsaCase::where(function ($q) use ($number) {
+				$q->where('number', $number)
+					->orWhere('vehicle_registration_number', $number);
+			})
 				->where('status_id', 4) //CLOSED
 				->first();
+			//dd($case_with_closed_status);
 			if (!$case_with_closed_status) {
 				$response = ['success' => false, 'errors' => ["Ticket is not closed"]];
 				return response()->json($response);
 			}
-
 			$case_date = date('Y-m-d', strtotime($case->created_at));
 			if ($case_date < $threeMonthsBefore) {
 				$response = ['success' => false, 'errors' => ["Please contact administrator."]];
@@ -666,21 +693,33 @@ class ActivityController extends Controller {
 					])
 					->first();
 				if ($activity_asp) {
-					$activity = Activity::join('cases', 'cases.id', 'activities.case_id')
+					$activity_already_completed = Activity::join('cases', 'cases.id', 'activities.case_id')
 						->where([
 							['activities.asp_id', Auth::user()->asp->id],
-							// ['activities.status_id', 2],
 							['activities.case_id', $case->id],
 						])
-						->whereIn('activities.status_id', [2, 4])
-						->select('activities.id as id')
+						->whereIn('activities.status_id', [5, 6])
 						->first();
-					if (!$activity) {
-						$response = ['success' => false, 'errors' => ["Activity Not Found"]];
+					if ($activity_already_completed) {
+						$response = ['success' => false, 'errors' => ["Ticket already submitted."]];
 						return response()->json($response);
 					} else {
-						$response = ['success' => true, 'activity_id' => $activity->id];
-						return response()->json($response);
+						$activity = Activity::join('cases', 'cases.id', 'activities.case_id')
+							->where([
+								['activities.asp_id', Auth::user()->asp->id],
+								// ['activities.status_id', 2],
+								['activities.case_id', $case->id],
+							])
+							->whereIn('activities.status_id', [2, 4])
+							->select('activities.id as id')
+							->first();
+						if (!$activity) {
+							$response = ['success' => false, 'errors' => ["Activity Not Found"]];
+							return response()->json($response);
+						} else {
+							$response = ['success' => true, 'activity_id' => $activity->id];
+							return response()->json($response);
+						}
 					}
 				} else {
 					$response = ['success' => false, 'errors' => ["Ticket is not attended by " . Auth::user()->asp->asp_code . " as per CRM"]];
@@ -1372,6 +1411,13 @@ class ActivityController extends Controller {
 			->whereDate('created_at', '>=', $range1)
 			->whereDate('created_at', '<=', $range2)
 		;
+
+		if (!Entrust::can('view-all-activities')) {
+			if (Entrust::can('view-mapped-state-activities')) {
+				$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
+				$activities = $activities->whereIn('asps.state_id', $states);
+			}
+		}
 
 		$total_count = $activities->count('id');
 		if ($total_count == 0) {

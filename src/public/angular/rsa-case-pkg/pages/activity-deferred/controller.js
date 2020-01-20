@@ -156,6 +156,7 @@ app.component('deferredActivityUpdate', {
             self.range_limit = response.data.range_limit;
             self.km_attachment = response.data.km_attachment;
             self.other_attachment = response.data.other_attachment;
+            self.defer_reason = response.data.activity.defer_reason;
 
             self.kmTravelledHideShow();
             self.otherChargeHideShow();

@@ -646,14 +646,27 @@ class ActivityController extends Controller {
 			$response = ['success' => false, 'errors' => ["Ticket not found"]];
 			return response()->json($response);
 		} else {
-			$case_with_closed_status = RsaCase::where('number', $number)
+			$case_with_cancelled_status = RsaCase::where(function ($q) use ($number) {
+					$q->where('number', $number)
+						->orWhere('vehicle_registration_number', $number);
+				})
+				->where('status_id', 3) //CANCELLED
+				->first();
+			if ($case_with_cancelled_status) {
+				$response = ['success' => false, 'errors' => ["Ticket is cancelled"]];
+				return response()->json($response);
+			}
+			$case_with_closed_status = RsaCase::where(function ($q) use ($number) {
+					$q->where('number', $number)
+						->orWhere('vehicle_registration_number', $number);
+				})
 				->where('status_id', 4) //CLOSED
 				->first();
+			//dd($case_with_closed_status);
 			if (!$case_with_closed_status) {
 				$response = ['success' => false, 'errors' => ["Ticket is not closed"]];
 				return response()->json($response);
 			}
-
 			$case_date = date('Y-m-d', strtotime($case->created_at));
 			if ($case_date < $threeMonthsBefore) {
 				$response = ['success' => false, 'errors' => ["Please contact administrator."]];
@@ -666,21 +679,33 @@ class ActivityController extends Controller {
 					])
 					->first();
 				if ($activity_asp) {
-					$activity = Activity::join('cases', 'cases.id', 'activities.case_id')
+					$activity_already_completed = Activity::join('cases', 'cases.id', 'activities.case_id')
 						->where([
 							['activities.asp_id', Auth::user()->asp->id],
-							// ['activities.status_id', 2],
 							['activities.case_id', $case->id],
 						])
-						->whereIn('activities.status_id', [2, 4])
-						->select('activities.id as id')
+						->whereIn('activities.status_id',[8,9])
 						->first();
-					if (!$activity) {
-						$response = ['success' => false, 'errors' => ["Activity Not Found"]];
+					if($activity_already_completed){
+						$response = ['success' => false, 'errors' => ["Ticket already submitted."]];
 						return response()->json($response);
-					} else {
-						$response = ['success' => true, 'activity_id' => $activity->id];
-						return response()->json($response);
+					}else{
+						$activity = Activity::join('cases', 'cases.id', 'activities.case_id')
+							->where([
+								['activities.asp_id', Auth::user()->asp->id],
+								// ['activities.status_id', 2],
+								['activities.case_id', $case->id],
+							])
+							->whereIn('activities.status_id', [2, 4])
+							->select('activities.id as id')
+							->first();
+						if (!$activity) {
+							$response = ['success' => false, 'errors' => ["Activity Not Found"]];
+							return response()->json($response);
+						} else {
+							$response = ['success' => true, 'activity_id' => $activity->id];
+							return response()->json($response);
+						}
 					}
 				} else {
 					$response = ['success' => false, 'errors' => ["Ticket is not attended by " . Auth::user()->asp->asp_code . " as per CRM"]];

@@ -113,6 +113,13 @@
                                                         <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 aai-head-right">
                                                             <div class="aai-head-right1">
                                                                 <table style="width:100%">
+                                                                    <tr>
+                                                                        <td class="text-right">Invoice Generation :</td>
+                                                                        <td ng-show="$ctrl.asp.has_gst && !$ctrl.asp.is_auto_invoice"><span>Self</span>
+                                                                        </td>
+                                                                        <td ng-show='(!$ctrl.asp.has_gst) || ($ctrl.asp.has_gst && $ctrl.asp.is_auto_invoice)"'><span>System</span>
+                                                                        </td>
+                                                                    </tr>
                                                                     <tr ng-if="(!$ctrl.asp.has_gst) || ($ctrl.asp.has_gst && $ctrl.asp.is_auto_invoice)">
                                                                         <td class="text-right">Invoice No :</td>
                                                                         <td><span>{{$ctrl.inv_no}}</span>

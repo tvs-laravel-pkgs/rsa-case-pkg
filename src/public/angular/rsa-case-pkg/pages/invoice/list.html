@@ -2,7 +2,8 @@
     <div class="mobile-breadcrumbs-wrapper">
         <ul class="mobile-breadcrumbs-group list-inline">
             <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
-            <li><a href="#!/rsa-case-pkg/invoice/list">Invoice</a></li>
+            <li><a href="#">ASP Invoices</a></li>
+            <li><a href="#!/rsa-case-pkg/invoice/list/{{$ctrl.type_id}}">{{$ctrl.extras.title}}</a></li>
         </ul>
     </div>
 </div>
@@ -12,7 +13,7 @@
             <div class="row">
                 <div class="col-xs-12 col-sm-6">
                     <div class="dataTable--left_wrapper">
-                        <h2 class="dataTable-title">Invoice</h2>
+                        <h2 class="dataTable-title">{{$ctrl.extras.title}}</h2>
                         <p>Total - <span class="orange-txt"><span class="count">0</span></span></p>
                     </div>
                 </div>
@@ -27,7 +28,7 @@
                                     <div class="filter-overlay"></div>
                                     <div class="filter-content">
                                         <div class="filter-header">
-                                            <h2>Invoice Filter</h2>
+                                            <h2>{{$ctrl.extras.title}} Filter</h2>
                                         </div>
                                         <div class="filter-body">
                                             <div class="form-group">
@@ -54,19 +55,24 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="invoice_table" class="display table dataTable">
-                    <thead>
-                        <tr>
-                            <th>Actions</th>
-                            <th>Invoice Number</th>
-                            <th>Invoice Date</th>
-                            <th>ASP Code</th>
-                            <th>Workshop Name</th>
-                            <th>No of Tickets</th>
-                            <th>Invoice Amount</th>
-                        </tr>
-                    </thead>
-                </table>
+                <form id="invoice_export" name="invoice_export_form" method="post" action="{{$ctrl.export_invoices_url}}">
+                    <input type="hidden" name="_token" value="{{$ctrl.csrf}}" />
+                    <table id="invoice_table" class="display table dataTable row_linked_table">
+                        <thead>
+                            <tr>
+                                <th ng-if="$ctrl.type_id == 1 && $ctrl.canExport"><input type="checkbox" class="check_all" id="select_all_checkbox" autocomplete="off"></th>
+                                <th>Invoice Number</th>
+                                <th>Invoice Date</th>
+                                <th>ASP Code</th>
+                                <th>Workshop Name</th>
+                                <th>No of Activities</th>
+                                <th>Payment Status</th>
+                                <th>Invoice Amount</th>
+                            </tr>
+                        </thead>
+                    </table>
+                    <button ng-if="$ctrl.canExport" type="submit" id="submit" class="approve-btn pull-right preview-batch">Export Payment Details</button>
+                </form>
             </div>
         </div>
     </div>

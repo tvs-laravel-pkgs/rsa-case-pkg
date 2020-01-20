@@ -2,8 +2,8 @@
     <div class="mobile-breadcrumbs-wrapper">
         <ul class="mobile-breadcrumbs-group list-inline">
             <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
-            <li ng-if="$ctrl.type_id == 2"><a href="#!/rsa-case-pkg/batch-generation/list">Batch Generation</a></li>
-            <li ng-if="$ctrl.type_id != 2"><a href="#!/rsa-case-pkg/invoice/list">Invoice</a></li>
+            <li><a href="#">ASP Invoices</a></li>
+            <li><a href="#!/rsa-case-pkg/invoice/list/{{$ctrl.type_id}}">{{$ctrl.title}}</a></li>
         </ul>
     </div>
 </div>
@@ -14,7 +14,7 @@
                 <div class="row">
                     <div class="col-xs-12 col-sm-4">
                         <div class="dataTable--left_wrapper">
-                            <h2 class="dataTable-title"> Invoice File</h2>
+                            <h2 class="dataTable-title">Invoice</h2>
                             <p><span class="orange-txt"></span>Period : {{$ctrl.period}}</p>
                         </div>
                     </div>
@@ -23,13 +23,6 @@
                     <div id="bill" class="tab-pane fade in active">
                         <div class="viewData-wrapper">
                             <div class="viewData-accordion">
-                                <div class="row">
-                                    <div class="col-xs-12 col-sm-4">
-                                        <div class="dataTable--left_wrapper">
-                                            <h2 class="dataTable-title">Invoice</h2>
-                                        </div>
-                                    </div>
-                                </div>
                                 <div class="tab-content">
                                     <div id="bill" class="tab-pane fade in active">
                                         <div class="viewData-wrapper">
@@ -105,14 +98,13 @@
                                     <div id="bill" class="tab-pane fade in active">
                                         <div class="viewData-wrapper">
                                             <div class="viewData-toggle--wrapper">
-                                                <label class="title-label">Invoice Details</label>
                                                 <div class="noToggle--inner">
                                                     <div class="row">
                                                         <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 aai-head-left">
                                                             <div class="aai-head-left-title">Invoice</div>
                                                             <div class="aai-head-left-address">
                                                                 <p>
-                                                                    TVS Auto Assist (India) Limited<br />9th Floor, Kochar Bliss,<br />Plot No. Super A8 & 9,<br />Thiru-Vi-Ka Industrial Estate,<br />Guindy,<br />Chennai – 600032<br />TVS AUTO ASSIST (INDIA) LIMITED<br /> GST- 33AANCA3184D1ZV
+                                                                    TVS Auto Assist (India) Limited<br />9th Floor, Kochar Bliss,<br />Plot No. Super A8 & 9,<br />Thiru-Vi-Ka Industrial Estate,<br />Guindy,<br />Chennai – 600032<br /> GST- 33AANCA3184D1ZV
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -162,18 +154,19 @@
                                                                     <table id="aspLogin-table" class="display table">
                                                                         <thead>
                                                                             <tr>
-                                                                                <th>Ticket Number</th>
-                                                                                <th>Ticket Date</th>
-                                                                                <th>Ticket Status</th>
-                                                                                <th>Call Center</th>
-                                                                                <th>Vehicle Registration Number</th>
+                                                                                <th>Case Number</th>
+                                                                                <th>Case Date</th>
+                                                                                <!-- <th>Vehicle Registration Number</th> -->
                                                                                 <th>Service Type</th>
                                                                                 <th>KM</th>
-                                                                                <th class="text-right">Net Amount</th>
+                                                                                <th class="text-right">KM Charge</th>
                                                                                 <th class="text-right">Collected Amount</th>
-                                                                                <th class="text-right">Total Tax</th>
-                                                                                <th class="text-right">Not Collected Amount</th>
-                                                                                <th class="text-right">Amount</th>
+                                                                                <th ng-if="$ctrl.asp.tax_calculation_method" class="text-right">Not Collected Amount</th>
+                                                                                <th class="text-right">Net Amount</th>
+                                                                                <th class="text-right">Tax %</th>
+                                                                                <th class="text-right">Tax Amount</th>
+                                                                                <th ng-if="!$ctrl.asp.tax_calculation_method" class="text-right">Not Collected Amount</th>
+                                                                                <th class="text-right">Invoice Amount</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
@@ -184,15 +177,9 @@
                                                                                 <td>
                                                                                     {{activity.date}}
                                                                                 </td>
-                                                                                <td>
-                                                                                    {{activity.status}}
-                                                                                </td>
-                                                                                <td>
-                                                                                    {{activity.callcenter}}
-                                                                                </td>
-                                                                                <td>
+                                                                                <!-- <td>
                                                                                     {{activity.vehicle_registration_number}}
-                                                                                </td>
+                                                                                </td> -->
                                                                                 <td>
                                                                                     {{activity.service_type}}
                                                                                 </td>
@@ -200,15 +187,24 @@
                                                                                     {{activity.km_value | number : 2}}
                                                                                 </td>
                                                                                 <td class="text-right">
-                                                                                    {{activity.net_value | number : 2}}
+                                                                                    {{activity.km_charge_value | number : 2}}
                                                                                 </td>
                                                                                 <td class="text-right">
                                                                                     {{activity.collect_value | number : 2}}
                                                                                 </td>
-                                                                                <td class="text-right">
-                                                                                    0
+                                                                                <td ng-if="$ctrl.asp.tax_calculation_method" class="text-right">
+                                                                                    {{activity.not_collect_value | number : 2}}
                                                                                 </td>
                                                                                 <td class="text-right">
+                                                                                    {{activity.net_value | number : 2}}
+                                                                                </td>
+                                                                                <td class="text-right">
+                                                                                    {{activity.total_tax_perc_value | number : 2}}
+                                                                                </td>
+                                                                                <td class="text-right">
+                                                                                    {{activity.total_tax_amount_value | number : 2}}
+                                                                                </td>
+                                                                                <td ng-if="!$ctrl.asp.tax_calculation_method" class="text-right">
                                                                                     {{activity.not_collect_value | number : 2}}
                                                                                 </td>
                                                                                 <td class="text-right">
@@ -218,9 +214,12 @@
                                                                         </tbody>
                                                                     </table>
                                                                 </div><!-- Responsive -->
-                                                                <div class="amountinwords">{{$ctrl.invoice_amount_in_word}} only</div>
+                                                                <label>
+                                                                    Amount In Words:
+                                                                </label>
+                                                                <div class="amountinwords">{{$ctrl.invoice_amount_in_word}}</div>
                                                                 <div class="netamount pull-right">
-                                                                    <span>Net Amount</span>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                    <span><b>Final Invoice Amount:</b></span>&nbsp;&nbsp;&nbsp;&nbsp;
                                                                     <span class="amount">
                                                                         <i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.invoice_amount}}
                                                                     </span>
@@ -242,10 +241,10 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="viewData-accordion--btns">
+                                <!-- <div class="viewData-accordion--btns">
                                     <label>Total Net Amount <span><i class="fa fa-inr" aria-hidden="true"></i>{{$ctrl.invoice_amount}}</span></label>
                                     <div class="clearfix"></div>
-                                </div>
+                                </div> -->
                                 <div class="ccdv_btn multiUpload-wrapper" style="overflow: hidden; color: #333333; display: inline-grid; font-weight: 700; font-size: 20px; margin-top: 10px;">
                                     Download Invoice
                                     <a href="{{$ctrl.invoice_attachment_file}}" download>Download</a>
@@ -258,6 +257,66 @@
                                     System Invoice
                                     <a href="{{$ctrl.invoice_pdf_generate_url}}/{{$ctrl.invoice.id}}" class="approve-btn pull-left preview-batch">Download</a>
                                 </div> -->
+                                <div ng-if="$ctrl.canViewPaymentInfo && $ctrl.type_id == 3" class="tab-content">
+                                    <div id="bill" class="tab-pane fade in active">
+                                        <div class="viewData-wrapper" style="padding-top: 30px;">
+                                            <div class="viewData-toggle--wrapper">
+                                                <label class="title-label" style="margin: 0; margin-right: 25px; display: inline-block; vertical-align: middle;">Payment Details</label>
+                                                <button type="button" id="refresh_asp_invoice_payment_info_btn" class="btn btn-primary btn-green" ng-click="getPaymenyInfo()">Refresh</button>
+                                                <div class="noToggle--inner" style="margin-top: 15px;">
+                                                    <!-- <div class="row viewData-identification--wrapper"> -->
+                                                    <div class="row">
+                                                        <div class="viewData-form--wrapper">
+                                                            <div id="about40" class="tab-pane fade in active">
+                                                                <p class="p-l-20">
+                                                                </p>
+                                                                <div class="table-responsive">
+                                                                    <table id="aspPaymentInfo-table" class="display table">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>Transaction Date</th>
+                                                                                <th>Voucher</th>
+                                                                                <th>Invoice</th>
+                                                                                <th>Invoice Date</th>
+                                                                                <th>Payment Reference</th>
+                                                                                <th>Amount Difference</th>
+                                                                                <th>Payment Amount</th>
+                                                                                <th>TDS</th>
+                                                                                <th>TCS</th>
+                                                                                <th>Amount</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody id="aspPaymentInfo-tbody">
+                                                                            <tr ng-repeat="(index, invoice_voucher) in $ctrl.invoice_vouchers">
+                                                                                <td>{{invoice_voucher.date}}</td>
+                                                                                <td>{{invoice_voucher.number}}</td>
+                                                                                <td>{{invoice_voucher.invoice.invoice_no}}</td>
+                                                                                <td>{{invoice_voucher.document_date}}</td>
+                                                                                <td>{{invoice_voucher.payment_reference}}</td>
+                                                                                <td>{{invoice_voucher.penny_difference}}</td>
+                                                                                <td>{{invoice_voucher.invoice_amount}}</td>
+                                                                                <td>{{invoice_voucher.tds}}</td>
+                                                                                <td>{{invoice_voucher.tcs_amount_in}}</td>
+                                                                                <td>{{invoice_voucher.paid_amount}}</td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div><!-- Responsive -->
+                                                                <div class="netamount pull-right">
+                                                                    <span>Total</span>&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                    <span class="amount">
+                                                                        <i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.invoice_vouchers_amount ? $ctrl.invoice_vouchers_amount.total_amount : '0.00'}}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="clearfix"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

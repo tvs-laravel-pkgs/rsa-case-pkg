@@ -306,6 +306,7 @@ class ActivityController extends Controller {
 			return response()->json([
 				'success' => true,
 				'message' => 'Activity saved successfully',
+				'activity' => $activity,
 			], $this->successStatus);
 		} catch (\Exception $e) {
 			DB::rollBack();
@@ -345,30 +346,30 @@ class ActivityController extends Controller {
 			$invoiceable_activities = Activity::select(
 				'activities.crm_activity_id',
 				'cases.vehicle_registration_number',
-				'cc_km_charge.value as km_charge',
-				'cc_not_collected_amount.value as cc_not_collected_amount',
-				'cc_colleced_amount.value as cc_colleced_amount',
-				'cc_po_amount.value as payout_amount'
+				'bo_km_charge.value as km_charge',
+				'bo_not_collected_amount.value as cc_not_collected_amount',
+				'bo_colleced_amount.value as cc_colleced_amount',
+				'bo_po_amount.value as payout_amount'
 			)
 				->join('asps', 'asps.id', 'activities.asp_id')
 				->join('cases', 'cases.id', 'activities.case_id')
-				->leftJoin('activity_details as cc_km_charge', function ($join) {
-					$join->on('cc_km_charge.activity_id', 'activities.id')
-						->where('cc_km_charge.key_id', 150); //CC KM Charge
+				->leftJoin('activity_details as bo_km_charge', function ($join) {
+					$join->on('bo_km_charge.activity_id', 'activities.id')
+						->where('bo_km_charge.key_id', 172); //BO KM Charge OR PAYOUT AMOUNT
 				})
-				->leftJoin('activity_details as cc_not_collected_amount', function ($join) {
-					$join->on('cc_not_collected_amount.activity_id', 'activities.id')
-						->where('cc_not_collected_amount.key_id', 282); //cc_not_collected_amount
+				->leftJoin('activity_details as bo_not_collected_amount', function ($join) {
+					$join->on('bo_not_collected_amount.activity_id', 'activities.id')
+						->where('bo_not_collected_amount.key_id', 160); //bo_not_collected_amount
 				})
-				->leftJoin('activity_details as cc_colleced_amount', function ($join) {
-					$join->on('cc_colleced_amount.activity_id', 'activities.id')
-						->where('cc_colleced_amount.key_id', 281); //cc_colleced_amount
+				->leftJoin('activity_details as bo_colleced_amount', function ($join) {
+					$join->on('bo_colleced_amount.activity_id', 'activities.id')
+						->where('bo_colleced_amount.key_id', 159); //bo_colleced_amount
 				})
-				->leftJoin('activity_details as cc_po_amount', function ($join) {
-					$join->on('cc_po_amount.activity_id', 'activities.id')
-						->where('cc_po_amount.key_id', 180); //CC INVOICE AMOUNT
+				->leftJoin('activity_details as bo_po_amount', function ($join) {
+					$join->on('bo_po_amount.activity_id', 'activities.id')
+						->where('bo_po_amount.key_id', 182); //BO INVOICE AMOUNT
 				})
-				->where('activities.status_id', 1) //Case Closed - Waiting for ASP to Generate Invoice
+				->whereIn('activities.status_id', [11, 1]) //BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
 				->where('cases.status_id', 4) //case closed
 				->where('activities.asp_id', $asp->id)
 				->orderBy('activities.created_at', 'desc')
@@ -410,7 +411,8 @@ class ActivityController extends Controller {
 				'crm_activity_id' => $request->crm_activity_id,
 			])->first();
 
-			if ($activity->status_id != 1) {
+			//ALLOW REJECTION ONLY FOR (BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice)
+			if ($activity->status_id != 1 && $activity->status_id != 11) {
 				return response()->json([
 					'success' => false,
 					'error' => 'Rejection not allowed',

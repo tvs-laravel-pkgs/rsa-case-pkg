@@ -68,11 +68,11 @@ app.config(['$routeProvider', function($routeProvider) {
     }).
 
     //ASP INVOICES
-    when('/rsa-case-pkg/invoice/list', {
+    when('/rsa-case-pkg/invoice/list/:type_id', {
         template: '<invoice-list></invoice-list>',
         title: 'Invoices',
     }).
-    when('/rsa-case-pkg/invoice/view/:id/:type_id?', {
+    when('/rsa-case-pkg/invoice/view/:id/:type_id', {
         template: '<invoice-view></invoice-view>',
         title: 'Invoice View',
     }).

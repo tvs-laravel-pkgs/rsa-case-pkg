@@ -58,12 +58,12 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 				'name' => 'BO Approved - Waiting for Invoice Generation by ASP',
 				'company_id' => 1,
 			],
-			// 12 => [
-			// 	'name' => 'Waiting for Invoice Generation by ASP',
-			// 	'company_id' => 1,
-			// ],
-			13 => [
+			12 => [
 				'name' => 'Invoiced - Waiting for Payment',
+				'company_id' => 1,
+			],
+			13 => [
+				'name' => 'Payment Inprogress',
 				'company_id' => 1,
 			],
 			14 => [

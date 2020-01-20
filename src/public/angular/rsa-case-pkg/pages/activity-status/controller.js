@@ -1,21 +1,29 @@
 app.component('activityStatusList', {
     templateUrl: activity_status_list_template_url,
-    controller: function($http, $window, HelperService, $scope, $rootScope) {
+    controller: function($http, $window, HelperService, $scope, $rootScope, $mdSelect) {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
         self.filter_img_url = filter_img_url;
+        self.export_activities = export_activities;
+        self.canExportActivity = canExportActivity;
+        self.canImportActivity = canImportActivity;
+
+        self.csrf = token;
         $http.get(
             activity_status_filter_url
         ).then(function(response) {
             self.extras = response.data.extras;
-
+            response.data.extras.status_list.splice(0, 1);
+            self.status_list = response.data.extras.status_list;
+            self.modal_close = modal_close;
             var cols = [
                 { data: 'action', searchable: false },
                 { data: 'case_date', searchable: false },
                 { data: 'number', name: 'cases.number', searchable: true },
                 { data: 'asp_code', name: 'asps.asp_code', searchable: true },
                 { data: 'crm_activity_id', searchable: false },
+                { data: 'source', name: 'configs.name', searchable: true },
                 // { data: 'activity_number', name: 'activities.number', searchable: true },
                 { data: 'sub_service', name: 'service_types.name', searchable: true },
                 { data: 'finance_status', name: 'activity_finance_statuses.name', searchable: true },
@@ -111,7 +119,6 @@ app.component('activityStatusList', {
                     }
                 });
             }
-
             $('.filterToggle').click(function() {
                 $('#filterticket').toggleClass('open');
             });
@@ -124,9 +131,68 @@ app.component('activityStatusList', {
                 format: 'dd-mm-yyyy',
                 autoclose: true,
             });
+            $('input[name="period"]').daterangepicker({
+                startDate: moment().startOf('month'),
+                endDate: moment().endOf('month'),
+            });
 
+            self.pc_all = false;
             $rootScope.loading = false;
+            window.mdSelectOnKeyDownOverride = function(event) {
+                event.stopPropagation();
+            };
+            $('.modal').bind('click', function(event) {
+                if ($('.md-select-menu-container').hasClass('md-active')) {
+                    $mdSelect.hide();
+                }
+            });
+            $scope.changeStatus = function(ids) {
+                console.log(ids);
+                if (ids) {
+                    $size_rids = ids.length;
+                    if ($size_rids > 0) {
+                        $('#pc_sel_all').addClass('pc_sel_all');
+                    }
+                } else {
+                    $('#pc_sel_all').removeClass('pc_sel_all');
+                }
+            }
+            $scope.selectAll = function(val) {
+                self.pc_all = (!self.pc_all);
+                if (!val) {
+                    r_list = [];
+                    angular.forEach(self.extras.status_list, function(value, key) {
+                        r_list.push(value.id);
+                    });
+
+                    $('#pc_sel_all').addClass('pc_sel_all');
+                } else {
+                    r_list = [];
+                    $('#pc_sel_all').removeClass('pc_sel_all');
+                }
+                self.status_ids = r_list;
+            }
+            $("form[name='export_excel_form']").validate({
+                rules: {
+                    status_ids: {
+                        required: true,
+                    },
+                    period: {
+                        required: true,
+                    }
+                },
+                messages: {
+                    period: "Please Select Period",
+                    status_ids: "Please Select Activity Status",
+                },
+
+                submitHandler: function(form) {
+                    form.submit();
+                }
+            });
+
         });
+
     }
 });
 //------------------------------------------------------------------------------------------------------------------------
@@ -197,11 +263,14 @@ app.component('activityStatusView', {
             self.data.style_phone_image_url = style_car_image_url;
             self.data.verification = 0;
 
-            console.log(self.data);
             $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
-            $('.viewData-toggle--btn').click(function() {
+            $('#viewData-toggle--btn1').click(function() {
                 $(this).toggleClass('viewData-toggle--btn_reverse');
-                $('.viewData-toggle--inner .viewData-threeColumn--wrapper').slideToggle();
+                $('#viewData-threeColumn--wrapper1').slideToggle();
+            });
+            $('#viewData-toggle--btnasp').click(function() {
+                $(this).toggleClass('viewData-toggle--btn_reverse');
+                $('#viewData-threeColumn--wrapperasp').slideToggle();
             });
             $rootScope.loading = false;
         });

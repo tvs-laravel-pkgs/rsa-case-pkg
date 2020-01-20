@@ -20,6 +20,15 @@
                 <div class="col-xs-12 col-sm-6">
                     <div class="dataTable-top--right_wrapper">
                         <ul class="dataTable-top--right_group list-inline">
+                            <!-- <div class="float-right"> -->
+                            <li ng-if="$ctrl.canImportActivity">
+                                <a href="#!/import-cron-job-pkg/import-job/form/1" class="btn btn-md">
+                                    Import
+                                </a>
+                            </li>
+                            <li ng-if="$ctrl.canExportActivity"> <button class="btn btn-md preview-batch export" data-toggle="modal" data-target="#asp_excel_export">Export</button></li>
+                            <!-- </div> -->
+                            <!-- <li><a href="javascript:void(0)" class="btn btn-md" ng-click="">Export</a></li> -->
                             <li><input class="filterTable" type="text" placeholder="Search"></li>
                             <li><a href="javascript:void(0)" class="btn btn-md" ng-click="refresh()">Refresh</a></li>
                             <li>
@@ -59,7 +68,7 @@
                                                 <input type="hidden" name="finance_status_id" value="" id="finance_status_id">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.status_id" ng-change="changeCommonFilter($ctrl.status_id,'status_id')" placeholder="Select Status">
+                                                <md-select ng-model="$ctrl.status_id" ng-change="changeCommonFilter($ctrl.status_id,'status_id')" placeholder="Select Portal Status">
                                                     <md-option ng-repeat="val in $ctrl.extras.status_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="status_id" value="" id="status_id">
@@ -99,6 +108,7 @@
                             <th>Case Number</th>
                             <th>ASP Code</th>
                             <th>CRM Activity ID</th>
+                            <th>Source</th>
                             <!-- <th>Activity Number</th> -->
                             <th>Service</th>
                             <!-- <th>ASP Status</th> -->
@@ -111,6 +121,54 @@
                     </thead>
                 </table>
             </div>
+        </div>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade asp_for_find" id="asp_excel_export" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <img class="close_btn" src="{{ $ctrl.modal_close }}">
+                </a>
+                <h4 class="modal-title">Export Activities</h4>
+            </div>
+            <form id="export_excel_form" name="export_excel_form" action="{{$ctrl.export_activities}}" method="post">
+                <input type="hidden" name="_token" value="{{$ctrl.csrf}}" />
+                <div class="modal-body">
+                    <div class="approvalModal-wrapper">
+                        <div class="viewData-threeColumn--wrapper">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                <label>Period<sup class="req" style="color:red">*</sup></label>
+                                                <input class="form-control customForm-input" autocomplete="off" name="period" type="text" value='' ng-model="$ctrl.period" ng-required="true">
+                                            </div><!-- Field -->
+                                        </div><!-- Column -->
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                <label>Activity Status<sup class="req" style="color:red">*</sup></label>
+                                                <md-select ng-model="$ctrl.status_ids" md-on-close="clearSearchTerm()" name="status_ids" data-md-container-class="selectdemoSelectHeader" multiple md-no-asterisk class="error_messages required" ng-required="true" placeholder="Select Activity Status" ng-change="changeStatus($ctrl.status_ids)">
+                                                    <md-select-header class="demo-select-header mdselect-header">
+                                                        <input ng-model="searchTerm" type="search" placeholder="Search for a Activity Status" class="demo-header-searchbox md-text" onkeydown="mdSelectOnKeyDownOverride(event)">
+                                                    </md-select-header>
+                                                    <md-optgroup label="activity_portal_status">
+                                                        <md-button class="select-all-button" layout-fill ng-value="$ctrl.pc_all" ng-click="selectAll($ctrl.pc_all)" id="pc_sel_all">All</md-button>
+                                                        <md-option ng-value="status.id" ng-repeat="status in $ctrl.extras.status_list |filter:searchTerm">{{status.name}}</md-option>
+                                                    </md-optgroup>
+                                                </md-select>
+                                                <input type="hidden" name="status_ids" value="{{$ctrl.status_ids}}" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="approvalModal-btns">
+                                        <button type="submit" class="differed-btn blue approve-btn">Export</button>
+                                    </div>
+                                </div>
+            </form>
         </div>
     </div>
 </div>

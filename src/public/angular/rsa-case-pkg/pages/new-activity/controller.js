@@ -34,12 +34,12 @@ app.component('newActivity', {
                                 errors += '<li>' + res.errors[i] + '</li>';
                             }
                             console.log(errors);
-                             $noty = new Noty({
+                            $noty = new Noty({
                                 type: 'error',
                                 layout: 'topRight',
                                 text: errors,
                                 animation: {
-                                    speed: 500 
+                                    speed: 500
                                 },
                             }).show();
                             setTimeout(function() {
@@ -52,7 +52,7 @@ app.component('newActivity', {
                     })
                     .fail(function(xhr) {
                         $('#submit').button('reset');
-                         $noty = new Noty({
+                        $noty = new Noty({
                             type: 'error',
                             layout: 'topRight',
                             text: 'Something went wrong at server',
@@ -128,26 +128,26 @@ app.component('newActivityUpdateDetails', {
                     var allowed_variation = 0.5;
                     var mis_percentage = mis_km * allowed_variation / 100;
                     if (entry_val > mis_km) { var per = entry_val - mis_km; }
-                        var actual_val = Math.round(per - mis_percentage);
-                        if (entry_val) {
-                            if (entry_val > mis_km) {
+                    var actual_val = Math.round(per - mis_percentage);
+                    if (entry_val) {
+                        if (entry_val > mis_km) {
 
-                                if (actual_val >= 1) {
-                                    $(".map_attachment").show();
-                                    $(".for_differ_km").val(1);
-                                } else {
-                                    $(".map_attachment").hide();
-                                    $(".for_differ_km").val(0);
-                                }
+                            if (actual_val >= 1) {
+                                $(".map_attachment").show();
+                                $(".for_differ_km").val(1);
                             } else {
                                 $(".map_attachment").hide();
                                 $(".for_differ_km").val(0);
                             }
-
                         } else {
                             $(".map_attachment").hide();
                             $(".for_differ_km").val(0);
                         }
+
+                    } else {
+                        $(".map_attachment").hide();
+                        $(".for_differ_km").val(0);
+                    }
                     // $("#"+ids).after(html);
                 } else {
                     $(".map_attachment").hide();
@@ -193,12 +193,12 @@ app.component('newActivityUpdateDetails', {
         });
 
 
-        $('body').on('focusout', '.asp_collected_charges', function() {
-            var asp_collected_charges = self.asp_collected_charges;
-            if (!$.isNumeric(asp_collected_charges)) {
-                $(".asp_collected_charges").val("");
-            }
-        });
+        // $('body').on('focusout', '.asp_collected_charges', function() {
+        //     var asp_collected_charges = self.asp_collected_charges;
+        //     if (!$.isNumeric(asp_collected_charges)) {
+        //         $(".asp_collected_charges").val("");
+        //     }
+        // });
 
         //Jquery Validation
         var form_id = '#new-tickect-form';
@@ -227,29 +227,37 @@ app.component('newActivityUpdateDetails', {
             rules: {
                 'km_travelled': {
                     required: true,
-                    number: true
+                    number: true,
                 },
                 'other_charge': {
-                    number: true
+                    number: true,
+                    required: true,
                 },
                 'remarks_not_collected': {
-                    required: true
+                    required: true,
                 },
                 'asp_collected_charges': {
-                    number: true
+                    number: true,
+                    required: true,
                 },
                 'map_attachment[]': {
                     required: true,
-                    extension: "jpg|jpeg|png|gif"
+                    extension: "jpg|jpeg|png|gif",
                 },
                 'other_attachment[]': {
                     required: true,
-                    extension: "jpg|jpeg|png|gif"
+                    extension: "jpg|jpeg|png|gif",
                 },
             },
             messages: {
                 'km_travelled': {
                     required: "Please Enter Kilo Meter Value",
+                },
+                'km_tother_chargeravelled': {
+                    required: "Please Enter Other Charge Value",
+                },
+                'asp_collected_charges': {
+                    required: "Please Enter Collected Charge Value",
                 },
                 'remarks_not_collected': {
                     required: "Please Enter Remark Comments",
@@ -296,59 +304,59 @@ app.component('newActivityUpdateDetails', {
                                     data: formData,
                                     processData: false,
                                     contentType: false,
-                            })
-                            .done(function(res) {
-                                console.log(res.errors);
-                                if (!res.success) {
-                                    $('#submit').button('reset');
-                                    var errors = '';
-                                    for (var i in res.errors) {
-                                        errors += '<li>' + res.errors[i] + '</li>';
+                                })
+                                .done(function(res) {
+                                    console.log(res.errors);
+                                    if (!res.success) {
+                                        $('#submit').button('reset');
+                                        var errors = '';
+                                        for (var i in res.errors) {
+                                            errors += '<li>' + res.errors[i] + '</li>';
+                                        }
+                                        console.log(errors);
+                                        $noty = new Noty({
+                                            type: 'error',
+                                            layout: 'topRight',
+                                            text: errors,
+                                            animation: {
+                                                speed: 500
+                                            },
+
+                                        }).show();
+                                        setTimeout(function() {
+                                            $noty.close();
+                                        }, 1000);
+
+                                    } else {
+                                        $noty = new Noty({
+                                            type: 'success',
+                                            layout: 'topRight',
+                                            text: 'Activity informations saved successfully',
+                                            animation: {
+                                                speed: 500
+                                            },
+                                        }).show();
+                                        setTimeout(function() {
+                                            $noty.close();
+                                        }, 1000);
+                                        $location.path('/rsa-case-pkg/new-activity');
+                                        $scope.$apply();
                                     }
-                                    console.log(errors);
+                                })
+                                .fail(function(xhr) {
+                                    $('#submit').button('reset');
                                     $noty = new Noty({
                                         type: 'error',
                                         layout: 'topRight',
-                                        text: errors,
+                                        text: 'Something went wrong at server',
                                         animation: {
-                                            speed: 500 
-                                        },
-
-                                    }).show();
-                                    setTimeout(function() {
-                                        $noty.close();
-                                    }, 1000);
-
-                                } else {
-                                    $noty = new Noty({
-                                        type: 'success',
-                                        layout: 'topRight',
-                                        text: 'Activity informations saved successfully',
-                                        animation: {
-                                            speed: 500 
+                                            speed: 500
                                         },
                                     }).show();
                                     setTimeout(function() {
                                         $noty.close();
                                     }, 1000);
-                                    $location.path('/rsa-case-pkg/new-activity');
-                                    $scope.$apply();
-                                }
-                            })
-                            .fail(function(xhr) {
-                                $('#submit').button('reset');
-                                $noty = new Noty({
-                                    type: 'error',
-                                    layout: 'topRight',
-                                    text: 'Something went wrong at server',
-                                    animation: {
-                                        speed: 500 
-                                    },
-                                }).show();
-                                setTimeout(function() {
-                                $noty.close();
-                            }, 1000);
-                            });
+                                });
                         }
                     }
                 });

@@ -34,6 +34,7 @@ class ActivityController extends Controller {
 			'call_center_list' => collect(CallCenter::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Call Center']),
 			'service_type_list' => collect(ServiceType::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Sub Service']),
 			'finance_status_list' => collect(ActivityFinanceStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Finance Status']),
+			'portal_status_list' => collect(ActivityPortalStatus::select('name', 'id')->where('company_id', 1)->get()),
 			'status_list' => collect(ActivityPortalStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Portal Status']),
 			'activity_status_list' => collect(ActivityStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Activity Status']),
 			'client_list' => collect(Client::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Client']),
@@ -321,8 +322,8 @@ class ActivityController extends Controller {
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			DB::raw('DATE_FORMAT(activities.created_at,"%d-%m-%Y %H:%i:%s") as activity_date'),
 			/*DB::raw('IF(deduction_reason IS NULL,"-",deduction_reason) as deduction_reason'),
-			DB::raw('IF(bo_comments IS NULL,"-",bo_comments) as bo_comments'),
-			DB::raw('IF(defer_reason IS NULL,"-",defer_reason) as defer_reason'),*/
+				DB::raw('IF(bo_comments IS NULL,"-",bo_comments) as bo_comments'),
+			*/
 			'cases.number',
 			'cases.customer_name as customer_name',
 			'activities.number as activity_number',
@@ -353,12 +354,12 @@ class ActivityController extends Controller {
 			'cases.*',
 			DB::raw('CASE
 				    	WHEN (Invoices.invoice_no IS NOT NULL)
-			    		THEN 
+			    		THEN
 			    			CASE
 			    				WHEN (asps.is_auto_invoice = 1)
-			   					THEN 
+			   					THEN
 			    					CONCAT(Invoices.invoice_no,"-",Invoices.id)
-			    				ELSE 
+			    				ELSE
 			    					Invoices.invoice_no
 			    			END
 			    		ELSE
@@ -647,9 +648,9 @@ class ActivityController extends Controller {
 			return response()->json($response);
 		} else {
 			$case_with_cancelled_status = RsaCase::where(function ($q) use ($number) {
-					$q->where('number', $number)
-						->orWhere('vehicle_registration_number', $number);
-				})
+				$q->where('number', $number)
+					->orWhere('vehicle_registration_number', $number);
+			})
 				->where('status_id', 3) //CANCELLED
 				->first();
 			if ($case_with_cancelled_status) {
@@ -657,9 +658,9 @@ class ActivityController extends Controller {
 				return response()->json($response);
 			}
 			$case_with_closed_status = RsaCase::where(function ($q) use ($number) {
-					$q->where('number', $number)
-						->orWhere('vehicle_registration_number', $number);
-				})
+				$q->where('number', $number)
+					->orWhere('vehicle_registration_number', $number);
+			})
 				->where('status_id', 4) //CLOSED
 				->first();
 			//dd($case_with_closed_status);
@@ -684,12 +685,12 @@ class ActivityController extends Controller {
 							['activities.asp_id', Auth::user()->asp->id],
 							['activities.case_id', $case->id],
 						])
-						->whereIn('activities.status_id',[8,9])
+						->whereIn('activities.status_id', [8, 9])
 						->first();
-					if($activity_already_completed){
+					if ($activity_already_completed) {
 						$response = ['success' => false, 'errors' => ["Ticket already submitted."]];
 						return response()->json($response);
-					}else{
+					} else {
 						$activity = Activity::join('cases', 'cases.id', 'activities.case_id')
 							->where([
 								['activities.asp_id', Auth::user()->asp->id],

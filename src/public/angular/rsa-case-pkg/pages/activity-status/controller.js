@@ -14,8 +14,9 @@ app.component('activityStatusList', {
             activity_status_filter_url
         ).then(function(response) {
             self.extras = response.data.extras;
-            response.data.extras.status_list.splice(0, 1);
-            self.status_list = response.data.extras.status_list;
+            // response.data.extras.status_list.splice(0, 1);
+            self.status_list = response.data.extras.portal_status_list;
+            // self.status_list.splice(0, 1);
             self.modal_close = modal_close;
             var cols = [
                 { data: 'action', searchable: false },
@@ -92,6 +93,21 @@ app.component('activityStatusList', {
             $scope.changeCommonFilter = function(val, id) {
                 $('#' + id).val(val);
                 dataTable.fnFilter();
+            };
+
+            $scope.resetFilter = function() {
+                self.ticket_filter = [];
+                $('#call_center_id').val('');
+                $('#service_type_id').val('');
+                $('#finance_status_id').val('');
+                $('#status_id').val('');
+                $('#activity_status_id').val('');
+                $('#client_id').val('');
+
+                setTimeout(function() {
+                    dataTable.fnFilter();
+                    $('#activities_status_table').DataTable().ajax.reload();
+                }, 1000);
             };
 
             $scope.refresh = function() {

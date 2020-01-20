@@ -82,24 +82,11 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="viewData-form--row">
-                        <div class="clearfix"></div>
-                            <div class="row">
-                                <div class="col-xs-12 col-sm-2">
-                                    <div class="viewData-form--group">
-                                        <h4 class="">Paid To</h4>
-                                        <h4><span class="orange-txt">{{$ctrl.data.paid_to}}</span></h4>
-                                    </div>
-                                </div>
-                                <div class="col-xs-12 col-sm-2">
-                                    <div class="viewData-form--group">
-                                        <h4>Payment</h4>
-                                        <h4><span class="orange-txt">{{$ctrl.data.payment_mode}}</span></h4>
-                                    </div>
-                                </div>
-                            </div>
-                    </div>
                     <h3 class="mt-30 mb-20">Rate Card Info</h3>
+                    <ul class="rate-card-info-list">
+                        <li class="rate-card-info-list-item">Paid To : <span class="orange-txt"> {{$ctrl.data.paid_to}}</span></li>
+                        <li class="rate-card-info-list-item">Payment : <span class="orange-txt">{{$ctrl.data.payment_mode}}</span></li>
+                    </ul>
                     <div class="table-responsive">
                         <table class="table  table-bordered table-wide style-normal">
 

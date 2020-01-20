@@ -410,13 +410,17 @@ class ActivityController extends Controller {
 			$var_key_val = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $var_key->id)->first();
 			$raw_key_name = 'raw_' . $key_name;
 			if (strpos($key_name, 'amount') || strpos($key_name, 'collected') || strcmp("amount", $key_name) == 0) {
+				/*dump($key_name);
+				dump($var_key_val ? $var_key_val->value : '-');*/
 				$this->data['activities'][$key_name] = $var_key_val ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($var_key_val->value, 2))) : '-';
 				$this->data['activities'][$raw_key_name] = $var_key_val ? $var_key_val->value : 0;
 			} else {
 				$this->data['activities'][$key_name] = $var_key_val ? $var_key_val->value : 0;
 				$this->data['activities'][$raw_key_name] = $var_key_val ? $var_key_val->value : 0;
 			}
+
 		}
+		//dd('a');
 		$this->data['activities']['asp_service_type_data'] = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();
 		$configs = Config::where('entity_type_id', 23)->get();
 		foreach ($configs as $config) {
@@ -1406,19 +1410,20 @@ class ActivityController extends Controller {
 
 		$status_ids = trim($request->status_ids, '""');
 		$status_ids = explode(',', $status_ids);
-		$activities = Activity::whereIn('status_id', $status_ids)
-			->whereDate('created_at', '>=', $range1)
-			->whereDate('created_at', '<=', $range2)
+		$activities = Activity::join('asps','activities.asp_id','=','asps.id')->whereIn('status_id', $status_ids)
+			->whereDate('activities.created_at', '>=', $range1)
+			->whereDate('activities.created_at', '<=', $range2)
 		;
 
 		if (!Entrust::can('view-all-activities')) {
 			if (Entrust::can('view-mapped-state-activities')) {
 				$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
+				//dd($states);
 				$activities = $activities->whereIn('asps.state_id', $states);
 			}
 		}
 
-		$total_count = $activities->count('id');
+		$total_count = $activities->count('activities.id');
 		if ($total_count == 0) {
 			return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['errors' => ['No activities found for given period & statuses']]);
 		}

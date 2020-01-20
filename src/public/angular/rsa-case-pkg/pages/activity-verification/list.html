@@ -45,53 +45,53 @@
                                         </div>
                                         <div class="filter-body">
                                             <div class="form-group">
-                                                <input id="ticket_date" class="form-control filter-input date-picker" type="text" placeholder="Date" autocomplete="off">
+                                                <input ng-model="$ctrl.ticket_filter_below40.below_ticket_date" id="ticket_date" class="form-control filter-input date-picker" type="text" placeholder="Date" autocomplete="off">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.below_call_center_id" ng-change="changeCommonFilterBelow($ctrl.below_call_center_id, 'call_center_id')" placeholder="Select Call Center">
+                                                <md-select ng-model="$ctrl.ticket_filter_below40.below_call_center_id" ng-change="changeCommonFilterBelow($ctrl.ticket_filter_below40.below_call_center_id, 'call_center_id')" placeholder="Select Call Center">
                                                     <md-option ng-repeat="val in $ctrl.extras.call_center_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="call_center_id" value="" id="call_center_id">
                                             </div>
                                             <div class="form-group">
-                                                <input id="case_number" class="form-control filter-input" type="text" placeholder="Case Number" autocomplete="off">
+                                                <input ng-model="$ctrl.ticket_filter_below40.below_case_number" id="case_number" class="form-control filter-input" type="text" placeholder="Case Number" autocomplete="off">
                                             </div>
                                             <div class="form-group">
-                                                <input id="asp_code" class="form-control filter-input" type="text" placeholder="ASP Code" autocomplete="off">
+                                                <input ng-model="$ctrl.ticket_filter_below40.below_asp_code" id="asp_code" class="form-control filter-input" type="text" placeholder="ASP Code" autocomplete="off">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.below_service_type_id" ng-change="changeCommonFilterBelow($ctrl.below_service_type_id,'service_type_id')" placeholder="Select Service Type">
+                                                <md-select ng-model="$ctrl.ticket_filter_below40.below_service_type_id" ng-change="changeCommonFilterBelow($ctrl.ticket_filter_below40.below_service_type_id,'service_type_id')" placeholder="Select Service Type">
                                                     <md-option ng-repeat="val in $ctrl.extras.service_type_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="service_type_id" value="" id="service_type_id">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.below_finance_status_id" ng-change="changeCommonFilterBelow($ctrl.below_finance_status_id,'finance_status_id')" placeholder="Select Finance Status">
+                                                <md-select ng-model="$ctrl.ticket_filter_below40.below_finance_status_id" ng-change="changeCommonFilterBelow($ctrl.ticket_filter_below40.below_finance_status_id,'finance_status_id')" placeholder="Select Finance Status">
                                                     <md-option ng-repeat="val in $ctrl.extras.finance_status_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="finance_status_id" value="" id="finance_status_id">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.below_status_id" ng-change="changeCommonFilterBelow($ctrl.below_status_id,'status_id')" placeholder="Select Status">
+                                                <md-select ng-model="$ctrl.ticket_filter_below40.below_status_id" ng-change="changeCommonFilterBelow($ctrl.ticket_filter_below40.below_status_id,'status_id')" placeholder="Select Portal Status">
                                                     <md-option ng-repeat="val in $ctrl.extras.status_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="status_id" value="" id="status_id">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.below_activity_status_id" ng-change="changeCommonFilterBelow($ctrl.below_activity_status_id,'activity_status_id')" placeholder="Select Activity Status">
+                                                <md-select ng-model="$ctrl.ticket_filter_below40.below_activity_status_id" ng-change="changeCommonFilterBelow($ctrl.ticket_filter_below40.below_activity_status_id,'activity_status_id')" placeholder="Select Activity Status">
                                                     <md-option ng-repeat="val in $ctrl.extras.activity_status_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="activity_status_id" value="" id="activity_status_id">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.below_client_id" ng-change="changeCommonFilterBelow($ctrl.below_client_id,'client_id')" placeholder="Select Client">
+                                                <md-select ng-model="$ctrl.ticket_filter_below40.below_client_id" ng-change="changeCommonFilterBelow($ctrl.ticket_filter_below40.below_client_id,'client_id')" placeholder="Select Client">
                                                     <md-option ng-repeat="val in $ctrl.extras.client_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="client_id" value="" id="client_id">
                                             </div>
                                             <div class="form-group">
                                                 <div class="filter-btns">
-                                                    <!-- <a href="javascript:;" class="reset-filter  btn btn-primary yellow reset-filter1">RESET</a> -->
+                                                    <a href="javascript:;" class="reset-filter  btn btn-primary yellow" ng-click="resetFilterBelow40()">RESET</a>
                                                     <a href="javascript:;" class="close-filter btn btn-primary">CLOSE</a>
                                                 </div>
                                             </div>
@@ -115,53 +115,53 @@
                                         </div>
                                         <div class="filter-body">
                                             <div class="form-group">
-                                                <input id="ticket_date" class="form-control filter-input date-picker" type="text" placeholder="Date" autocomplete="off">
+                                                <input ng-model="$ctrl.ticket_filter_above40.above_ticket_date" id="ticket_date" class="form-control filter-input date-picker" type="text" placeholder="Date" autocomplete="off">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.above_call_center_id" ng-change="changeCommonFilterAbove($ctrl.above_call_center_id, 'call_center_id')" placeholder="Select Call Center">
+                                                <md-select ng-model="$ctrl.ticket_filter_above40.above_call_center_id" ng-change="changeCommonFilterAbove($ctrl.ticket_filter_above40.above_call_center_id, 'call_center_id')" placeholder="Select Call Center">
                                                     <md-option ng-repeat="val in $ctrl.extras.call_center_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="call_center_id" value="" id="call_center_id">
                                             </div>
                                             <div class="form-group">
-                                                <input id="case_number" class="form-control filter-input" type="text" placeholder="Case Number" autocomplete="off">
+                                                <input ng-model="$ctrl.ticket_filter_above40.above_case_number" id="case_number" class="form-control filter-input" type="text" placeholder="Case Number" autocomplete="off">
                                             </div>
                                             <div class="form-group">
-                                                <input id="asp_code" class="form-control filter-input" type="text" placeholder="ASP Code" autocomplete="off">
+                                                <input ng-model="$ctrl.ticket_filter_above40.above_asp_code" id="asp_code" class="form-control filter-input" type="text" placeholder="ASP Code" autocomplete="off">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.above_service_type_id" ng-change="changeCommonFilterAbove($ctrl.above_service_type_id,'service_type_id')" placeholder="Select Service Type">
+                                                <md-select ng-model="$ctrl.ticket_filter_above40.above_service_type_id" ng-change="changeCommonFilterAbove($ctrl.ticket_filter_above40.above_service_type_id,'service_type_id')" placeholder="Select Service Type">
                                                     <md-option ng-repeat="val in $ctrl.extras.service_type_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="service_type_id" value="" id="service_type_id">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.above_finance_status_id" ng-change="changeCommonFilterAbove($ctrl.above_finance_status_id,'finance_status_id')" placeholder="Select Finance Status">
+                                                <md-select ng-model="$ctrl.ticket_filter_above40.above_finance_status_id" ng-change="changeCommonFilterAbove($ctrl.ticket_filter_above40.above_finance_status_id,'finance_status_id')" placeholder="Select Finance Status">
                                                     <md-option ng-repeat="val in $ctrl.extras.finance_status_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="finance_status_id" value="" id="finance_status_id">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.above_status_id" ng-change="changeCommonFilterAbove($ctrl.above_status_id,'status_id')" placeholder="Select Portal Status">
+                                                <md-select ng-model="$ctrl.ticket_filter_above40.above_status_id" ng-change="changeCommonFilterAbove($ctrl.ticket_filter_above40.above_status_id,'status_id')" placeholder="Select Portal Status">
                                                     <md-option ng-repeat="val in $ctrl.extras.status_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="status_id" value="" id="status_id">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.above_activity_status_id" ng-change="changeCommonFilterAbove($ctrl.above_activity_status_id,'activity_status_id')" placeholder="Select Activity Status">
+                                                <md-select ng-model="$ctrl.ticket_filter_above40.above_activity_status_id" ng-change="changeCommonFilterAbove($ctrl.ticket_filter_above40.above_activity_status_id,'activity_status_id')" placeholder="Select Activity Status">
                                                     <md-option ng-repeat="val in $ctrl.extras.activity_status_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="activity_status_id" value="" id="activity_status_id">
                                             </div>
                                             <div class="form-group">
-                                                <md-select ng-model="$ctrl.above_client_id" ng-change="changeCommonFilterAbove($ctrl.above_client_id,'client_id')" placeholder="Select Client">
+                                                <md-select ng-model="$ctrl.ticket_filter_above40.above_client_id" ng-change="changeCommonFilterAbove($ctrl.ticket_filter_above40.above_client_id,'client_id')" placeholder="Select Client">
                                                     <md-option ng-repeat="val in $ctrl.extras.client_list" value="{{val.id}}">{{val.name}}</md-option>
                                                 </md-select>
                                                 <input type="hidden" name="client_id" value="" id="client_id">
                                             </div>
                                             <div class="form-group">
                                                 <div class="filter-btns">
-                                                    <!-- <a href="javascript:;" class="reset-filter  btn btn-primary yellow reset-filter1">RESET</a> -->
+                                                    <a href="javascript:;" class="reset-filter  btn btn-primary yellow" ng-click="resetFilterAbove40()">RESET</a>
                                                     <a href="javascript:;" class="close-filter btn btn-primary">CLOSE</a>
                                                 </div>
                                             </div>

@@ -95,6 +95,21 @@ app.component('activityVerificationList', {
                 belowDataTable.fnFilter();
             };
 
+            $scope.resetFilterBelow40 = function() {
+                self.ticket_filter_below40 = [];
+                $('.for-below40 #call_center_id').val('');
+                $('.for-below40 #service_type_id').val('');
+                $('.for-below40 #finance_status_id').val('');
+                $('.for-below40 #status_id').val('');
+                $('.for-below40 #activity_status_id').val('');
+                $('.for-below40 #client_id').val('');
+
+                setTimeout(function() {
+                    belowDataTable.fnFilter();
+                    $('#below40-table').DataTable().ajax.reload();
+                }, 1000);
+            };
+
             $scope.belowRefresh = function() {
                 $('#below40-table').DataTable().ajax.reload();
             };
@@ -236,6 +251,21 @@ app.component('activityVerificationList', {
             $scope.changeCommonFilterAbove = function(val, id) {
                 $('.for-above40 #' + id).val(val);
                 aboveDataTable.fnFilter();
+            };
+
+            $scope.resetFilterAbove40 = function() {
+                self.ticket_filter_above40 = [];
+                $('.for-above40 #call_center_id').val('');
+                $('.for-above40 #service_type_id').val('');
+                $('.for-above40 #finance_status_id').val('');
+                $('.for-above40 #status_id').val('');
+                $('.for-above40 #activity_status_id').val('');
+                $('.for-above40 #client_id').val('');
+
+                setTimeout(function() {
+                    aboveDataTable.fnFilter();
+                    $('#above40-table').DataTable().ajax.reload();
+                }, 1000);
             };
 
             $scope.aboveRefresh = function() {

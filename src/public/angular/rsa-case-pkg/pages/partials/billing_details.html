@@ -93,7 +93,7 @@
                                 </div>
                                 <div class="col-xs-12 col-sm-2">
                                     <div class="viewData-form--group">
-                                        <h4>Payment</h4>
+                                        <h4>Payment Mode</h4>
                                         <h4><span class="orange-txt">{{$ctrl.data.payment_mode}}</span></h4>
                                     </div>
                                 </div>
@@ -189,20 +189,20 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td colspan="2" ng-show="$ctrl.data.verification==1">
+                                    <td colspan="2">
                                         <textarea name="deduction_reason" ng-disabled ="$ctrl.data.verification==0" ng-model="$ctrl.data.deduction_reason" class="form-control" value="{{$ctrl.data.deduction_reason}}" placeholder="Enter Deduction Reason" rows="3"></textarea>
                                     </td>
                                 </tr>
-                                <tr >
-                                    <td colspan="2" ng-show="$ctrl.data.verification==1">
+                                <tr>
+                                    <td colspan="2">
                                         <textarea name="bo_comments" ng-disabled ="$ctrl.data.verification==0" ng-model="$ctrl.data.bo_comments" class="form-control" value="{{$ctrl.data.bo_comments}}" placeholder="Enter Comments" rows="3"></textarea>
                                     </td>
                                 </tr>
-                                <!-- <tr>
-                                    <td colspan="2" ng-show="$ctrl.data.verification==0">
-                                        <textarea name="defer_reason" ng-disabled ="$ctrl.data.verification==0" ng-model="$ctrl.data.defer_reason" class="form-control" value="{{$ctrl.data.defer_reason}}" rows="3"></textarea>
+                                <tr ng-show="$ctrl.data.is_exceptional_check==1">
+                                    <td colspan="2">
+                                        <textarea name="exceptional_reason" ng-disabled ="true" ng-model="$ctrl.data.exceptional_reason" class="form-control" value="{{$ctrl.data.exceptional_reason}}" rows="3"></textarea>
                                     </td>
-                                </tr> -->
+                                </tr>
                                 <tr class="warning" ng-show="$ctrl.data.verification==0">
                                     <td>Payout Amount</td>
                                     <td>

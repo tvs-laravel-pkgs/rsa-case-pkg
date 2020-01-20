@@ -320,16 +320,29 @@ class ActivityController extends Controller {
 			'activities.id as activity_id',
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			DB::raw('DATE_FORMAT(activities.created_at,"%d-%m-%Y %H:%i:%s") as activity_date'),
-			/*DB::raw('IF(deduction_reason IS NULL,"-",deduction_reason) as deduction_reason'),
-			DB::raw('IF(bo_comments IS NULL,"-",bo_comments) as bo_comments'),
-			DB::raw('IF(defer_reason IS NULL,"-",defer_reason) as defer_reason'),*/
+			DB::raw('IF(activities.deduction_reason IS NULL,"-",deduction_reason) as deduction_reason'),
+			DB::raw('IF(activities.bo_comments IS NULL,"-",bo_comments) as bo_comments'),
+			DB::raw('IF(activities.defer_reason IS NULL,"-",defer_reason) as defer_reason'),
 			'cases.number',
 			'cases.customer_name as customer_name',
 			'activities.number as activity_number',
 			'activities.asp_po_accepted as asp_po_accepted',
-			'activities.deduction_reason as deduction_reason',
 			'activities.defer_reason as defer_reason',
-			'activities.bo_comments as bo_comments',
+			'activities.is_exceptional_check as is_exceptional_check',
+			DB::raw('CASE
+				    	WHEN (activities.is_exceptional_check = 1)
+			    		THEN 
+			    			CASE
+			    				WHEN (activities.exceptional_reason IS NULL)
+			   					THEN 
+			    					"-"
+			    				ELSE 
+			    					activities.exceptional_reason
+			    			END
+			    		ELSE
+			    			"-"
+					END as exceptional_reason'),
+			//'activities.bo_comments as bo_comments',
 			'cases.vehicle_registration_number',
 			'case_statuses.name as case_status',
 			'vehicle_models.name as vehicle_model',
@@ -684,7 +697,7 @@ class ActivityController extends Controller {
 							['activities.asp_id', Auth::user()->asp->id],
 							['activities.case_id', $case->id],
 						])
-						->whereIn('activities.status_id',[8,9])
+						->whereIn('activities.status_id',[5,6])
 						->first();
 					if($activity_already_completed){
 						$response = ['success' => false, 'errors' => ["Ticket already submitted."]];
@@ -1397,6 +1410,13 @@ class ActivityController extends Controller {
 			->whereDate('created_at', '>=', $range1)
 			->whereDate('created_at', '<=', $range2)
 		;
+
+		if (!Entrust::can('view-all-activities')) {
+			if (Entrust::can('view-mapped-state-activities')) {
+				$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
+				$activities = $activities->whereIn('asps.state_id', $states);
+			}
+		}
 
 		$total_count = $activities->count('id');
 		if ($total_count == 0) {

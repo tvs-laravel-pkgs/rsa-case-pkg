@@ -256,6 +256,10 @@ app.component('billingDetails', {
         //self.data = activity;
         console.log(self.data);
         setTimeout(function() {
+            if (self.data.verification == 1) {
+                self.data.bo_comments = "";
+                self.data.deduction_reason = "";
+            }
             $scope.deferTicket = function() {
                 $("#reject-modal").modal();
             }

@@ -205,7 +205,7 @@ class InvoiceController extends Controller {
 				'asps.asp_code as asp_code'
 			)
 				->where('activities.asp_id', '=', $asp->id)
-				->where('Invoices.flow_current_status', 'Waiting for Batch Generation')
+			// ->where('Invoices.flow_current_status', 'Waiting for Batch Generation')
 				->join('asps', 'Invoices.asp_id', '=', 'asps.id')
 				->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
 				->join('activities', 'Invoices.id', '=', 'activities.invoice_id');

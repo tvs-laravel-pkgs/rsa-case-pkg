@@ -181,7 +181,7 @@
                                 </tr>
                                 <tr ng-if="$ctrl.data.verification==0">
                                     <td colspan="2" class="text-left">
-                                        Deduction Reason : {{$ctrl.data.deduction_reason}}
+                                        Deduction Reason : {{$ctrl.data.deduction_reason ? $ctrl.data.deduction_reason : 'N/A'}}
                                     </td>
                                 </tr>
                                 <tr ng-if="$ctrl.data.verification==1">
@@ -192,12 +192,12 @@
                                 </tr>
                                 <tr ng-if="$ctrl.data.verification==0">
                                     <td colspan="2" class="text-left">
-                                        Comments : {{$ctrl.data.bo_comments}}
+                                        Comments : {{$ctrl.data.bo_comments ? $ctrl.data.bo_comments : 'N/A'}}
                                     </td>
                                 </tr>
                                 <tr ng-show="$ctrl.data.is_exceptional_check==1">
                                     <td colspan="2" class="text-left">
-                                        Exceptional Reason : {{$ctrl.data.exceptional_reason}}
+                                        Exceptional Reason : {{$ctrl.data.exceptional_reason ? $ctrl.data.exceptional_reason : 'N/A'}}
                                         <!-- <textarea name="exceptional_reason" ng-disabled="true" ng-model="$ctrl.data.exceptional_reason" class="form-control" value="{{$ctrl.data.exceptional_reason}}" rows="3"></textarea> -->
                                     </td>
                                 </tr>

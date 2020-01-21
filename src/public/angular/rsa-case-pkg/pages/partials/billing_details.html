@@ -149,28 +149,28 @@
                                 <tr>
                                     <td>KM Charges (+)</td>
                                     <td>
-                                        <div ng-show="$ctrl.data.verification==1">{{$ctrl.data.bo_po_amount| currency:"₹"}}</div>
-                                        <div ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_po_amount}}</div>
+                                        <div>{{$ctrl.data.bo_po_amount| currency:"₹"}}</div>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>Charges Not Collected From Customer (+) </td>
                                     <td>
-                                        <div ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_not_collected}}</div>
-                                        <div ng-show="$ctrl.data.verification==1">{{$ctrl.data.raw_bo_not_collected | currency:"₹"}}</div>
+                                        <div >{{$ctrl.data.raw_bo_not_collected | currency:"₹"}}</div>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>Charges Collected From Customer (-)</td>
                                     <td>
-                                        <div ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_collected}}</div>
-                                        <div ng-show="$ctrl.data.verification==1">{{$ctrl.data.raw_bo_collected | currency:"₹"}}</div>
+                                        <div>{{$ctrl.data.raw_bo_collected | currency:"₹"}}</div>
                                     </td>
                                 </tr>
-                                <tr ng-show="$ctrl.data.verification==1 && $ctrl.data.asp.app_user==1">
+                                <tr ng-show="$ctrl.data.asp.app_user==1">
                                     <td>Discount (-)</td>
-                                    <td>
+                                    <td ng-show ="$ctrl.data.verification==1">
                                         <div><input type="text" ng-model="$ctrl.data.bo_deduction" class="deduction" value="{{$ctrl.data.bo_deduction}}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-keyup="calculatePO()"></div>
+                                    </td>
+                                    <td ng-show ="$ctrl.data.verification==0">
+                                        <div>{{$ctrl.data.bo_deduction| currency:"₹"}}</div>
                                     </td>
                                 </tr>
                                 <tr ng-if="$ctrl.data.verification==1">
@@ -204,8 +204,8 @@
                                 <tr class="warning" ng-show="$ctrl.data.verification==0">
                                     <td>Payout Amount</td>
                                     <td>
-                                        <div ng-show="$ctrl.data.bo_net_amount!=0">₹{{$ctrl.data.bo_net_amount}}</div>
-                                        <div ng-show="$ctrl.data.bo_net_amount==0">₹{{$ctrl.data.bo_net_amount}}</div>
+                                        <div ng-show="$ctrl.data.bo_net_amount!=0">{{$ctrl.data.bo_net_amount| currency:"₹"}}</div>
+                                        <div ng-show="$ctrl.data.bo_net_amount==0">{{$ctrl.data.bo_net_amount| currency:"₹"}}</div>
                                     </td>
                                 </tr>
                                 <tr class="warning" ng-show="$ctrl.data.verification==1">

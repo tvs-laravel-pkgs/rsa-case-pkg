@@ -431,17 +431,17 @@ app.component('billingDetails', {
             }
             amount_wo_deduction = parseFloat(below_amount)+parseFloat(above_amount);
             adjustment = 0;
-            if(self.data.asp.app_user){
-                if(self.data.asp_service_type_data.adjustment_type ==2){
+            if(self.data.asp_service_type_data.adjustment_type ==2){
                     adjustment = parseFloat(self.data.asp_service_type_data.adjustment);
-                }else if(self.data.asp_service_type_data.adjustment_type ==1){
-                    adjustment = parseFloat(parseFloat(amount_wo_deduction) * (parseFloat(self.data.asp_service_type_data.adjustment) /100));
-                }
+            }else if(self.data.asp_service_type_data.adjustment_type ==1){
+                adjustment = parseFloat(parseFloat(amount_wo_deduction) * (parseFloat(self.data.asp_service_type_data.adjustment) /100));
             }
-            
             amount = parseFloat(amount_wo_deduction) + parseFloat(adjustment);
-            self.data.bo_deduction = parseFloat(adjustment);
             self.data.bo_po_amount = amount;
+            if(self.data.asp.app_user==0){
+                adjustment = 0;
+            }
+            self.data.bo_deduction = parseFloat(adjustment);
             total = (parseFloat(amount) + parseFloat(self.data.raw_bo_not_collected)) - parseFloat(self.data.raw_bo_collected) - parseFloat(self.data.bo_deduction);
             self.data.bo_net_amount = self.data.bo_amount = total;
             

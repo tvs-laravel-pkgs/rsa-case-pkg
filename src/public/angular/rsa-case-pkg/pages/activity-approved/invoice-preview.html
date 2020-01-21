@@ -115,9 +115,9 @@
                                                                 <table style="width:100%">
                                                                     <tr>
                                                                         <td class="text-right">Invoice Generation :</td>
-                                                                        <td ng-show="$ctrl.asp.has_gst && !$ctrl.asp.is_auto_invoice"><span>Self</span>
+                                                                        <td ng-if="($ctrl.asp.has_gst && !$ctrl.asp.is_auto_invoice)"><span>Self</span>
                                                                         </td>
-                                                                        <td ng-show='(!$ctrl.asp.has_gst) || ($ctrl.asp.has_gst && $ctrl.asp.is_auto_invoice)"'><span>System</span>
+                                                                        <td ng-if='(!$ctrl.asp.has_gst) || ($ctrl.asp.has_gst && $ctrl.asp.is_auto_invoice)"'><span>System</span>
                                                                         </td>
                                                                     </tr>
                                                                     <tr ng-if="(!$ctrl.asp.has_gst) || ($ctrl.asp.has_gst && $ctrl.asp.is_auto_invoice)">
@@ -133,13 +133,13 @@
                                                                             <input type="hidden" name="inv_date" value="{{$ctrl.inv_date}}">
                                                                         </td>
                                                                     </tr>
-                                                                    <tr ng-if="$ctrl.asp.has_gst && !$ctrl.asp.is_auto_invoice">
+                                                                    <tr ng-if="($ctrl.asp.has_gst && !$ctrl.asp.is_auto_invoice)">
                                                                         <td class="text-right">Invoice No :</td>
                                                                         <td style="padding-left: 15px;">
                                                                             <input id="invoice_no" class="form-control filter-input" type="text" name="invoice_no" placeholder="Enter Invoice Number" autocomplete="off">
                                                                         </td>
                                                                     </tr>
-                                                                    <tr ng-if="$ctrl.asp.has_gst && !$ctrl.asp.is_auto_invoice">
+                                                                    <tr ng-if="($ctrl.asp.has_gst && !$ctrl.asp.is_auto_invoice)">
                                                                         <td class="text-right">Invoice Date :</td>
                                                                         <td style="padding-left: 15px;">
                                                                             <input id="ticket_date" class="form-control filter-input date-picker" type="text" name="inv_date" placeholder="Select Date" autocomplete="off" readonly>
@@ -234,7 +234,7 @@
                                                                         </tbody>
                                                                     </table>
                                                                 </div><!-- Responsive -->
-                                                                <div class="amountinwords">{{$ctrl.invoice_amount_in_word}} only</div>
+                                                                <div class="amountinwords">{{$ctrl.invoice_amount_in_word}}</div>
                                                                 <div class="netamount pull-right">
                                                                     <span>Net Amount</span>&nbsp;&nbsp;&nbsp;&nbsp;
                                                                     <span class="amount">

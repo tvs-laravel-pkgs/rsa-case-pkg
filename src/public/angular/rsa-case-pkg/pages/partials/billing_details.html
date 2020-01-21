@@ -155,7 +155,7 @@
                                 <tr>
                                     <td>Charges Not Collected From Customer (+) </td>
                                     <td>
-                                        <div >{{$ctrl.data.raw_bo_not_collected | currency:"₹"}}</div>
+                                        <div>{{$ctrl.data.raw_bo_not_collected | currency:"₹"}}</div>
                                     </td>
                                 </tr>
                                 <tr>
@@ -164,12 +164,12 @@
                                         <div>{{$ctrl.data.raw_bo_collected | currency:"₹"}}</div>
                                     </td>
                                 </tr>
-                                <tr ng-show="$ctrl.data.asp.app_user==1">
+                                <tr ng-show="$ctrl.data.asp.app_user==1" style="text-align: right;">
                                     <td>Discount (-)</td>
-                                    <td ng-show ="$ctrl.data.verification==1">
+                                    <td ng-show="$ctrl.data.verification==1">
                                         <div><input type="text" ng-model="$ctrl.data.bo_deduction" class="deduction" value="{{$ctrl.data.bo_deduction}}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-keyup="calculatePO()"></div>
                                     </td>
-                                    <td ng-show ="$ctrl.data.verification==0">
+                                    <td ng-show="$ctrl.data.verification==0">
                                         <div>{{$ctrl.data.bo_deduction| currency:"₹"}}</div>
                                     </td>
                                 </tr>

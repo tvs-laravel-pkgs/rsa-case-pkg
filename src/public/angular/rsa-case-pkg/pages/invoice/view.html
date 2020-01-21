@@ -113,9 +113,9 @@
                                                                 <table style="width:100%">
                                                                     <tr>
                                                                         <td class="text-right">Invoice Generation :</td>
-                                                                        <td ng-show="$ctrl.asp.has_gst && !$ctrl.asp.is_auto_invoice"><span>Self</span>
+                                                                        <td ng-if="($ctrl.asp.has_gst && !$ctrl.asp.is_auto_invoice)"><span>Self</span>
                                                                         </td>
-                                                                        <td ng-show='(!$ctrl.asp.has_gst) || ($ctrl.asp.has_gst && $ctrl.asp.is_auto_invoice)"'><span>System</span>
+                                                                        <td ng-if='(!$ctrl.asp.has_gst) || ($ctrl.asp.has_gst && $ctrl.asp.is_auto_invoice)"'><span>System</span>
                                                                         </td>
                                                                     </tr>
                                                                     <tr>

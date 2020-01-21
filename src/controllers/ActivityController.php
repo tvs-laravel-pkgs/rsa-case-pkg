@@ -362,7 +362,7 @@ class ActivityController extends Controller {
 			'call_centers.name as call_center',
 			'asp_po_rejected_reason',
 			'activities.description as description',
-			DB::raw('IF(activities.remarks IS NULL,"-",activities.remarks) as remarks'),
+			DB::raw('IF(activities.remarks IS NULL OR activities.remarks="","-",activities.remarks) as remarks'),
 			//'activities.remarks as remarks',
 			'cases.*',
 			DB::raw('CASE
@@ -425,13 +425,13 @@ class ActivityController extends Controller {
 			$detail = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $config->id)->first();
 			if (strpos($config->name, '_charges') || strpos($config->name, '_amount')) {
 
-				$this->data['activities'][$config->name] = $detail->value ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '-';
+				$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '-') : '-';
 				$raw_key_name = 'raw_' . $config->name;
-				$this->data['activities'][$raw_key_name] = $detail->value ? $detail->value : '-';
+				$this->data['activities'][$raw_key_name] = $detail ? (!empty($detail->value) ? $detail->value : '-') : '-';
 			} else if (strpos($config->name, 'date')) {
-				$this->data['activities'][$config->name] = $detail->value ? date("d-m-Y H:i:s", strtotime($detail->value)) : '-';
+				$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? date("d-m-Y H:i:s", strtotime($detail->value)) : '-') : '-';
 			} else {
-				$this->data['activities'][$config->name] = $detail->value ? $detail->value : '-';
+				$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? $detail->value :'-') : '-';
 			}
 			//dump($config->name,$this->data['activities'][$config->name]);
 		}

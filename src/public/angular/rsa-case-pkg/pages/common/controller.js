@@ -408,10 +408,10 @@ app.component('billingDetails', {
             }
         }, 3000);
         setTimeout(function() {
-            if (self.data.verification == 1) {
+            //if (self.data.verification == 1) {
                 $scope.calculate();
                 $scope.$apply();
-            }
+            //}
         }, 4000);
         $scope.calculatePO = function(){
             total = (parseFloat(self.data.bo_po_amount) + parseFloat(self.data.raw_bo_not_collected)) - parseFloat(self.data.raw_bo_collected) - parseFloat(self.data.bo_deduction);

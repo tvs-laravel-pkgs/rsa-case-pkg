@@ -413,7 +413,7 @@ class ActivityController extends Controller {
 			if (strpos($key_name, 'amount') || strpos($key_name, 'collected') || strcmp("amount", $key_name) == 0) {
 				/*dump($key_name);
 				dump($var_key_val ? $var_key_val->value : '-');*/
-				$this->data['activities'][$key_name] = $var_key_val ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($var_key_val->value, 2))) : '-';
+				$this->data['activities'][$key_name] = $var_key_val ? (!empty($var_key_val->value) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($var_key_val->value, 2))) : 0) : 0;
 				$this->data['activities'][$raw_key_name] = $var_key_val ? $var_key_val->value : 0;
 			} else {
 				$this->data['activities'][$key_name] = $var_key_val ? $var_key_val->value : 0;
@@ -1411,7 +1411,7 @@ class ActivityController extends Controller {
 
 		$status_ids = trim($request->status_ids, '""');
 		$status_ids = explode(',', $status_ids);
-		$activities = Activity::join('asps','activities.asp_id','=','asps.id')->whereIn('status_id', $status_ids)
+		$activities = Activity::join('asps', 'activities.asp_id', '=', 'asps.id')->whereIn('status_id', $status_ids)
 			->whereDate('activities.created_at', '>=', $range1)
 			->whereDate('activities.created_at', '<=', $range2)
 		;

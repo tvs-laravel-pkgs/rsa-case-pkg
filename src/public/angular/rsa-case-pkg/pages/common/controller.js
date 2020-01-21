@@ -447,6 +447,7 @@ app.component('billingDetails', {
             }
             self.data.bo_deduction = parseFloat(adjustment);
             total = (parseFloat(amount) + parseFloat(self.data.raw_bo_not_collected)) - parseFloat(self.data.raw_bo_collected) - parseFloat(self.data.bo_deduction);
+            
             self.data.bo_net_amount = self.data.bo_amount = total;
             
         }

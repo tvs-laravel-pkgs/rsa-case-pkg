@@ -254,8 +254,9 @@ app.component('billingDetails', {
         $scope.loading = true;
         var self = this;
         //self.data = activity;
-        console.log(self.data);
         setTimeout(function() {
+        console.log(self.data);
+            
             if (self.data.verification == 1) {
                 self.data.bo_comments = "";
                 self.data.deduction_reason = "";

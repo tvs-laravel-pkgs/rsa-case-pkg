@@ -404,6 +404,18 @@ class ActivityController extends Controller {
 			->groupBy('activities.id')
 			->where('activities.id', $activity_status_id)
 			->first();
+		$this->data['activities']['km_travelled_attachments']=$km_travelled_attachments = Attachment::where([['entity_id','=',$activity_status_id],['entity_type','=',16]])->get();
+		$this->data['activities']['other_charges_attachments']=$other_charges_attachments = Attachment::where([['entity_id','=',$activity_status_id],['entity_type','=',17]])->get();
+		$other_charges_attachment_url = $km_travelled_attachment_url = [];
+		foreach($km_travelled_attachments as $key => $km_travelled_attachment){
+			$km_travelled_attachment_url[$key] = aspTicketAttachmentImage($km_travelled_attachment->attachment_file_name,$activity_status_id,$activity->asp->id,$activity->serviceType->id);
+		}
+		foreach($other_charges_attachments as $key => $other_charges_attachment){
+			$other_charges_attachment_url[$key] = aspTicketAttachmentImage($other_charges_attachment->attachment_file_name,$activity_status_id,$activity->asp->id,$activity->serviceType->id);
+		}
+		$this->data['activities']['km_travelled_attachment_url']=$km_travelled_attachment_url;
+		$this->data['activities']['other_charges_attachment_url']=$other_charges_attachment_url;
+		//dd($this->data['activities']['km_travelled_attachment']->attachment_file_name,$activity_status_id,,$activity->serviceType->id);
 		$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 179, 182, 171, 175, 181];
 		foreach ($key_list as $keyw) {
 			$var_key = Config::where('id', $keyw)->first();
@@ -694,31 +706,30 @@ class ActivityController extends Controller {
 					])
 					->first();
 				if ($activity_asp) {
-					$activity_already_completed = Activity::join('cases', 'cases.id', 'activities.case_id')
+					$activity = Activity::join('cases', 'cases.id', 'activities.case_id')
+							->where([
+								['activities.asp_id', Auth::user()->asp->id],
+								['activities.case_id', $case->id],
+							])
+							->whereIn('activities.status_id', [2, 4])
+							->select('activities.id as id')
+							->first();
+						if ($activity) {
+							$response = ['success' => true, 'activity_id' => $activity->id];
+							return response()->json($response);
+						} else {
+							$activity_already_completed = Activity::join('cases', 'cases.id', 'activities.case_id')
 						->where([
 							['activities.asp_id', Auth::user()->asp->id],
 							['activities.case_id', $case->id],
 						])
 						->whereIn('activities.status_id', [5, 6])
 						->first();
-					if ($activity_already_completed) {
-						$response = ['success' => false, 'errors' => ["Ticket already submitted."]];
-						return response()->json($response);
-					} else {
-						$activity = Activity::join('cases', 'cases.id', 'activities.case_id')
-							->where([
-								['activities.asp_id', Auth::user()->asp->id],
-								// ['activities.status_id', 2],
-								['activities.case_id', $case->id],
-							])
-							->whereIn('activities.status_id', [2, 4])
-							->select('activities.id as id')
-							->first();
-						if (!$activity) {
-							$response = ['success' => false, 'errors' => ["Activity Not Found"]];
+						if ($activity_already_completed) {
+							$response = ['success' => false, 'errors' => ["Ticket already submitted."]];
 							return response()->json($response);
-						} else {
-							$response = ['success' => true, 'activity_id' => $activity->id];
+						}else{
+							$response = ['success' => false, 'errors' => ["Activity Not Found"]];
 							return response()->json($response);
 						}
 					}
@@ -736,7 +747,7 @@ class ActivityController extends Controller {
 	}
 
 	public function updateActivity(Request $request) {
-		// dd($request->all());
+		//dd($request->all());
 		DB::beginTransaction();
 		try {
 			$activity = Activity::findOrFail($request->activity_id);
@@ -767,10 +778,11 @@ class ActivityController extends Controller {
 				$activity->comments = $request->comments;
 			}
 
-			$destination = aspTicketAttachmentPath($request->mis_id, $activity->asp_id, $activity->service_type_id);
+			$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
 			$status = Storage::makeDirectory($destination, 0777);
 
 			if (!empty($request->other_attachment)):
+				Attachment::where('entity_id', $activity->id)->where('entity_type',17)->delete();
 				foreach ($request->other_attachment as $key => $value) {
 					if ($request->hasFile("other_attachment.$key")) {
 						$key1 = $key + 1;
@@ -788,6 +800,8 @@ class ActivityController extends Controller {
 			endif;
 
 			if (!empty($request->map_attachment)):
+				Attachment::where('entity_id', $activity->id)->where('entity_type',16)->delete();
+
 				foreach ($request->map_attachment as $key => $value) {
 					if ($request->hasFile("map_attachment.$key")) {
 						$key1 = $key + 1;

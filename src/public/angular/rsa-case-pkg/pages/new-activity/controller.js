@@ -99,11 +99,11 @@ app.component('newActivityUpdateDetails', {
                 $scope.$apply()
                 return;
             }
-
             self.service_types_list = response.data.service_types;
             self.for_deffer_activity = response.data.for_deffer_activity;
             //self.actual_km = response.data.activity.total_km;
             self.activity = response.data.activity;
+            self.case_details = response.data.case_details;
             self.unpaid_amount = response.data.cc_other_charge;
             self.actual_km = response.data.cc_km_travelled;
             self.collected_charges = response.data.cc_collected_charges;

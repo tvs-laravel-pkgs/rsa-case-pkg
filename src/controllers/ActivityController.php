@@ -743,6 +743,7 @@ class ActivityController extends Controller {
 	public function activityNewGetFormData($id = NULL) {
 		$for_deffer_activity = 0;
 		$this->data = Activity::getFormData($id, $for_deffer_activity);
+		$this->data['case_details'] = $this->data['activity']->case;
 		return response()->json($this->data);
 	}
 

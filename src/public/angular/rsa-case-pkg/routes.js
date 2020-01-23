@@ -14,7 +14,11 @@ app.config(['$routeProvider', function($routeProvider) {
         template: '<case-form></case-form>',
         title: 'Edit RsaCase',
     }).
-
+    //DASHBOARD
+     when('/rsa-case-pkg/dashboard', {
+        template: '<dashboard></dashboard>',
+        title: 'Dashboard',
+    }).
     //ACTIVITIES
     when('/rsa-case-pkg/activity-status/list', {
         template: '<activity-status-list></activity-status-list>',

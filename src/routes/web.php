@@ -1,5 +1,8 @@
 <?php
 Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 'prefix' => 'rsa-case-pkg'], function () {
+	//DASHBOARD
+	Route::get('dashboard/get-data', 'DashboardController@dashboardData')->name('dashboardData');
+
 	//CASE
 	Route::get('/cases/get-list', 'CaseController@getCaseList')->name('getCaseList');
 	Route::get('/case/get-form-data/{id?}', 'CaseController@getCaseFormData')->name('getCaseFormData');

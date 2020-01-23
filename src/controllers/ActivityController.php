@@ -424,10 +424,10 @@ class ActivityController extends Controller {
 			$raw_key_name = 'raw_' . $key_name;
 			if (strpos($key_name, 'amount') || strpos($key_name, 'collected') || strcmp("amount", $key_name) == 0) {
 				$this->data['activities'][$key_name] = $var_key_val ? (!empty($var_key_val->value) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($var_key_val->value, 2))) : 0) : 0;
-				$this->data['activities'][$raw_key_name] = $var_key_val ? (!empty($var_key_val->value) ? $var_key_val->value : 0 ) : 0;
+				$this->data['activities'][$raw_key_name] = $var_key_val ? (!empty($var_key_val->value) ? $var_key_val->value : 0) : 0;
 			} else {
-				$this->data['activities'][$key_name] = $var_key_val ? (!empty($var_key_val->value) ? $var_key_val->value : 0 ) : 0;
-				$this->data['activities'][$raw_key_name] = $var_key_val ? (!empty($var_key_val->value) ? $var_key_val->value : 0 ) : 0;
+				$this->data['activities'][$key_name] = $var_key_val ? (!empty($var_key_val->value) ? $var_key_val->value : 0) : 0;
+				$this->data['activities'][$raw_key_name] = $var_key_val ? (!empty($var_key_val->value) ? $var_key_val->value : 0) : 0;
 			}
 
 		}
@@ -550,7 +550,7 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$activities = Activity::where('id', $request->activity_ids)->get();
+			$activities = Activity::whereIn('id', $request->activity_ids)->get();
 			if (count($activities) == 0) {
 				return response()->json([
 					'success' => false,

@@ -242,6 +242,7 @@ app.component('invoiceView', {
             setTimeout(function() {
                 var dataTable = $('#aspLogin-table').DataTable({
                     "bLengthChange": false,
+                    "bRetrieve": true,
                     "paginate": false,
                     "oLanguage": { "sZeroRecords": "", "sEmptyTable": "" },
                 });
@@ -262,6 +263,22 @@ app.component('invoiceView', {
                 $(this).toggleClass('viewData-toggle--btn_reverse');
                 $('.viewData-toggle--inner .viewData-threeColumn--wrapper').slideToggle();
             });
+
+            $scope.isSelf = function(asp) {
+                if (asp.has_gst && !asp.is_auto_invoice) {
+                    return true;
+                } else {
+                    return false;
+                }
+            };
+
+            $scope.isSystem = function(asp) {
+                if (!asp.has_gst || (asp.has_gst && asp.is_auto_invoice)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            };
 
             $scope.getPaymenyInfo = function() {
                 $http.get(

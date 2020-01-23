@@ -228,6 +228,7 @@ app.component('approvedActivityInvoicePreview', {
             setTimeout(function() {
                 $('#invoice-preview-table').DataTable({
                     "bLengthChange": false,
+                    "bRetrieve": true,
                     "paginate": false,
                     "oLanguage": { "sZeroRecords": "", "sEmptyTable": "" },
                 });
@@ -245,6 +246,22 @@ app.component('approvedActivityInvoicePreview', {
                 $(this).toggleClass('viewData-toggle--btn_reverse');
                 $('.viewData-toggle--inner .viewData-threeColumn--wrapper').slideToggle();
             });
+
+            $scope.isSelf = function(asp) {
+                if (asp.has_gst && !asp.is_auto_invoice) {
+                    return true;
+                } else {
+                    return false;
+                }
+            };
+
+            $scope.isSystem = function(asp) {
+                if (!asp.has_gst || (asp.has_gst && asp.is_auto_invoice)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            };
 
             var form_id = form_ids = '#invoice-create-form';
             var v = jQuery(form_ids).validate({

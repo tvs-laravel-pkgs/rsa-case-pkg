@@ -62,6 +62,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'view-own-activities',
 				'display_name' => 'View Only Own',
 			],
+			[
+				'display_order' => 7,
+				'parent' => 'activity-status',
+				'name' => 'view-cc-details',
+				'display_name' => 'View CC Details',
+			],
 
 			//ACTIVITIES VERIFICATION
 			[

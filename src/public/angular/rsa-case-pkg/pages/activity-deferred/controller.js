@@ -157,6 +157,7 @@ app.component('deferredActivityUpdate', {
             self.km_attachment = response.data.km_attachment;
             self.other_attachment = response.data.other_attachment;
             self.defer_reason = response.data.activity.defer_reason;
+            self.case = response.data.case;
 
             self.kmTravelledHideShow();
             self.otherChargeHideShow();
@@ -374,6 +375,9 @@ app.component('deferredActivityUpdate', {
 
                             let formData = new FormData($(form_id)[0]);
                             $('#submit').button('loading');
+                            if ($(".loader-type-2").hasClass("loader-hide")) {
+                                $(".loader-type-2").removeClass("loader-hide");
+                            }
                             $.ajax({
                                     url: laravel_routes['updateActivity'],
                                     method: "POST",
@@ -384,6 +388,7 @@ app.component('deferredActivityUpdate', {
                                 .done(function(res) {
                                     // console.log(res.errors);
                                     if (!res.success) {
+                                        $(".loader-type-2").addClass("loader-hide");
                                         $('#submit').button('reset');
                                         var errors = '';
                                         for (var i in res.errors) {
@@ -408,6 +413,7 @@ app.component('deferredActivityUpdate', {
                                     }
                                 })
                                 .fail(function(xhr) {
+                                    $(".loader-type-2").addClass("loader-hide");
                                     $('#submit').button('reset');
                                     new Noty({
                                         type: 'error',

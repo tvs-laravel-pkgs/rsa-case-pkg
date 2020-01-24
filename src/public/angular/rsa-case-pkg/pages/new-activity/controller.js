@@ -18,6 +18,9 @@ app.component('newActivity', {
                 console.log(self.user);
                 let formData = new FormData($(form_id)[0]);
                 $('#submit').button('loading');
+                if ($(".loader-type-2").hasClass("loader-hide")) {
+                    $(".loader-type-2").removeClass("loader-hide");
+                }
                 $.ajax({
                         url: laravel_routes['verifyActivity'],
                         method: "POST",
@@ -28,6 +31,7 @@ app.component('newActivity', {
                     .done(function(res) {
                         console.log(res);
                         if (!res.success) {
+                            $(".loader-type-2").addClass("loader-hide");
                             $('#submit').button('reset');
                             var errors = '';
                             for (var i in res.errors) {
@@ -51,6 +55,7 @@ app.component('newActivity', {
                         }
                     })
                     .fail(function(xhr) {
+                        $(".loader-type-2").addClass("loader-hide");
                         $('#submit').button('reset');
                         $noty = new Noty({
                             type: 'error',
@@ -298,6 +303,9 @@ app.component('newActivityUpdateDetails', {
 
                             let formData = new FormData($(form_id)[0]);
                             $('#submit').button('loading');
+                            if ($(".loader-type-2").hasClass("loader-hide")) {
+                                $(".loader-type-2").removeClass("loader-hide");
+                            }
                             $.ajax({
                                     url: laravel_routes['updateActivity'],
                                     method: "POST",
@@ -308,6 +316,7 @@ app.component('newActivityUpdateDetails', {
                                 .done(function(res) {
                                     console.log(res.errors);
                                     if (!res.success) {
+                                        $(".loader-type-2").addClass("loader-hide");
                                         $('#submit').button('reset');
                                         var errors = '';
                                         for (var i in res.errors) {
@@ -344,6 +353,7 @@ app.component('newActivityUpdateDetails', {
                                     }
                                 })
                                 .fail(function(xhr) {
+                                    $(".loader-type-2").addClass("loader-hide");
                                     $('#submit').button('reset');
                                     $noty = new Noty({
                                         type: 'error',

@@ -11,12 +11,9 @@
                     <li>Case Number : <span>{{$ctrl.data.number}}</span></li>
                     <li>Case Status : <span>{{$ctrl.data.case_status}}</span></li>
                     <li>Case Date : <span>{{$ctrl.data.case_date}}</span></li>
-                    <li>
-                        Portal Status :
-                        <span>
-                            {{$ctrl.data.activity_portal_status}}
-                        </span>
-                    </li>
+                </ul>
+                <ul>
+                    <li>Portal Status : <span>{{$ctrl.data.activity_portal_status}}</span></li>
                 </ul>
                 <div class="clearfix"></div>
                 <div class="viewData-threeColumn--wrapper viewData-threeColumn--wrapper1" id="viewData-threeColumn--wrapper1">
@@ -67,7 +64,7 @@
         <h2 class="viewData-toggle--title pull-left">
             ASP Details
         </h2>
-        <span class="viewData-toggle--btn pull-right" id= "viewData-toggle--btnasp"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+        <span class="viewData-toggle--btn pull-right" id="viewData-toggle--btnasp"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
         <div class="clearfix"></div>
         <ul>
             <li>ASP Code : <span>{{$ctrl.data.asp.asp_code}}</span></li>

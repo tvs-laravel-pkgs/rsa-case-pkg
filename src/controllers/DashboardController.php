@@ -22,7 +22,9 @@ class DashboardController extends Controller {
 				return redirect()->route('admin_selection');
 			}
 		}
-		/* super admin - selection */
+		$today = date('Y-m-d');
+		$previous_month = Carbon::now()->subMonth();
+		
 		if (Auth::user()->hasRole('asp')) {
 			//by default asp login comes to  change password page
 			return redirect()->route('changePassword');
@@ -33,8 +35,98 @@ class DashboardController extends Controller {
 				//if primary page is dashboard
 				$user_id = Auth::user()->id;
 				if ((Auth::user()->hasRole('super-admin')) && (Session::get('portal_selection') == 1)) {
+					//New Ticket
+					$this->data['role'] = 'super-admin';
+					$this->data['new_ticket_count'] = Activity::where('status_id',2)->count();
 
-					//payment chart(monthwise)
+					$this->data['today_new_ticket_count'] = Activity::where('status_id',2)
+						->where('created_at', $today)
+						->count();
+
+					$this->data['this_month_new_ticket_count'] = Activity::join('cases','activities.case_id','=','cases.id')->where('activities.status_id',2)
+						->whereMonth('cases.created_at', date('m', strtotime($today)))
+						->whereYear('cases.created_at', date('Y', strtotime($today)))
+						->count();
+
+					$this->data['prev_month_new_ticket_count'] =Activity::join('cases','activities.case_id','=','cases.id')->where('activities.status_id',2)
+						->whereMonth('cases.created_at', date('m', strtotime($previous_month)))
+						->whereYear('cases.created_at',date('Y', strtotime($previous_month)))
+						->count();
+
+					//Ticket in approval
+					$this->data['tickets_in_approval'] = Activity::whereIn('status_id',[8,9,5,6])
+						->count();
+
+					$this->data['today_tickets_in_approval'] = Activity::join('cases','activities.case_id','=','cases.id')
+						->whereIn('activities.status_id',[8,9,5,6])
+						->where('cases.created_at', $today)
+						->count();
+
+					$this->data['this_month_tickets_in_approval'] = Activity::join('cases','activities.case_id','=','cases.id')
+						->whereIn('activities.status_id',[8,9,5,6])
+						->whereMonth('cases.created_at', date('m', strtotime($today)))
+						->whereYear('cases.created_at', date('Y', strtotime($today)))
+						->count();
+
+					$this->data['prev_month_tickets_in_approval'] = Activity::join('cases','activities.case_id','=','cases.id')
+						->whereIn('activities.status_id',[8,9,5,6])
+						->whereMonth('cases.created_at', date('m', strtotime($previous_month)))
+						->whereYear('cases.created_at', date('Y', strtotime($previous_month)))
+						->count();
+
+					//tickets_approved
+						$this->data['today_tickets_in_approved'] = Activity::join('cases','activities.case_id','=','cases.id')
+						->where('activities.status_id',11)
+						->where('cases.created_at', $today)
+						->count();
+
+					$this->data['this_month_tickets_in_approved'] = Activity::join('cases','activities.case_id','=','cases.id')
+						->where('activities.status_id',11)
+						->whereMonth('cases.created_at', date('m', strtotime($today)))
+						->whereYear('cases.created_at', date('Y', strtotime($today)))
+						->count();
+
+					$this->data['prev_month_tickets_in_approved'] = Activity::join('cases','activities.case_id','=','cases.id')
+						->where('activities.status_id',11)
+						->whereMonth('cases.created_at', date('m', strtotime($previous_month)))
+						->whereYear('cases.created_at', date('Y', strtotime($previous_month)))
+						->count();
+
+					//Invoiced
+					$this->data['invoiced'] = Activity::leftJoin('invoices','activities.invoice_id','=','invoices.id')
+						->whereIn('invoices.status_id',[1,3])
+						->count();
+
+					$this->data['today_tickets_invoiced'] = Activity::leftJoin('invoices','activities.invoice_id','=','invoices.id')
+						->whereIn('invoices.status_id',[1,3])
+						->where('invoices.created_at', $today)
+						->count();
+
+					$this->data['tickets_invoiced_this_month'] = Activity::leftJoin('invoices','activities.invoice_id','=','invoices.id')
+						->whereIn('invoices.status_id',[1,3])
+						->whereMonth('invoices.created_at', date('m', strtotime($today)))
+						->whereYear('invoices.created_at', date('Y', strtotime($today)))
+						->count();
+
+					$this->data['prev_month_tickets_invoiced'] = Activity::leftJoin('invoices','activities.invoice_id','=','invoices.id')
+						->whereIn('invoices.status_id',[1,3])
+						->whereMonth('invoices.created_at', date('m', strtotime($previous_month)))
+						->whereYear('invoices.created_at', date('Y', strtotime($previous_month)))
+						->count();
+
+					//Completed Ticket
+					$this->data['total_ticket_complete'] = Activity::leftJoin('invoices','activities.invoice_id','=','invoices.id')
+						->where('invoices.status_id',2)
+						->count();
+
+					/*$this->data['today_total_ticket_complete'] = Activity::where('flow_current_status', 'Payment Confirmed')
+						->whereDay('updated_at', Carbon::now()->format('d'))
+						->whereMonth('updated_at', Carbon::now()->format('m'))
+						->whereYear('updated_at', date('Y'))
+						->count();*/
+
+
+					/*//payment chart(monthwise)
 					$payment_year = Batch::select(DB::raw('IF(sum(paid_amount) IS NULL OR sum(paid_amount) = "", 0, sum(paid_amount)) as `total`'), DB::raw('DATE_FORMAT(updated_at,"%b") month'))
 						->whereYear('updated_at', date('Y'))
 						->where('status', 'Payment Confirmed')
@@ -49,81 +141,28 @@ class DashboardController extends Controller {
 						->where('status', 'Payment Confirmed')
 						->groupby('day')
 						->pluck('total', 'day')->toArray();
-					$this->data['payment_day'] = $payment_month;
+					$this->data['payment_day'] = $payment_month;*/
 
 					//completed ticket count (chart)
-					$this->data['completed_ticket_count'] = MisInformation::select(DB::raw('IF(count(id) IS NULL or count(id) = "", 0, count(id)) as `total`'), DB::raw('DATE_FORMAT(updated_at,"%b") month'))
+					/*$this->data['completed_ticket_count'] = Actitivty::select(DB::raw('IF(count(id) IS NULL or count(id) = "", 0, count(id)) as `total`'), DB::raw('DATE_FORMAT(updated_at,"%b") month'))
 						->whereYear('updated_at', date('Y'))
 						->where('flow_current_status', "Payment Confirmed")
 						->groupby('month')
 						->pluck('total', 'month')->toArray();
 
-					$this->data['today_new_ticket_count'] = MisInformation::where('flow_current_status', 'Waiting for ASP Data Entry')
-						->whereDay('created_at', Carbon::now()->format('d'))
-						->whereMonth('updated_at', Carbon::now()->format('m'))
-						->whereYear('created_at', date('Y'))
-						->count();
+					
 
-					$this->data['new_ticket_count'] = MisInformation::where('flow_current_status', "Waiting for ASP Data Entry")
-					// ->whereMonth('ticket_date_time', Carbon::now()->format('m'))
-					// ->whereYear('ticket_date_time', date('Y'))
-						->count();
 
-					$this->data['this_month_new_ticket_count'] = MisInformation::where('flow_current_status', "Waiting for ASP Data Entry")
-						->whereMonth('updated_at', Carbon::now()->format('m'))
-						->whereYear('updated_at', date('Y'))
-						->count();
+					
 
-					$this->data['prev_month_new_ticket_count'] = MisInformation::where('flow_current_status', "Waiting for ASP Data Entry")
-						->whereMonth('created_at', Carbon::now()->submonth()->month)
-						->whereYear('created_at', date('Y'))
-						->count();
-					//tickets_approved
-					$this->data['today_tickets_in_approved'] = DB::table('mis_informations')
-						->where('flow_current_status', 'Waiting for Invoice Generation')
-						->whereDay('updated_at', Carbon::now()->format('d'))
-						->whereMonth('updated_at', Carbon::now()->format('m'))
-						->whereYear('updated_at', date('Y'))
-						->count();
-
-					$this->data['tickets_in_approved'] = DB::table('mis_informations')
-						->where('flow_current_status', 'Waiting for Invoice Generation')
-						->whereMonth('updated_at', Carbon::now()->format('m'))
-						->whereYear('updated_at', date('Y'))
-						->count();
-
-					$this->data['prev_month_tickets_in_approved'] = DB::table('mis_informations')
-						->where('flow_current_status', 'Waiting for Invoice Generation')
-						->whereMonth('updated_at', Carbon::now()->submonth()->month)
-						->whereYear('updated_at', date('Y'))
-						->count();
+					
+					
 					//tickets_in_approval
-					$this->data['today_tickets_in_approval'] = DB::table('mis_informations')
-						->where(function ($query) {
-							$query->where('flow_current_status', "Waiting for BO - Bulk Approval")
-								->orWhere('flow_current_status', "Waiting for BO - Deferred Approval");
-						})
-						->whereDay('updated_at', Carbon::now()->format('d'))
-						->whereMonth('updated_at', Carbon::now()->format('m'))
-						->whereYear('updated_at', date('Y'))
-						->count();
+					
 
-					$this->data['tickets_in_approval'] = DB::table('mis_informations')
-						->where(function ($query) {
-							$query->where('flow_current_status', "Waiting for BO - Bulk Approval")
-								->orWhere('flow_current_status', "Waiting for BO - Deferred Approval");
-						})
-						->count();
+					
 
-					$this->data['this_month_tickets_in_approval'] = DB::table('mis_informations')
-						->where(function ($query) {
-							$query->where('flow_current_status', "Waiting for BO - Bulk Approval")
-								->orWhere('flow_current_status', "Waiting for BO - Deferred Approval");
-						})
-
-						->whereMonth('updated_at', Carbon::now()->format('m'))
-						->whereYear('updated_at', date('Y'))
-						->count();
+					
 
 					$this->data['prev_month_tickets_in_approval'] = DB::table('mis_informations')
 						->where(function ($query) {
@@ -136,52 +175,31 @@ class DashboardController extends Controller {
 					//
 
 					//tickets_in_invoiced
-					$this->data['today_tickets_invoiced'] = DB::table('mis_informations')
-						->where('flow_current_status', 'Waiting for Batch Generation')
-						->whereDay('updated_at', Carbon::now()->format('d'))
-						->whereMonth('updated_at', Carbon::now()->format('m'))
-						->whereYear('updated_at', date('Y'))
-						->count();
+					
 
-					$this->data['tickets_invoiced'] = DB::table('mis_informations')
-						->where('flow_current_status', 'Waiting for Batch Generation')
-						->whereMonth('updated_at', Carbon::now()->format('m'))
-						->whereYear('updated_at', date('Y'))
-						->count();
+					
 
-					$this->data['prev_month_tickets_invoiced'] = DB::table('mis_informations')
-						->where('flow_current_status', 'Waiting for Batch Generation')
-						->whereMonth('updated_at', Carbon::now()->submonth()->month)
-						->whereYear('updated_at', date('Y'))
-						->count();
+					
 					//
 
 					//total_ticket_complete
-					$this->data['today_total_ticket_complete'] = MisInformation::where('flow_current_status', 'Payment Confirmed')
-						->whereDay('updated_at', Carbon::now()->format('d'))
+					
+
+					
+
+					$this->data['this_month_total_ticket_complete'] = Activity::where('flow_current_status', 'Payment Confirmed')
 						->whereMonth('updated_at', Carbon::now()->format('m'))
 						->whereYear('updated_at', date('Y'))
 						->count();
 
-					$this->data['total_ticket_complete'] = MisInformation::where('flow_current_status', 'Payment Confirmed')
-						->count();
-
-					$this->data['this_month_total_ticket_complete'] = MisInformation::where('flow_current_status', 'Payment Confirmed')
-						->whereMonth('updated_at', Carbon::now()->format('m'))
-						->whereYear('updated_at', date('Y'))
-						->count();
-
-					$this->data['prev_month_total_ticket_complete'] = MisInformation::where('flow_current_status', 'Payment Confirmed')
+					$this->data['prev_month_total_ticket_complete'] = Activity::where('flow_current_status', 'Payment Confirmed')
 						->whereMonth('updated_at', Carbon::now()->submonth()->month)
 						->whereYear('updated_at', date('Y'))
 						->count();
 					//Invoiced
-					$this->data['this_month_invoiced'] = MisInformation::where('flow_current_status', 'Waiting for Batch Generation')
-					// ->whereMonth('updated_at', Carbon::now()->format('m'))
-					// ->whereYear('updated_at', date('Y'))
-						->count();
+					
 
-					$this->data['prev_month_invoiced'] = MisInformation::where('flow_current_status', 'Waiting for Batch Generation')
+					$this->data['prev_month_invoiced'] = Activity::where('flow_current_status', 'Waiting for Batch Generation')
 						->whereMonth('updated_at', Carbon::now()->submonth()->month)
 						->whereYear('updated_at', date('Y'))
 						->count();
@@ -195,7 +213,7 @@ class DashboardController extends Controller {
 					$this->data['prev_month_total_amounts'] = Batch::where('status', "Payment Confirmed")
 						->whereMonth('updated_at', Carbon::now()->submonth()->month)
 						->whereYear('updated_at', date('Y'))
-						->sum('paid_amount');
+						->sum('paid_amount');*/
 					//
 						//dd($this->data);
 					//End has role superadmin
@@ -445,11 +463,11 @@ class DashboardController extends Controller {
 						->count();
 					//
 				} else {
-					dd('ss');
 					$this->data['no_access'] = [];
 				}
 				//dd('a',$this->data);
-				return view('dashboard/dashboards', $this->data);
+				//return view('dashboard/dashboards', $this->data);
+				return response()->json(['success' => true,'data' => $this->data]);
 			} else {
 					//dd('asd',$primary_route);
 

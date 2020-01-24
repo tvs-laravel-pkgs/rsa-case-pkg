@@ -93,30 +93,30 @@ class DashboardController extends Controller {
 						->count();
 
 					//Invoiced
-					$this->data['invoiced'] = Activity::leftJoin('invoices','activities.invoice_id','=','invoices.id')
-						->whereIn('invoices.status_id',[1,3])
+					$this->data['invoiced'] = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
+						->whereIn('Invoices.status_id',[1,3])
 						->count();
 
-					$this->data['today_tickets_invoiced'] = Activity::leftJoin('invoices','activities.invoice_id','=','invoices.id')
-						->whereIn('invoices.status_id',[1,3])
-						->where('invoices.created_at', $today)
+					$this->data['today_tickets_invoiced'] = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
+						->whereIn('Invoices.status_id',[1,3])
+						->where('Invoices.created_at', $today)
 						->count();
 
-					$this->data['tickets_invoiced_this_month'] = Activity::leftJoin('invoices','activities.invoice_id','=','invoices.id')
-						->whereIn('invoices.status_id',[1,3])
-						->whereMonth('invoices.created_at', date('m', strtotime($today)))
-						->whereYear('invoices.created_at', date('Y', strtotime($today)))
+					$this->data['tickets_invoiced_this_month'] = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
+						->whereIn('Invoices.status_id',[1,3])
+						->whereMonth('Invoices.created_at', date('m', strtotime($today)))
+						->whereYear('Invoices.created_at', date('Y', strtotime($today)))
 						->count();
 
-					$this->data['prev_month_tickets_invoiced'] = Activity::leftJoin('invoices','activities.invoice_id','=','invoices.id')
-						->whereIn('invoices.status_id',[1,3])
-						->whereMonth('invoices.created_at', date('m', strtotime($previous_month)))
-						->whereYear('invoices.created_at', date('Y', strtotime($previous_month)))
+					$this->data['prev_month_tickets_invoiced'] = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
+						->whereIn('Invoices.status_id',[1,3])
+						->whereMonth('Invoices.created_at', date('m', strtotime($previous_month)))
+						->whereYear('Invoices.created_at', date('Y', strtotime($previous_month)))
 						->count();
 
 					//Completed Ticket
-					$this->data['total_ticket_complete'] = Activity::leftJoin('invoices','activities.invoice_id','=','invoices.id')
-						->where('invoices.status_id',2)
+					$this->data['total_ticket_complete'] = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
+						->where('Invoices.status_id',2)
 						->count();
 
 					/*$this->data['today_total_ticket_complete'] = Activity::where('flow_current_status', 'Payment Confirmed')

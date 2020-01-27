@@ -134,6 +134,9 @@ app.component('approvedActivityList', {
                 submitHandler: function(form) {
                     let formData = new FormData($(form_id)[0]);
                     $('#submit').button('loading');
+                    if ($(".loader-type-2").hasClass("loader-hide")) {
+                        $(".loader-type-2").removeClass("loader-hide");
+                    }
                     $.ajax({
                             url: laravel_routes['getActivityEncryptionKey'],
                             method: "POST",
@@ -144,6 +147,7 @@ app.component('approvedActivityList', {
                         .done(function(res) {
                             // console.log(res);
                             if (!res.success) {
+                                $(".loader-type-2").addClass("loader-hide");
                                 $('#submit').button('reset');
                                 $noty = new Noty({
                                     type: 'error',
@@ -159,6 +163,7 @@ app.component('approvedActivityList', {
                             }
                         })
                         .fail(function(xhr) {
+                            $(".loader-type-2").addClass("loader-hide");
                             $('#submit').button('reset');
                             $noty = new Noty({
                                 type: 'error',
@@ -285,6 +290,9 @@ app.component('approvedActivityInvoicePreview', {
                 submitHandler: function(form) {
                     let formData = new FormData($(form_id)[0]);
                     $('#submit').button('loading');
+                    if ($(".loader-type-2").hasClass("loader-hide")) {
+                        $(".loader-type-2").removeClass("loader-hide");
+                    }
                     $.ajax({
                             url: laravel_routes['generateInvoice'],
                             method: "POST",
@@ -295,6 +303,7 @@ app.component('approvedActivityInvoicePreview', {
                         .done(function(res) {
                             // console.log(res);
                             if (!res.success) {
+                                $(".loader-type-2").addClass("loader-hide");
                                 $('#submit').button('reset');
                                 $noty = new Noty({
                                     type: 'error',
@@ -323,6 +332,7 @@ app.component('approvedActivityInvoicePreview', {
                             }
                         })
                         .fail(function(xhr) {
+                            $(".loader-type-2").addClass("loader-hide");
                             $('#submit').button('reset');
                             $noty = new Noty({
                                 type: 'error',

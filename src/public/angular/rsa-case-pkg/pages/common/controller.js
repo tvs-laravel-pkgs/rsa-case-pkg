@@ -255,8 +255,6 @@ app.component('billingDetails', {
         var self = this;
         //self.data = activity;
         setTimeout(function() {
-        console.log(self.data);
-            
             if (self.data.verification == 1) {
                 self.data.bo_comments = "";
                 self.data.deduction_reason = "";
@@ -272,7 +270,9 @@ app.component('billingDetails', {
             $scope.saveApproval = function() {
                 if ($scope.myForm.$valid) {
                     $('.approve_btn').button('loading');
-
+                    if ($(".loader-type-2").hasClass("loader-hide")) {
+                        $(".loader-type-2").removeClass("loader-hide");
+                    }
                     $http.post(
                         laravel_routes['approveActivity'], {
                             activity_id: self.data.activity_id,
@@ -290,8 +290,8 @@ app.component('billingDetails', {
                             is_exceptional_check: self.is_exceptional_check,
                         }
                     ).then(function(response) {
+                        $(".loader-type-2").addClass("loader-hide");
                         $('.approve_btn').button('reset');
-
                         $("#confirm-ticket-modal").modal("hide");
 
                         if (!response.data.success) {
@@ -339,6 +339,9 @@ app.component('billingDetails', {
             $scope.differ = function() {
                 if ($scope.differForm.$valid) {
                     $('.differ_btn').button('loading');
+                    if ($(".loader-type-2").hasClass("loader-hide")) {
+                        $(".loader-type-2").removeClass("loader-hide");
+                    }
                     $http.post(
                         laravel_routes['saveActivityDiffer'], {
                             activity_id: self.data.activity_id,
@@ -357,10 +360,9 @@ app.component('billingDetails', {
 
                         }
                     ).then(function(response) {
+                        $(".loader-type-2").addClass("loader-hide");
                         $('.differ_btn').button('reset');
-
                         $("#reject-modal").modal("hide");
-
                         if (!response.data.success) {
                             var errors = '';
                             for (var i in response.data.errors) {
@@ -410,20 +412,20 @@ app.component('billingDetails', {
         }, 3000);
         setTimeout(function() {
             //if (self.data.verification == 1) {
-                $scope.calculate();
-                $scope.$apply();
+            $scope.calculate();
+            $scope.$apply();
             //}
         }, 4000);
-        $scope.calculatePO = function(){
+        $scope.calculatePO = function() {
             total = (parseFloat(self.data.bo_po_amount) + parseFloat(self.data.raw_bo_not_collected)) - parseFloat(self.data.raw_bo_collected) - parseFloat(self.data.bo_deduction);
             self.data.bo_net_amount = self.data.bo_amount = total;
         }
         $scope.calculate = function() {
-        console.log(self.data);
-            if(self.data.finance_status.po_eligibility_type_id==341){
-                 below_amount = self.data.raw_bo_km_travelled == 0 ?  0 : self.data.asp_service_type_data.empty_return_range_price;
-            }else{
-                 below_amount = self.data.raw_bo_km_travelled == 0 ?  0 : self.data.asp_service_type_data.below_range_price;
+            console.log(self.data);
+            if (self.data.finance_status.po_eligibility_type_id == 341) {
+                below_amount = self.data.raw_bo_km_travelled == 0 ? 0 : self.data.asp_service_type_data.empty_return_range_price;
+            } else {
+                below_amount = self.data.raw_bo_km_travelled == 0 ? 0 : self.data.asp_service_type_data.below_range_price;
             }
             if (self.data.raw_bo_km_travelled > self.data.asp_km_travelled) {
                 self.show_km = 1;
@@ -434,23 +436,23 @@ app.component('billingDetails', {
                 excess = self.data.raw_bo_km_travelled - self.data.asp_service_type_data.range_limit;
                 above_amount = (parseFloat(excess) * parseFloat(self.data.asp_service_type_data.above_range_price));
             }
-            amount_wo_deduction = parseFloat(below_amount)+parseFloat(above_amount);
+            amount_wo_deduction = parseFloat(below_amount) + parseFloat(above_amount);
             adjustment = 0;
-            if(self.data.asp_service_type_data.adjustment_type ==2){
-                    adjustment = parseFloat(self.data.asp_service_type_data.adjustment);
-            }else if(self.data.asp_service_type_data.adjustment_type ==1){
-                adjustment = parseFloat(parseFloat(amount_wo_deduction) * (parseFloat(self.data.asp_service_type_data.adjustment) /100));
+            if (self.data.asp_service_type_data.adjustment_type == 2) {
+                adjustment = parseFloat(self.data.asp_service_type_data.adjustment);
+            } else if (self.data.asp_service_type_data.adjustment_type == 1) {
+                adjustment = parseFloat(parseFloat(amount_wo_deduction) * (parseFloat(self.data.asp_service_type_data.adjustment) / 100));
             }
             amount = parseFloat(amount_wo_deduction) + parseFloat(adjustment);
             self.data.bo_po_amount = amount;
-            if(self.data.asp.app_user==0){
+            if (self.data.asp.app_user == 0) {
                 adjustment = 0;
             }
             self.data.bo_deduction = parseFloat(adjustment);
             total = (parseFloat(amount) + parseFloat(self.data.raw_bo_not_collected)) - parseFloat(self.data.raw_bo_collected) - parseFloat(self.data.bo_deduction);
-            
+
             self.data.bo_net_amount = self.data.bo_amount = total;
-            
+
         }
 
     }

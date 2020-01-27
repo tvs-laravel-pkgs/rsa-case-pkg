@@ -1,16 +1,13 @@
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-xs-12 col-sm-12">
-            <div class="mobile-breadcrumbs-wrapper">
-                <ul class="mobile-breadcrumbs-group list-inline">
-                    <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
-                    <li><a href="#">ASP Invoices</a></li>
-                    <li><a href="#!/rsa-case-pkg/invoice/list/{{$ctrl.type_id}}">{{$ctrl.title}}</a></li>
-                </ul>
-            </div>
-        </div>
-    </div><!-- Row -->
-</div><!-- Container Fluid -->
+<div class="col-xs-12 col-sm-12">
+    <div class="mobile-breadcrumbs-wrapper">
+        <ul class="mobile-breadcrumbs-group list-inline">
+            <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
+            <li><a href="#">ASP Invoices</a></li>
+            <li><a href="#!/rsa-case-pkg/invoice/list/{{$ctrl.type_id}}">{{$ctrl.title}}</a></li>
+        </ul>
+    </div>
+</div>
+
 <div class="container-fluid dataTable-content--wrapper">
     <div class="row">
         <div class="col-xs-12 col-sm-12">

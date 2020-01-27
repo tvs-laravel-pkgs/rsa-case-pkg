@@ -1,27 +1,32 @@
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-xs-12 col-sm-12" ng-show="$ctrl.data.verification==0">
-            <div class="mobile-breadcrumbs-wrapper">
-                <ul class="mobile-breadcrumbs-group list-inline">
-                    <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
-                    <li><a href="#">Asp Activities</a></li>
-                    <li ><a href="#!/rsa-case-pkg/activity-status/list">Status</a></li>
-                    <li ng-show="$ctrl.data.verification==0"><a href="javascript:;">View</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="col-xs-12 col-sm-12" ng-show="$ctrl.data.verification==1">
-            <div class="mobile-breadcrumbs-wrapper">
-                <ul class="mobile-breadcrumbs-group list-inline">
-                    <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
-                    <li><a href="#">Asp Activities</a></li>
-                    <li ng-show="$ctrl.data.verification==1"><a href="#!/rsa-case-pkg/activity-verification/list">Verification</a></li>
-                </ul>
-            </div>
-        </div>
+<div class="col-xs-12 col-sm-12" ng-show="$ctrl.data.verification==0">
+    <div class="mobile-breadcrumbs-wrapper">
+        <ul class="mobile-breadcrumbs-group list-inline">
+            <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
+            <li><a href="#">Asp Activities</a></li>
+            <li ><a href="#!/rsa-case-pkg/activity-status/list">Status</a></li>
+            <li ng-show="$ctrl.data.verification==0"><a href="javascript:;">View</a></li>
+        </ul>
     </div>
 </div>
+<div class="col-xs-12 col-sm-12" ng-show="$ctrl.data.verification==1">
+    <div class="mobile-breadcrumbs-wrapper">
+        <ul class="mobile-breadcrumbs-group list-inline">
+            <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
+            <li><a href="#">Asp Activities</a></li>
+            <li ng-show="$ctrl.data.verification==1"><a href="#!/rsa-case-pkg/activity-verification/list">Verification</a></li>
+        </ul>
+    </div>
+</div>
+
 <div class="container-fluid dataTable-content--wrapper">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="dataTable--left_wrapper">
+                <h2 class="dataTable-title">Ticket</h2>
+                <p></p>
+            </div>
+        </div>
+    </div><!-- Row -->
     <asp-activities-header data="$ctrl.data"></asp-activities-header>
     <div class="tab-content">
         <div id="bill" class="tab-pane fade in active">

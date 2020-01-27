@@ -18,11 +18,7 @@
                             <ul class="rate-card-info-list">
                                 <li class="rate-card-info-list-item">Finance Status : <span class="orange-txt"> {{$ctrl.data.asp_status}}</span></li>
                             </ul>
-                        </div>
-                        <div class="col-xs-12 col-sm-6">
-                            <div class="form-group">
-                                <input type="hidden" name="bo_info[{{$index}}][is_payment_eligible]" class="payment_eligible" value="1">
-                            </div>
+                            <input type="hidden" name="bo_info[{{$index}}][is_payment_eligible]" class="payment_eligible" value="1">
                         </div>
                     </div>
                 </div>
@@ -80,26 +76,27 @@
                                 </tr>
                                 <tr ng-show="$ctrl.data.km_travelled_attachment_url.length>0">
                                     <th scope="row">KM Upload Attachment</th>
-                                    <td>
-                                    <div ng-repeat ="(index,km_travelled_attachment) in $ctrl.data.km_travelled_attachments">
-                                    <a target="_blank" href="{{$ctrl.data.km_travelled_attachment_url[index]}}">{{km_travelled_attachment.attachment_file_name}}</a>,
-                                    <img height="80px" weight="80px" src="{{$ctrl.data.km_travelled_attachment_url[index]}}">
-                                </div>
+                                    <td colspan="3">
+                                        <div ng-repeat ="(index,km_travelled_attachment) in $ctrl.data.km_travelled_attachments">
+                                            <a target="_blank" href="{{$ctrl.data.km_travelled_attachment_url[index]}}">{{km_travelled_attachment.attachment_file_name}}</a>,
+                                            <img height="80px" weight="80px" src="{{$ctrl.data.km_travelled_attachment_url[index]}}">
+                                        </div>
                                     </td>
                                 </tr>
 
                                 <tr ng-show="$ctrl.data.other_charges_attachment_url.length>0">
                                     <th scope="row">Other Attachment</th>
-                                    <td>
-                                    <div ng-repeat ="(index,other_charges_attachment) in $ctrl.data.other_charges_attachments">
-                                    <a  target="_blank" href="{{$ctrl.data.other_charges_attachment_url[index]}}">{{other_charges_attachment.attachment_file_name}}</a>,
-                                    <img height="80px" weight="80px" src="{{$ctrl.data.other_charges_attachment_url[index]}}">
+                                    <td colspan="3">
+                                        <div ng-repeat ="(index,other_charges_attachment) in $ctrl.data.other_charges_attachments">
+                                            <a  target="_blank" href="{{$ctrl.data.other_charges_attachment_url[index]}}">{{other_charges_attachment.attachment_file_name}}</a>,
+                                            <img height="80px" weight="80px" src="{{$ctrl.data.other_charges_attachment_url[index]}}">
+                                        </div>
                                     </td>
                                 </tr>
 
                                 <tr ng-show="$ctrl.data.other_charges_attachment_url.length>0">
                                     <th scope="row">Remarks Comments for not collected charges</th>
-                                    <td>
+                                    <td colspan="3">
                                         {{ $ctrl.data.remarks }}
                                     </td>
                                 </tr>
@@ -112,7 +109,7 @@
                         <li class="rate-card-info-list-item">Payment Mode: <span class="orange-txt">{{$ctrl.data.payment_mode}}</span></li>
                     </ul>
                     <div class="table-responsive">
-                        <table class="table  table-bordered table-wide style-normal">
+                        <table class="table table-bordered table-wide style-normal">
                             <thead>
                                 <tr class="warning">
                                     <th>
@@ -130,34 +127,34 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                     <tr class="active">
-                                         <th>
-                                                 {{$ctrl.data.asp_service_type_data.below_range_price}}
-                                                        <input class="form-control viewData-input below_40 hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.below_range_price}}">
-                                                        <input class="form-control viewData-input limit hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.range_limit}}">
-                                             </th>
-                                         <td>
-                                                 {{$ctrl.data.asp_service_type_data.above_range_price}}
-                                                        <input class="form-control viewData-input  above_40 hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.above_range_price}}">
-                                             </td>
-                                                <td>
-                                                 {{$ctrl.data.asp_service_type_data.empty_return_range_price }}
-                                                        <input class="form-control viewData-input mt_return_price hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.empty_return_range_price}}">
-                                             </td>
-                                                <td>
-                                                        {{$ctrl.data.asp_service_type_data.adjustment_type == 1 ? 'Percentage' : 'Amount'}}
-                                                        <input class="form-control viewData-input adjustment_type hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.adjustment_type == 1 ? 'Percentage' : 'Amount'}}">
-                                                    </td>
-                                                <td>
-                                                        {{$ctrl.data.asp_service_type_data.adjustment}}
-                                                        <input class="form-control viewData-input adjustment hide_temp" disabled="disabled" type="text" value="{{ $ctrl.data.asp_service_type_data.adjustment }}">
-                                                    </td>
-                                         <td>
-                                                 {{$ctrl.data.asp_service_type_data.waiting_charge_per_hour}}
-                                                        <input class="form-control viewData-input waiting_charge hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.waiting_charge_per_hour}}">
-                                             </td>
-                                            </tr>
-                                    </tbody>
+                                <tr class="active">
+                                    <td>
+                                        {{$ctrl.data.asp_service_type_data.below_range_price}}
+                                        <input class="form-control viewData-input below_40 hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.below_range_price}}">
+                                        <input class="form-control viewData-input limit hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.range_limit}}">
+                                    </td>
+                                     <td>
+                                        {{$ctrl.data.asp_service_type_data.above_range_price}}
+                                        <input class="form-control viewData-input  above_40 hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.above_range_price}}">
+                                     </td>
+                                    <td>
+                                        {{$ctrl.data.asp_service_type_data.empty_return_range_price }}
+                                        <input class="form-control viewData-input mt_return_price hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.empty_return_range_price}}">
+                                    </td>
+                                    <td>
+                                        {{$ctrl.data.asp_service_type_data.adjustment_type == 1 ? 'Percentage' : 'Amount'}}
+                                        <input class="form-control viewData-input adjustment_type hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.adjustment_type == 1 ? 'Percentage' : 'Amount'}}">
+                                    </td>
+                                    <td>
+                                        {{$ctrl.data.asp_service_type_data.adjustment}}
+                                        <input class="form-control viewData-input adjustment hide_temp" disabled="disabled" type="text" value="{{ $ctrl.data.asp_service_type_data.adjustment }}">
+                                    </td>
+                                    <td style="text-align: left;">
+                                        {{$ctrl.data.asp_service_type_data.waiting_charge_per_hour}}
+                                        <input class="form-control viewData-input waiting_charge hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.waiting_charge_per_hour}}">
+                                    </td>
+                                </tr>
+                            </tbody>
                         </table>
                     </div>
                     <!-- @if(!empty($approved_view)) -->

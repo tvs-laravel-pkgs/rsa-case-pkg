@@ -29,7 +29,7 @@
                             </h2>
                             <span class="viewData-toggle--btn pull-right"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
                             <div class="clearfix"></div>
-                            <ul>
+                            <ul class="short-info-list">
                                 <li>ASP Name : <span>{{$ctrl.asp.name ? $ctrl.asp.name : 'N/A'}}</span></li>
                                 <li>ASP Code : <span>{{$ctrl.asp.asp_code ? $ctrl.asp.asp_code : 'N/A'}}</span></li>
                                 <li ng-if="$ctrl.asp.asp_code != 'NULL'">ASP Type :
@@ -61,9 +61,11 @@
                                             <li><img src="./resources/assets/images/ic-location.svg"></li>
                                             <li>
                                                 <p>
-                                                    {{$ctrl.asp.workshop_name ? $ctrl.asp.workshop_name : 'N/A'}} <br>
-                                                    {{$ctrl.asp.address_line_1 ? $ctrl.asp.address_line_1 : 'N/A'}}<br>
-                                                    {{$ctrl.asp.address_line_2 ? $ctrl.asp.address_line_2 : 'N/A'}}<br>
+                                                    <b>
+                                                        {{$ctrl.asp.workshop_name ? $ctrl.asp.workshop_name : 'N/A'}} <br>
+                                                        {{$ctrl.asp.address_line_1 ? $ctrl.asp.address_line_1 : 'N/A'}}<br>
+                                                        {{$ctrl.asp.address_line_2 ? $ctrl.asp.address_line_2 : 'N/A'}}<br>
+                                                    </b>
                                                 </p>
                                             </li>
                                         </ul>
@@ -72,7 +74,7 @@
                                         <ul class="viewData-threeColumn--group">
                                             <li><img src="./resources/assets/images/ic-phone.svg"></li>
                                             <li>
-                                                <p>{{$ctrl.asp.contact_number1 ? $ctrl.asp.contact_number1 : 'N/A'}}<br><a href="javascript:;">{{$ctrl.asp.email ? $ctrl.asp.email : 'N/A'}}</a></p>
+                                                <p><b>{{$ctrl.asp.contact_number1 ? $ctrl.asp.contact_number1 : 'N/A'}}<br><a href="javascript:;">{{$ctrl.asp.email ? $ctrl.asp.email : 'N/A'}}</a></b></p>
                                             </li>
                                         </ul>
                                     </div>
@@ -80,7 +82,7 @@
                                         <ul class="viewData-threeColumn--group">
                                             <li><img src="./resources/assets/images/ic-profile.svg"></li>
                                             <li>
-                                                <p>RM: {{$ctrl.asp.rm ? ($ctrl.asp.rm.name ? $ctrl.asp.rm.name : 'N/A') : 'N/A'}}<br> RM Mobile: {{$ctrl.asp.rm ? ($ctrl.asp.rm.contact_number ? $ctrl.asp.rm.contact_number : 'N/A') : 'N/A'}} </p>
+                                                <p>RM: <b>{{$ctrl.asp.rm ? ($ctrl.asp.rm.name ? $ctrl.asp.rm.name : 'N/A') : 'N/A'}}</b><br> RM Mobile: <b>{{$ctrl.asp.rm ? ($ctrl.asp.rm.contact_number ? $ctrl.asp.rm.contact_number : 'N/A') : 'N/A'}}</b> </p>
                                             </li>
                                         </ul>
                                     </div>
@@ -231,7 +233,7 @@
                                         <div class="mb-30"></div>
                                         <div class="aai_footer">
                                             <div class="pull-left"> 
-                                                <h4>Bank Details:</h4>
+                                                <h4 class="amountinwords-title">Bank Details:</h4>
                                                 <p>Name : {{$ctrl.asp.workshop_name ? $ctrl.asp.workshop_name : 'N/A'}} | Account Number : {{$ctrl.asp.bank_account_number ? $ctrl.asp.bank_account_number : 'N/A'}} | Bank : {{$ctrl.asp.bank_name ? $ctrl.asp.bank_name : 'N/A'}} | Branch : {{$ctrl.asp.bank_branch_name ? $ctrl.asp.bank_branch_name : 'N/A'}} | IFSC : {{$ctrl.asp.bank_ifsc_code ? $ctrl.asp.bank_ifsc_code : 'N/A'}}</p>
                                             </div>
                                             <div ng-show="$ctrl.signature_attachment != ''" class="pull-right">

@@ -77,23 +77,20 @@
                                 <tr ng-show="$ctrl.data.km_travelled_attachment_url.length>0">
                                     <th scope="row">KM Upload Attachment</th>
                                     <td colspan="3">
-                                        <div ng-repeat ="(index,km_travelled_attachment) in $ctrl.data.km_travelled_attachments">
+                                        <div ng-repeat="(index,km_travelled_attachment) in $ctrl.data.km_travelled_attachments">
                                             <a target="_blank" href="{{$ctrl.data.km_travelled_attachment_url[index]}}">{{km_travelled_attachment.attachment_file_name}}</a>,
                                             <img height="80px" weight="80px" src="{{$ctrl.data.km_travelled_attachment_url[index]}}">
                                         </div>
                                     </td>
                                 </tr>
-
                                 <tr ng-show="$ctrl.data.other_charges_attachment_url.length>0">
                                     <th scope="row">Other Attachment</th>
                                     <td colspan="3">
-                                        <div ng-repeat ="(index,other_charges_attachment) in $ctrl.data.other_charges_attachments">
-                                            <a  target="_blank" href="{{$ctrl.data.other_charges_attachment_url[index]}}">{{other_charges_attachment.attachment_file_name}}</a>,
+                                        <div ng-repeat="(index,other_charges_attachment) in $ctrl.data.other_charges_attachments">
+                                            <a target="_blank" href="{{$ctrl.data.other_charges_attachment_url[index]}}">{{other_charges_attachment.attachment_file_name}}</a>,
                                             <img height="80px" weight="80px" src="{{$ctrl.data.other_charges_attachment_url[index]}}">
-                                        </div>
                                     </td>
                                 </tr>
-
                                 <tr ng-show="$ctrl.data.other_charges_attachment_url.length>0">
                                     <th scope="row">Remarks Comments for not collected charges</th>
                                     <td colspan="3">
@@ -194,7 +191,6 @@
                                         <div>{{$ctrl.data.bo_deduction| currency:"₹"}}</div>
                                     </td>
                                 </tr>
-                                
                                 <tr ng-if="$ctrl.data.verification==1">
                                     <td colspan="2">
                                         <!-- <textarea name="deduction_reason" ng-model="$ctrl.data.deduction_reason" class="form-control" value="" placeholder="Enter Deduction Reason" rows="3"></textarea> -->
@@ -322,4 +318,11 @@
             </form>
         </div>
     </div>
+</div>
+<div class="col-md-12">
+    <!-- Button Loader Starts -->
+    <div class="loader-type-2 loader-hide">
+        <div class="loader-inner"></div>
+    </div>
+    <!-- Button Loader Ends -->
 </div>

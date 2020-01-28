@@ -370,6 +370,7 @@ app.component('activityVerificationView', {
             self.data.style_phone_image_url = style_car_image_url;
             self.data.style_modal_close_image_url = style_modal_close_image_url;
             self.data.style_question_image_url = style_question_image_url;
+            self.data.style_checked_image_url = style_checked_image_url;
             self.data.verification = 1;
 
             $rootScope.loading = false;

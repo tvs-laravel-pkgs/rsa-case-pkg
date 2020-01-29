@@ -14,6 +14,9 @@ class DashboardController extends Controller {
 	public function __construct() {
 	}
 
+	public static function boData($col,$states){
+		return $col->join('asps','asps.id','activities.asp_id')->whereIn('asps.state_id', $states);
+	}
 	public function dashboardData() {
 		/* super admin - selection */
 		if (Auth::user()->hasRole('super-admin')) {
@@ -34,98 +37,186 @@ class DashboardController extends Controller {
 			if (($primary_route == 'dashboard') || ($primary_route == '')) {
 				//if primary page is dashboard
 				$user_id = Auth::user()->id;
-				if ((Auth::user()->hasRole('super-admin')) && (Session::get('portal_selection') == 1)) {
+				if (((Auth::user()->hasRole('super-admin')) && (Session::get('portal_selection') == 1)) || Auth::user()->hasRole('bo')) {
 					//New Ticket
-					$this->data['role'] = 'super-admin';
-					$this->data['new_ticket_count'] = Activity::where('status_id',2)->count();
+					if(Auth::user()->hasRole('super-admin')){
+						$this->data['role'] = 'super-admin';
+					}elseif(Auth::user()->hasRole('bo')){
+						$this->data['role'] = 'bo';
+						$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
+					}
+					$new_ticket_count = Activity::where('status_id',2);
+					if(Auth::user()->hasRole('bo')){
+						$new_ticket_count = $this->boData($new_ticket_count,$states);
+					}
+					$this->data['new_ticket_count'] =  $new_ticket_count->count();
 
-					$this->data['today_new_ticket_count'] = Activity::where('status_id',2)
-						->where('created_at', $today)
-						->count();
 
-					$this->data['this_month_new_ticket_count'] = Activity::join('cases','activities.case_id','=','cases.id')->where('activities.status_id',2)
+					$today_new_ticket_count = Activity::where('status_id',2)
+						->where('activities.created_at', $today);
+					if(Auth::user()->hasRole('bo')){
+						$today_new_ticket_count = $this->boData($today_new_ticket_count,$states);
+					}
+					$this->data['today_new_ticket_count'] = $today_new_ticket_count->count();
+
+					//
+					$this_month_new_ticket_count =  Activity::join('cases','activities.case_id','=','cases.id')->where('activities.status_id',2)
 						->whereMonth('cases.created_at', date('m', strtotime($today)))
-						->whereYear('cases.created_at', date('Y', strtotime($today)))
-						->count();
+						->whereYear('cases.created_at', date('Y', strtotime($today)));
+					if(Auth::user()->hasRole('bo')){
+						$this_month_new_ticket_count = $this->boData($this_month_new_ticket_count,$states);
+					}
+					$this->data['this_month_new_ticket_count'] = $this_month_new_ticket_count->count();
 
-					$this->data['prev_month_new_ticket_count'] =Activity::join('cases','activities.case_id','=','cases.id')->where('activities.status_id',2)
+					//
+					$prev_month_new_ticket_count = Activity::join('cases','activities.case_id','=','cases.id')->where('activities.status_id',2)
 						->whereMonth('cases.created_at', date('m', strtotime($previous_month)))
-						->whereYear('cases.created_at',date('Y', strtotime($previous_month)))
-						->count();
+						->whereYear('cases.created_at',date('Y', strtotime($previous_month)));
+					if(Auth::user()->hasRole('bo')){
+						$prev_month_new_ticket_count = $this->boData($prev_month_new_ticket_count,$states);
+					}
+					$this->data['prev_month_new_ticket_count'] = $prev_month_new_ticket_count->count();
 
 					//Ticket in approval
-					$this->data['tickets_in_approval'] = Activity::whereIn('status_id',[8,9,5,6])
-						->count();
+					$tickets_in_approval = Activity::whereIn('status_id',[8,9,5,6]);
+					if(Auth::user()->hasRole('bo')){
+						$tickets_in_approval = $this->boData($tickets_in_approval,$states);
+					}
+					$this->data['tickets_in_approval'] = $tickets_in_approval->count();
 
-					$this->data['today_tickets_in_approval'] = Activity::join('cases','activities.case_id','=','cases.id')
+					//
+					$today_tickets_in_approval = Activity::join('cases','activities.case_id','=','cases.id')
 						->whereIn('activities.status_id',[8,9,5,6])
-						->where('cases.created_at', $today)
-						->count();
+						->where('cases.created_at', $today);
+					if(Auth::user()->hasRole('bo')){
+						$today_tickets_in_approval = $this->boData($today_tickets_in_approval,$states);
+					}
+					$this->data['today_tickets_in_approval'] = $today_tickets_in_approval->count();
 
-					$this->data['this_month_tickets_in_approval'] = Activity::join('cases','activities.case_id','=','cases.id')
+					//
+					$this_month_tickets_in_approval =  Activity::join('cases','activities.case_id','=','cases.id')
 						->whereIn('activities.status_id',[8,9,5,6])
 						->whereMonth('cases.created_at', date('m', strtotime($today)))
-						->whereYear('cases.created_at', date('Y', strtotime($today)))
-						->count();
+						->whereYear('cases.created_at', date('Y', strtotime($today)));
+					if(Auth::user()->hasRole('bo')){
+						$this_month_tickets_in_approval = $this->boData($this_month_tickets_in_approval,$states);
+					}
+					$this->data['this_month_tickets_in_approval'] = $this_month_tickets_in_approval->count();
 
-					$this->data['prev_month_tickets_in_approval'] = Activity::join('cases','activities.case_id','=','cases.id')
+					//
+					 $prev_month_tickets_in_approval = Activity::join('cases','activities.case_id','=','cases.id')
 						->whereIn('activities.status_id',[8,9,5,6])
 						->whereMonth('cases.created_at', date('m', strtotime($previous_month)))
-						->whereYear('cases.created_at', date('Y', strtotime($previous_month)))
-						->count();
+						->whereYear('cases.created_at', date('Y', strtotime($previous_month)));
+					if(Auth::user()->hasRole('bo')){
+						$prev_month_tickets_in_approval = $this->boData($prev_month_tickets_in_approval,$states);
+					}
+					$this->data['prev_month_tickets_in_approval'] = $prev_month_tickets_in_approval->count();
 
 					//tickets_approved
-						$this->data['today_tickets_in_approved'] = Activity::join('cases','activities.case_id','=','cases.id')
-						->where('activities.status_id',11)
-						->where('cases.created_at', $today)
-						->count();
+					$today_tickets_in_approved = Activity::join('cases','activities.case_id','=','cases.id')
+					->where('activities.status_id',11)
+					->where('cases.created_at', $today);
+					if(Auth::user()->hasRole('bo')){
+						$today_tickets_in_approved = $this->boData($today_tickets_in_approved,$states);
+					}
+					$this->data['today_tickets_in_approved'] =  $today_tickets_in_approved->count();
 
-					$this->data['this_month_tickets_in_approved'] = Activity::join('cases','activities.case_id','=','cases.id')
+					$this_month_tickets_in_approved = Activity::join('cases','activities.case_id','=','cases.id')
 						->where('activities.status_id',11)
 						->whereMonth('cases.created_at', date('m', strtotime($today)))
-						->whereYear('cases.created_at', date('Y', strtotime($today)))
-						->count();
+						->whereYear('cases.created_at', date('Y', strtotime($today)));
+					if(Auth::user()->hasRole('bo')){
+						$this_month_tickets_in_approved = $this->boData($this_month_tickets_in_approved,$states);
+					}
+					$this->data['this_month_tickets_in_approved'] = $this_month_tickets_in_approved->count();
 
-					$this->data['prev_month_tickets_in_approved'] = Activity::join('cases','activities.case_id','=','cases.id')
+					//
+					$prev_month_tickets_in_approved = Activity::join('cases','activities.case_id','=','cases.id')
 						->where('activities.status_id',11)
 						->whereMonth('cases.created_at', date('m', strtotime($previous_month)))
-						->whereYear('cases.created_at', date('Y', strtotime($previous_month)))
-						->count();
+						->whereYear('cases.created_at', date('Y', strtotime($previous_month)));
+					if(Auth::user()->hasRole('bo')){
+						$prev_month_tickets_in_approved = $this->boData($prev_month_tickets_in_approved,$states);
+					}
+					$this->data['prev_month_tickets_in_approved'] = $prev_month_tickets_in_approved->count();
 
 					//Invoiced
-					$this->data['invoiced'] = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
-						->whereIn('Invoices.status_id',[1,3])
-						->count();
+					$invoiced = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
+						->whereIn('Invoices.status_id',[1,3]);
+					if(Auth::user()->hasRole('bo')){
+						$invoiced = $this->boData($invoiced,$states);
+					}
+					$this->data['invoiced'] = $invoiced->count();
 
-					$this->data['today_tickets_invoiced'] = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
+					$today_tickets_invoiced = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
 						->whereIn('Invoices.status_id',[1,3])
-						->where('Invoices.created_at', $today)
-						->count();
+						->where('Invoices.created_at', $today);
+					if(Auth::user()->hasRole('bo')){
+						$today_tickets_invoiced = $this->boData($today_tickets_invoiced,$states);
+					}
+						
+					$this->data['today_tickets_invoiced'] = $today_tickets_invoiced->count();
 
-					$this->data['tickets_invoiced_this_month'] = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
+					//
+					$tickets_invoiced_this_month =  Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
 						->whereIn('Invoices.status_id',[1,3])
 						->whereMonth('Invoices.created_at', date('m', strtotime($today)))
-						->whereYear('Invoices.created_at', date('Y', strtotime($today)))
-						->count();
+						->whereYear('Invoices.created_at', date('Y', strtotime($today)));
+					if(Auth::user()->hasRole('bo')){
+						$tickets_invoiced_this_month = $this->boData($tickets_invoiced_this_month,$states);
+					}
+					$this->data['tickets_invoiced_this_month'] = $tickets_invoiced_this_month->count();
 
-					$this->data['prev_month_tickets_invoiced'] = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
+					//
+					$prev_month_tickets_invoiced = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
 						->whereIn('Invoices.status_id',[1,3])
 						->whereMonth('Invoices.created_at', date('m', strtotime($previous_month)))
-						->whereYear('Invoices.created_at', date('Y', strtotime($previous_month)))
-						->count();
+						->whereYear('Invoices.created_at', date('Y', strtotime($previous_month)));
+					if(Auth::user()->hasRole('bo')){
+						$prev_month_tickets_invoiced = $this->boData($prev_month_tickets_invoiced,$states);
+					}
+					$this->data['prev_month_tickets_invoiced'] = $prev_month_tickets_invoiced->count();
+
 
 					//Completed Ticket
-					$this->data['total_ticket_complete'] = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
+					$total_ticket_complete = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
+						->where('Invoices.status_id',2);
+					if(Auth::user()->hasRole('bo')){
+						$total_ticket_complete = $this->boData($total_ticket_complete,$states);
+					}
+					$this->data['total_ticket_complete'] = 	$total_ticket_complete->count();
+
+					//
+					$today_total_ticket_complete = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
+						->rightJoin('invoice_vouchers','Invoices.id','=','invoice_vouchers.invoice_id')
 						->where('Invoices.status_id',2)
-						->count();
+						->where('invoice_vouchers.date', $today);
+					if(Auth::user()->hasRole('bo')){
+						$today_total_ticket_complete = $this->boData($today_total_ticket_complete,$states);
+					}
+					$this->data['today_total_ticket_complete'] = $today_total_ticket_complete->count();
 
-					/*$this->data['today_total_ticket_complete'] = Activity::where('flow_current_status', 'Payment Confirmed')
-						->whereDay('updated_at', Carbon::now()->format('d'))
-						->whereMonth('updated_at', Carbon::now()->format('m'))
-						->whereYear('updated_at', date('Y'))
-						->count();*/
+					//
+					$this_month_total_ticket_complete = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
+						->rightJoin('invoice_vouchers','Invoices.id','=','invoice_vouchers.invoice_id')
+						->where('Invoices.status_id',2)
+						->whereMonth('invoice_vouchers.date', date('m', strtotime($today)))
+						->whereYear('invoice_vouchers.date', date('Y', strtotime($today)));
+					if(Auth::user()->hasRole('bo')){
+						$this_month_total_ticket_complete = $this->boData($this_month_total_ticket_complete,$states);
+					}
+					$this->data['this_month_total_ticket_complete'] = $this_month_total_ticket_complete->count();
 
-
+					$prev_month_total_ticket_complete = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
+						->rightJoin('invoice_vouchers','Invoices.id','=','invoice_vouchers.invoice_id')
+						->where('Invoices.status_id',2)
+						->whereMonth('invoice_vouchers.date', date('m', strtotime($previous_month)))
+						->whereYear('invoice_vouchers.date', date('Y', strtotime($previous_month)));
+					if(Auth::user()->hasRole('bo')){
+						$prev_month_total_ticket_complete = $this->boData($prev_month_total_ticket_complete,$states);
+					}
+					$this->data['prev_month_total_ticket_complete'] = $prev_month_total_ticket_complete->count();
 					/*//payment chart(monthwise)
 					$payment_year = Batch::select(DB::raw('IF(sum(paid_amount) IS NULL OR sum(paid_amount) = "", 0, sum(paid_amount)) as `total`'), DB::raw('DATE_FORMAT(updated_at,"%b") month'))
 						->whereYear('updated_at', date('Y'))
@@ -150,20 +241,6 @@ class DashboardController extends Controller {
 						->groupby('month')
 						->pluck('total', 'month')->toArray();
 
-					
-
-
-					
-
-					
-					
-					//tickets_in_approval
-					
-
-					
-
-					
-
 					$this->data['prev_month_tickets_in_approval'] = DB::table('mis_informations')
 						->where(function ($query) {
 							$query->where('flow_current_status', "Waiting for BO - Bulk Approval")
@@ -187,15 +264,9 @@ class DashboardController extends Controller {
 
 					
 
-					$this->data['this_month_total_ticket_complete'] = Activity::where('flow_current_status', 'Payment Confirmed')
-						->whereMonth('updated_at', Carbon::now()->format('m'))
-						->whereYear('updated_at', date('Y'))
-						->count();
+					
 
-					$this->data['prev_month_total_ticket_complete'] = Activity::where('flow_current_status', 'Payment Confirmed')
-						->whereMonth('updated_at', Carbon::now()->submonth()->month)
-						->whereYear('updated_at', date('Y'))
-						->count();
+					
 					//Invoiced
 					
 
@@ -219,191 +290,7 @@ class DashboardController extends Controller {
 					//End has role superadmin
 				} elseif ((Auth::user()->hasRole('super-admin')) && (Session::get('portal_selection') == 2)) {
 					return redirect()->route('sales_dashboard');
-				} elseif (Auth::user()->hasRole('bo')) {
-
-					$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id');
-					$statesid = $states->toArray();
-					$this->data['current_new_ticket'] = 0;
-					$this->data['this_month_new_ticket'] = 0;
-					$this->data['previous_new_ticket'] = 0;
-					$this->data['today_new_ticket'] = 0;
-					$this->data['current_waiting_approval'] = 0;
-					$this->data['this_month_waiting_approval'] = 0;
-					$this->data['previous_waiting_approval'] = 0;
-					$this->data['today_waiting_approval'] = 0;
-					$this->data['current_paid'] = 0;
-					$this->data['this_month_current_paid'] = 0;
-					$this->data['previous_paid'] = 0;
-					$this->data['today_paid'] = 0;
-					$this->data['Approved_ticket_count'] = [];
-					$this->data['current_waiting_batch'] = 0;
-					$this->data['previous_waiting_batch'] = 0;
-					$this->data['today_waiting_batch'] = 0;
-					$this->data['this_month_waiting_batch'] = 0;
-
-					/*
-						$this->data['current_new_ticket'] = DB::table('mis_informations')
-							->where('flow_current_status', 'Waiting for ASP Data Entry')
-							->join('asps', 'asps.id', '=', 'mis_informations.asp_id')
-							->whereIn('asps.state_id', $statesid)
-							->count();
-
-						$this->data['this_month_new_ticket'] = DB::table('mis_informations')
-							->where('flow_current_status', 'Waiting for ASP Data Entry')
-							->whereMonth('mis_informations.updated_at', Carbon::now()->format('m'))
-							->whereYear('mis_informations.updated_at', date('Y'))
-							->join('asps', 'asps.id', '=', 'mis_informations.asp_id')
-							->whereIn('asps.state_id', $statesid)
-							->count();
-
-						$this->data['previous_new_ticket'] = DB::table('mis_informations')
-							->where('flow_current_status', 'Waiting for ASP Data Entry')
-							->whereMonth('mis_informations.updated_at', Carbon::now()->submonth()->format('m'))
-							->whereYear('mis_informations.updated_at', date('Y'))
-							->join('asps', 'asps.id', '=', 'mis_informations.asp_id')
-							->whereIn('asps.state_id', $statesid)
-							->count();
-
-						$this->data['today_new_ticket'] = DB::table('mis_informations')
-							->where('flow_current_status', 'Waiting for ASP Data Entry')
-							->whereDay('mis_informations.updated_at', date('d'))
-							->whereMonth('mis_informations.updated_at', Carbon::now()->format('m'))
-							->whereYear('mis_informations.updated_at', date('Y'))
-							->join('asps', 'asps.id', '=', 'mis_informations.asp_id')
-							->whereIn('asps.state_id', $statesid)
-							->count();
-
-						$this->data['current_waiting_approval'] = DB::table('mis_informations')
-							->join('asps', 'asps.id', '=', 'mis_informations.asp_id')
-							->where(function ($query) use ($statesid) {
-								$query->whereIn('asps.state_id', $statesid);
-							})
-							->where(function ($query) {
-								$query->where('flow_current_status', 'Waiting for BO - Bulk Approval')
-									->orWhere('flow_current_status', 'Waiting for BO - Deferred Approval');
-							})
-							->count();
-
-						$this->data['this_month_waiting_approval'] = DB::table('mis_informations')
-							->join('asps', 'asps.id', '=', 'mis_informations.asp_id')
-							->where(function ($query) use ($statesid) {
-								$query->whereMonth('mis_informations.updated_at', Carbon::now()->format('m'))
-									->whereYear('mis_informations.updated_at', date('Y'))
-									->whereIn('asps.state_id', $statesid);
-							})
-							->where(function ($query) {
-								$query->where('flow_current_status', 'Waiting for BO - Bulk Approval')
-									->orWhere('flow_current_status', 'Waiting for BO - Deferred Approval');
-							})
-							->count();
-
-						$this->data['previous_waiting_approval'] = DB::table('mis_informations')
-							->join('asps', 'asps.id', '=', 'mis_informations.asp_id')
-							->where(function ($query) use ($statesid) {
-								$query->whereMonth('mis_informations.updated_at', Carbon::now()->submonth()->format('m'))
-									->whereYear('mis_informations.updated_at', date('Y'))
-									->whereIn('asps.state_id', $statesid);
-							})
-							->where(function ($query) {
-								$query->where('flow_current_status', 'Waiting for BO - Bulk Approval')
-									->orWhere('flow_current_status', 'Waiting for BO - Deferred Approval');
-							})
-							->count();
-
-						$this->data['today_waiting_approval'] = DB::table('mis_informations')
-							->join('asps', 'asps.id', '=', 'mis_informations.asp_id')
-							->where(function ($query) use ($statesid) {
-								$query->whereMonth('mis_informations.updated_at', Carbon::now()->format('m'))
-									->whereYear('mis_informations.updated_at', date('Y'))
-									->whereDay('mis_informations.updated_at', date('d'))
-									->whereIn('asps.state_id', $statesid);
-							})
-							->where(function ($query) {
-								$query->where('flow_current_status', 'Waiting for BO - Bulk Approval')
-									->orWhere('flow_current_status', 'Waiting for BO - Deferred Approval');
-							})
-							->count();
-
-						$this->data['current_waiting_batch'] = DB::table('mis_informations')
-							->join('asps', 'asps.id', '=', 'mis_informations.asp_id')
-							->where(function ($query) use ($statesid) {
-								$query->whereIn('asps.state_id', $statesid)
-									->where('flow_current_status', 'Waiting for Batch Generation');
-							})->count();
-
-						$this->data['this_month_waiting_batch'] = DB::table('mis_informations')
-							->join('asps', 'asps.id', '=', 'mis_informations.asp_id')
-							->where(function ($query) use ($statesid) {
-								$query->whereMonth('mis_informations.updated_at', Carbon::now()->format('m'))
-									->whereYear('mis_informations.updated_at', date('Y'))
-									->whereIn('asps.state_id', $statesid)
-									->where('flow_current_status', 'Waiting for Batch Generation');
-							})->count();
-
-						$this->data['previous_waiting_batch'] = DB::table('mis_informations')
-							->join('asps', 'asps.id', '=', 'mis_informations.asp_id')
-							->where(function ($query) use ($statesid) {
-								$query->whereMonth('mis_informations.updated_at', Carbon::now()->submonth()->format('m'))
-									->whereYear('mis_informations.updated_at', date('Y'))
-									->whereIn('asps.state_id', $statesid)
-									->where('flow_current_status', 'Waiting for Batch Generation');
-							})->count();
-
-						$this->data['today_waiting_batch'] = DB::table('mis_informations')
-							->join('asps', 'asps.id', '=', 'mis_informations.asp_id')
-							->where(function ($query) use ($statesid) {
-								$query->whereMonth('mis_informations.updated_at', Carbon::now()->format('m'))
-									->whereDay('mis_informations.updated_at', date('d'))
-									->whereYear('mis_informations.updated_at', date('Y'))
-									->whereIn('asps.state_id', $statesid)
-									->where('flow_current_status', 'Waiting for Batch Generation');
-							})->count();
-
-						$this->data['current_paid'] = DB::table('mis_informations')
-							->join('asps', 'asps.id', '=', 'mis_informations.asp_id')
-							->where(function ($query) use ($statesid) {
-								$query->whereIn('asps.state_id', $statesid)
-									->where('flow_current_status', 'Payment Confirmed');
-							})->count();
-
-						$this->data['this_month_current_paid'] = DB::table('mis_informations')
-							->join('asps', 'asps.id', '=', 'mis_informations.asp_id')
-							->where(function ($query) use ($statesid) {
-								$query->whereMonth('mis_informations.updated_at', Carbon::now()->format('m'))
-									->whereYear('mis_informations.updated_at', date('Y'))
-									->whereIn('asps.state_id', $statesid)
-									->where('flow_current_status', 'Payment Confirmed');
-							})->count();
-
-						$this->data['previous_paid'] = DB::table('mis_informations')
-							->join('asps', 'asps.id', '=', 'mis_informations.asp_id')
-							->where(function ($query) use ($statesid) {
-								$query->whereMonth('mis_informations.updated_at', Carbon::now()->submonth()->format('m'))
-									->whereYear('mis_informations.updated_at', date('Y'))
-									->whereIn('asps.state_id', $statesid)
-									->where('flow_current_status', 'Payment Confirmed');
-							})->count();
-
-						$this->data['today_paid'] = DB::table('mis_informations')
-							->join('asps', 'asps.id', '=', 'mis_informations.asp_id')
-							->where(function ($query) use ($statesid) {
-								$query->whereMonth('mis_informations.updated_at', Carbon::now()->format('m'))
-									->whereDay('mis_informations.updated_at', date('d'))
-									->whereYear('mis_informations.updated_at', date('Y'))
-									->whereIn('asps.state_id', $statesid)
-									->where('flow_current_status', 'Payment Confirmed');
-							})->count();
-
-						$this->data['Approved_ticket_count'] = DB::table('mis_informations')
-							->join('asps', 'asps.id', '=', 'mis_informations.asp_id')
-							->select(DB::raw('IF(count(mis_informations.id) IS NULL or count(mis_informations.id) = "", 0, count(mis_informations.id)) as `total`'), DB::raw('DATE_FORMAT(mis_informations.ticket_date_time,"%b") month'))
-							->where('flow_current_status', 'Waiting for Invoice Generation')
-							->whereYear('mis_informations.ticket_date_time', date('Y'))
-							->whereIn('asps.state_id', $statesid)
-							->groupby('month')->pluck('total', 'month')->toArray();
-					*/
-
-				} elseif (Auth::user()->hasRole('finance')) {
+				}elseif (Auth::user()->hasRole('finance')) {
 					//payment completed count (chart)
 					$this->data['completed_payment_count'] = Batch::select(DB::raw('IF(count(id) IS NULL or count(id) = "", 0, count(id)) as `total`'), DB::raw('DATE_FORMAT(updated_at,"%b") month'))
 						->whereYear('updated_at', date('Y'))

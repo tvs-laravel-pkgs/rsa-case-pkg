@@ -447,6 +447,7 @@ class ActivityController extends Controller {
 			}
 			//dump($config->name,$this->data['activities'][$config->name]);
 		}
+		dd(Auth::user()->role->primary_route_permission->route);
 		//dd($config->name,$this->data['activities']);
 		/*if ($this->data['activities']['asp_service_type_data']->adjustment_type == 1) {
 			$this->data['activities']['bo_deduction'] = ($this->data['activities']['raw_bo_po_amount'] * $this->data['activities']['asp_service_type_data']->adjustment) / 100;
@@ -454,7 +455,8 @@ class ActivityController extends Controller {
 			//AMOUNT
 			$this->data['activities']['bo_deduction'] = $this->data['activities']['asp_service_type_data']->adjustment;
 		}*/
-
+		//dd(Auth::user()->hasPermission('view-cc-details'));
+		//$this->data['activities']['view_cc_details'] = Auth::user()->hasPermission('view-cc-details') ? 1 : 0;
 		return response()->json(['success' => true, 'data' => $this->data]);
 
 	}

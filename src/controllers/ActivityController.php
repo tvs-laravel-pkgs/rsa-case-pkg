@@ -447,12 +447,6 @@ class ActivityController extends Controller {
 			}
 			//dump($config->name,$this->data['activities'][$config->name]);
 		}
-		$permissions = Auth::user()->role->perms->keyBy('name')->toArray();
-		$this->data['activities']['view_cc_details'] = $view_cc_details =array_key_exists('view-cc-details', $permissions) ? 1 : 0;
-		$this->data['activities']['span_value'] = $view_cc_details ? 3 : 2;
-		
-
-		//dd($config->name,$this->data['activities']);
 		/*if ($this->data['activities']['asp_service_type_data']->adjustment_type == 1) {
 			$this->data['activities']['bo_deduction'] = ($this->data['activities']['raw_bo_po_amount'] * $this->data['activities']['asp_service_type_data']->adjustment) / 100;
 		} else if ($this->data['activities']['asp_service_type_data']->adjustment_type == 2) {

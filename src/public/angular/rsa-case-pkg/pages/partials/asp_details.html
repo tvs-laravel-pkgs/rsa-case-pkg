@@ -7,16 +7,13 @@
                 </h2>
                 <span class="viewData-toggle--btn pull-right" id="viewData-toggle--btn1"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
                 <div class="clearfix"></div>
-                <ul>
+                <ul class="short-info-list">
                     <li>Case Number : <span>{{$ctrl.data.number}}</span></li>
                     <li>Case Status : <span>{{$ctrl.data.case_status}}</span></li>
                     <li>Case Date : <span>{{$ctrl.data.case_date}}</span></li>
-                    <li>
-                        Portal Status :
-                        <span>
-                            {{$ctrl.data.activity_portal_status}}
-                        </span>
-                    </li>
+                </ul>
+                <ul class="short-info-list">
+                    <li>Portal Status : <span>{{$ctrl.data.activity_portal_status}}</span></li>
                 </ul>
                 <div class="clearfix"></div>
                 <div class="viewData-threeColumn--wrapper viewData-threeColumn--wrapper1" id="viewData-threeColumn--wrapper1">
@@ -26,7 +23,7 @@
                                 <li><img src="{{ $ctrl.data.style_profile_image_url}}"></li>
                                 <li>
                                     <p>
-                                        Customer Name : <br /> {{$ctrl.data.customer_name}}
+                                        Customer Name : <br /><b>{{$ctrl.data.customer_name}}</b>
                                     </p>
                                 </li>
                             </ul>
@@ -37,7 +34,7 @@
                                 <li>
                                     <p>
                                         Customer Contact Number : <br />
-                                        {{$ctrl.data.customer_contact_number}}
+                                        <b>{{$ctrl.data.customer_contact_number}}</b>
                                     </p>
                                 </li>
                             </ul>
@@ -48,8 +45,8 @@
                                 <li>
                                     <p>
                                         Vehicle Details : <br />
-                                        {{$ctrl.data.vehicle_registration_number}} |
-                                        {{$ctrl.data.vehicle_model}} - {{$ctrl.data.vehicle_make}}
+                                        <b>{{$ctrl.data.vehicle_registration_number}} |
+                                        {{$ctrl.data.vehicle_model}} - {{$ctrl.data.vehicle_make}}</b>
                                     </p>
                                 </li>
                             </ul>
@@ -58,18 +55,17 @@
                 </div>
             </div>
         </div>
-        <br />
     </div>
 </div>
-<br />
+
 <div class="viewData-toggle--wrapper">
     <div class="viewData-toggle--inner mt-30">
         <h2 class="viewData-toggle--title pull-left">
             ASP Details
         </h2>
-        <span class="viewData-toggle--btn pull-right" id= "viewData-toggle--btnasp"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+        <span class="viewData-toggle--btn pull-right" id="viewData-toggle--btnasp"><i class="fa fa-angle-down" aria-hidden="true"></i></span>
         <div class="clearfix"></div>
-        <ul>
+        <ul class="short-info-list">
             <li>ASP Code : <span>{{$ctrl.data.asp.asp_code}}</span></li>
             <li>ASP Name : <span>{{$ctrl.data.asp.name}}</span></li>
             <!-- @if(isset($mis_info)) -->
@@ -92,7 +88,7 @@
                     <ul class="viewData-threeColumn--group">
                         <li><img src="{{ $ctrl.data.style_location_image_url}}"></li>
                         <li>
-                            <p>{{$ctrl.data.asp.district.name}}, <br />{{$ctrl.data.asp.state.name}}, <br />{{$ctrl.data.asp.location.name}}.</p>
+                            <p><b>{{$ctrl.data.asp.district.name}}, <br />{{$ctrl.data.asp.state.name}}, <br />{{$ctrl.data.asp.location.name}}.</b></p>
                         </li>
                     </ul>
                 </div>
@@ -100,7 +96,7 @@
                     <ul class="viewData-threeColumn--group">
                         <li><img src="./resources/assets/images/ic-phone.svg"></li>
                         <li>
-                            <p>{{$ctrl.data.asp.contact_number1}}<br><a href="javascript:;">{{$ctrl.data.asp.email}}</a></p>
+                            <p><b>{{$ctrl.data.asp.contact_number1}}<br><a href="javascript:;">{{$ctrl.data.asp.email}}</a></b></p>
                         </li>
                     </ul>
                 </div>
@@ -108,7 +104,7 @@
                     <ul class="viewData-threeColumn--group">
                         <li><img src="{{ $ctrl.data.style_profile_image_url}}"></li>
                         <li>
-                            <p>RM: {{$ctrl.data.asp.rms.name}}<br> RM Mobile: {{$ctrl.data.asp.rms.contact_number}} </p>
+                            <p>RM: <b>{{$ctrl.data.asp.rms.name}}</b><br> RM Mobile: <b>{{$ctrl.data.asp.rms.contact_number}}</b> </p>
                         </li>
                     </ul>
                 </div>

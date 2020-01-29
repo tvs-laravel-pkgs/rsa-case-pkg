@@ -6,14 +6,19 @@
             <li><a href="#!/rsa-case-pkg/activity-status/list">Status</a></li>
         </ul>
     </div>
-</div>
+</div><!-- Column -->
 <div class="container-fluid dataTable-content--wrapper">
     <div class="row">
         <div class="col-xs-12 col-sm-12">
             <div class="row">
                 <div class="col-xs-12 col-sm-6">
                     <div class="dataTable--left_wrapper">
-                        <h2 class="dataTable-title">Status</h2>
+                        <h2 class="dataTable-title">
+                            Status
+                            <a href="javascript:void(0)" class="btn-refresh" ng-click="refresh()" data-toggle="tooltip" title="Refresh">
+                                <img class="img-refresh" src="./resources/assets/images/refresh-arrow.svg" alt="Refresh" />
+                            </a>
+                        </h2>
                         <p>Total - <span class="orange-txt"><span class="count">0</span></span></p>
                     </div>
                 </div>
@@ -30,7 +35,6 @@
                             <!-- </div> -->
                             <!-- <li><a href="javascript:void(0)" class="btn btn-md" ng-click="">Export</a></li> -->
                             <li><input class="filterTable" type="text" placeholder="Search"></li>
-                            <li><a href="javascript:void(0)" class="btn btn-md" ng-click="refresh()">Refresh</a></li>
                             <li>
                                 <img src="<% $ctrl.filter_img_url %>" class="filterToggle">
                                 <div class="filter-wrapper" id='filterticket'>
@@ -171,4 +175,4 @@
             </form>
         </div>
     </div>
-</div>
+</div><!-- Modal -->

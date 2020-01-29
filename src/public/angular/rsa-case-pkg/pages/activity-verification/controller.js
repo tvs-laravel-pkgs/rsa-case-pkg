@@ -128,6 +128,9 @@ app.component('activityVerificationList', {
                 submitHandler: function(form) {
                     let formData = new FormData($(form_id)[0]);
                     $('#submit').button('loading');
+                    if ($(".loader-type-2").hasClass("loader-hide")) {
+                        $(".loader-type-2").removeClass("loader-hide");
+                    }
                     $.ajax({
                             url: laravel_routes['bulkApproveActivity'],
                             method: "POST",
@@ -137,6 +140,7 @@ app.component('activityVerificationList', {
                         })
                         .done(function(res) {
                             // console.log(res);
+                            $(".loader-type-2").addClass("loader-hide");
                             $('#submit').button('reset');
                             if (!res.success) {
                                 $noty = new Noty({
@@ -163,6 +167,7 @@ app.component('activityVerificationList', {
                             }
                         })
                         .fail(function(xhr) {
+                            $(".loader-type-2").addClass("loader-hide");
                             $('#submit').button('reset');
                             $noty = new Noty({
                                 type: 'error',

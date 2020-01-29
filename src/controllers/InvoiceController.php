@@ -67,7 +67,7 @@ class InvoiceController extends Controller {
 
 		//UNPAID
 		if ($request->type_id == 1) {
-			$invoices->whereIn('Invoices.status_id', [1, 3]); //PAYMENT PENDING && INPROGRESS
+			$invoices->where('Invoices.status_id', 1); //PAYMENT PENDING
 			if (!Entrust::can('view-all-asp-unpaid-invoices')) {
 				if (Entrust::can('view-only-state-asp-unpaid-invoices')) {
 					$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();

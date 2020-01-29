@@ -18,11 +18,7 @@
                             <ul class="rate-card-info-list">
                                 <li class="rate-card-info-list-item">Finance Status : <span class="orange-txt"> {{$ctrl.data.asp_status}}</span></li>
                             </ul>
-                        </div>
-                        <div class="col-xs-12 col-sm-6">
-                            <div class="form-group">
-                                <input type="hidden" name="bo_info[{{$index}}][is_payment_eligible]" class="payment_eligible" value="1">
-                            </div>
+                            <input type="hidden" name="bo_info[{{$index}}][is_payment_eligible]" class="payment_eligible" value="1">
                         </div>
                     </div>
                 </div>
@@ -36,51 +32,51 @@
                             <thead>
                                 <tr>
                                     <th>Title</th>
-                                    <th>CC Data</th>
-                                    <th>ASP Data</th>
-                                    <th>BO Data</th>
+                                    <th style="text-align:right">CC Data</th>
+                                    <th style="text-align:right">ASP Data</th>
+                                    <th style="text-align:right">BO Data</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <th scope="row">Service</th>
-                                    <td>{{$ctrl.data.cc_service_type}}</td>
-                                    <td class="">{{$ctrl.data.asp_service_type}}</td>
-                                    <td style="text-align:left">{{$ctrl.data.bo_service_type}}</td>
+                                    <td style="text-align:right" class="">{{$ctrl.data.cc_service_type}}</td>
+                                    <td style="text-align:right" class="">{{$ctrl.data.asp_service_type}}</td>
+                                    <td>{{$ctrl.data.bo_service_type}}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row">KM Travelled</th>
-                                    <td class="">{{$ctrl.data.cc_total_km}}</td>
-                                    <td class="asp_value">{{$ctrl.data.asp_km_travelled}}</td>
-                                    <td style="text-align:left" class="" ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_km_travelled}}</td>
-                                    <td style="text-align:left" ng-show="$ctrl.data.verification==1">
-                                        <input oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" type="text" name="bo_km_travelled" ng-model="$ctrl.data.raw_bo_km_travelled" value="{{$ctrl.data.raw_bo_km_travelled}}" class="km_value" ng-keyup="calculate()"><br><br>
-                                        <span class="alert alert-danger" ng-show="$ctrl.show_km==1">Enter value less than ASP value</span>
-                                    </td>
+                                    <td style="text-align:right" class="">{{$ctrl.data.cc_total_km}}</td style="text-align:right">
+                                    <td style="text-align:right" class="asp_value">{{$ctrl.data.asp_km_travelled}}</td style="text-align:right">
+                                    <td class="" ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_km_travelled}}</td>
+                                    <td class="" ng-show="$ctrl.data.verification==1">
+                                        <input style="text-align:right" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" type="text" name="bo_km_travelled" ng-model="$ctrl.data.raw_bo_km_travelled" value="{{$ctrl.data.raw_bo_km_travelled}}" class="km_value" ng-keyup="calculate()"><br>
+                                        <span class="color-red" ng-show="$ctrl.show_km==1">Enter value less than ASP value</span>
+                                    </td class="">
                                 </tr>
                                 <tr>
                                     <th scope="row">Charges Not Collected From Customer </th>
-                                    <td class="">{{$ctrl.data.cc_not_collected_amount}}</td>
-                                    <td class="">{{$ctrl.data.asp_not_collected}}</td>
-                                    <td style="text-align:left" class="" ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_not_collected}}</td>
-                                    <td style="text-align:left" class="" ng-show="$ctrl.data.verification==1">
-                                        <input type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_not_collected" class="non_collected_amount" value="{{$ctrl.data.raw_bo_not_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                    <td style="text-align:right" class="">{{$ctrl.data.cc_not_collected_amount}}</td style="text-align:right">
+                                    <td style="text-align:right" class="">{{$ctrl.data.asp_not_collected}}</td style="text-align:right">
+                                    <td class="" ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_not_collected}}</td>
+                                    <td class="" ng-show="$ctrl.data.verification==1">
+                                        <input style="text-align:right" type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_not_collected" class="non_collected_amount" value="{{$ctrl.data.raw_bo_not_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                         <input type="hidden" ng-model="$ctrl.data.raw_asp_not_collected" class="other_value" value="{{$ctrl.data.raw_asp_not_collected}}">
                                     </td>
                                 </tr>
                                 <tr>
                                     <th scope="row">Charges Collected From Customer </th>
-                                    <td class="">{{$ctrl.data.cc_colleced_amount}}</td>
-                                    <td class="">{{$ctrl.data.asp_collected}}</td>
-                                    <td style="text-align:left" class="" ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_collected}}</td>
-                                    <td style="text-align:left" ng-show="$ctrl.data.verification==1">
-                                        <input type="text" name="bo_collected" ng-model="$ctrl.data.raw_bo_collected" class="collected_amount" value="{{$ctrl.data.raw_bo_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                    <td style="text-align:right" class="">{{$ctrl.data.cc_colleced_amount}}</td style="text-align:right">
+                                    <td style="text-align:right" class="">{{$ctrl.data.asp_collected}}</td style="text-align:right">
+                                    <td class="" ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_collected}}</td>
+                                    <td class="" ng-show="$ctrl.data.verification==1">
+                                        <input style="text-align:right" type="text" name="bo_collected" ng-model="$ctrl.data.raw_bo_collected" class="collected_amount" value="{{$ctrl.data.raw_bo_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                         <input type="hidden" ng-model="$ctrl.data.raw_asp_collected" class="collected_value" value="{{$ctrl.data.raw_asp_collected}}">
                                     </td>
                                 </tr>
                                 <tr ng-show="$ctrl.data.km_travelled_attachment_url.length>0">
                                     <th scope="row">KM Upload Attachment</th>
-                                    <td>
+                                    <td colspan="3">
                                         <div ng-repeat="(index,km_travelled_attachment) in $ctrl.data.km_travelled_attachments">
                                             <a target="_blank" href="{{$ctrl.data.km_travelled_attachment_url[index]}}">{{km_travelled_attachment.attachment_file_name}}</a>,
                                             <img height="80px" weight="80px" src="{{$ctrl.data.km_travelled_attachment_url[index]}}">
@@ -89,7 +85,7 @@
                                 </tr>
                                 <tr ng-show="$ctrl.data.other_charges_attachment_url.length>0">
                                     <th scope="row">Other Attachment</th>
-                                    <td>
+                                    <td colspan="3">
                                         <div ng-repeat="(index,other_charges_attachment) in $ctrl.data.other_charges_attachments">
                                             <a target="_blank" href="{{$ctrl.data.other_charges_attachment_url[index]}}">{{other_charges_attachment.attachment_file_name}}</a>,
                                             <img height="80px" weight="80px" src="{{$ctrl.data.other_charges_attachment_url[index]}}">
@@ -97,7 +93,7 @@
                                 </tr>
                                 <tr ng-show="$ctrl.data.other_charges_attachment_url.length>0">
                                     <th scope="row">Remarks Comments for not collected charges</th>
-                                    <td>
+                                    <td colspan="3">
                                         {{ $ctrl.data.remarks }}
                                     </td>
                                 </tr>
@@ -110,7 +106,7 @@
                         <li class="rate-card-info-list-item">Payment Mode: <span class="orange-txt">{{$ctrl.data.payment_mode}}</span></li>
                     </ul>
                     <div class="table-responsive">
-                        <table class="table  table-bordered table-wide style-normal">
+                        <table class="table table-bordered table-wide style-normal">
                             <thead>
                                 <tr class="warning">
                                     <th>
@@ -128,34 +124,34 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                     <tr class="active">
-                                         <th>
-                                                 {{$ctrl.data.asp_service_type_data.below_range_price}}
-                                                        <input class="form-control viewData-input below_40 hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.below_range_price}}">
-                                                        <input class="form-control viewData-input limit hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.range_limit}}">
-                                             </th>
-                                         <td>
-                                                 {{$ctrl.data.asp_service_type_data.above_range_price}}
-                                                        <input class="form-control viewData-input  above_40 hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.above_range_price}}">
-                                             </td>
-                                                <td>
-                                                 {{$ctrl.data.asp_service_type_data.empty_return_range_price }}
-                                                        <input class="form-control viewData-input mt_return_price hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.empty_return_range_price}}">
-                                             </td>
-                                                <td>
-                                                        {{$ctrl.data.asp_service_type_data.adjustment_type == 1 ? 'Percentage' : 'Amount'}}
-                                                        <input class="form-control viewData-input adjustment_type hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.adjustment_type == 1 ? 'Percentage' : 'Amount'}}">
-                                                    </td>
-                                                <td>
-                                                        {{$ctrl.data.asp_service_type_data.adjustment}}
-                                                        <input class="form-control viewData-input adjustment hide_temp" disabled="disabled" type="text" value="{{ $ctrl.data.asp_service_type_data.adjustment }}">
-                                                    </td>
-                                         <td>
-                                                 {{$ctrl.data.asp_service_type_data.waiting_charge_per_hour}}
-                                                        <input class="form-control viewData-input waiting_charge hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.waiting_charge_per_hour}}">
-                                             </td>
-                                            </tr>
-                                    </tbody>
+                                <tr class="active">
+                                    <td>
+                                        {{$ctrl.data.asp_service_type_data.below_range_price}}
+                                        <input class="form-control viewData-input below_40 hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.below_range_price}}">
+                                        <input class="form-control viewData-input limit hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.range_limit}}">
+                                    </td>
+                                     <td>
+                                        {{$ctrl.data.asp_service_type_data.above_range_price}}
+                                        <input class="form-control viewData-input  above_40 hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.above_range_price}}">
+                                     </td>
+                                    <td>
+                                        {{$ctrl.data.asp_service_type_data.empty_return_range_price }}
+                                        <input class="form-control viewData-input mt_return_price hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.empty_return_range_price}}">
+                                    </td>
+                                    <td>
+                                        {{$ctrl.data.asp_service_type_data.adjustment_type == 1 ? 'Percentage' : 'Amount'}}
+                                        <input class="form-control viewData-input adjustment_type hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.adjustment_type == 1 ? 'Percentage' : 'Amount'}}">
+                                    </td>
+                                    <td>
+                                        {{$ctrl.data.asp_service_type_data.adjustment}}
+                                        <input class="form-control viewData-input adjustment hide_temp" disabled="disabled" type="text" value="{{ $ctrl.data.asp_service_type_data.adjustment }}">
+                                    </td>
+                                    <td style="text-align: left;">
+                                        {{$ctrl.data.asp_service_type_data.waiting_charge_per_hour}}
+                                        <input class="form-control viewData-input waiting_charge hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.waiting_charge_per_hour}}">
+                                    </td>
+                                </tr>
+                            </tbody>
                         </table>
                     </div>
                     <!-- @if(!empty($approved_view)) -->
@@ -189,7 +185,7 @@
                                 <tr ng-show="$ctrl.data.asp.app_user==1" style="text-align: right;">
                                     <td>Discount (-)</td>
                                     <td ng-show="$ctrl.data.verification==1">
-                                        <div><input type="text" ng-model="$ctrl.data.bo_deduction" class="deduction" value="{{$ctrl.data.bo_deduction}}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-keyup="calculatePO()"></div>
+                                        <div><input style="text-align:right" type="text" ng-model="$ctrl.data.bo_deduction" class="deduction" value="{{$ctrl.data.bo_deduction}}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-keyup="calculatePO()"></div>
                                     </td>
                                     <td ng-show="$ctrl.data.verification==0">
                                         <div>{{$ctrl.data.bo_deduction| currency:"₹"}}</div>
@@ -300,7 +296,7 @@
                 <input type="hidden" ng-model="$ctrl.data.bo_comments">
                 <input type="hidden" ng-model="$ctrl.data.deduction_reason">
                 <div class="modal-body">
-                    <img class="uploadMsg-img" src="{{$ctrl.data.style_question_image_url}}">
+                    <img class="uploadMsg-img" src="{{$ctrl.data.style_checked_image_url}}">
                     <h2 class="uploadMsg-title">
                         Approve this Activity
                     </h2>

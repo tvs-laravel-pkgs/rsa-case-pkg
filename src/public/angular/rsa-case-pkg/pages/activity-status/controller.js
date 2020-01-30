@@ -271,12 +271,12 @@ app.component('activityStatusView', {
                 return;
             }
             self.data = response.data.data.activities;
-             self.data.view_cc_details = view_cc_details;
-            if(view_cc_details==1){
+            self.data.view_cc_details = view_cc_details;
+            if (view_cc_details == 1) {
                 self.data.span_value = 3;
-            }else{
+            } else {
                 self.data.span_value = 2;
-            } 
+            }
             self.data.style_dot_image_url = style_dot_image_url;
             self.data.style_service_type_image_url = style_service_type_image_url;
             self.data.style_car_image_url = style_car_image_url;
@@ -284,6 +284,7 @@ app.component('activityStatusView', {
             self.data.style_profile_image_url = style_profile_image_url;
             self.data.style_phone_image_url = style_car_image_url;
             self.data.verification = 0;
+            self.data.page_title = 'Status';
 
             $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
             $('#viewData-toggle--btn1').click(function() {

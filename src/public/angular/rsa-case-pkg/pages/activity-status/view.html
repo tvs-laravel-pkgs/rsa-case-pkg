@@ -3,7 +3,7 @@
         <ul class="mobile-breadcrumbs-group list-inline">
             <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
             <li><a href="#">Asp Activities</a></li>
-            <li ><a href="#!/rsa-case-pkg/activity-status/list">Status</a></li>
+            <li><a href="#!/rsa-case-pkg/activity-status/list">Status</a></li>
             <li ng-show="$ctrl.data.verification==0"><a href="javascript:;">View</a></li>
         </ul>
     </div>
@@ -13,16 +13,15 @@
         <ul class="mobile-breadcrumbs-group list-inline">
             <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
             <li><a href="#">Asp Activities</a></li>
-            <li ng-show="$ctrl.data.verification==1"><a href="#!/rsa-case-pkg/activity-verification/list">Verification</a></li>
+            <li ng-show="$ctrl.data.verification==1"><a href="#!/rsa-case-pkg/activity-verification/list">Approval</a></li>
         </ul>
     </div>
 </div>
-
 <div class="container-fluid dataTable-content--wrapper">
     <div class="row">
         <div class="col-md-12">
             <div class="dataTable--left_wrapper">
-                <h2 class="dataTable-title">Ticket</h2>
+                <h2 class="dataTable-title">Ticket {{$ctrl.data.page_title}}</h2>
                 <p></p>
             </div>
         </div>

@@ -35,8 +35,89 @@ app.component('dashboard', {
             self.data.dash3 = dash3;
             self.data.dash4 = dash4;
             console.log(self.data);
-            if(self.data.role=='super-admin'){
-                var num_days_in_month=new Date("{{date('Y')}}", "{{date('m')}}", 0).getDate();
+            if(self.data.role=='super-admin' || self.data.role=='rm' || self.data.role=='bo'){
+                var d = new Date();
+                var Curr_Year = d.getFullYear();
+                var num_month = d.getMonth();
+                var months=[];
+                var all_months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                for(var i=0;i<=num_month;i++){
+                    months[i]=all_months[i];
+                }
+                var amounts = [];
+                angular.forEach(self.data.completed_ticket_count, function(value, key) {
+                    amounts[key] = value;
+                });
+                
+                for(var i in months){
+                   
+                    var month=months[i];
+                    if (typeof(amounts[month])=='undefined'){
+                        amounts[i]=0;
+                    }else{
+                        amounts[i]=amounts[month];
+                    }
+                }
+                Highcharts.chart('completed_ticket', {
+                    chart: {
+                        type: 'column',
+                    },
+                    credits: {
+                        enabled: false
+                    },
+                    title: {
+                        text: 'Completed Ticket Count',
+                        align: 'left',
+                        style: {
+                        border: '1px solid red',
+                        }
+                    },
+                    legend: {
+                        enabled: false,
+                    },
+                    subtitle: null,
+                    xAxis: {
+                        categories: months,//['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        crosshair: true
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: null,
+                        allowDecimals: false
+                    },
+                    tooltip: {
+                      headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                      pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                          '<td style="padding:0"><b>{point.y}</b></td></tr>',
+                      footerFormat: '</table>',
+                      shared: true,
+                      useHTML: true
+                    },
+                      plotOptions: {
+                          column: {
+                              pointPadding: 0.2,
+                              borderWidth: 0
+                          },
+                          series: {
+                            pointWidth: 4,
+                            color: {
+                              linearGradient: { x1: 0, x2: 0, y1: 0, y2: 1 },
+                              stops: [
+                                  [0, '#003399'],
+                                  [1, '#3366AA']
+                              ]
+                            }
+                          }
+                      },
+                      series: [{
+                          name: 'Completed Tickets',
+                          data: amounts,//[49.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4],
+                          color: '#ffcb2c',
+                          lineWidth: 2
+                      }]
+              });
+
+            var num_days_in_month=new Date("{{date('Y')}}", "{{date('m')}}", 0).getDate();
                //check number of days in month
                 var current_day = new Date().getDate();
                 var days=[];
@@ -46,25 +127,42 @@ app.component('dashboard', {
                 //assign values
                 var amounts_day = [];
                 var final_amounts_day = [];
-                foreach($payment_day as $day => $pay){
-                    amounts_day["{{$day}}"] = {{$pay}}
+                 angular.forEach(self.data.payment_day, function(value, key) {
+                    amounts_day[key] = value;
+                });
+                
+                $scope.monthly = function() {
+                    $("#yearly").hide();
+
+                    $("#monthly").modal();
                 }
- for(var i in days)
-{
-  var day=days[i];
-  if (typeof(amounts_day[day])=='undefined')
-   {
 
-      final_amounts_day[i]=0;
+            $scope.yearly = function() {
+                $("#monthly").hide();
 
-   }
-  else
-   {
-      final_amounts_day[i]=amounts_day[day];
+                $("#yearly").modal();
+            }
+                /*
+                foreach(self.data.payment_day as $day => $pay){
+                    amounts_day["{{$day}}"] = {{$pay}}
+                }*/
+        console.log('days');
+        console.log(days);
 
-   }
-}
-//
+         for(var i in days){
+          var day=days[i];
+          if (typeof(amounts_day[day])=='undefined'){
+              final_amounts_day[i]=0;
+           }
+          else{
+            data_val = amounts_day[day];
+              final_amounts_day[i]= parseFloat(amounts_day[day]);
+           }
+        }
+        console.log('final_amounts_day');
+        console.log(final_amounts_day);
+        //var d = [12,200,300,500,12,200,300,500,12,200,300,500,12,200,300,500,12,200,300,500,12,200,300,500,12,200,300,500,12,200,300];
+        //console.log(d); 
     Highcharts.chart('paymentChartMonthly', {
       chart: {
         type: 'line'
@@ -96,40 +194,32 @@ app.component('dashboard', {
       }]
     });
 
-//var months;
-//var payment = "{{ json_encode($payment) }}";
- //var payment = JSON.parse('{ "json_encode($payment)" }');
- var d = new Date();
-var Curr_Year = d.getFullYear();
- var num_month = d.getMonth();
- var months=[];
-   var all_months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-for(var i=0;i<=num_month;i++)
-{
-
-months[i]=all_months[i];
-}
 
  var amounts = [];
- @foreach($payment as $month => $pay)
 
- amounts["{{$month}}"] = {{$pay}}
- @endforeach
-//alert(amounts);
+ angular.forEach(self.data.payment, function(value, key) {
+    console.log('key');
+    console.log(key);
+    console.log(value);
+    amounts[key] = value;
+});
+console.log('amounts');
+console.log(amounts);
+console.log('months');
+console.log(months);
 for(var i in months)
 {
+    console.log(i);
   var month=months[i];
-  if (typeof(amounts[month])=='undefined')
-  {
-
+  if (typeof(amounts[month])=='undefined'){
       amounts[i]=0;
    }
-   else
-    {
-      amounts[i]=amounts[month];
+   else{
+      amounts[i]=parseFloat(amounts[month]);
     }
 }
-
+console.log('amounts');
+console.log(amounts);
 
   Highcharts.chart('paymentChart', {
       chart: {
@@ -196,91 +286,9 @@ for(var i in months)
       }
 
   });
-
-
- var amounts = [];
- @foreach($ctrl.data.completed_ticket_count as $month => $pay)
-
- amounts["{{$month}}"] = {{$pay}}
- @endforeach
-//alert(amounts);
-for(var i in months)
-{
-  var month=months[i];
-  if (typeof(amounts[month])=='undefined')
-  {
-
-      amounts[i]=0;
-   }
-   else
-    {
-      amounts[i]=amounts[month];
-    }
-}
-
-
-
-     Highcharts.chart('completed_ticket', {
-      chart: {
-          type: 'column',
-      },
-      credits: {
-        enabled: false
-      },
-      title: {
-          text: 'Completed Ticket Count',
-          align: 'left',
-          style: {
-            border: '1px solid red',
-          }
-      },
-      legend: {
-        enabled: false,
-      },
-      subtitle: null,
-      xAxis: {
-          categories: months,//['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-          crosshair: true
-      },
-      yAxis: {
-          min: 0,
-          title: null,
-           allowDecimals: false
-      },
-      tooltip: {
-          headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
-          pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
-              '<td style="padding:0"><b>{point.y}</b></td></tr>',
-          footerFormat: '</table>',
-          shared: true,
-          useHTML: true
-      },
-      plotOptions: {
-          column: {
-              pointPadding: 0.2,
-              borderWidth: 0
-          },
-          series: {
-            pointWidth: 4,
-            color: {
-              linearGradient: { x1: 0, x2: 0, y1: 0, y2: 1 },
-              stops: [
-                  [0, '#003399'],
-                  [1, '#3366AA']
-              ]
-            }
-          }
-      },
-      series: [{
-          name: 'Completed Tickets',
-          data: amounts,//[49.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4],
-          color: '#ffcb2c',
-          lineWidth: 2
-      }]
-  });
+                
             }
         });
-
     }
 });
 

@@ -17,6 +17,7 @@ class DashboardController extends Controller {
 	}
 
 	public static function boData($col,$states){
+		//dd($states);
 		return $col->join('asps','asps.id','activities.asp_id')->whereIn('asps.state_id', $states);
 	}
 
@@ -63,7 +64,6 @@ class DashboardController extends Controller {
 					$new_ticket_count = $this->rmData($new_ticket_count);
 				}
 				$this->data['new_ticket_count'] =  $new_ticket_count->count();
-
 
 				$today_new_ticket_count = Activity::join('cases','activities.case_id','=','cases.id')
 					->where('activities.status_id',2)
@@ -191,18 +191,18 @@ class DashboardController extends Controller {
 				$this->data['prev_month_tickets_in_approved'] = $prev_month_tickets_in_approved->count();
 
 				//Invoiced
-				$this->data['invoiced'] = Activity::join('Invoices','activities.invoice_id','=','Invoices.id')->count();
+				$this->data['invoiced'] = Activity::join('Invoices','activities.invoice_id','=','Invoices.id')->whereIn('Invoices.status_id',[1,3])->count();
 
-				$this->data['today_tickets_invoiced'] = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
+				$this->data['today_tickets_invoiced'] = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')->whereIn('Invoices.status_id',[1,3])
 					->whereDate('Invoices.created_at', $today)->count();
 
 				//
-				$this->data['tickets_invoiced_this_month'] = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
+				$this->data['tickets_invoiced_this_month'] = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')->whereIn('Invoices.status_id',[1,3])
 					->whereMonth('Invoices.created_at', date('m', strtotime($today)))
 					->whereYear('Invoices.created_at', date('Y', strtotime($today)))->count();
 
 				//
-				$this->data['prev_month_tickets_invoiced'] = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
+				$this->data['prev_month_tickets_invoiced'] = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')->whereIn('Invoices.status_id',[1,3])
 					->whereMonth('Invoices.created_at', date('m', strtotime($previous_month)))
 					->whereYear('Invoices.created_at', date('Y', strtotime($previous_month)))->count();
 

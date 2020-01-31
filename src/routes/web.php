@@ -53,4 +53,9 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	//BATCH GENERATION
 	Route::get('/batch-generation/get-list', 'BatchController@getList')->name('getListData');
 	Route::post('/batch-generation/generate-batch', 'BatchController@generateBatch')->name('generateBatch');
+
+	//EXCEPTIONAL REPORT
+	Route::get('/exceptional-report/get-filter-data', 'ActivityReportController@getExceptionalReportFilterData')->name('getActivityExceptionalReportFilterData');
+	Route::get('/exceptional-report/get-list', 'ActivityReportController@getExceptionalReportList')->name('getActivityExceptionalReportList');
+
 });

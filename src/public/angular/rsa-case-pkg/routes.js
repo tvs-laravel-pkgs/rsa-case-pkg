@@ -81,6 +81,12 @@ app.config(['$routeProvider', function($routeProvider) {
     when('/rsa-case-pkg/batch-generation/list', {
         template: '<batch-generation-list></batch-generation-list>',
         title: 'Invoices',
+    }).
+
+    //EXCEPTIONAL REPORT
+    when('/rsa-case-pkg/exceptional-report/list', {
+        template: '<exceptional-report-list></exceptional-report-list>',
+        title: 'Exceptional Report',
     })
 
     ;

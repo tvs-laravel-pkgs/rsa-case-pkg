@@ -369,11 +369,11 @@ class ActivityController extends Controller {
 				    	WHEN (Invoices.invoice_no IS NOT NULL)
 			    		THEN
 			    			CASE
-			    				WHEN (asps.is_auto_invoice = 1)
+			    				WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0)
 			   					THEN
-			    					CONCAT(Invoices.invoice_no,"-",Invoices.id)
-			    				ELSE
 			    					Invoices.invoice_no
+			    				ELSE
+			    					CONCAT(Invoices.invoice_no,"-",Invoices.id)
 			    			END
 			    		ELSE
 			    			"-"
@@ -447,14 +447,12 @@ class ActivityController extends Controller {
 			}
 			//dump($config->name,$this->data['activities'][$config->name]);
 		}
-		//dd($config->name,$this->data['activities']);
 		/*if ($this->data['activities']['asp_service_type_data']->adjustment_type == 1) {
-			$this->data['activities']['bo_deduction'] = ($this->data['activities']['raw_bo_po_amount'] * $this->data['activities']['asp_service_type_data']->adjustment) / 100;
-		} else if ($this->data['activities']['asp_service_type_data']->adjustment_type == 2) {
-			//AMOUNT
-			$this->data['activities']['bo_deduction'] = $this->data['activities']['asp_service_type_data']->adjustment;
-		}*/
-
+				$this->data['activities']['bo_deduction'] = ($this->data['activities']['raw_bo_po_amount'] * $this->data['activities']['asp_service_type_data']->adjustment) / 100;
+			} else if ($this->data['activities']['asp_service_type_data']->adjustment_type == 2) {
+				//AMOUNT
+				$this->data['activities']['bo_deduction'] = $this->data['activities']['asp_service_type_data']->adjustment;
+		*/
 		return response()->json(['success' => true, 'data' => $this->data]);
 
 	}
@@ -723,8 +721,9 @@ class ActivityController extends Controller {
 								['activities.asp_id', Auth::user()->asp->id],
 								['activities.case_id', $case->id],
 							])
-							->whereIn('activities.status_id', [5, 6])
+							->whereIn('activities.status_id', [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
 							->first();
+
 						if ($activity_already_completed) {
 							$response = ['success' => false, 'errors' => ["Ticket already submitted."]];
 							return response()->json($response);
@@ -1542,7 +1541,7 @@ class ActivityController extends Controller {
 				$activity->activityStatus ? $activity->activityStatus->name : '',
 				$activity->description != NULL ? $activity->description : '',
 				$activity->remarks != NULL ? $activity->remarks : '',
-				$activity->invoice ? ($activity->asp->is_auto_invoice == 1 ? ($activity->invoice->invoice_no . '-' . $activity->invoice->id) : $activity->invoice->invoice_no) : '',
+				$activity->invoice ? ($activity->asp->has_gst == 1 && $activity->asp->is_auto_invoice == 0 ? ($activity->invoice->invoice_no) : ($activity->invoice->invoice_no . '-' . $activity->invoice->id)) : '',
 				$activity->invoice ? date('d-m-Y', strtotime($activity->invoice->start_date)) : '',
 				$activity->invoice ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice->invoice_amount, 2))) : '',
 				$activity->invoice ? ($activity->invoice->invoiceStatus ? $activity->invoice->invoiceStatus->name : '') : '',

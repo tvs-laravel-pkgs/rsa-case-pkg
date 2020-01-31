@@ -32,7 +32,7 @@
                             <thead>
                                 <tr>
                                     <th>Title</th>
-                                    <th style="text-align:right">CC Data</th>
+                                    <th style="text-align:right" ng-show="$ctrl.data.view_cc_details==1">CC Data</th>
                                     <th style="text-align:right">ASP Data</th>
                                     <th style="text-align:right">BO Data</th>
                                 </tr>
@@ -40,43 +40,43 @@
                             <tbody>
                                 <tr>
                                     <th scope="row">Service</th>
-                                    <td style="text-align:right" class="">{{$ctrl.data.cc_service_type}}</td>
+                                    <td style="text-align:right" class="" ng-show="$ctrl.data.view_cc_details==1">{{$ctrl.data.cc_service_type}}</td>
                                     <td style="text-align:right" class="">{{$ctrl.data.asp_service_type}}</td>
                                     <td>{{$ctrl.data.bo_service_type}}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row">KM Travelled</th>
-                                    <td style="text-align:right" class="">{{$ctrl.data.cc_total_km}}</td style="text-align:right">
+                                    <td style="text-align:right" class="" ng-show="$ctrl.data.view_cc_details==1">{{$ctrl.data.cc_total_km}}</td style="text-align:right">
                                     <td style="text-align:right" class="asp_value">{{$ctrl.data.asp_km_travelled}}</td style="text-align:right">
-                                    <td class="" ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_km_travelled}}</td>
-                                    <td class="" ng-show="$ctrl.data.verification==1">
+                                    <td class="" ng-show="$ctrl.data.verification==0" style="text-align:right">{{$ctrl.data.bo_km_travelled}}</td>
+                                    <td class="" ng-show="$ctrl.data.verification==1" style="text-align:right">
                                         <input style="text-align:right" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" type="text" name="bo_km_travelled" ng-model="$ctrl.data.raw_bo_km_travelled" value="{{$ctrl.data.raw_bo_km_travelled}}" class="km_value" ng-keyup="calculate()"><br>
                                         <span class="color-red" ng-show="$ctrl.show_km==1">Enter value less than ASP value</span>
                                     </td class="">
                                 </tr>
                                 <tr>
                                     <th scope="row">Charges Not Collected From Customer </th>
-                                    <td style="text-align:right" class="">{{$ctrl.data.cc_not_collected_amount}}</td style="text-align:right">
+                                    <td style="text-align:right" class="" ng-show="$ctrl.data.view_cc_details==1">{{$ctrl.data.cc_not_collected_amount}}</td style="text-align:right">
                                     <td style="text-align:right" class="">{{$ctrl.data.asp_not_collected}}</td style="text-align:right">
-                                    <td class="" ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_not_collected}}</td>
-                                    <td class="" ng-show="$ctrl.data.verification==1">
+                                    <td class="" ng-show="$ctrl.data.verification==0" style="text-align:right">{{$ctrl.data.bo_not_collected}}</td>
+                                    <td class="" ng-show="$ctrl.data.verification==1" style="text-align:right">
                                         <input style="text-align:right" type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_not_collected" class="non_collected_amount" value="{{$ctrl.data.raw_bo_not_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                         <input type="hidden" ng-model="$ctrl.data.raw_asp_not_collected" class="other_value" value="{{$ctrl.data.raw_asp_not_collected}}">
                                     </td>
                                 </tr>
                                 <tr>
                                     <th scope="row">Charges Collected From Customer </th>
-                                    <td style="text-align:right" class="">{{$ctrl.data.cc_colleced_amount}}</td style="text-align:right">
+                                    <td style="text-align:right" class="" ng-show="$ctrl.data.view_cc_details==1">{{$ctrl.data.cc_colleced_amount}}</td style="text-align:right">
                                     <td style="text-align:right" class="">{{$ctrl.data.asp_collected}}</td style="text-align:right">
-                                    <td class="" ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_collected}}</td>
-                                    <td class="" ng-show="$ctrl.data.verification==1">
+                                    <td class="" style="text-align:right" ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_collected}}</td >
+                                    <td class="" ng-show="$ctrl.data.verification==1" style="text-align:right">
                                         <input style="text-align:right" type="text" name="bo_collected" ng-model="$ctrl.data.raw_bo_collected" class="collected_amount" value="{{$ctrl.data.raw_bo_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                         <input type="hidden" ng-model="$ctrl.data.raw_asp_collected" class="collected_value" value="{{$ctrl.data.raw_asp_collected}}">
                                     </td>
                                 </tr>
                                 <tr ng-show="$ctrl.data.km_travelled_attachment_url.length>0">
                                     <th scope="row">KM Upload Attachment</th>
-                                    <td colspan="3">
+                                    <td colspan="{{$ctrl.data.span_value}}">
                                         <div ng-repeat="(index,km_travelled_attachment) in $ctrl.data.km_travelled_attachments">
                                             <a target="_blank" href="{{$ctrl.data.km_travelled_attachment_url[index]}}">{{km_travelled_attachment.attachment_file_name}}</a>,
                                             <img height="80px" weight="80px" src="{{$ctrl.data.km_travelled_attachment_url[index]}}">
@@ -85,7 +85,7 @@
                                 </tr>
                                 <tr ng-show="$ctrl.data.other_charges_attachment_url.length>0">
                                     <th scope="row">Other Attachment</th>
-                                    <td colspan="3">
+                                    <td colspan="{{$ctrl.data.span_value}}">
                                         <div ng-repeat="(index,other_charges_attachment) in $ctrl.data.other_charges_attachments">
                                             <a target="_blank" href="{{$ctrl.data.other_charges_attachment_url[index]}}">{{other_charges_attachment.attachment_file_name}}</a>,
                                             <img height="80px" weight="80px" src="{{$ctrl.data.other_charges_attachment_url[index]}}">
@@ -93,7 +93,7 @@
                                 </tr>
                                 <tr ng-show="$ctrl.data.other_charges_attachment_url.length>0">
                                     <th scope="row">Remarks Comments for not collected charges</th>
-                                    <td colspan="3">
+                                    <td colspan="{{$ctrl.data.span_value}}">
                                         {{ $ctrl.data.remarks }}
                                     </td>
                                 </tr>

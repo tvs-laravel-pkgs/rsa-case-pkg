@@ -26,7 +26,7 @@ app.component('invoiceList', {
         ).then(function(response) {
             self.extras = response.data.extras;
 
-            if (self.type_id == 1 && self.canExport) {
+            if (self.type_id != 3 && self.canExport) {
                 var col1 = [
                     { data: 'action', searchable: false },
                 ];

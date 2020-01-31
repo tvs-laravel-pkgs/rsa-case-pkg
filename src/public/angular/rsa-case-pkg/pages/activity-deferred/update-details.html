@@ -3,8 +3,8 @@
         <ul class="mobile-breadcrumbs-group list-inline">
             <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
             <li><a href="#">Activities</a></li>
-            <li><a href="#!/rsa-case-pkg/deferred-activity/list">Deferred Tickets</a></li>
-            <li><a href="#">Update Details</a></li>
+            <li><a href="#!/rsa-case-pkg/deferred-activity/list">Deferred</a></li>
+            <li><a href="#">Update Ticket</a></li>
         </ul>
     </div>
 </div>
@@ -15,7 +15,7 @@
                 <div class="row">
                     <div class="col-xs-12 col-sm-12">
                         <div class="dataTable--left_wrapper block-wrap">
-                            <h2 class="dataTable-title customForm-title">Update Details - {{$ctrl.case.number}}</h2>
+                            <h2 class="dataTable-title customForm-title">Update Ticket - {{$ctrl.case.number}}</h2>
                         </div>
                     </div>
                 </div>
@@ -69,7 +69,7 @@
                                 <div class="col-sm-3 remarks_notcollected" style="display: none;">
                                     <div class="input-text form-group">
                                         <label>Remarks for Charges Not Collected</label>
-                                        <textarea class="form-control remarks_not_collected" rows="1" name="remarks_not_collected" ng-model="$ctrl.remarks_not_collected" autocomplete='off'></textarea>
+                                        <textarea class="form-control remarks_not_collected" rows="1" name="remarks_not_collected" ng-model="$ctrl.activity.remarks" autocomplete='off'></textarea>
                                     </div><!-- Field -->
                                 </div>
                                 <div class="col-sm-3 other_attachment" style="display: none;">

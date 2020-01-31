@@ -301,6 +301,38 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'view-invoice-payment-info',
 				'display_name' => 'View Payment Info',
 			],
+
+			//ADMIN DASHBOARD
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'admin-dashboard',
+				'display_name' => 'Admin Dashboard',
+			],
+
+			//BO DASHBOARD
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'bo-dashboard',
+				'display_name' => 'BO Dashboard',
+			],
+
+			//FINANCE DASHBOARD
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'finance-dashboard',
+				'display_name' => 'Finance Dashboard',
+			],
+
+			//RM DASHBOARD
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'rm-dashboard',
+				'display_name' => 'RM Dashboard',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

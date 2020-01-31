@@ -362,6 +362,12 @@ app.component('activityVerificationView', {
                 return;
             }
             self.data = response.data.data.activities;
+            self.data.view_cc_details = view_cc_details;
+            if (view_cc_details == 1) {
+                self.data.span_value = 3;
+            } else {
+                self.data.span_value = 2;
+            }
             self.data.style_dot_image_url = style_dot_image_url;
             self.data.style_service_type_image_url = style_service_type_image_url;
             self.data.style_car_image_url = style_car_image_url;
@@ -372,6 +378,7 @@ app.component('activityVerificationView', {
             self.data.style_question_image_url = style_question_image_url;
             self.data.style_checked_image_url = style_checked_image_url;
             self.data.verification = 1;
+            self.data.page_title = "Approval";
 
             $rootScope.loading = false;
             self.data.cc_net_amount = self.data.cc_po_amount - self.data.bo_not_collected;

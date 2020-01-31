@@ -228,10 +228,10 @@ class InvoiceController extends Controller {
 		$asp = $invoice->asp;
 		$asp->rm = $invoice->asp->rm;
 		$this->data['period'] = $invoice->startdate . ' to ' . $invoice->enddate;
-		if ($asp->is_auto_invoice) {
-			$this->data['inv_no'] = $invoice->invoice_no . '-' . $invoice->id;
-		} else {
+		if ($asp->has_gst && !$asp->is_auto_invoice) {
 			$this->data['inv_no'] = $invoice->invoice_no;
+		} else {
+			$this->data['inv_no'] = $invoice->invoice_no . '-' . $invoice->id;
 		}
 		$this->data['inv_date'] = $invoice->created_at;
 		$this->data['batch'] = "";

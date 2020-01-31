@@ -8,6 +8,7 @@ use App\StateUser;
 use App\Invoices;
 use Auth;
 use Carbon\Carbon;
+use Entrust;
 use DB;
 use Session;
 
@@ -31,41 +32,46 @@ class DashboardController extends Controller {
 				return redirect()->route('admin_selection');
 			}
 		}
+		//dd(Auth::id());
 		$today = date('Y-m-d');
 		$previous_month = Carbon::now()->subMonth();
-		
 		if (Auth::user()->hasRole('asp')) {
 			//by default asp login comes to  change password page
 			return redirect()->route('changePassword');
 		} else {
 			$user_id = Auth::user()->id;
-			if (((Entrust::can('admin-dashboard')) && (Session::get('portal_selection') == 1)) || Entrust::can('bo-dashboard') || Entrust::can('rm-dashboard')) {
+			if (((Entrust::can('admin-dashboard')) && (Session::get('portal_selection') == 1)) || Entrust::can('bo-dashboard') || Entrust::can('rm-dashboard') || Entrust::can('finance-dashboard')) {
 				//New Ticket
-				if(Auth::user()->hasRole('super-admin')){
-					$this->data['role'] = 'super-admin';
-				}elseif(Auth::user()->hasRole('bo')){
-					$this->data['role'] = 'bo';
+				if(Entrust::can('admin-dashboard')){
+					$this->data['role_name'] = 'super-admin';
+				}elseif(Entrust::can('bo-dashboard')){
+					$this->data['role_name'] = 'bo';
 					$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
-				}else{
-					$this->data['role'] = 'rm';
+				}elseif(Entrust::can('rm-dashboard')){
+					$this->data['role_name'] = 'rm';
+
+				}elseif(Entrust::can('finance-dashboard')){
+					$this->data['role_name'] = 'finance';
 
 				}
+
 				$new_ticket_count = Activity::where('status_id',2);
-				if(Auth::user()->hasRole('bo')){
+				if(Entrust::can('bo-dashboard')){
 					$new_ticket_count = $this->boData($new_ticket_count,$states);
 				}
-				if(Auth::user()->hasRole('rm')){
+				if(Entrust::can('rm-dashboard')){
 					$new_ticket_count = $this->rmData($new_ticket_count);
 				}
 				$this->data['new_ticket_count'] =  $new_ticket_count->count();
 
 
-				$today_new_ticket_count = Activity::where('status_id',2)
-					->whereDate('activities.created_at', $today);
-				if(Auth::user()->hasRole('bo')){
+				$today_new_ticket_count = Activity::join('cases','activities.case_id','=','cases.id')
+					->where('activities.status_id',2)
+					->whereDate('cases.created_at', $today);
+				if(Entrust::can('bo-dashboard')){
 					$today_new_ticket_count = $this->boData($today_new_ticket_count,$states);
 				}
-				if(Auth::user()->hasRole('rm')){
+				if(Entrust::can('rm-dashboard')){
 					$today_new_ticket_count = $this->rmData($today_new_ticket_count);
 				}
 				$this->data['today_new_ticket_count'] = $today_new_ticket_count->count();
@@ -74,10 +80,10 @@ class DashboardController extends Controller {
 				$this_month_new_ticket_count =  Activity::join('cases','activities.case_id','=','cases.id')->where('activities.status_id',2)
 					->whereMonth('cases.created_at', date('m', strtotime($today)))
 					->whereYear('cases.created_at', date('Y', strtotime($today)));
-				if(Auth::user()->hasRole('bo')){
+				if(Entrust::can('bo-dashboard')){
 					$this_month_new_ticket_count = $this->boData($this_month_new_ticket_count,$states);
 				}
-				if(Auth::user()->hasRole('rm')){
+				if(Entrust::can('rm-dashboard')){
 					$this_month_new_ticket_count = $this->rmData($this_month_new_ticket_count);
 				}
 				$this->data['this_month_new_ticket_count'] = $this_month_new_ticket_count->count();
@@ -86,58 +92,55 @@ class DashboardController extends Controller {
 				$prev_month_new_ticket_count = Activity::join('cases','activities.case_id','=','cases.id')->where('activities.status_id',2)
 					->whereMonth('cases.created_at', date('m', strtotime($previous_month)))
 					->whereYear('cases.created_at',date('Y', strtotime($previous_month)));
-				if(Auth::user()->hasRole('bo')){
+				if(Entrust::can('bo-dashboard')){
 					$prev_month_new_ticket_count = $this->boData($prev_month_new_ticket_count,$states);
 				}
-				if(Auth::user()->hasRole('rm')){
+				if(Entrust::can('rm-dashboard')){
 					$prev_month_new_ticket_count = $this->rmData($prev_month_new_ticket_count);
 				}
 				$this->data['prev_month_new_ticket_count'] = $prev_month_new_ticket_count->count();
-
+				//dd($previous_month,$prev_month_new_ticket_count->pluck('activities.id'),$this->data['prev_month_new_ticket_count']);
 				//Ticket in approval
 				$tickets_in_approval = Activity::whereIn('status_id',[8,9,5,6]);
-				if(Auth::user()->hasRole('bo')){
+				if(Entrust::can('bo-dashboard')){
 					$tickets_in_approval = $this->boData($tickets_in_approval,$states);
 				}
-				if(Auth::user()->hasRole('rm')){
+				if(Entrust::can('rm-dashboard')){
 					$tickets_in_approval = $this->rmData($tickets_in_approval);
 				}
 				$this->data['tickets_in_approval'] = $tickets_in_approval->count();
 
 				//
-				$today_tickets_in_approval = Activity::join('cases','activities.case_id','=','cases.id')
-					->whereIn('activities.status_id',[8,9,5,6])
-					->whereDate('cases.created_at', $today);
-				if(Auth::user()->hasRole('bo')){
+				$today_tickets_in_approval = Activity::whereIn('activities.status_id',[8,9,5,6])
+					->whereDate('activities.updated_at', $today);
+				if(Entrust::can('bo-dashboard')){
 					$today_tickets_in_approval = $this->boData($today_tickets_in_approval,$states);
 				}
-				if(Auth::user()->hasRole('rm')){
+				if(Entrust::can('rm-dashboard')){
 					$today_tickets_in_approval = $this->rmData($today_tickets_in_approval);
 				}
 				$this->data['today_tickets_in_approval'] = $today_tickets_in_approval->count();
 
 				//
-				$this_month_tickets_in_approval =  Activity::join('cases','activities.case_id','=','cases.id')
-					->whereIn('activities.status_id',[8,9,5,6])
-					->whereMonth('cases.created_at', date('m', strtotime($today)))
-					->whereYear('cases.created_at', date('Y', strtotime($today)));
-				if(Auth::user()->hasRole('bo')){
+				$this_month_tickets_in_approval =  Activity::whereIn('activities.status_id',[8,9,5,6])
+					->whereMonth('activities.updated_at', date('m', strtotime($today)))
+					->whereYear('activities.updated_at', date('Y', strtotime($today)));
+				if(Entrust::can('bo-dashboard')){
 					$this_month_tickets_in_approval = $this->boData($this_month_tickets_in_approval,$states);
 				}
-				if(Auth::user()->hasRole('rm')){
+				if(Entrust::can('rm-dashboard')){
 					$this_month_tickets_in_approval = $this->rmData($this_month_tickets_in_approval);
 				}
 				$this->data['this_month_tickets_in_approval'] = $this_month_tickets_in_approval->count();
 
 				//
-				 $prev_month_tickets_in_approval = Activity::join('cases','activities.case_id','=','cases.id')
-					->whereIn('activities.status_id',[8,9,5,6])
-					->whereMonth('cases.created_at', date('m', strtotime($previous_month)))
-					->whereYear('cases.created_at', date('Y', strtotime($previous_month)));
-				if(Auth::user()->hasRole('bo')){
+				 $prev_month_tickets_in_approval = Activity::whereIn('activities.status_id',[8,9,5,6])
+					->whereMonth('activities.updated_at', date('m', strtotime($previous_month)))
+					->whereYear('activities.updated_at', date('Y', strtotime($previous_month)));
+				if(Entrust::can('bo-dashboard')){
 					$prev_month_tickets_in_approval = $this->boData($prev_month_tickets_in_approval,$states);
 				}
-				if(Auth::user()->hasRole('rm')){
+				if(Entrust::can('rm-dashboard')){
 					$prev_month_tickets_in_approval = $this->rmData($prev_month_tickets_in_approval);
 				}
 				$this->data['prev_month_tickets_in_approval'] = $prev_month_tickets_in_approval->count();
@@ -145,107 +148,72 @@ class DashboardController extends Controller {
 
 				$current_waiting_batch = Activity::join('cases','activities.case_id','=','cases.id')
 				->where('activities.status_id',11);
-				if(Auth::user()->hasRole('bo')){
+				if(Entrust::can('bo-dashboard')){
 					$current_waiting_batch = $this->boData($current_waiting_batch,$states);
 				}
-				if(Auth::user()->hasRole('rm')){
+				if(Entrust::can('rm-dashboard')){
 					$current_waiting_batch = $this->rmData($current_waiting_batch);
 				}
 				$this->data['current_waiting_batch'] =  $current_waiting_batch->count();
 
 				//tickets_approved
-				$today_tickets_in_approved = Activity::join('cases','activities.case_id','=','cases.id')
-				->where('activities.status_id',11)
-				->whereDate('cases.created_at', $today);
-				if(Auth::user()->hasRole('bo')){
+				$today_tickets_in_approved = Activity::where('activities.status_id',11)
+				->whereDate('activities.updated_at', $today);
+				if(Entrust::can('bo-dashboard')){
 					$today_tickets_in_approved = $this->boData($today_tickets_in_approved,$states);
 				}
-				if(Auth::user()->hasRole('rm')){
+				if(Entrust::can('rm-dashboard')){
 					$today_tickets_in_approved = $this->rmData($today_tickets_in_approved);
 				}
 				$this->data['today_tickets_in_approved'] =  $today_tickets_in_approved->count();
 
-				$this_month_tickets_in_approved = Activity::join('cases','activities.case_id','=','cases.id')
-					->where('activities.status_id',11)
-					->whereMonth('cases.created_at', date('m', strtotime($today)))
-					->whereYear('cases.created_at', date('Y', strtotime($today)));
-				if(Auth::user()->hasRole('bo')){
+				$this_month_tickets_in_approved = Activity::where('activities.status_id',11)
+					->whereMonth('activities.updated_at', date('m', strtotime($today)))
+					->whereYear('activities.updated_at', date('Y', strtotime($today)));
+				if(Entrust::can('bo-dashboard')){
 					$this_month_tickets_in_approved = $this->boData($this_month_tickets_in_approved,$states);
 				}
-				if(Auth::user()->hasRole('rm')){
+				if(Entrust::can('rm-dashboard')){
 					$this_month_tickets_in_approved = $this->rmData($this_month_tickets_in_approved);
 				}
 				$this->data['this_month_tickets_in_approved'] = $this_month_tickets_in_approved->count();
 
 				//
-				$prev_month_tickets_in_approved = Activity::join('cases','activities.case_id','=','cases.id')
-					->where('activities.status_id',11)
-					->whereMonth('cases.created_at', date('m', strtotime($previous_month)))
-					->whereYear('cases.created_at', date('Y', strtotime($previous_month)));
-				if(Auth::user()->hasRole('bo')){
+				$prev_month_tickets_in_approved = Activity::where('activities.status_id',11)
+					->whereMonth('activities.updated_at', date('m', strtotime($previous_month)))
+					->whereYear('activities.updated_at', date('Y', strtotime($previous_month)));
+				if(Entrust::can('bo-dashboard')){
 					$prev_month_tickets_in_approved = $this->boData($prev_month_tickets_in_approved,$states);
 				}
-				if(Auth::user()->hasRole('rm')){
+				if(Entrust::can('rm-dashboard')){
 					$prev_month_tickets_in_approved = $this->rmData($prev_month_tickets_in_approved);
 				}
 				$this->data['prev_month_tickets_in_approved'] = $prev_month_tickets_in_approved->count();
 
 				//Invoiced
-				$invoiced = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
-					->whereIn('Invoices.status_id',[1,3]);
-				if(Auth::user()->hasRole('bo')){
-					$invoiced = $this->boData($invoiced,$states);
-				}
-				if(Auth::user()->hasRole('rm')){
-					$invoiced = $this->rmData($invoiced);
-				}
-				$this->data['invoiced'] = $invoiced->count();
+				$this->data['invoiced'] = Activity::join('Invoices','activities.invoice_id','=','Invoices.id')->count();
 
-				$today_tickets_invoiced = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
-					->whereIn('Invoices.status_id',[1,3])
-					->whereDate('Invoices.created_at', $today);
-				if(Auth::user()->hasRole('bo')){
-					$today_tickets_invoiced = $this->boData($today_tickets_invoiced,$states);
-				}
-				if(Auth::user()->hasRole('rm')){
-					$today_tickets_invoiced = $this->rmData($today_tickets_invoiced);
-				}
-				$this->data['today_tickets_invoiced'] = $today_tickets_invoiced->count();
+				$this->data['today_tickets_invoiced'] = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
+					->whereDate('Invoices.created_at', $today)->count();
 
 				//
-				$tickets_invoiced_this_month =  Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
-					->whereIn('Invoices.status_id',[1,3])
+				$this->data['tickets_invoiced_this_month'] = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
 					->whereMonth('Invoices.created_at', date('m', strtotime($today)))
-					->whereYear('Invoices.created_at', date('Y', strtotime($today)));
-				if(Auth::user()->hasRole('bo')){
-					$tickets_invoiced_this_month = $this->boData($tickets_invoiced_this_month,$states);
-				}
-				if(Auth::user()->hasRole('rm')){
-					$tickets_invoiced_this_month = $this->rmData($tickets_invoiced_this_month);
-				}
-				$this->data['tickets_invoiced_this_month'] = $tickets_invoiced_this_month->count();
+					->whereYear('Invoices.created_at', date('Y', strtotime($today)))->count();
 
 				//
-				$prev_month_tickets_invoiced = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
-					->whereIn('Invoices.status_id',[1,3])
+				$this->data['prev_month_tickets_invoiced'] = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
 					->whereMonth('Invoices.created_at', date('m', strtotime($previous_month)))
-					->whereYear('Invoices.created_at', date('Y', strtotime($previous_month)));
-				if(Auth::user()->hasRole('bo')){
-					$prev_month_tickets_invoiced = $this->boData($prev_month_tickets_invoiced,$states);
-				}
-				if(Auth::user()->hasRole('rm')){
-					$prev_month_tickets_invoiced = $this->rmData($prev_month_tickets_invoiced);
-				}
-				$this->data['prev_month_tickets_invoiced'] = $prev_month_tickets_invoiced->count();
+					->whereYear('Invoices.created_at', date('Y', strtotime($previous_month)))->count();
 
 
 				//Completed Ticket
 				$total_ticket_complete = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
 					->where('Invoices.status_id',2);
-				if(Auth::user()->hasRole('bo')){
+				if(Entrust::can('bo-dashboard')){
 					$total_ticket_complete = $this->boData($total_ticket_complete,$states);
 				}
-				if(Auth::user()->hasRole('rm')){
+				if(Entrust::can('rm-dashboard')){
 					$total_ticket_complete = $this->rmData($total_ticket_complete);
 				}
 				$this->data['total_ticket_complete'] = 	$total_ticket_complete->count();
@@ -254,10 +222,10 @@ class DashboardController extends Controller {
 				$today_total_ticket_complete = Activity::leftJoin('Invoices','activities.invoice_id','=','Invoices.id')
 					->where('Invoices.status_id',2)
 					->whereDate('Invoices.updated_at', $today);
-				if(Auth::user()->hasRole('bo')){
+				if(Entrust::can('bo-dashboard')){
 					$today_total_ticket_complete = $this->boData($today_total_ticket_complete,$states);
 				}
-				if(Auth::user()->hasRole('rm')){
+				if(Entrust::can('rm-dashboard')){
 					$today_total_ticket_complete = $this->rmData($today_total_ticket_complete);
 				}
 				$this->data['today_total_ticket_complete'] = $today_total_ticket_complete->count();
@@ -268,10 +236,10 @@ class DashboardController extends Controller {
 					->whereMonth('Invoices.updated_at', date('m', strtotime($today)))
 					->whereYear('Invoices.updated_at', date('Y', strtotime($today)));
 				//dd(date('m', strtotime($today)),date('Y', strtotime($today)),$this_month_total_ticket_complete );
-				if(Auth::user()->hasRole('bo')){
+				if(Entrust::can('bo-dashboard')){
 					$this_month_total_ticket_complete = $this->boData($this_month_total_ticket_complete,$states);
 				}
-				if(Auth::user()->hasRole('rm')){
+				if(Entrust::can('rm-dashboard')){
 					$this_month_total_ticket_complete = $this->rmData($this_month_total_ticket_complete);
 				}
 				$this->data['this_month_total_ticket_complete'] = $this_month_total_ticket_complete->count();
@@ -280,10 +248,10 @@ class DashboardController extends Controller {
 					->where('Invoices.status_id',2)
 					->whereMonth('Invoices.updated_at', date('m', strtotime($previous_month)))
 					->whereYear('Invoices.updated_at', date('Y', strtotime($previous_month)));
-				if(Auth::user()->hasRole('bo')){
+				if(Entrust::can('bo-dashboard')){
 					$prev_month_total_ticket_complete = $this->boData($prev_month_total_ticket_complete,$states);
 				}
-				if(Auth::user()->hasRole('rm')){
+				if(Entrust::can('rm-dashboard')){
 					$prev_month_total_ticket_complete = $this->rmData($prev_month_total_ticket_complete);
 				}
 				$this->data['prev_month_total_ticket_complete'] = $prev_month_total_ticket_complete->count();
@@ -293,10 +261,10 @@ class DashboardController extends Controller {
 					->select(DB::raw('IF(count(activities.id) IS NULL or count(activities.id) = "", 0, count(activities.id)) as `total`'), DB::raw('DATE_FORMAT(Invoices.updated_at,"%b") month'))
 					->whereYear('Invoices.updated_at', date('Y', strtotime($today)))
 					->where('Invoices.status_id', 2);
-				if(Auth::user()->hasRole('bo')){
+				if(Entrust::can('bo-dashboard')){
 					$completed_ticket_count = $this->boData($completed_ticket_count,$states);
 				}
-				if(Auth::user()->hasRole('rm')){
+				if(Entrust::can('rm-dashboard')){
 					$completed_ticket_count = $this->rmData($completed_ticket_count);
 				}
 				$this->data['completed_ticket_count'] = $completed_ticket_count->groupBy('month')->pluck('total', 'month')->toArray();
@@ -342,72 +310,13 @@ class DashboardController extends Controller {
 				//End has role superadmin
 			} elseif ((Entrust::can('admin-dashboard')) && (Session::get('portal_selection') == 2)) {
 				return redirect()->route('sales_dashboard');
-			}elseif (Entrust::can('finance-dashboard')) {
-				$this->data['role'] = 'finance';
-
-				//payment completed count (chart)
-				$this->data['completed_payment_count'] = Batch::select(DB::raw('IF(count(id) IS NULL or count(id) = "", 0, count(id)) as `total`'), DB::raw('DATE_FORMAT(updated_at,"%b") month'))
-					->whereYear('updated_at', date('Y'))
-					->where('status', "Payment Confirmed")
-					->groupby('month')
-					->whereYear('updated_at', date('Y'))
-					->pluck('total', 'month')->toArray();
-				//
-
-				//new_batches_count
-				$this->data['today_new_batch_count'] = Batch::where(function ($query) {
-					$query->where('status', 'Waiting for Payment')
-						->orWhere('status', 'Payment Inprogress');
-				})
-					->whereDay('updated_at', Carbon::now()->format('d'))
-					->whereMonth('updated_at', Carbon::now()->format('m'))
-					->whereYear('updated_at', date('Y'))
-					->count();
-
-				$this->data['new_batch_count'] = Batch::where('status', "Waiting for Payment")->orWhere('status', "Payment Inprogress")
-					->count();
-
-				$this->data['this_month_new_batch_count'] = Batch::where(function ($query) {
-					$query->where('status', 'Waiting for Payment')
-						->orWhere('status', 'Payment Inprogress');
-				})
-					->whereMonth('updated_at', Carbon::now()->format('m'))
-					->whereYear('updated_at', date('Y'))
-					->count();
-
-				$this->data['prev_month_new_batch_count'] = Batch::where(function ($query) {
-					$query->where('status', 'Waiting for Payment')
-						->orWhere('status', 'Payment Inprogress');
-				})
-					->whereMonth('updated_at', Carbon::now()->submonth()->month)
-					->whereYear('updated_at', date('Y'))
-					->count();
-				//
-				//payment completed
-				$this->data['today_completed_payment_count'] = Batch::where('status', "Payment Confirmed")
-					->whereDay('updated_at', Carbon::now()->format('d'))
-					->whereMonth('updated_at', Carbon::now()->format('m'))
-					->whereYear('updated_at', date('Y'))
-					->count();
-
-				$this->data['month_completed_payment_count'] = Batch::where('status', "Payment Confirmed")
-					->count();
-
-				$this->data['this_month_completed_payment_count'] = Batch::where('status', "Payment Confirmed")
-					->whereMonth('updated_at', Carbon::now()->format('m'))
-					->whereYear('updated_at', date('Y'))
-					->count();
-
-				$this->data['prev_month_completed_payment_count'] = Batch::where('status', "Payment Confirmed")
-					->whereMonth('updated_at', Carbon::now()->submonth()->month)
-					->whereYear('updated_at', date('Y'))
-					->count();
-				//
-			} else {
+			}else {
 				$this->data['no_access'] = [];
 			}
 			//dd('a',$this->data);
 			//return view('dashboard/dashboards', $this->data);
+			//	dd(Auth::user()->id,$this->data['role_name']);
+
 			return response()->json(['success' => true,'data' => $this->data]);
 			
 		} // else for other roles

@@ -287,23 +287,6 @@ app.component('activityStatusView', {
             self.data.style_phone_image_url = style_car_image_url;
             self.data.verification = 0;
             self.data.page_title = 'Status';
-
-            /*$scope.isSelf = function(asp) {
-                if (self.data.asp.has_gst && !self.data.asp.is_auto_invoice) {
-                    return true;
-                } else {
-                    return false;
-                }
-            };
-
-            $scope.isSystem = function(asp) {
-                if (!self.data.asp.has_gst || (self.data.asp.has_gst && self.data.asp.is_auto_invoice)) {
-                    return true;
-                } else {
-                    return false;
-                }
-            };*/
-
             $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
             $('#viewData-toggle--btn1').click(function() {
                 $(this).toggleClass('viewData-toggle--btn_reverse');

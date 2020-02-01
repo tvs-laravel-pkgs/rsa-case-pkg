@@ -106,12 +106,6 @@ app.component('approvedActivityList', {
                 autoclose: true,
             });
 
-            $('.filter-content').bind('click', function(event) {
-                if ($('.md-select-menu-container').hasClass('md-active')) {
-                    $mdSelect.hide();
-                }
-            });
-
             $('#select_all_checkbox').click(function() {
                 if ($(this).prop("checked")) {
                     $(".child_select_all").prop("checked", true);
@@ -267,7 +261,7 @@ app.component('approvedActivityInvoicePreview', {
             };
 
             $scope.isSystem = function(asp) {
-                if (!self.data.asp.has_gst || (self.data.asp.has_gst && self.data.asp.is_auto_invoice)) {
+                if (!asp.has_gst || (asp.has_gst && asp.is_auto_invoice)) {
                     return true;
                 } else {
                     return false;

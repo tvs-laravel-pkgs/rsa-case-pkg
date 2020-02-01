@@ -1,6 +1,6 @@
 app.component('approvedActivityList', {
     templateUrl: activity_approved_list_template_url,
-    controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope) {
+    controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope, $mdSelect) {
         var self = this;
         self.hasPermission = HelperService.hasPermission;
         self.angular_routes = angular_routes;
@@ -104,6 +104,12 @@ app.component('approvedActivityList', {
             $('.date-picker').datepicker({
                 format: 'dd-mm-yyyy',
                 autoclose: true,
+            });
+
+            $('.filter-content').bind('click', function(event) {
+                if ($('.md-select-menu-container').hasClass('md-active')) {
+                    $mdSelect.hide();
+                }
             });
 
             $('#select_all_checkbox').click(function() {

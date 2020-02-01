@@ -1,6 +1,6 @@
 app.component('activityVerificationList', {
     templateUrl: activity_verification_list_template_url,
-    controller: function($http, $window, HelperService, $scope, $rootScope, $route, $location) {
+    controller: function($http, $window, HelperService, $scope, $rootScope, $route, $location, $mdSelect) {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
@@ -288,6 +288,13 @@ app.component('activityVerificationList', {
             $('.date-picker').datepicker({
                 format: 'dd-mm-yyyy',
                 autoclose: true,
+            });
+
+            $('.filter-content').bind('click', function(event) {
+
+                if ($('.md-select-menu-container').hasClass('md-active')) {
+                    $mdSelect.hide();
+                }
             });
 
             $('#select_all_checkbox').click(function() {

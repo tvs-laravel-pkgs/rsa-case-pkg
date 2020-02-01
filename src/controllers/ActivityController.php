@@ -297,7 +297,7 @@ class ActivityController extends Controller {
 	}
 
 	public function viewActivityStatus($view_type_id = NULL, $activity_status_id) {
-		dd($view_type_id);
+		//dd($view_type_id);
 		$activity_data = Activity::findOrFail($activity_status_id);
 		if ($view_type_id == 2) {
 			if (!($activity_data && ($activity_data->status_id == 5 || $activity_data->status_id == 6 || $activity_data->status_id == 9 || $activity_data->status_id == 8))) {
@@ -380,10 +380,10 @@ class ActivityController extends Controller {
 			    			"NA"
 					END as invoice_no'),
 			DB::raw('CASE
-				    	WHEN (Invoices.asp_gst_registration_number IS NULL || Invoices.asp_gst_registration_number == "")
+				    	WHEN (Invoices.asp_gst_registration_number IS NULL || Invoices.asp_gst_registration_number = "")
 			    		THEN
 			    			CASE
-			    				WHEN (asps.gst_registration_number IS NULL && asps.gst_registration_number == "")
+			    				WHEN (asps.gst_registration_number IS NULL && asps.gst_registration_number = "")
 			   					THEN
 			    					"NA"
 			    				ELSE
@@ -393,10 +393,10 @@ class ActivityController extends Controller {
 			    			Invoices.asp_gst_registration_number
 					END as gst_registration_number'),
 			DB::raw('CASE
-				    	WHEN (Invoices.asp_pan_number IS NULL || Invoices.asp_pan_number == "")
+				    	WHEN (Invoices.asp_pan_number IS NULL || Invoices.asp_pan_number = "")
 			    		THEN
 			    			CASE
-			    				WHEN (asps.pan_number IS NULL && asps.pan_number == "")
+			    				WHEN (asps.pan_number IS NULL && asps.pan_number = "")
 			   					THEN
 			    					"NA"
 			    				ELSE
@@ -405,14 +405,15 @@ class ActivityController extends Controller {
 			    		ELSE
 			    			Invoices.asp_pan_number
 					END as pan_number'),
-			//DB::RAW('invoices.invoice_no) as invoice_no',
 			DB::raw('IF(Invoices.invoice_amount IS NULL,"NA",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
+			DB::raw('IF(Invoices.invoice_amount IS NULL,"NA",Invoices.invoice_amount) as inv_amount'),
 			DB::raw('IF((asps.has_gst =1 && asps.is_auto_invoice=0),"NO","Yes") as auto_invoice'),
-			DB::raw('IF(Invoices.invoice_amount IS NULL,"NA",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
 			DB::raw('IF(Invoices.flow_current_status IS NULL,"NA",Invoices.flow_current_status) as flow_current_status'),
 			DB::raw('IF(Invoices.start_date IS NULL,"NA",DATE_FORMAT(Invoices.start_date,"%d-%m-%Y")) as invoice_date'),
 			'activity_finance_statuses.po_eligibility_type_id',
-			'activities.finance_status_id'
+			'activities.finance_status_id',
+			'activities.invoice_id'
+
 		)
 			->leftJoin('asps', 'asps.id', 'activities.asp_id')
 			->leftJoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
@@ -458,6 +459,67 @@ class ActivityController extends Controller {
 			}
 
 		}
+			
+		/*$this->data['activities']['invoice_activities'] = Activity::with(['case','serviceType','activityDetail'])->where('invoice_id',$activity->invoice_id)->get();*/
+		if($activity->invoice_id){
+
+		$this->data['activities']['invoice_activities'] = Activity::join('cases', 'cases.id', 'activities.case_id')
+			->join('service_types', 'service_types.id', 'activities.service_type_id')
+			->leftJoin('activity_details as km_charge', function ($join) {
+				$join->on('km_charge.activity_id', 'activities.id')
+					->where('km_charge.key_id', 172); //BO PO AMOUNT OR KM CHARGE
+			})
+			->leftJoin('activity_details as km_travelled', function ($join) {
+				$join->on('km_travelled.activity_id', 'activities.id')
+					->where('km_travelled.key_id', 158); //BO KM TRAVELLED
+			})
+			->leftJoin('activity_details as net_amount', function ($join) {
+				$join->on('net_amount.activity_id', 'activities.id')
+					->where('net_amount.key_id', 176); //BO NET AMOUNT
+			})
+			->leftJoin('activity_details as collect_amount', function ($join) {
+				$join->on('collect_amount.activity_id', 'activities.id')
+					->where('collect_amount.key_id', 159); //BO COLLECT AMOUNT
+			})
+			->leftJoin('activity_details as not_collected_amount', function ($join) {
+				$join->on('not_collected_amount.activity_id', 'activities.id')
+					->where('not_collected_amount.key_id', 160); //BO NOT COLLECT AMOUNT
+			})
+			->leftJoin('activity_details as total_tax_perc', function ($join) {
+				$join->on('total_tax_perc.activity_id', 'activities.id')
+					->where('total_tax_perc.key_id', 185); //BO TOTAL TAX PERC
+			})
+			->leftJoin('activity_details as total_tax_amount', function ($join) {
+				$join->on('total_tax_amount.activity_id', 'activities.id')
+					->where('total_tax_amount.key_id', 179); //BO TOTAL TAX AMOUNT
+			})
+			->leftJoin('activity_details as total_amount', function ($join) {
+				$join->on('total_amount.activity_id', 'activities.id')
+					->where('total_amount.key_id', 182); //BO INVOICE AMOUNT
+			})
+			->select(
+				'cases.number',
+				'activities.id',
+				'activities.crm_activity_id',
+				DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
+				'cases.vehicle_registration_number',
+				'service_types.name as service_type',
+				'km_charge.value as km_charge_value',
+				'km_travelled.value as km_value',
+				'not_collected_amount.value as not_collect_value',
+				'net_amount.value as net_value',
+				'collect_amount.value as collect_value',
+				'total_amount.value as total_value',
+				'total_tax_perc.value as total_tax_perc_value',
+				'total_tax_amount.value as total_tax_amount_value'
+			)
+			->where('invoice_id', $activity->invoice_id)
+			->groupBy('activities.id')
+			->get();
+
+			$this->data['activities']['invoice_amount_in_word'] =getIndianCurrency($activity->inv_amount);
+		}
+
 		$this->data['activities']['asp_service_type_data'] = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();
 		$configs = Config::where('entity_type_id', 23)->get();
 		foreach ($configs as $config) {
@@ -480,7 +542,7 @@ class ActivityController extends Controller {
 				//AMOUNT
 				$this->data['activities']['bo_deduction'] = $this->data['activities']['asp_service_type_data']->adjustment;
 		*/
-				dd( $this->data);
+				//dd( $this->data);
 		return response()->json(['success' => true, 'data' => $this->data]);
 
 	}

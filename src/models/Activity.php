@@ -74,7 +74,7 @@ class Activity extends Model {
 	}
 
 	public function activityDetail() {
-		return $this->hasOne('Abs\RsaCasePkg\ActivityDetail', 'activity_id');
+		return $this->hasMany('Abs\RsaCasePkg\ActivityDetail', 'activity_id');
 	}
 
 	public function asp() {

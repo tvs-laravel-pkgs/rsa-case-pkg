@@ -174,6 +174,7 @@ app.component('invoiceView', {
         var self = this;
         self.hasPermission = HelperService.hasPermission;
         self.filter_img_url = filter_img_url;
+        self.refresh_img_url = refresh_img_url;
         self.type_id = $routeParams.type_id;
         self.invoice_pdf_generate_url = invoice_pdf_generate_url;
         self.canViewPaymentInfo = canViewPaymentInfo;
@@ -252,6 +253,7 @@ app.component('invoiceView', {
                 if (self.canViewPaymentInfo) {
                     var paymentDataTable = $('#aspPaymentInfo-table').DataTable({
                         "bLengthChange": false,
+                        "bRetrieve": true,
                         "paginate": false,
                         "oLanguage": { "sZeroRecords": "", "sEmptyTable": "" },
                     });
@@ -281,10 +283,14 @@ app.component('invoiceView', {
             };
 
             $scope.getPaymenyInfo = function() {
+                if ($(".loader-type-2").hasClass("loader-hide")) {
+                    $(".loader-type-2").removeClass("loader-hide");
+                }
                 $http.get(
                     get_invoice_payment_info_url + '/' + $routeParams.id
                 ).then(function(response) {
                     console.log(response);
+                    $(".loader-type-2").addClass("loader-hide");
                     if (!response.data.success) {
                         $noty = new Noty({
                             type: 'error',
@@ -297,7 +303,7 @@ app.component('invoiceView', {
                         }).show();
                         setTimeout(function() {
                             $noty.close();
-                        }, 1000);
+                        }, 2000);
                     } else {
                         self.invoice_vouchers_amount = response.data.data.invoice_vouchers_amount;
                         self.invoice_vouchers = response.data.data.invoice_vouchers;

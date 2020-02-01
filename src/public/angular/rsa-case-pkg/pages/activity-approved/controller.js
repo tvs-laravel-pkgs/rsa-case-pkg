@@ -261,7 +261,7 @@ app.component('approvedActivityInvoicePreview', {
             };
 
             $scope.isSystem = function(asp) {
-                if (!asp.has_gst || (asp.has_gst && asp.is_auto_invoice)) {
+                if (!self.data.asp.has_gst || (self.data.asp.has_gst && self.data.asp.is_auto_invoice)) {
                     return true;
                 } else {
                     return false;

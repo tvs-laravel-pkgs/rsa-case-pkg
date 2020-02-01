@@ -297,7 +297,7 @@ class ActivityController extends Controller {
 	}
 
 	public function viewActivityStatus($view_type_id = NULL, $activity_status_id) {
-		//dd($view_type_id);
+		dd($view_type_id);
 		$activity_data = Activity::findOrFail($activity_status_id);
 		if ($view_type_id == 2) {
 			if (!($activity_data && ($activity_data->status_id == 5 || $activity_data->status_id == 6 || $activity_data->status_id == 9 || $activity_data->status_id == 8))) {
@@ -306,6 +306,7 @@ class ActivityController extends Controller {
 			}
 		}
 		$this->data['activities'] = $activity = Activity::with([
+			'invoice',
 			'asp',
 			'asp.rms',
 			'asp.state',
@@ -376,31 +377,57 @@ class ActivityController extends Controller {
 			    					CONCAT(Invoices.invoice_no,"-",Invoices.id)
 			    			END
 			    		ELSE
-			    			"-"
+			    			"NA"
 					END as invoice_no'),
+			DB::raw('CASE
+				    	WHEN (Invoices.asp_gst_registration_number IS NULL || Invoices.asp_gst_registration_number == "")
+			    		THEN
+			    			CASE
+			    				WHEN (asps.gst_registration_number IS NULL && asps.gst_registration_number == "")
+			   					THEN
+			    					"NA"
+			    				ELSE
+			    					asps.gst_registration_number
+			    			END
+			    		ELSE
+			    			Invoices.asp_gst_registration_number
+					END as gst_registration_number'),
+			DB::raw('CASE
+				    	WHEN (Invoices.asp_pan_number IS NULL || Invoices.asp_pan_number == "")
+			    		THEN
+			    			CASE
+			    				WHEN (asps.pan_number IS NULL && asps.pan_number == "")
+			   					THEN
+			    					"NA"
+			    				ELSE
+			    					asps.pan_number
+			    			END
+			    		ELSE
+			    			Invoices.asp_pan_number
+					END as pan_number'),
 			//DB::RAW('invoices.invoice_no) as invoice_no',
-			DB::raw('IF(Invoices.invoice_amount IS NULL,"-",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
+			DB::raw('IF(Invoices.invoice_amount IS NULL,"NA",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
 			DB::raw('IF((asps.has_gst =1 && asps.is_auto_invoice=0),"NO","Yes") as auto_invoice'),
-			DB::raw('IF(Invoices.invoice_amount IS NULL,"-",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
-			DB::raw('IF(Invoices.flow_current_status IS NULL,"-",Invoices.flow_current_status) as flow_current_status'),
-			DB::raw('IF(Invoices.start_date IS NULL,"-",DATE_FORMAT(Invoices.start_date,"%d-%m-%Y")) as invoice_date'),
+			DB::raw('IF(Invoices.invoice_amount IS NULL,"NA",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
+			DB::raw('IF(Invoices.flow_current_status IS NULL,"NA",Invoices.flow_current_status) as flow_current_status'),
+			DB::raw('IF(Invoices.start_date IS NULL,"NA",DATE_FORMAT(Invoices.start_date,"%d-%m-%Y")) as invoice_date'),
 			'activity_finance_statuses.po_eligibility_type_id',
 			'activities.finance_status_id'
 		)
-			->leftjoin('asps', 'asps.id', 'activities.asp_id')
-			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
-			->leftjoin('Invoices', 'activities.invoice_id', 'Invoices.id')
-			->leftjoin('users', 'users.id', 'asps.user_id')
-			->leftjoin('cases', 'cases.id', 'activities.case_id')
-			->leftjoin('case_statuses', 'case_statuses.id', 'cases.status_id')
-			->leftjoin('vehicle_models', 'cases.vehicle_model_id', 'vehicle_models.id')
-			->leftjoin('vehicle_makes', 'vehicle_models.vehicle_make_id', 'vehicle_makes.id')
-			->leftjoin('clients', 'clients.id', 'cases.client_id')
-			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
-			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
-			->leftjoin('asp_activity_rejected_reasons', 'asp_activity_rejected_reasons.id', 'activities.asp_activity_rejected_reason_id')
-			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
-			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
+			->leftJoin('asps', 'asps.id', 'activities.asp_id')
+			->leftJoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
+			->leftJoin('Invoices', 'activities.invoice_id', 'Invoices.id')
+			->leftJoin('users', 'users.id', 'asps.user_id')
+			->leftJoin('cases', 'cases.id', 'activities.case_id')
+			->leftJoin('case_statuses', 'case_statuses.id', 'cases.status_id')
+			->leftJoin('vehicle_models', 'cases.vehicle_model_id', 'vehicle_models.id')
+			->leftJoin('vehicle_makes', 'vehicle_models.vehicle_make_id', 'vehicle_makes.id')
+			->leftJoin('clients', 'clients.id', 'cases.client_id')
+			->leftJoin('call_centers', 'call_centers.id', 'cases.call_center_id')
+			->leftJoin('service_types', 'service_types.id', 'activities.service_type_id')
+			->leftJoin('asp_activity_rejected_reasons', 'asp_activity_rejected_reasons.id', 'activities.asp_activity_rejected_reason_id')
+			->leftJoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+			->leftJoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 			->groupBy('activities.id')
 			->where('activities.id', $activity_status_id)
 			->first();
@@ -453,6 +480,7 @@ class ActivityController extends Controller {
 				//AMOUNT
 				$this->data['activities']['bo_deduction'] = $this->data['activities']['asp_service_type_data']->adjustment;
 		*/
+				dd( $this->data);
 		return response()->json(['success' => true, 'data' => $this->data]);
 
 	}

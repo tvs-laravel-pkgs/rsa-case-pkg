@@ -555,6 +555,17 @@ class Activity extends Model {
 						$save_eligible = false;
 					}
 
+					//ASSIGN ZERO IF IT IS EMPTY
+					if (!$request->cc_total_km) {
+						$request->cc_total_km = 0;
+					}
+					if (!$request->cc_not_collected_amount) {
+						$request->cc_not_collected_amount = 0;
+					}
+					if (!$request->cc_colleced_amount) {
+						$request->cc_colleced_amount = 0;
+					}
+
 					//Dont allow updations if current status is Cancelled or Closed
 					$case = RsaCase::where([
 						'company_id' => 1,

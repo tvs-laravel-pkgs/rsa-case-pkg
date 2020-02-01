@@ -88,6 +88,18 @@ class ActivityController extends Controller {
 					'errors' => $validator->errors()->all(),
 				], $this->successStatus);
 			}
+
+			//ASSIGN ZERO IF IT IS EMPTY
+			if (!$request->cc_total_km) {
+				$request->cc_total_km = 0;
+			}
+			if (!$request->cc_not_collected_amount) {
+				$request->cc_not_collected_amount = 0;
+			}
+			if (!$request->cc_colleced_amount) {
+				$request->cc_colleced_amount = 0;
+			}
+
 			//ALLOW ONLY LETTERS AND NUMBERS
 			if (!preg_match("/^[a-zA-Z0-9]+$/", $request->case_number)) {
 				return response()->json([

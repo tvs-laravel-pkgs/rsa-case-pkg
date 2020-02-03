@@ -23,6 +23,7 @@ use DB;
 use Entrust;
 use Excel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
 use Validator;
 use Yajra\Datatables\Datatables;
@@ -1146,7 +1147,8 @@ class ActivityController extends Controller {
 				'error' => 'Please select atleast one activity',
 			]);
 		}
-		$encryption_key = encryptString(implode('-', $request->invoice_ids));
+		// $encryption_key = encryptStringInv(implode('-', $request->invoice_ids));
+		$encryption_key = Crypt::encryptString(implode('-', $request->invoice_ids));
 		return response()->json([
 			'success' => true,
 			'encryption_key' => $encryption_key,
@@ -1162,7 +1164,8 @@ class ActivityController extends Controller {
 				],
 			]);
 		}
-		$decrypt = decryptString($encryption_key);
+		$decrypt = Crypt::decryptString($encryption_key);
+		// $decrypt = decryptStringInv($encryption_key);
 		$activity_ids = explode('-', $decrypt);
 		if (empty($activity_ids)) {
 			return response()->json([

@@ -15,7 +15,11 @@ app.component('activityStatusList', {
         ).then(function(response) {
             self.extras = response.data.extras;
             // response.data.extras.status_list.splice(0, 1);
+            console.log(self.extras);
+
             self.status_list = response.data.extras.portal_status_list;
+            self.client_list= response.data.extras.export_client_list;
+            self.asp_list = response.data.extras.asp_list;
             // self.status_list.splice(0, 1);
             self.modal_close = modal_close;
             var cols = [
@@ -151,8 +155,6 @@ app.component('activityStatusList', {
                 startDate: moment().startOf('month'),
                 endDate: moment().endOf('month'),
             });
-
-            
 
             self.pc_all = false;
             $rootScope.loading = false;

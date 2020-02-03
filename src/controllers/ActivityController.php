@@ -38,7 +38,10 @@ class ActivityController extends Controller {
 			'status_list' => collect(ActivityPortalStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Portal Status']),
 			'activity_status_list' => collect(ActivityStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Activity Status']),
 			'client_list' => collect(Client::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Client']),
+			'export_client_list' => collect(Client::select('name', 'id')->get()),
+			'asp_list' => collect(Asp::select('name', 'id')->get()),
 		];
+
 		return response()->json($this->data);
 	}
 
@@ -1512,19 +1515,24 @@ class ActivityController extends Controller {
 
 		$status_ids = trim($request->status_ids, '""');
 		$status_ids = explode(',', $status_ids);
-		$activities = Activity::join('asps', 'activities.asp_id', '=', 'asps.id')->whereIn('status_id', $status_ids)
+		$activities = Activity::join('cases', 'activities.case_id', '=', 'cases.id')->join('asps', 'activities.asp_id', '=', 'asps.id')->whereIn('activities.status_id', $status_ids)
 			->whereDate('activities.created_at', '>=', $range1)
-			->whereDate('activities.created_at', '<=', $range2)
-		;
-
+			->whereDate('activities.created_at', '<=', $range2);
+		if (!empty($request->get('asp_id'))) {
+			$activities =$activities->where('activities.asp_id', $request->get('asp_id'));
+		}
+		if (!empty($request->get('client_id'))) {
+			$activities =$activities->where('cases.client_id', $request->get('client_id'));
+		}
+		if (!empty($request->get('ticket'))) {
+			$activities =$activities->where('cases.number', $request->get('ticket'));
+		}
 		if (!Entrust::can('view-all-activities')) {
 			if (Entrust::can('view-mapped-state-activities')) {
 				$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
-				//dd($states);
 				$activities = $activities->whereIn('asps.state_id', $states);
 			}
 		}
-
 		$total_count = $activities->count('activities.id');
 		if ($total_count == 0) {
 			return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['errors' => ['No activities found for given period & statuses']]);
@@ -1595,10 +1603,11 @@ class ActivityController extends Controller {
 			$config = Config::where('id', $config_id)->first();
 			$activity_details_header[] = str_replace("_", " ", strtolower($config->name));
 		}
+		$activity_status_list = ActivityPortalStatus::pluck('name','id');
+		foreach ($activity_status_list as $key => $activity_status) {
+			$activity_details_header[] = $activity_status;
+		}
 		$activity_details_data = [];
-		//dd($activities);
-		//$activity_details_header = array_merge($activity_details_header, $activity_details_sub_header);
-		//dd($activity->asp->has_gst);
 		foreach ($activities->get() as $activity_key => $activity) {
 			$activity_details_data[] = [
 				$activity->case->number,

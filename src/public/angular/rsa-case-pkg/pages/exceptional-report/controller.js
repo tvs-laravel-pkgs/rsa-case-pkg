@@ -12,20 +12,15 @@ app.component('exceptionalReportList', {
             self.extras = response.data.extras;
 
             var cols = [
-                { data: 'action', searchable: false },
-                { data: 'case_date', searchable: false },
                 { data: 'number', name: 'cases.number', searchable: true },
+                { data: 'case_date', searchable: false },
                 { data: 'asp_code', name: 'asps.asp_code', searchable: true },
-                { data: 'crm_activity_id', searchable: false },
-                { data: 'source', name: 'configs.name', searchable: true },
-                // { data: 'activity_number', name: 'activities.number', searchable: true },
+                { data: 'asp_name', name: 'asps.name', searchable: true },
+                { data: 'asp_type', name: 'asps.asp_type', searchable: false },
                 { data: 'sub_service', name: 'service_types.name', searchable: true },
-                { data: 'finance_status', name: 'activity_finance_statuses.name', searchable: true },
-                // { data: 'asp_status', name: 'activity_asp_statuses.name', searchable: true },
-                { data: 'status', name: 'activity_portal_statuses.name', searchable: true },
-                { data: 'activity_status', name: 'activity_statuses.name', searchable: true },
-                { data: 'client', name: 'clients.name', searchable: true },
-                { data: 'call_center', name: 'call_centers.name', searchable: true },
+                { data: 'bo_km', name: 'bo_km_travelled.value', searchable: true },
+                { data: 'deviation_reason', name: 'activities.reason_for_asp_rejected_cc_details', searchable: true },
+                { data: 'bo_paid_amount', name: 'bo_paid_amt.value', searchable: true },
             ];
 
             var exceptional_report_dt_config = JSON.parse(JSON.stringify(dt_config));
@@ -54,12 +49,8 @@ app.component('exceptionalReportList', {
                             d.ticket_date = $('#ticket_date').val();
                             d.call_center_id = $('#call_center_id').val();
                             d.case_number = $('#case_number').val();
-                            d.asp_code = $('#asp_code').val();
                             d.service_type_id = $('#service_type_id').val();
                             d.finance_status_id = $('#finance_status_id').val();
-                            d.status_id = $('#status_id').val();
-                            d.activity_status_id = $('#activity_status_id').val();
-                            d.client_id = $('#client_id').val();
                         }
                     },
                     infoCallback: function(settings, start, end, max, total, pre) {
@@ -79,7 +70,7 @@ app.component('exceptionalReportList', {
                 dataTable.fnFilter();
             });
 
-            $('#case_number,#asp_code').on('keyup', function() {
+            $('#case_number').on('keyup', function() {
                 dataTable.fnFilter();
             });
 
@@ -93,9 +84,6 @@ app.component('exceptionalReportList', {
                 $('#call_center_id').val('');
                 $('#service_type_id').val('');
                 $('#finance_status_id').val('');
-                $('#status_id').val('');
-                $('#activity_status_id').val('');
-                $('#client_id').val('');
 
                 setTimeout(function() {
                     dataTable.fnFilter();

@@ -717,6 +717,19 @@ class ActivityController extends Controller {
 						$response = ['success' => true, 'activity_id' => $activity->id];
 						return response()->json($response);
 					} else {
+						$activity_on_hold = Activity::join('cases', 'cases.id', 'activities.case_id')
+							->where([
+								['activities.asp_id', Auth::user()->asp->id],
+								['activities.case_id', $case->id],
+							])
+							->where('activities.status_id', 17) //ON HOLD
+							->first();
+
+						if ($activity_on_hold) {
+							$response = ['success' => false, 'errors' => ["Activity On Hold"]];
+							return response()->json($response);
+						}
+
 						$activity_already_completed = Activity::join('cases', 'cases.id', 'activities.case_id')
 							->where([
 								['activities.asp_id', Auth::user()->asp->id],

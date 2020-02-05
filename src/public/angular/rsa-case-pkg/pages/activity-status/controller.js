@@ -248,7 +248,6 @@ app.component('activityStatusView', {
         $http.get(
             get_view_data_url
         ).then(function(response) {
-            console.log(response);
             if (!response.data.success) {
                 var errors = '';
                 for (var i in response.data.errors) {
@@ -270,7 +269,9 @@ app.component('activityStatusView', {
                 $scope.$apply();
                 return;
             }
+            console.log(response.data);
             self.data = response.data.data.activities;
+            self.activity_type_id = response.data.activity_type_id;
             self.data.view_cc_details = view_cc_details;
             if (view_cc_details == 1) {
                 self.data.span_value = 3;
@@ -284,7 +285,11 @@ app.component('activityStatusView', {
             self.data.style_profile_image_url = style_profile_image_url;
             self.data.style_phone_image_url = style_car_image_url;
             self.data.verification = 0;
-            self.data.page_title = 'Status';
+            if (self.activity_type_id == 1) {
+                self.data.page_title = 'Status';
+            } else if (self.activity_type_id == 3) {
+                self.data.page_title = 'Exceptional Report View';
+            }
 
             $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
             $('#viewData-toggle--btn1').click(function() {

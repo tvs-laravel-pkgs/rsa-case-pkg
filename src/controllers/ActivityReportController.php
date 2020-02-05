@@ -77,7 +77,7 @@ class ActivityReportController extends Controller {
 			})
 			->setRowAttr([
 				'id' => function ($activity) {
-					return route('angular') . '/#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
+					return route('angular') . '/#!/rsa-case-pkg/activity-status/3/view/' . $activity->id;
 				},
 			])
 			->make(true);

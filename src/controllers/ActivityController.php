@@ -297,7 +297,7 @@ class ActivityController extends Controller {
 	}
 
 	public function viewActivityStatus($view_type_id = NULL, $activity_status_id) {
-		//dd($view_type_id);
+		// dd($view_type_id);
 		$activity_data = Activity::findOrFail($activity_status_id);
 		if ($view_type_id == 2) {
 			if (!($activity_data && ($activity_data->status_id == 5 || $activity_data->status_id == 6 || $activity_data->status_id == 9 || $activity_data->status_id == 8))) {
@@ -453,7 +453,7 @@ class ActivityController extends Controller {
 				//AMOUNT
 				$this->data['activities']['bo_deduction'] = $this->data['activities']['asp_service_type_data']->adjustment;
 		*/
-		return response()->json(['success' => true, 'data' => $this->data]);
+		return response()->json(['success' => true, 'data' => $this->data, 'activity_type_id' => $view_type_id]);
 
 	}
 

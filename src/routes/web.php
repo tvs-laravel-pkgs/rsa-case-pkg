@@ -58,4 +58,13 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	Route::get('/exceptional-report/get-filter-data', 'ActivityReportController@getExceptionalReportFilterData')->name('getActivityExceptionalReportFilterData');
 	Route::get('/exceptional-report/get-list', 'ActivityReportController@getExceptionalReportList')->name('getActivityExceptionalReportList');
 
+	//RECONCILIATION REPORT
+	Route::get('/reconciliation-report/get-graph-data', 'ActivityReportController@getReconciliationReport')->name('getReconciliationReport');
+
+	//PROVISIONAL REPORT
+	Route::get('/reconciliation-report/get-graph-data', 'ActivityReportController@getProvisionalReport')->name('getProvisionalReport');
+
+	//GENERAL REPORT
+	Route::get('/general-report/get-graph-data', 'ActivityReportController@getGeneralReport')->name('getGeneralReport');
+
 });

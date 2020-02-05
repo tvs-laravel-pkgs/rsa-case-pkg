@@ -83,4 +83,50 @@ class ActivityReportController extends Controller {
 			->make(true);
 	}
 
+	public function getReconciliationReport() {
+		$user_id = Auth::user()->id;
+		$total_amount_submit_in_year = Activity::select(
+			DB::raw('IF(sum(activity_details.value) IS NULL or sum(activity_details.value) = "", 0, sum(activity_details.value)) as total'),
+			DB::raw('DATE_FORMAT(logs.updated_at,"%b") month'))
+			->join('asps', 'activities.asp_id', 'asps.id')
+		// ->join('logs', function ($join) {
+		// 	$join->on('activities.id', 'logs.entity_id')
+		// 		->whereYear('logs.updated_at', date('Y'));
+		// })
+		// ->join('activity_details', function ($join) {
+		// 	$join->on('activity_details.activity_id', 'activities.id')
+		// 		->where('activity_details.key_id', 182);
+		// })
+		// ->join('Invoices as invoice', function ($join) {
+		// 	$join->on('Invoice.id', 'activities.invoice_id')
+		// 		->where('invoice.status_id', 2) //FOR PAID
+		// 		->orWhere('invoice.status_id', 3); //FOR INPROGRESS
+		// })
+			->join('activity_details', 'activity_details.activity_id', 'activities.id')
+			->join('logs', 'logs.entity_id', 'activities.id')
+			->join('Invoices as invoice', 'invoice.id', 'activities.invoice_id')
+			->where(function ($query1) {
+				$query1->where('activity_details.key_id', 182)
+					->where('invoice.status_id', 2)
+					->orWhere('invoice.status_id', 3)
+					->whereYear('logs.updated_at', date('Y'));
+			})
+			->groupby('month')
+			->pluck('total', 'month')->toArray()
+		// ->get()
+		;
+
+		dd($total_amount_submit_in_year);
+		$this->data['total_amount_submit_in_year_chart'] = $total_amount_submit_in_year;
+
+	}
+
+	public function getProvisionalReport() {
+		dd('provisional report');
+	}
+
+	public function getGeneralReport() {
+		dd('general report');
+	}
+
 }

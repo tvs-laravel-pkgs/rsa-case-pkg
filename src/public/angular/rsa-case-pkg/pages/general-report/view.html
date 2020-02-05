@@ -1,0 +1,152 @@
+<div class="col-xs-12 col-sm-12">
+    <div class="mobile-breadcrumbs-wrapper">
+        <ul class="mobile-breadcrumbs-group list-inline">
+            <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
+            <li><a href="#">Report</a></li>
+            <li><a href="#!/rsa-case-pkg/general-report/view">General Report</a></li>
+        </ul>
+    </div>
+</div><!-- Column -->
+<div class="reports-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-9">
+                <div class="reports-title">
+                    <h2>General Report</h2>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-9">
+                <div id="report_chart" style="min-width: 310px; height: 550px; margin: 0 auto"></div>
+            </div>
+            <div class="col-md-3">
+                <div class="table-boxed-wrap">
+                    <div class="theme-tab">
+                        <div class="theme-tab-nav">
+                            <ul class="nav nav-tabs">
+                                <li class="active"><a data-toggle="tab" data-target="#city-wise" role="tab" aria-expanded="true">City Wise</a></li>
+                                <li><a data-toggle="tab" data-target="#state-wise" role="tab" aria-expanded="true">State Wise</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="mCustomScrollbar" data-mcs-theme="">
+                        <div id="content-1" class="content mCustomScrollbar">
+                            <div class="tab-content">
+                                <div id="city-wise" class="tab-pane fade in active">
+                                    <div class="table-responsive">
+                                        <table id="reneral_city_report" class="table" style=" margin-top: 10px; ">
+                                            <thead>
+                                                <tr>
+                                                    <th>City</th>
+                                                    <th>Clients</th>
+                                                    <th>Tickets</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($city_wise_list as $key=>$value)
+                                                <tr>
+                                                    <td>
+                                                        <?php $city_name_as_id = str_replace(' ', '_', $value->city_name);?>
+                                                        <a href="{{route('general_report_all_city_wise')}}#{{$city_name_as_id}}">{{$value->city_name}}</a></td>
+                                                    <td>{{$value->client_count}}</td>
+                                                    <td>{{$value->ticket_count}}</td>
+                                                </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div><!-- Responsive -->
+                                </div>
+                                <div id="state-wise" class="tab-pane fade">
+                                    <div class="table-responsive">
+                                        <table id="reneral_city_report" class="table" style=" margin-top: 10px; ">
+                                            <thead>
+                                                <tr>
+                                                    <th>State</th>
+                                                    <th>Clients</th>
+                                                    <th>Tickets</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($state_wise_list as $key=>$value)
+                                                <tr>
+                                                    <?php $state_name_as_id = str_replace(' ', '_', $value->state_name);?>
+                                                    <td><a href="{{route('general_report_all_state_wise')}}#{{$state_name_as_id}}">{{$value->state_name}}</a></td>
+                                                    <td>{{$value->client_count}}</td>
+                                                    <td>{{$value->ticket_count}}</td>
+                                                </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div><!-- Responsive -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div><!-- Report Wrapper -->
+<!-- Report Users Wrapper -->
+<div class="reports-wrapper reports-user-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-9">
+                <div class="reports-title">
+                    <h3>Top Paid ASP Wise Report <a href="{{route('general_report_ASP_wise')}}"><small>View All</small></a></h3>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <!-- Swiper -->
+                <div class="swiper-container">
+                    <div class="swiper-wrapper">
+                        @foreach($top_ASPs as $key=>$value)
+                        <div class="swiper-slide">
+                            <div class="user-card">
+                                <div class="title-wrap">
+                                    <div class="title-inner">
+                                        <h4>{{$value->workshop_name}}</h4>
+                                        <h5 class="user-code">ASP CODE : {{$value->asp_code}}</h5>
+                                    </div>
+                                    @php
+                                    if(!empty($value->image)){
+                                    $image ="data:image/".$value->image_type.";base64,".$value->image;
+                                    }else{
+                                    $image = asset('resources/assets/images/icon-profile.png');
+                                    }
+                                    @endphp
+                                    <img class="img-responsive" src="<?php echo $image ?>" />
+                                </div>
+                                <ul class="location-wrap">
+                                    <li><label>State : </label><span>{{$value->states_name}}</span></li>
+                                    <li><label>City : </label><span> {{$value->city_name}}</span></li>
+                                </ul>
+                                <ul class="amount-wrap">
+                                    <li>Amount</li>
+                                    <li><label>₹{{number_format($value->total)}}</label></li>
+                                </ul>
+                                <ul class="ticket-wrap">
+                                    <li>
+                                        <label>No. of Tickets</label>
+                                    </li>
+                                    <li>
+                                        <span> {{number_format($value->count)}}</span>
+                                    </li>
+                                </ul>
+                            </div><!-- User card -->
+                        </div><!-- Swipe Slide -->
+                        @endforeach
+                    </div><!-- Swiper Wrapper -->
+                </div><!-- Swiper -->
+                <!-- Add Arrows -->
+                <div class="swiper-navigation top-right">
+                    <div class="swiper-button-prev"></div>
+                    <div class="swiper-button-next"></div>
+                </div>
+            </div><!-- Column  -->
+        </div><!-- Row -->
+    </div><!-- Container -->
+</div><!-- Report Users Wrapper -->

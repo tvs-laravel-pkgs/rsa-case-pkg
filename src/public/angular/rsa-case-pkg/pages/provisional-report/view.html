@@ -1,0 +1,292 @@
+<div class="col-xs-12 col-sm-12">
+    <div class="mobile-breadcrumbs-wrapper">
+        <ul class="mobile-breadcrumbs-group list-inline">
+            <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
+            <li><a href="#">Report</a></li>
+            <li><a href="#!/rsa-case-pkg/provisional-report/view">Provisional Report</a></li>
+        </ul>
+    </div>
+</div><!-- Column -->
+<div class="reports-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12">
+                <div class="row">
+                    <div class="col-xs-12 col-sm-4">
+                        <div class="dataTable--left_wrapper">
+                            <h2 class="dataTable-title">Provisional Report</h2>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-4 col-sm-offset-4">
+                    </div>
+                </div>
+                <div class="reports-nav--group">
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a name="report-tab" data-toggle="tab" data-target="#report-tab" role="tab">Report</a></li>
+                        <li><a name="summary-tab" data-toggle="tab" data-target="#summary-tab" role="tab">Summary</a></li>
+                    </ul>
+                </div>
+                <div class="provisionalReport-tabContent">
+                    <div class="tab-content">
+                        <div id="report-tab" class="tab-pane fade in active">
+                            <div class="dataTable-top--right_wrapper export-btn-wrap">
+                                <ul class="dataTable-top--right_group list-inline">
+                                    <li>
+                                        <img src="{{ asset('resources/assets/images/icon-export.svg') }}" class="filterToggle" width="30">
+                                        @section('export')@show -->
+                                        <button class="btn btn-md preview-batch export" data-toggle="modal" data-target="#provisional_excel_export">Provisional Export</button>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="provisionalReport--wrapper">
+                                <div class="provisionalReport--header">
+                                    <div class="row">
+                                        <?php echo Form::open(['route' => 'provisional_report_date_range', 'id' => 'form1']) ?>
+                                        <div class="col-xs-12 col-sm-6">
+                                            <div class="provisionalReport--left">
+                                                @if($check_new_update!=1)
+                                                <h2>For the month of {{$date}}</h2>
+                                                @endif
+                                                <input type="text" id="date_1" name="daterange" class="form-control date-control" value="{{$date_from}} - {{$date_to}}" />
+                                                <script type="text/javascript">
+                                                $(function() {
+
+                                                    $('#date_1').daterangepicker({
+                                                        locale: {
+                                                            format: 'DD/MM/YYYY'
+                                                        },
+                                                    });
+
+                                                    //$('input[name="daterange"]').daterangepicker();
+                                                });
+                                                </script>
+                                            </div>
+                                        </div>
+                                        <?php echo Form::close(); ?>
+                                        <div class="col-xs-12 col-sm-6">
+                                            <div class="provisionalReport--right">
+                                                <h2><i class="fa fa-inr" aria-hidden="true"></i>{{number_format($before_bo_validation_invoice_amount,2)}}</h2>
+                                                <p>Actual ASP Cost</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php echo Form::open(['route' => 'provisional_report_add']) ?>
+                                <div class="provisionalReport--content">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered provisionalReport--table" id="table_1">
+                                            <thead>
+                                                <tr>
+                                                    <th>Title</th>
+                                                    <th colspan="2">Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <input type="hidden" id="date2" value="" placeholder="" readonly="">
+                                                <tr>
+                                                    <td><input type="text" value="Total Ticket Counts before validation of BO" placeholder="Enter Text" readonly=""></td>
+                                                    <td><input type="number" name="" value="{{$before_bo_validation_ticket_count}}" placeholder="Enter Text" readonly=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><input type="text" value="Grand Net Total before validation of BO" placeholder="Enter Text" readonly=""></td>
+                                                    <td><i class="fa fa-inr rupeeSym" aria-hidden="true"></i><input type="text" name="" value="{{number_format($before_bo_validation_net_amount,2)}}" placeholder="Enter Text" readonly=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><input type="text" value="Grand Tax Total before validation of BO" placeholder="Enter Text" readonly=""></td>
+                                                    <td><i class="fa fa-inr rupeeSym" aria-hidden="true"></i><input type="text" name="" value="{{number_format($before_bo_validation_tax,2)}}" placeholder="Enter Text" readonly=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><input type="text" value="Grand Invoice Total before validation of BO" placeholder="Enter Text" readonly=""></td>
+                                                    <td><i class="fa fa-inr rupeeSym" aria-hidden="true"></i><input type="text" name="" value="{{number_format($before_bo_validation_invoice_amount,2)}}" placeholder="Enter Text" readonly=""></td>
+                                                </tr>
+                                                @if(!empty($provisional_reports))
+                                                @foreach($provisional_reports as $provisional_report)
+                                                <tr>
+                                                    <td><input type="text" name="title[]" value="{{$provisional_report->title}}" placeholder="Enter Text"></td>
+                                                    <td>
+                                                        <i class="fa fa-inr rupeeSym" aria-hidden="true"></i>
+                                                        <input type="number" name="total[]" min="0.00" max="99999999.99" value="{{$provisional_report->total}}" placeholder="Enter Value">
+                                                        <a href="{{route('provisional_report_delete',['id' => $provisional_report->id])}}" class="removeRow-provisional btn btn-danger"><i class="fa fa-times" aria-hidden="true"></i></a>
+                                                    </td>
+                                                </tr>
+                                                @endforeach
+                                                @endif
+                                            </tbody>
+                                            <tfoot>
+                                                <!-- @if($check_new_update!=1)<tr>
+                                                        <td><a href="javascript:;" class="addRow-provisional blue-btnn add">+ ADD</a>
+
+                                                        <td></td>
+                                                    </tr>
+                                                    @endif -->
+                                            </tfoot>
+                                        </table>
+                                        <!-- @if($check_new_update!=1)
+                                            <button type="submit" class="addRow-provisional pull-right blue-btnn save" onClick=" return checkempty()" style="padding:8px 20px; border-radius:5px; border-radius:5px;">SAVE</a></td>
+                                            @endif -->
+                                    </div>
+                                </div>
+                            </div>
+                            <?php echo Form::close(); ?>
+                        </div>
+                        <div id="summary-tab" class="tab-pane fade">
+                            <div class="dataTable-top--right_wrapper export-btn-wrap">
+                                <ul class="dataTable-top--right_group list-inline">
+                                    <li>
+                                        <!-- <span class="filterToggle" style="padding-right:10px;font-size:18px;float:left;margin-top:3px;">Export</span>
+                                            <img src="{{ asset('resources/assets/images/icon-export.svg') }}" class="filterToggle" width="30">
+                                            @section('export2')@show -->
+                                    </li>
+                                </ul>
+                            </div>
+                            <?php echo Form::open(['route' => 'provisional_report_date_range', 'id' => 'form2']) ?>
+                            <div class="provisionalReport--wrapper">
+                                <div class="provisionalReport--header">
+                                    <div class="row">
+                                        <div class="col-xs-12 col-sm-6">
+                                            <div class="provisionalReport--left">
+                                                @if($check_new_update!=1)
+                                                <h2>For the month of {{$date}}</h2>
+                                                @endif
+                                                <input type="text" id="date_2" name="daterange" class="form-control date-control" value="{{$date_from}} - {{$date_to}}" />
+                                                <script type="text/javascript">
+                                                $(function() {
+
+                                                    $('#date_2').daterangepicker({
+                                                        locale: {
+                                                            format: 'DD/MM/YYYY'
+                                                        },
+
+                                                        /*startDate:'2018/01/01',
+                                                        endDate:'2018/12/31',   */
+                                                    });
+
+                                                    //$('input[name="daterange"]').daterangepicker();
+                                                });
+                                                </script>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-12 col-sm-6">
+                                            <div class="provisionalReport--right">
+                                                <h2><i class="fa fa-inr" aria-hidden="true"></i>{{number_format($before_bo_validation_invoice_amount)}}</h2>
+                                                <p>Actual ASP Cost</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="provisionalReport--content">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered summaryTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Service</th>
+                                                    <th>Date</th>
+                                                    <th>Call centre</th>
+                                                    <th>Ticket Count</th>
+                                                    <th>Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if(!empty($report_summary))
+                                                @foreach($report_summary as $key=>$value)
+                                                <tr>
+                                                    <td>{{$value->service_name}}</td>
+                                                    <td>{{$value->min_day}}T0 {{$value->max_day}}</td>
+                                                    <td>{{$value->call_ceneter_name}}</td>
+                                                    <td>{{$value->ticket_count}}</td>
+                                                    <td><i class="fa fa-inr rupeeSym" aria-hidden="true"></i>{{number_format($value->total)}}</td>
+                                                </tr>
+                                                @endforeach
+                                                @else
+                                                <tr>
+                                                    <td>-</td>
+                                                    <td>-</td>
+                                                    <td>-</td>
+                                                    <td>0</td>
+                                                    <td>0</td>
+                                                </tr>
+                                                @endif
+                                            </tbody>
+                                            <tfoot>
+                                                <th colspan="3"></th>
+                                                <th>{{count($count_of_tickets)}}</th>
+                                                <th><i class="fa fa-inr rupeeSym" aria-hidden="true"></i>{{number_format($report_summary_total_amount)}}</th>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <?php echo Form::close(); ?>
+                        <div id="breakdown-tab" class="tab-pane fade">
+                            <div class="dataTable-top--right_wrapper export-btn-wrap">
+                                <ul class="dataTable-top--right_group list-inline">
+                                    <li>
+                                        <span class="filterToggle" style="padding-right:10px;font-size:18px;float:left;margin-top:3px;">Export</span>
+                                        <img src="{{ asset('resources/assets/images/icon-export.svg') }}" class="filterToggle" width="30">
+                                        @section('export3')@show
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="provisionalReport--wrapper">
+                                <?php echo Form::open(['route' => 'provisional_report_date_range', 'id' => 'form2']) ?>
+                                <div class="provisionalReport--header">
+                                    <div class="row">
+                                        <div class="col-xs-12 col-sm-6">
+                                            <div class="provisionalReport--left">
+                                                @if($check_new_update!=1)
+                                                <h2>For the month of {{$date}}</h2>
+                                                @endif
+                                                <input type="text" id="date_2" name="daterange" class="form-control date-control" value="{{$date_from}} - {{$date_to}}" />
+                                                <script type="text/javascript">
+                                                $(function() {
+
+                                                    $('#date_2').daterangepicker({
+                                                        locale: {
+                                                            format: 'DD/MM/YYYY'
+                                                        },
+
+                                                        /*startDate:'2018/01/01',
+                                                        endDate:'2018/12/31',   */
+                                                    });
+
+                                                    //$('input[name="daterange"]').daterangepicker();
+                                                });
+                                                </script>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-12 col-sm-6">
+                                            <div class="provisionalReport--right">
+                                                <h2><i class="fa fa-inr" aria-hidden="true"></i>{{number_format($report_summary_total_amount)}}</h2>
+                                                <p>Actual ASP Cost</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php echo Form::close(); ?>
+                                <div class="provisionalReport--content">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered summaryTable" id="ajax-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Call centre</th>
+                                                    <th>Date</th>
+                                                    <th>Client</th>
+                                                    <th>Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tfoot>
+                                                <th colspan="3"></th>
+                                                <th><i class="fa fa-inr rupeeSym" aria-hidden="true"></i>{{number_format($report_summary_total_amount)}}</th>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

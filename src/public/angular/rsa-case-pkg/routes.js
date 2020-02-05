@@ -87,6 +87,24 @@ app.config(['$routeProvider', function($routeProvider) {
     when('/rsa-case-pkg/exceptional-report/list', {
         template: '<exceptional-report-list></exceptional-report-list>',
         title: 'Exceptional Report',
+    }).
+
+    //RECONCILIATION REPORT
+    when('/rsa-case-pkg/reconciliation-report/view', {
+        template: '<reconciliation-report-view></reconciliation-report-view>',
+        title: 'Reconciliation Report',
+    }).
+
+    //PROVISIONAL REPORT
+    when('/rsa-case-pkg/provisional-report/view', {
+        template: '<provisional-report-view></provisional-report-view>',
+        title: 'Provisional Report',
+    }).
+
+    //GENERAL REPORT
+    when('/rsa-case-pkg/general-report/view', {
+        template: '<general-report-view></general-report-view>',
+        title: 'General Report',
     })
 
     ;

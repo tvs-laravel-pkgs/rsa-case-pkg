@@ -62,9 +62,9 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	Route::get('/reconciliation-report/get-graph-data', 'ActivityReportController@getReconciliationReport')->name('getReconciliationReport');
 
 	//PROVISIONAL REPORT
-	Route::get('/reconciliation-report/get-graph-data', 'ActivityReportController@getProvisionalReport')->name('getProvisionalReport');
+	Route::get('/provisional-report/get-report', 'ActivityReportController@getProvisionalReport')->name('getProvisionalReport');
 
 	//GENERAL REPORT
-	Route::get('/general-report/get-graph-data', 'ActivityReportController@getGeneralReport')->name('getGeneralReport');
+	Route::get('/general-report/get-report', 'ActivityReportController@getGeneralReport')->name('getGeneralReport');
 
 });

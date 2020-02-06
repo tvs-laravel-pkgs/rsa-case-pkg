@@ -1,60 +1,56 @@
 <div class="table-responsive">
-<table class="table table-bordered table-wide style-normal">
-	<thead>
-		<tr>
-			<th>Price Calculation</th>
-			<th>Amount in INR</th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr>
-			<td>Payout (+)</td>
-			<td>
-				<div>{{$ctrl.data.bo_po_amount}}</div>
-			</td>
-		</tr>
-		<tr>
-			<td>Charges Not Collected From Customer (+) </td>
-			<td>
-				<div>{{$ctrl.data.bo_not_collected}}</div>
-			</td>
-		</tr>
-		<tr>
-			<td>Charges Collected From Customer (-)</td>
-			<td>
-				<div>{{$ctrl.data.bo_collected}}</div>
-			</td>
-		</tr>
-		<tr ng-show="$ctrl.data.verification==1">
-			<td colspan="2">
-				<textarea name="cancelled_reason" ng-model="$ctrl.data.cancelled_reason" class="form-control" value="{{$ctrl.data.cancelled_reason}}" placeholder = "Enter Deduction Reason" rows="3"></textarea>
-				
-			</td>
-		</tr>
-		<tr ng-show="$ctrl.data.verification==1">
-			<td colspan="2">
-				<textarea name="comments" ng-model="$ctrl.data.comments" class="form-control" value="{{$ctrl.data.comments}}" placeholder = "Enter Comments" rows="3"></textarea>
-			</td>
-		</tr>
-		<tr ng-show="$ctrl.data.verification==1">
-			<td>Tax Calculation Method</td>
-			<td>
-				<div class="">
-					<span class="alert alert-danger">
-						{{$ctrl.data.asp.tax_calculation_method == 0 ? 'Calculate Tax without Not Collected Amount' : 'Calculate Tax with Not Collected Amount'}}
-					</span>
-				</div>
-			</td>
-		</tr>
-		<tr ng-show="$ctrl.data.verification==1">
-			<td>Deduction (-)</td>
-			<td>
-				<div><input type="text" ng-model="$ctrl.data.deduction" class="deduction" value="{{$ctrl.data.deduction}}"></div>
-			</td>
-		</tr>
-		 
-		
-
-	</tbody>
-</table>
+    <table class="table table-bordered table-wide style-normal">
+        <thead>
+            <tr>
+                <th>Price Calculation</th>
+                <th>Amount in INR</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Payout (+)</td>
+                <td>
+                    <div>{{$ctrl.data.bo_po_amount}}</div>
+                </td>
+            </tr>
+            <tr>
+                <td>Charges Not Collected From Customer (+) </td>
+                <td>
+                    <div>{{$ctrl.data.bo_not_collected}}</div>
+                </td>
+            </tr>
+            <tr>
+                <td>Charges Collected From Customer (-)</td>
+                <td>
+                    <div>{{$ctrl.data.bo_collected}}</div>
+                </td>
+            </tr>
+            <tr ng-show="$ctrl.data.verification==1">
+                <td colspan="2">
+                    <textarea name="cancelled_reason" ng-model="$ctrl.data.cancelled_reason" class="form-control" value="{{$ctrl.data.cancelled_reason}}" placeholder="Enter Discount Reason" rows="3"></textarea>
+                </td>
+            </tr>
+            <tr ng-show="$ctrl.data.verification==1">
+                <td colspan="2">
+                    <textarea name="comments" ng-model="$ctrl.data.comments" class="form-control" value="{{$ctrl.data.comments}}" placeholder="Enter Comments" rows="3"></textarea>
+                </td>
+            </tr>
+            <tr ng-show="$ctrl.data.verification==1">
+                <td>Tax Calculation Method</td>
+                <td>
+                    <div class="">
+                        <span class="alert alert-danger">
+                            {{$ctrl.data.asp.tax_calculation_method == 0 ? 'Calculate Tax without Not Collected Amount' : 'Calculate Tax with Not Collected Amount'}}
+                        </span>
+                    </div>
+                </td>
+            </tr>
+            <tr ng-show="$ctrl.data.verification==1">
+                <td>Deduction (-)</td>
+                <td>
+                    <div><input type="text" ng-model="$ctrl.data.deduction" class="deduction" value="{{$ctrl.data.deduction}}"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </div>

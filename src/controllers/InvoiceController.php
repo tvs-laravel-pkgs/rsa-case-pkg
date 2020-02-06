@@ -6,6 +6,7 @@ use App\Asp;
 use App\Attachment;
 use App\Http\Controllers\Admin\AxaptaExportController;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\SoapController;
 use App\Invoices;
 use App\InvoiceVoucher;
 use App\StateUser;
@@ -18,8 +19,9 @@ use Illuminate\Support\Facades\Response;
 use Yajra\Datatables\Datatables;
 
 class InvoiceController extends Controller {
-	protected $getaxapta;
-	public function __construct(AxaptaExportController $getaxapta) {
+	protected $getaxapta, $getSoap;
+	public function __construct(AxaptaExportController $getaxapta, SoapController $getSoap) {
+		$this->getSoap = $getSoap;
 		$this->getaxapta = $getaxapta;
 	}
 
@@ -400,7 +402,28 @@ class InvoiceController extends Controller {
 	}
 
 	public function getPaymentInfo($invoice_id) {
-		return InvoiceVoucher::getASPInvoicePaymentInfo($invoice_id);
+		$invoice = Invoices::find($invoice_id);
+		if (!$invoice) {
+			return response()->json(['success' => false, 'error' => 'Invoice not found']);
+		}
+
+		$asp = Asp::where('id', $invoice->asp_id)->first();
+		if (!$asp) {
+			return response()->json(['success' => false, 'error' => 'ASP not found']);
+		}
+
+		if ($asp->has_gst && !$asp->is_auto_invoice) {
+			$invoice_no = $invoice->invoice_no;
+		} else {
+			$invoice_no = $invoice->invoice_no . '-' . $invoice->id;
+		}
+
+		$storeInvoicePaymentInfo = $this->getSoap->GetPaymentInfoByInvoice($invoice->id, $invoice_no);
+		if (!$storeInvoicePaymentInfo) {
+			return response()->json(['success' => false, 'error' => 'Payment details not found']);
+		}
+
+		return InvoiceVoucher::getASPInvoicePaymentViewInfo($invoice_id);
 	}
 
 }

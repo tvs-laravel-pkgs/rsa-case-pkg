@@ -504,11 +504,10 @@ class ActivityController extends Controller {
 			$activity->save();
 			$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_DEFERRED');
 			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_APPROVED');
-			logActivity2(config('constants.entity_types.ticket'), $activity->id, [
+			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
 				'Status' => $log_status,
 				'Waiting for' => $log_waiting,
-
-			]);
+			], 361);
 
 			//sending confirmation SMS to ASP
 			// $mobile_number = $activity->asp->contact_number1;
@@ -564,11 +563,10 @@ class ActivityController extends Controller {
 
 				$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_BULK');
 				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_APPROVED');
-				logActivity2(config('constants.entity_types.ticket'), $activity->id, [
+				logActivity3(config('constants.entity_types.ticket'), $activity->id, [
 					'Status' => $log_status,
 					'Waiting for' => $log_waiting,
-
-				]);
+				], 361);
 
 				$mobile_number = $activity->asp->contact_number1;
 				$sms_message = 'BO_APPROVED';
@@ -609,10 +607,10 @@ class ActivityController extends Controller {
 
 			$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_DEFERED_DONE');
 			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_DEFERRED');
-			logActivity2(config('constants.entity_types.ticket'), $activity->id, [
+			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
 				'Status' => $log_status,
 				'Waiting for' => $log_waiting,
-			]);
+			], 361);
 
 			//SMS record
 			$mobile_number = $activity->asp->contact_number1;
@@ -953,10 +951,10 @@ class ActivityController extends Controller {
 			//log message
 			$log_status = config('rsa.LOG_STATUES_TEMPLATES.ASP_DATA_ENTRY_DONE');
 			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ASP_DATA_ENTRY_DONE');
-			logActivity2(config('constants.entity_types.ticket'), $activity->id, [
+			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
 				'Status' => $log_status,
 				'Waiting for' => $log_waiting,
-			]);
+			], 361);
 
 			//sending confirmation SMS to ASP
 			$mobile_number = $activity->asp->contact_number1;

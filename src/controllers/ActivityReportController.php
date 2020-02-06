@@ -85,40 +85,134 @@ class ActivityReportController extends Controller {
 
 	public function getReconciliationReport() {
 		$user_id = Auth::user()->id;
+
 		$total_amount_submit_in_year = Activity::select(
+			'activities.id',
 			DB::raw('IF(sum(activity_details.value) IS NULL or sum(activity_details.value) = "", 0, sum(activity_details.value)) as total'),
-			DB::raw('DATE_FORMAT(logs.updated_at,"%b") month'))
-			->join('asps', 'activities.asp_id', 'asps.id')
-		// ->join('logs', function ($join) {
-		// 	$join->on('activities.id', 'logs.entity_id')
-		// 		->whereYear('logs.updated_at', date('Y'));
-		// })
-		// ->join('activity_details', function ($join) {
-		// 	$join->on('activity_details.activity_id', 'activities.id')
-		// 		->where('activity_details.key_id', 182);
-		// })
-		// ->join('Invoices as invoice', function ($join) {
-		// 	$join->on('Invoice.id', 'activities.invoice_id')
-		// 		->where('invoice.status_id', 2) //FOR PAID
-		// 		->orWhere('invoice.status_id', 3); //FOR INPROGRESS
-		// })
-			->join('activity_details', 'activity_details.activity_id', 'activities.id')
-			->join('logs', 'logs.entity_id', 'activities.id')
-			->join('Invoices as invoice', 'invoice.id', 'activities.invoice_id')
-			->where(function ($query1) {
-				$query1->where('activity_details.key_id', 182)
-					->where('invoice.status_id', 2)
-					->orWhere('invoice.status_id', 3)
-					->whereYear('logs.updated_at', date('Y'));
+			DB::raw('DATE_FORMAT(logs.updated_at,"%b") as month')
+		)
+			->join('activity_details', function ($join) {
+				$join->on('activity_details.activity_id', 'activities.id')
+					->where('activity_details.key_id', 182);
 			})
+			->join('Invoices', 'Invoices.id', 'activities.invoice_id')
+			->join('logs', 'activities.id', 'logs.entity_id')
+			->whereYear('logs.updated_at', date('Y'))
+			->where('logs.type_id', 2)
+			->where('Invoices.status_id', '!=', 2) //EXCEPT PAID
+			->orderBy('logs.updated_at', 'ASC')
 			->groupby('month')
-			->pluck('total', 'month')->toArray()
+			->pluck('total', 'month')
+			->toArray()
+		;
+
+		$amount_bills_yet_to_receive = Activity::select(
+			'activities.id',
+			DB::raw('IF(sum(activity_details.value) IS NULL or sum(activity_details.value) = "", 0, sum(activity_details.value)) as total'),
+			DB::raw('DATE_FORMAT(activities.updated_at,"%b") as month')
+		)
+			->join('activity_details', function ($join) {
+				$join->on('activities.id', 'activity_details.activity_id')
+					->where('activity_details.key_id', 182);
+			})
+			->where(function ($query) {
+				$query->whereYear('activities.updated_at', date('Y'))
+					->where('activities.status_id', 1)
+					->orWhere('activities.status_id', 11);
+			})
+			->groupBy('month')
+			->pluck('total', 'month')
+			->toArray()
+		;
+
+		$count_bills_yet_to_receive = Activity::select(
+			DB::raw('IF(count(activities.id) IS NULL or count(activities.id) = "", 0, count(activities.id)) as total'),
+			DB::raw('DATE_FORMAT(activities.updated_at,"%b") month')
+		)
+			->where(function ($query) {
+				$query->whereYear('activities.updated_at', date('Y'))
+					->where('activities.status_id', 1)
+					->orWhere('activities.status_id', 11);
+			})
+			->groupBy('month')
+			->pluck('total', 'month')
+			->toArray()
+		;
+
+		$total_count_submit_in_year = Activity::select(
+			'activities.id',
+			DB::raw('IF(count(activity_details.value) IS NULL or count(activity_details.value) = "", 0, count(activity_details.value)) as total'),
+			DB::raw('DATE_FORMAT(logs.updated_at,"%b") as month')
+		)
+			->join('activity_details', function ($join) {
+				$join->on('activity_details.activity_id', 'activities.id')
+					->where('activity_details.key_id', 182);
+			})
+			->join('Invoices', 'Invoices.id', 'activities.invoice_id')
+			->join('logs', 'activities.id', 'logs.entity_id')
+			->whereYear('logs.updated_at', date('Y'))
+			->where('logs.type_id', 2)
+			->where('Invoices.status_id', '!=', 2) //EXCEPT PAID
+			->orderBy('logs.updated_at', 'ASC')
+			->groupby('month')
+			->pluck('total', 'month')
+			->toArray()
+		;
+
+		$total_amount_paid_in_year = Activity::join('activity_details', function ($join) {
+			$join->on('activity_details.activity_id', 'activities.id')
+				->where('activity_details.key_id', 182);
+		})
+			->where('activities.status_id', 14)
+			->whereYear('activities.updated_at', date('Y'))
+			->sum('activity_details.value')
+		;
+
+		$amount_of_tickets_submitted = Activity::join('activity_details', function ($join) {
+			$join->on('activity_details.activity_id', 'activities.id')
+				->where('activity_details.key_id', 182);
+		})
+			->join('logs', 'activities.id', 'logs.entity_id')
+		//->where('logs.action', config('constants.ticket_statuses.ASP_CONFIRMED_INVOICE_TO_APPROVED_BATCH'))
+			->where('activities.status_id', 12)
+			->orWhere('activities.status_id', 13)
+			->where('logs.type_id', 2)
+			->whereYear('logs.updated_at', date('Y'))
+			->groupBy('logs.entity_id')
+			->pluck('activity_details.value')
+			->toArray()
 		// ->get()
 		;
 
-		dd($total_amount_submit_in_year);
-		$this->data['total_amount_submit_in_year_chart'] = $total_amount_submit_in_year;
+		$amount_of_bills_yet_to_receive = Activity::join('activity_details', function ($join) {
+			$join->on('activity_details.activity_id', 'activities.id')
+				->where('activity_details.key_id', 182);
+		})
+			->whereYear('activities.updated_at', date('Y'))
+			->where('activities.status_id', 1)
+			->orWhere('activities.status_id', 11)
+		// ->pluck('activity_details.value')
+			->sum('activity_details.value')
+		;
+		$this->data['extras'] = [
+			'total_amount_submit_in_year_chart' => $total_amount_submit_in_year,
+			'amount_of_bills_yet_to_receive_chart' => $amount_bills_yet_to_receive,
+			'total_count_yet_to_receive_in_year_chart' => $count_bills_yet_to_receive,
+			'total_count_submit_in_year_chart' => $total_count_submit_in_year,
+			'total_amount_paid_in_year' => $total_amount_paid_in_year,
+			'amount_of_tickets_submitted' => array_sum($amount_of_tickets_submitted),
+			'amount_of_bills_yet_to_receive' => $amount_of_bills_yet_to_receive,
 
+		];
+		// $this->data['total_amount_submit_in_year_chart'] = $total_amount_submit_in_year;
+		// $this->data['amount_of_bills_yet_to_receive_chart'] = $amount_bills_yet_to_receive;
+		// $this->data['total_count_yet_to_receive_in_year_chart'] = $count_bills_yet_to_receive;
+		// $this->data['total_count_submit_in_year_chart'] = $total_count_submit_in_year;
+		// $this->data['total_amount_paid_in_year'] = $total_amount_paid_in_year;
+		// $this->data['amount_of_tickets_submitted'] = array_sum($amount_of_tickets_submitted);
+		// $this->data['amount_of_bills_yet_to_receive'] = $amount_of_bills_yet_to_receive;
+
+		return response()->json($this->data);
 	}
 
 	public function getProvisionalReport() {

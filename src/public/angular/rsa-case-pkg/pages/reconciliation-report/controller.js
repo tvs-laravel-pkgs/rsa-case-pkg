@@ -9,7 +9,13 @@ app.component('reconciliationReportView', {
             laravel_routes['getReconciliationReport']
         ).then(function(response) {
             console.log(response);
-
+            self.extras = response.data.extras;
+            var d = new Date();
+            var Curr_Year = d.getFullYear();
+            self.current_year = Curr_Year;
+            var num_month = d.getMonth();
+            var months = [];
+            var all_months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             // /* Chart */
             // Highcharts.chart('chart1', {
 
@@ -62,7 +68,7 @@ app.component('reconciliationReportView', {
             //     }]
             // });
 
-            //  Chart 2 
+            // Chart 2
             // Highcharts.chart('chart2', {
 
             //     chart: {

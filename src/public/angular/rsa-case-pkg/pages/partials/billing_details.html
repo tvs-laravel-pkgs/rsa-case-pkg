@@ -68,7 +68,7 @@
                                     <th scope="row">Charges Collected From Customer </th>
                                     <td style="text-align:right" class="" ng-show="$ctrl.data.view_cc_details==1">{{$ctrl.data.cc_colleced_amount}}</td style="text-align:right">
                                     <td style="text-align:right" class="">{{$ctrl.data.asp_collected}}</td style="text-align:right">
-                                    <td class="" style="text-align:right" ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_collected}}</td >
+                                    <td class="" style="text-align:right" ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_collected}}</td>
                                     <td class="" ng-show="$ctrl.data.verification==1" style="text-align:right">
                                         <input style="text-align:right" type="text" name="bo_collected" ng-model="$ctrl.data.raw_bo_collected" class="collected_amount" value="{{$ctrl.data.raw_bo_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                         <input type="hidden" ng-model="$ctrl.data.raw_asp_collected" class="collected_value" value="{{$ctrl.data.raw_asp_collected}}">
@@ -124,20 +124,20 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr class="active">
+                                  <tr class="active">
                                     <td>
                                         {{$ctrl.data.asp_service_type_data.below_range_price}}
                                         <input class="form-control viewData-input below_40 hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.below_range_price}}">
                                         <input class="form-control viewData-input limit hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.range_limit}}">
                                     </td>
-                                     <td>
+                                         <td>
                                         {{$ctrl.data.asp_service_type_data.above_range_price}}
                                         <input class="form-control viewData-input  above_40 hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.above_range_price}}">
-                                     </td>
+                                             </td>
                                     <td>
                                         {{$ctrl.data.asp_service_type_data.empty_return_range_price }}
                                         <input class="form-control viewData-input mt_return_price hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.empty_return_range_price}}">
-                                    </td>
+                                             </td>
                                     <td>
                                         {{$ctrl.data.asp_service_type_data.adjustment_type == 1 ? 'Percentage' : 'Amount'}}
                                         <input class="form-control viewData-input adjustment_type hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.adjustment_type == 1 ? 'Percentage' : 'Amount'}}">
@@ -194,12 +194,12 @@
                                 <tr ng-if="$ctrl.data.verification==1">
                                     <td colspan="2">
                                         <!-- <textarea name="deduction_reason" ng-model="$ctrl.data.deduction_reason" class="form-control" value="" placeholder="Enter Deduction Reason" rows="3"></textarea> -->
-                                        <textarea name="deduction_reason" ng-model="$ctrl.data.deduction_reason" class="form-control" value="" placeholder="Enter Deduction Reason" rows="3"></textarea>
+                                        <textarea name="deduction_reason" ng-model="$ctrl.data.deduction_reason" class="form-control" value="" placeholder="Enter Discount Reason" rows="3"></textarea>
                                     </td>
                                 </tr>
                                 <tr ng-if="$ctrl.data.verification==0">
                                     <td colspan="2" class="text-left">
-                                        Deduction Reason : {{$ctrl.data.deduction_reason ? $ctrl.data.deduction_reason : 'N/A'}}
+                                        Discount Reason : {{$ctrl.data.deduction_reason ? $ctrl.data.deduction_reason : 'N/A'}}
                                     </td>
                                 </tr>
                                 <tr ng-if="$ctrl.data.verification==1">

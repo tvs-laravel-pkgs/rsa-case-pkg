@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class= "activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
                         <p>Activity Number</p>
                         <h3>{{$ctrl.data.activity_number}}</h3>
                     </li>
@@ -11,7 +11,7 @@
             </div>
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class= "activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
                         <p>Activity Date</p>
                         <h3>{{$ctrl.data.activity_date}}</h3>
                     </li>
@@ -19,7 +19,7 @@
             </div>
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class= "activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
                         <p>Service Type</p>
                         <h3>{{$ctrl.data.service_type.name}}</h3>
                     </li>
@@ -27,7 +27,7 @@
             </div>
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class= "activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
                         <p>Payment Eligibility Status</p>
                         <h3>{{$ctrl.data.asp_status}}</h3>
                     </li>
@@ -39,7 +39,7 @@
         <div class="row">
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class= "activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
                         <p>ASP Activity Rejected Reason</p>
                         <h3>{{$ctrl.data.asp_activity_rejected_reason}}</h3>
                     </li>
@@ -47,28 +47,26 @@
             </div>
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class= "activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
-                        <p>ASP PO Accepted</p>
-                        <h3 ng-show="$ctrl.data.asp_po_accepted==1">Yes</h3>
-                        <h3 ng-show="$ctrl.data.asp_po_accepted==0">No</h3>
-                        <h3 ng-show="$ctrl.data.asp_po_accepted==NULL">-</h3>
-                    </li>
-                </ul>
-            </div>
-            <div class="col-xs-12 col-sm-3 col-md-3">
-                <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class= "activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
-                        <p>ASP PO Rejected Reason</p>
-                        <h3 ng-show="$ctrl.data.asp_po_rejected_reason">{{$ctrl.data.asp_po_rejected_reason}}</h3>
-                        <h3 ng-show="!($ctrl.data.asp_po_rejected_reason)">-</h3>
-                    </li>
-                </ul>
-            </div>
-            <div class="col-xs-12 col-sm-3 col-md-3">
-                <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class= "activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
                         <p>Portal Status</p>
                         <h3>{{$ctrl.data.activity_portal_status}}</h3>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-xs-12 col-sm-3 col-md-3">
+                <ul class="viewData-threeColumn--group m-t-50 m-b-20">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                        <p>Activity Status</p>
+                        <h3>{{$ctrl.data.activity_status}}</h3>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-xs-12 col-sm-3 col-md-3">
+                <ul class="viewData-threeColumn--group m-t-50 m-b-20">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                        <p>Activity Description</p>
+                        <h3 ng-show="($ctrl.data.description)">{{$ctrl.data.description}}</h3>
+                        <h3 ng-show="!($ctrl.data.description)">-</h3>
                     </li>
                 </ul>
             </div>
@@ -78,24 +76,7 @@
         <div class="row">
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class= "activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
-                        <p>Activity Status</p>
-                        <h3>{{$ctrl.data.activity_status}}</h3>
-                    </li>
-                </ul>
-            </div>
-            <div class="col-xs-12 col-sm-3 col-md-3">
-                <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class= "activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
-                        <p>Activity Description</p>
-                        <h3 ng-show="($ctrl.data.description)">{{$ctrl.data.description}}</h3>
-                        <h3 ng-show="!($ctrl.data.description)">-</h3>
-                    </li>
-                </ul>
-            </div>
-            <div class="col-xs-12 col-sm-3 col-md-3">
-                <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class= "activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
                         <p>Amount</p>
                         <h3>{{$ctrl.data.amount| currency:"₹"}}</h3>
                     </li>
@@ -103,9 +84,28 @@
             </div>
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class= "activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
                         <p>Remarks</p>
                         <h3>{{$ctrl.data.remarks}}</h3>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-xs-12 col-sm-3 col-md-3" ng-show="$ctrl.data.asp_po_accepted==0">
+                <ul class="viewData-threeColumn--group m-t-50 m-b-20">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                        <p>ASP PO Accepted</p>
+                        <h3 ng-show="$ctrl.data.asp_po_accepted==1">Yes</h3>
+                        <h3 ng-show="$ctrl.data.asp_po_accepted==0">No</h3>
+                        <h3 ng-show="$ctrl.data.asp_po_accepted==NULL">-</h3>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-xs-12 col-sm-3 col-md-3" ng-show="$ctrl.data.asp_po_accepted==0">
+                <ul class="viewData-threeColumn--group m-t-50 m-b-20">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                        <p>ASP PO Rejected Reason</p>
+                        <h3 ng-show="$ctrl.data.asp_po_rejected_reason">{{$ctrl.data.asp_po_rejected_reason}}</h3>
+                        <h3 ng-show="!($ctrl.data.asp_po_rejected_reason)">-</h3>
                     </li>
                 </ul>
             </div>

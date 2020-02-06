@@ -23,6 +23,7 @@ use DB;
 use Entrust;
 use Excel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
 use Validator;
 use Yajra\Datatables\Datatables;
@@ -596,11 +597,10 @@ class ActivityController extends Controller {
 			$activity->save();
 			$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_DEFERRED');
 			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_APPROVED');
-			logActivity2(config('constants.entity_types.ticket'), $activity->id, [
+			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
 				'Status' => $log_status,
 				'Waiting for' => $log_waiting,
-
-			]);
+			], 361);
 
 			//sending confirmation SMS to ASP
 			// $mobile_number = $activity->asp->contact_number1;
@@ -656,11 +656,10 @@ class ActivityController extends Controller {
 
 				$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_BULK');
 				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_APPROVED');
-				logActivity2(config('constants.entity_types.ticket'), $activity->id, [
+				logActivity3(config('constants.entity_types.ticket'), $activity->id, [
 					'Status' => $log_status,
 					'Waiting for' => $log_waiting,
-
-				]);
+				], 361);
 
 				$mobile_number = $activity->asp->contact_number1;
 				$sms_message = 'BO_APPROVED';
@@ -701,10 +700,10 @@ class ActivityController extends Controller {
 
 			$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_DEFERED_DONE');
 			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_DEFERRED');
-			logActivity2(config('constants.entity_types.ticket'), $activity->id, [
+			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
 				'Status' => $log_status,
 				'Waiting for' => $log_waiting,
-			]);
+			], 361);
 
 			//SMS record
 			$mobile_number = $activity->asp->contact_number1;
@@ -809,6 +808,19 @@ class ActivityController extends Controller {
 						$response = ['success' => true, 'activity_id' => $activity->id];
 						return response()->json($response);
 					} else {
+						$activity_on_hold = Activity::join('cases', 'cases.id', 'activities.case_id')
+							->where([
+								['activities.asp_id', Auth::user()->asp->id],
+								['activities.case_id', $case->id],
+							])
+							->where('activities.status_id', 17) //ON HOLD
+							->first();
+
+						if ($activity_on_hold) {
+							$response = ['success' => false, 'errors' => ["Activity On Hold"]];
+							return response()->json($response);
+						}
+
 						$activity_already_completed = Activity::join('cases', 'cases.id', 'activities.case_id')
 							->where([
 								['activities.asp_id', Auth::user()->asp->id],
@@ -1032,10 +1044,10 @@ class ActivityController extends Controller {
 			//log message
 			$log_status = config('rsa.LOG_STATUES_TEMPLATES.ASP_DATA_ENTRY_DONE');
 			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ASP_DATA_ENTRY_DONE');
-			logActivity2(config('constants.entity_types.ticket'), $activity->id, [
+			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
 				'Status' => $log_status,
 				'Waiting for' => $log_waiting,
-			]);
+			], 361);
 
 			//sending confirmation SMS to ASP
 			$mobile_number = $activity->asp->contact_number1;
@@ -1239,7 +1251,8 @@ class ActivityController extends Controller {
 				'error' => 'Please select atleast one activity',
 			]);
 		}
-		$encryption_key = encryptString(implode('-', $request->invoice_ids));
+		// $encryption_key = encryptStringInv(implode('-', $request->invoice_ids));
+		$encryption_key = Crypt::encryptString(implode('-', $request->invoice_ids));
 		return response()->json([
 			'success' => true,
 			'encryption_key' => $encryption_key,
@@ -1255,7 +1268,8 @@ class ActivityController extends Controller {
 				],
 			]);
 		}
-		$decrypt = decryptString($encryption_key);
+		$decrypt = Crypt::decryptString($encryption_key);
+		// $decrypt = decryptStringInv($encryption_key);
 		$activity_ids = explode('-', $decrypt);
 		if (empty($activity_ids)) {
 			return response()->json([

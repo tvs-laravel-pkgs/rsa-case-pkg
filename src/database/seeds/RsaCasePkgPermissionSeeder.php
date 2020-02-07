@@ -68,6 +68,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'view-cc-details',
 				'display_name' => 'View CC Details',
 			],
+			[
+				'display_order' => 8,
+				'parent' => 'activity-status',
+				'name' => 'backstep-activity',
+				'display_name' => 'Backstep Activity',
+			],
 
 			//ACTIVITIES VERIFICATION
 			[

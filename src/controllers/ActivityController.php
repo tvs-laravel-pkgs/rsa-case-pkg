@@ -49,6 +49,7 @@ class ActivityController extends Controller {
 		$activities = Activity::select(
 			'activities.id',
 			'activities.crm_activity_id',
+			'activities.status_id as status_id',
 			'activities.number as activity_number',
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			'cases.number',
@@ -121,6 +122,7 @@ class ActivityController extends Controller {
 		return Datatables::of($activities)
 			->addColumn('action', function ($activity) {
 				$status_id = 1;
+				$return_status_ids = [5,6,8,9,11,1,7];
 
 				$action = '<div class="dataTable-actions wid-100">
 				<a href="#!/rsa-case-pkg/activity-status/' . $status_id . '/view/' . $activity->id . '">
@@ -131,10 +133,83 @@ class ActivityController extends Controller {
 						                <i class="fa fa-trash dataTable-icon--trash cl-delete" data-cl-id =' . $activity->id . ' aria-hidden="true"></i>
 						            </a>';
 				}
+				if(Entrust::can('backstep-activity') && in_array($activity->status_id,$return_status_ids)){
+					$action .="<a href='javascript:void(0)' onclick='angular.element(this).scope().backConfirm(" . $activity . ")' class='ticket_back_button'><i class='fa fa-arrow-left dataTable-icon--edit-1' data-cl-id =" . $activity->id . " aria-hidden='true'></i></a>";
+				}
 				$action .= '</div>';
 				return $action;
 			})
 			->make(true);
+	}
+
+	public function activityBackAsp(Request $request) {
+		//	dd($request->all());
+		$activity = Activity::findOrFail($request->activty_id);
+		$return_status_ids = [5,6,8,9,11,1,7];
+
+		if (!$activity) {
+			return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['error' => 'Activity not found']);
+		}
+
+		if (!in_array($activity->status_id, $return_status_ids)) {
+			return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['error' => 'Activity Cannot able move to asp']);
+		}
+
+		if (!Entrust::can('backstep-activity')) {
+			return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['error' => 'Admin only have authorized to move asp']);
+		}
+
+		//WAITING FOR ASP DATA ENTRY
+		if ($request->ticket_status_id == '1') {
+			$activity->status_id = 2;
+			$activity->updated_at = new Carbon();
+			$activity->updated_by_id = Auth::user()->id;
+			$activity->save();
+
+			if ($activity) {
+				//log message
+				$log_status = config('rsa.LOG_STATUES_TEMPLATES.ADMIN_TICKET_BACK_ASP');
+				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ADMIN_TICKET_BACK_ASP');
+				logActivity2(config('constants.entity_types.ticket'), $activity->id, [
+					'Status' => $log_status,
+					'Waiting for' => $log_waiting,
+				]);
+
+				$noty_message_template = 'WAITING_FOR_ASP_DATA_ENTRY';
+				$user_id = $activity->asp->user->id;
+				$number = [$activity->number];
+				notify2($noty_message_template, $user_id, config('constants.alert_type.blue'), $number);
+
+				return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['success' => 'Activity status moved to ASP data entry']);
+			} else {
+				return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['error' => 'Activity status not moved to ASP data entry']);
+			}
+		} elseif ($request->ticket_status_id == '2') {
+			//WAITING FOR ASP - BO DEFERRED
+			$activity->status_id = 7;
+			$activity->updated_at = new Carbon();
+			$activity->updated_by_id = Auth::user()->id;
+			$activity->save();
+
+			if ($activity) {
+				//log message
+				$log_status = config('rsa.LOG_STATUES_TEMPLATES.ADMIN_TICKET_BACK_BO_DEFERRED');
+				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ADMIN_TICKET_BACK_BO_DEFERRED');
+				logActivity2(config('constants.entity_types.ticket'), $activity->id, [
+					'Status' => $log_status,
+					'Waiting for' => $log_waiting,
+				]);
+
+				$noty_message_template = 'BO_DEFERRED';
+				$user_id = $activity->asp->user->id;
+				$number = [$activity->number];
+				notify2($noty_message_template, $user_id, config('constants.alert_type.blue'), $number);
+
+				return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['success' => 'Activity status moved to ASP BO deferred']);
+			} else {
+				return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['error' => 'Activity status not moved to ASP BO deferred']);
+			}
+		}
 	}
 
 	public function delete($id) {
@@ -1490,7 +1565,6 @@ class ActivityController extends Controller {
 	}
 
 	public function exportActivities(Request $request) {
-		//dd($request->all());
 		$error_messages = [
 			'status_ids.required' => "Please Select Activity Status",
 		];
@@ -1603,10 +1677,10 @@ class ActivityController extends Controller {
 			$config = Config::where('id', $config_id)->first();
 			$activity_details_header[] = str_replace("_", " ", strtolower($config->name));
 		}
-		$activity_status_list = ActivityPortalStatus::pluck('name','id');
+		/*$activity_status_list = ActivityPortalStatus::pluck('name','id');
 		foreach ($activity_status_list as $key => $activity_status) {
 			$activity_details_header[] = $activity_status;
-		}
+		}*/
 		$activity_details_data = [];
 		foreach ($activities->get() as $activity_key => $activity) {
 			$activity_details_data[] = [

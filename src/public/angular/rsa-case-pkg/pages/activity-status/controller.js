@@ -8,7 +8,7 @@ app.component('activityStatusList', {
         self.export_activities = export_activities;
         self.canExportActivity = canExportActivity;
         self.canImportActivity = canImportActivity;
-
+        self.activity_back_asp_update = activity_back_asp_update;
         self.csrf = token;
         $http.get(
             activity_status_filter_url
@@ -139,6 +139,7 @@ app.component('activityStatusList', {
                     }
                 });
             }
+           
             $('.filterToggle').click(function() {
                 $('#filterticket').toggleClass('open');
             });
@@ -212,6 +213,27 @@ app.component('activityStatusList', {
             });
 
         });
+             $scope.backConfirm = function(activity) {
+                $scope.$apply();
+                $("#ticket_back_asp_Modal").modal('toggle');
+                setTimeout(function(){
+                 self.activity_form_data = activity;
+                console.log(self.activity_form_data);
+                  }, 1000);
+            }
+            $scope.asp_data_entry_submit=function(){
+                var ticket_status_id = $('#ticket_status_id').val(1);
+                setTimeout(function(){
+                    $('#tickect-back-asp-form').submit();
+                  }, 1000);
+            };
+
+            $scope.asp_bo_deffered_submit=function(){
+                var ticket_status_id = $('#ticket_status_id').val(2);
+                setTimeout(function(){
+                    $('#tickect-back-asp-form').submit();
+                  }, 1000);
+            };
 
     }
 });

@@ -380,6 +380,10 @@ class ActivityController extends Controller {
 				'activity_id' => $activity->id,
 			]);
 			$activity_log->imported_at = date('Y-m-d H:i:s');
+			$activity_log->asp_data_filled_at = date('Y-m-d H:i:s');
+			if ($request->asp_accepted_cc_details) {
+				$activity_log->bo_approved_at = date('Y-m-d H:i:s');
+			}
 			$activity_log->created_by_id = 72;
 			$activity_log->save();
 

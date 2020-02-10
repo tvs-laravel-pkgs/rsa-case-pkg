@@ -17,11 +17,11 @@ class InvoiceStatusTableSeeder extends Seeder {
 				'company_id' => 1,
 			],
 			2 => [
-				'name' => 'Payment Inprogress',
+				'name' => 'Paid',
 				'company_id' => 1,
 			],
 			3 => [
-				'name' => 'Paid',
+				'name' => 'Payment Inprogress',
 				'company_id' => 1,
 			],
 		];

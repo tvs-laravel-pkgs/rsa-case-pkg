@@ -78,7 +78,10 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 				'name' => 'Own Patrol Activity - Not Eligible for Payout',
 				'company_id' => 1,
 			],
-
+			17 => [
+				'name' => 'On Hold',
+				'company_id' => 1,
+			],
 		];
 
 		foreach ($activity_portal_statuses as $id => $activity_portal_status_val) {

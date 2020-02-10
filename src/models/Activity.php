@@ -962,6 +962,13 @@ class Activity extends Model {
 								$activity->status_id = 16;
 								$activity->save();
 							}
+
+							//UPDATE LOG ACTIVITY AND LOG MESSAGE
+							logActivity3(config('constants.entity_types.ticket'), $activity->id, [
+								'Status' => 'Imported through MIS Import',
+								'Waiting for' => 'ASP Data Entry',
+							], 361);
+
 						}
 
 					}

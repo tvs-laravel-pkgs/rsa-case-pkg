@@ -368,6 +368,13 @@ class ActivityController extends Controller {
 				$activity->status_id = 16;
 				$activity->save();
 			}
+
+			//UPDATE LOG ACTIVITY AND LOG MESSAGE
+			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
+				'Status' => 'Imported through API',
+				'Waiting for' => 'ASP Data Entry',
+			], 361);
+
 			DB::commit();
 			return response()->json([
 				'success' => true,

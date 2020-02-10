@@ -1711,7 +1711,7 @@ class ActivityController extends Controller {
 		$activity_details_data = [];
 		//dd($activities);
 		$activity_details_header = array_merge($activity_details_header, $status_headers);
-		dd($activity_details_header );
+		//dd($activity_details_header );
 		foreach ($activities->get() as $activity_key => $activity) {
 			$activity_details_data[] = [
 				$activity->case->number,
@@ -1771,9 +1771,60 @@ class ActivityController extends Controller {
 				} else {
 
 					$activity_details_data[$activity_key][] = $detail ? $detail->value : '';
+
 				}
 			}
+			$total_days = 0;
 			$activity_log = ActivityLog::where('activity_id',$activity->id)->first();
+			if($activity_log){
+				$activity_details_data[$activity_key][] = $activity_log->imported_at;
+				$activity_details_data[$activity_key][] = $tot = ($activity_log->imported_at && $activity_log->asp_data_filled_at) ? $this->findDifference($activity_log->imported_at,$activity_log->asp_data_filled_at) : '';
+				$total_days = $tot ? $tot+$total_days : $total_days;
+				$activity_details_data[$activity_key][] = $activity_log->asp_data_filled_at;
+				$activity_details_data[$activity_key][] = $tot =($activity_log->asp_data_filled_at && $activity_log->bo_deffered_at) ? $this->findDifference($activity_log->asp_data_filled_at,$activity_log->bo_deffered_at) : '';
+				$total_days = $tot ? $tot+$total_days : $total_days;
+
+				$activity_details_data[$activity_key][] = $activity_log->bo_deffered_at;
+
+				$activity_details_data[$activity_key][] = $tot =($activity_log->asp_data_filled_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->asp_data_filled_at,$activity_log->bo_approved_at) : '';
+				$total_days = $tot ? $tot+$total_days : $total_days;
+
+				$activity_details_data[$activity_key][] = $activity_log->bo_approved_at;
+
+				$activity_details_data[$activity_key][] = $tot =($activity_log->invoice_generated_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->invoice_generated_at,$activity_log->bo_approved_at) : '';
+				$total_days = $tot ? $tot+$total_days : $total_days;
+
+				$activity_details_data[$activity_key][] = $activity_log->invoice_generated_at;
+
+				$activity_details_data[$activity_key][] = $tot =($activity_log->invoice_generated_at && $activity_log->axapta_generated_at) ? $this->findDifference($activity_log->invoice_generated_at,$activity_log->axapta_generated_at) : '';
+				$total_days = $tot ? $tot+$total_days : $total_days;
+
+				$activity_details_data[$activity_key][] = $activity_log->axapta_generated_at;
+
+				$activity_details_data[$activity_key][] = $tot =($activity_log->axapta_generated_at && $activity_log->payment_completed_at) ? $this->findDifference($activity_log->axapta_generated_at,$activity_log->payment_completed_at) : '';
+				$total_days = $tot ? $tot+$total_days : $total_days;
+
+				$activity_details_data[$activity_key][] = $activity_log->payment_completed_at;
+				$activity_details_data[$activity_key][] = $total_days;
+
+			}else{
+				$activity_details_data[$activity_key][] = '';
+				$activity_details_data[$activity_key][] = '';
+				$activity_details_data[$activity_key][] = '';
+				$activity_details_data[$activity_key][] = '';
+				$activity_details_data[$activity_key][] = '';
+				$activity_details_data[$activity_key][] = '';
+				$activity_details_data[$activity_key][] = '';
+				$activity_details_data[$activity_key][] = '';
+				$activity_details_data[$activity_key][] = '';
+				$activity_details_data[$activity_key][] = '';
+				$activity_details_data[$activity_key][] = '';
+				$activity_details_data[$activity_key][] = '';
+				$activity_details_data[$activity_key][] = '';
+				$activity_details_data[$activity_key][] = $total_days;
+
+			}
+			
 		}
 		//$activity_details_data = array_merge($activity_details_header, $activity_details_data);
 		//dd($activity_details_header,$activity_details_data);
@@ -1817,5 +1868,12 @@ class ActivityController extends Controller {
 		})->export('xls');
 
 		return redirect()->back()->with(['success' => 'exported!']);
+	}
+	public static function findDifference($date1,$date2){
+		$date1=date_create(date('Y-m-d',strtotime($date1)));
+		$date2=date_create(date('Y-m-d',strtotime($date2)));
+		$diff_date=date_diff($date1,$date2);
+		$duration = ($diff_date->format("%d") > 1) ? $diff_date->format("%d Days") : $diff_date->format("%d Day");
+		return $duration;
 	}
 }

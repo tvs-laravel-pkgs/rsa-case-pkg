@@ -1691,11 +1691,27 @@ class ActivityController extends Controller {
 			$config = Config::where('id', $config_id)->first();
 			$activity_details_header[] = str_replace("_", " ", strtolower($config->name));
 		}
-		/*$activity_status_list = ActivityPortalStatus::pluck('name','id');
-		foreach ($activity_status_list as $key => $activity_status) {
-			$activity_details_header[] = $activity_status;
-		}*/
+
+		$status_headers = [
+			'Imported through MIS Import',
+			'Duration Between Import and ASP Data Filled',
+			'ASP Data Filled',
+			'Duration Between ASP Data Filled and BO deffered',
+			'BO Deferred',
+			'Duration Between ASP Data Filled and BO approved',
+			'BO Approved',
+			'Duration Between BO approved and Invoice generated',
+			'Invoice Generated',
+			'Duration Between Invoice generated and Axapta Generated',
+			'Axapta Generated',
+			'Duration Between Axapta Generated and Payment Completed',
+			'Payment Completed',
+			'Total No. Of Days'
+		];
 		$activity_details_data = [];
+		//dd($activities);
+		$activity_details_header = array_merge($activity_details_header, $status_headers);
+		dd($activity_details_header );
 		foreach ($activities->get() as $activity_key => $activity) {
 			$activity_details_data[] = [
 				$activity->case->number,
@@ -1757,6 +1773,7 @@ class ActivityController extends Controller {
 					$activity_details_data[$activity_key][] = $detail ? $detail->value : '';
 				}
 			}
+			$activity_log = ActivityLog::where('activity_id',$activity->id)->first();
 		}
 		//$activity_details_data = array_merge($activity_details_header, $activity_details_data);
 		//dd($activity_details_header,$activity_details_data);

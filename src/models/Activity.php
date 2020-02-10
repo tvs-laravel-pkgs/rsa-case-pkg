@@ -7,6 +7,7 @@ use Abs\ImportCronJobPkg\ImportCronJob;
 use Abs\RsaCasePkg\ActivityAspStatus;
 use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
+use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
 use Abs\RsaCasePkg\AspPoRejectedReason;
@@ -968,6 +969,13 @@ class Activity extends Model {
 								'Status' => 'Imported through MIS Import',
 								'Waiting for' => 'ASP Data Entry',
 							], 361);
+
+							$activity_log = ActivityLog::firstOrNew([
+								'activity_id' => $activity->id,
+							]);
+							$activity_log->imported_at = date('Y-m-d H:i:s');
+							$activity_log->created_by_id = 72;
+							$activity_log->save();
 
 						}
 

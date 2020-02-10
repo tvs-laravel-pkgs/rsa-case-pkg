@@ -509,6 +509,13 @@ class ActivityController extends Controller {
 				'Waiting for' => $log_waiting,
 			], 361);
 
+			$activity_log = ActivityLog::firstOrNew([
+				'activity_id' => $activity->id,
+			]);
+			$activity_log->bo_approved_at = date('Y-m-d H:i:s');
+			$activity_log->updated_by_id = Auth::id();
+			$activity_log->save();
+
 			//sending confirmation SMS to ASP
 			// $mobile_number = $activity->asp->contact_number1;
 			// $sms_message = 'BO_APPROVED';
@@ -568,6 +575,13 @@ class ActivityController extends Controller {
 					'Waiting for' => $log_waiting,
 				], 361);
 
+				$activity_log = ActivityLog::firstOrNew([
+					'activity_id' => $activity->id,
+				]);
+				$activity_log->bo_approved_at = date('Y-m-d H:i:s');
+				$activity_log->updated_by_id = Auth::id();
+				$activity_log->save();
+
 				$mobile_number = $activity->asp->contact_number1;
 				$sms_message = 'BO_APPROVED';
 				$array = [$activity->case->number];
@@ -611,6 +625,13 @@ class ActivityController extends Controller {
 				'Status' => $log_status,
 				'Waiting for' => $log_waiting,
 			], 361);
+
+			$activity_log = ActivityLog::firstOrNew([
+				'activity_id' => $activity->id,
+			]);
+			$activity_log->bo_deffered_at = date('Y-m-d H:i:s');
+			$activity_log->updated_by_id = Auth::id();
+			$activity_log->save();
 
 			//SMS record
 			$mobile_number = $activity->asp->contact_number1;
@@ -955,6 +976,13 @@ class ActivityController extends Controller {
 				'Status' => $log_status,
 				'Waiting for' => $log_waiting,
 			], 361);
+
+			$activity_log = ActivityLog::firstOrNew([
+				'activity_id' => $activity->id,
+			]);
+			$activity_log->asp_data_filled_at = date('Y-m-d H:i:s');
+			$activity_log->updated_by_id = Auth::id();
+			$activity_log->save();
 
 			//sending confirmation SMS to ASP
 			$mobile_number = $activity->asp->contact_number1;

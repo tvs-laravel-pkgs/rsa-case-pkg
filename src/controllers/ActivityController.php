@@ -7,6 +7,7 @@ use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityPortalStatus;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\RsaCase;
+use Abs\RsaCasePkg\ActivityLog;
 use App\Asp;
 use App\AspServiceType;
 use App\Attachment;
@@ -1605,7 +1606,8 @@ class ActivityController extends Controller {
 		$status_ids = explode(',', $status_ids);
 		$activities = Activity::join('cases', 'activities.case_id', '=', 'cases.id')->join('asps', 'activities.asp_id', '=', 'asps.id')->whereIn('activities.status_id', $status_ids)
 			->whereDate('activities.created_at', '>=', $range1)
-			->whereDate('activities.created_at', '<=', $range2);
+			->whereDate('activities.created_at', '<=', $range2)
+			->select('activities.*','activities.id as id');
 		if (!empty($request->get('asp_id'))) {
 			$activities =$activities->where('activities.asp_id', $request->get('asp_id'));
 		}
@@ -1775,37 +1777,42 @@ class ActivityController extends Controller {
 				}
 			}
 			$total_days = 0;
+			//dump($activity);
 			$activity_log = ActivityLog::where('activity_id',$activity->id)->first();
 			if($activity_log){
-				$activity_details_data[$activity_key][] = $activity_log->imported_at;
-				$activity_details_data[$activity_key][] = $tot = ($activity_log->imported_at && $activity_log->asp_data_filled_at) ? $this->findDifference($activity_log->imported_at,$activity_log->asp_data_filled_at) : '';
-				$total_days = $tot ? $tot+$total_days : $total_days;
-				$activity_details_data[$activity_key][] = $activity_log->asp_data_filled_at;
-				$activity_details_data[$activity_key][] = $tot =($activity_log->asp_data_filled_at && $activity_log->bo_deffered_at) ? $this->findDifference($activity_log->asp_data_filled_at,$activity_log->bo_deffered_at) : '';
-				$total_days = $tot ? $tot+$total_days : $total_days;
 
-				$activity_details_data[$activity_key][] = $activity_log->bo_deffered_at;
+				$activity_details_data[$activity_key][] = $activity_log->imported_at ? date('d-m-Y H:i:s',strtotime($activity_log->imported_at)) : '';
+				$tot = ($activity_log->imported_at && $activity_log->asp_data_filled_at) ? $this->findDifference($activity_log->imported_at,$activity_log->asp_data_filled_at) : '';
+				$total_days = is_numeric($tot) ? ($tot+$total_days) : $total_days;
+				$activity_details_data[$activity_key][] = is_numeric($tot) ? ( $tot>1 ? ($tot.' Days') : ($tot.' Day')) : '';
 
-				$activity_details_data[$activity_key][] = $tot =($activity_log->asp_data_filled_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->asp_data_filled_at,$activity_log->bo_approved_at) : '';
-				$total_days = $tot ? $tot+$total_days : $total_days;
+				$activity_details_data[$activity_key][] = $activity_log->asp_data_filled_at ? date('d-m-Y H:i:s',strtotime($activity_log->asp_data_filled_at)) : '';
+				$tot =($activity_log->asp_data_filled_at && $activity_log->bo_deffered_at) ? $this->findDifference($activity_log->asp_data_filled_at,$activity_log->bo_deffered_at) : '';
+				$total_days = is_numeric($tot) ? ($tot+$total_days) : $total_days;
+				$activity_details_data[$activity_key][] = is_numeric($tot) ? ( $tot>1 ? ($tot.' Days') : ($tot.' Day')) : '';
 
-				$activity_details_data[$activity_key][] = $activity_log->bo_approved_at;
+				$activity_details_data[$activity_key][] = $activity_log->bo_deffered_at ? date('d-m-Y H:i:s',strtotime($activity_log->bo_deffered_at)) : '';
+				$tot =($activity_log->asp_data_filled_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->asp_data_filled_at,$activity_log->bo_approved_at) : '';
+				$total_days = is_numeric($tot) ? ($tot+$total_days) : $total_days;
+				$activity_details_data[$activity_key][] = is_numeric($tot) ? ( $tot>1 ? ($tot.' Days') : ($tot.' Day')) : '';
 
-				$activity_details_data[$activity_key][] = $tot =($activity_log->invoice_generated_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->invoice_generated_at,$activity_log->bo_approved_at) : '';
-				$total_days = $tot ? $tot+$total_days : $total_days;
+				$activity_details_data[$activity_key][] = $activity_log->bo_approved_at ? date('d-m-Y H:i:s',strtotime($activity_log->bo_approved_at)) : '';
+				$tot =($activity_log->invoice_generated_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->invoice_generated_at,$activity_log->bo_approved_at) : '';
+				$total_days = is_numeric($tot) ? ($tot+$total_days) : $total_days;
+				$activity_details_data[$activity_key][] = is_numeric($tot) ? ( $tot>1 ? ($tot.' Days') : ($tot.' Day')) : '';
 
-				$activity_details_data[$activity_key][] = $activity_log->invoice_generated_at;
+				$activity_details_data[$activity_key][] = $activity_log->invoice_generated_at ? date('d-m-Y H:i:s',strtotime($activity_log->invoice_generated_at)) : '';
+				$tot =($activity_log->invoice_generated_at && $activity_log->axapta_generated_at) ? $this->findDifference($activity_log->invoice_generated_at,$activity_log->axapta_generated_at) : '';
+				$total_days = is_numeric($tot) ? ($tot+$total_days) : $total_days;
+				$activity_details_data[$activity_key][] = is_numeric($tot) ? ( $tot>1 ? ($tot.' Days') : ($tot.' Day')) : '';
 
-				$activity_details_data[$activity_key][] = $tot =($activity_log->invoice_generated_at && $activity_log->axapta_generated_at) ? $this->findDifference($activity_log->invoice_generated_at,$activity_log->axapta_generated_at) : '';
-				$total_days = $tot ? $tot+$total_days : $total_days;
+				$activity_details_data[$activity_key][] = $activity_log->axapta_generated_at ? date('d-m-Y H:i:s',strtotime($activity_log->axapta_generated_at)) : '';
+				$tot =($activity_log->axapta_generated_at && $activity_log->payment_completed_at) ? $this->findDifference($activity_log->axapta_generated_at,$activity_log->payment_completed_at) : '';
+				$total_days = is_numeric($tot) ? ($tot+$total_days) : $total_days;
+				$activity_details_data[$activity_key][] = is_numeric($tot) ? ( $tot>1 ? ($tot.' Days') : ($tot.' Day')) : '';
 
-				$activity_details_data[$activity_key][] = $activity_log->axapta_generated_at;
-
-				$activity_details_data[$activity_key][] = $tot =($activity_log->axapta_generated_at && $activity_log->payment_completed_at) ? $this->findDifference($activity_log->axapta_generated_at,$activity_log->payment_completed_at) : '';
-				$total_days = $tot ? $tot+$total_days : $total_days;
-
-				$activity_details_data[$activity_key][] = $activity_log->payment_completed_at;
-				$activity_details_data[$activity_key][] = $total_days;
+				$activity_details_data[$activity_key][] = $activity_log->payment_completed_at ? date('d-m-Y H:i:s',strtotime($activity_log->payment_completed_at)) : '';
+				$activity_details_data[$activity_key][] = $total_days>1 ? ($total_days.' Days') : ($total_days.' Day');
 
 			}else{
 				$activity_details_data[$activity_key][] = '';
@@ -1821,11 +1828,11 @@ class ActivityController extends Controller {
 				$activity_details_data[$activity_key][] = '';
 				$activity_details_data[$activity_key][] = '';
 				$activity_details_data[$activity_key][] = '';
-				$activity_details_data[$activity_key][] = $total_days;
-
+				$activity_details_data[$activity_key][] = '';
 			}
 			
 		}
+		//dd('s');
 		//$activity_details_data = array_merge($activity_details_header, $activity_details_data);
 		//dd($activity_details_header,$activity_details_data);
 		Excel::create('Activity Status Report', function ($excel) use ($summary, $activity_details_header, $activity_details_data, $status_ids, $summary_period) {
@@ -1858,7 +1865,7 @@ class ActivityController extends Controller {
 			$excel->sheet('Activity Informations', function ($sheet) use ($activity_details_header, $activity_details_data) {
 				$sheet->fromArray($activity_details_data, NULL, 'A1');
 				$sheet->row(1, $activity_details_header);
-				$sheet->cells('A1:CH1', function ($cells) {
+				$sheet->cells('A1:CU1', function ($cells) {
 					$cells->setFont(array(
 						'size' => '10',
 						'bold' => true,
@@ -1873,7 +1880,7 @@ class ActivityController extends Controller {
 		$date1=date_create(date('Y-m-d',strtotime($date1)));
 		$date2=date_create(date('Y-m-d',strtotime($date2)));
 		$diff_date=date_diff($date1,$date2);
-		$duration = ($diff_date->format("%d") > 1) ? $diff_date->format("%d Days") : $diff_date->format("%d Day");
+		$duration = ($diff_date->format("%d") > 1) ? $diff_date->format("%d") : $diff_date->format("%d");
 		return $duration;
 	}
 }

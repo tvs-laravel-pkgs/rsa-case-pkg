@@ -38,7 +38,7 @@
 										<figcaption>
 											<div class="dashboardItem-content">
 												<h2 class="title">{{$ctrl.data.invoiced}}</h2>
-												<p>New Batches<!-- - {{date('M')}} --></p>
+												<p>New Invoices<!-- - {{date('M')}} --></p>
 											</div>
 											<!-- <span class="date">{{date('M', strtotime("-1 month"))}} : {{$prev_month_new_ticket_count}}</span> -->
 										</figcaption>
@@ -81,7 +81,7 @@
 				                    <figcaption>
 				                      <div class="dashboardItem-content">
 				                        <h2 class="title">{{$ctrl.data.current_waiting_batch}}</h2>
-				                        <p>Tickets Waiting for Batch Generation</p>
+				                        <p>Tickets Waiting for Invoice Generation</p>
 				                      </div>
 				                      <!-- <span class="date">{{date('M', strtotime("-1 month"))}} : {{$previous_waiting_batch}}</span> -->
 				                    </figcaption>
@@ -144,7 +144,7 @@
 									<td><label class="cyan">{{$ctrl.data.prev_month_new_ticket_count}}</label></td>
 								</tr>
 								<tr ng-show="$ctrl.data.role_name=='finance'">
-									<td>New Batches</td>
+									<td>New Invoices</td>
 									<td><label class="yellow">{{$ctrl.data.today_tickets_invoiced}}</label></td>
 									<td><label class="blue">{{$ctrl.data.tickets_invoiced_this_month}}</label></td>
 									<td><label class="cyan">{{$ctrl.data.prev_month_tickets_invoiced}}</label></td>
@@ -162,7 +162,7 @@
 				                <tr ng-show="$ctrl.data.role_name!='finance' && $ctrl.data.role_name!='rm'">
 				                  <td>
 				                  	<span ng-show="$ctrl.data.role_name!='bo'">Approved</span>
-				                  	<span ng-show="$ctrl.data.role_name=='bo'">Waiting for Batch Generation</span>
+				                  	<span ng-show="$ctrl.data.role_name=='bo'">Waiting for Invoice Generation</span>
 				                  </td>
 				                  <td><label class="yellow">{{$ctrl.data.today_tickets_in_approved}}</label></td>
 				                  <td><label class="blue">{{$ctrl.data.this_month_tickets_in_approved}}</label></td>

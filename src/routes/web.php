@@ -62,6 +62,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	Route::get('/reconciliation-report/get-graph-data', 'ActivityReportController@getReconciliationReport')->name('getReconciliationReport');
 
 	//PROVISIONAL REPORT
+	Route::get('/provisional-report/get-date-filter', 'ActivityReportController@getReportBasedDate')->name('getReportBasedDate');
 	Route::get('/provisional-report/get-report', 'ActivityReportController@getProvisionalReport')->name('getProvisionalReport');
 
 	//GENERAL REPORT

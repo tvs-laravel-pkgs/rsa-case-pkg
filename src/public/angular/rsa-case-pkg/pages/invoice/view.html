@@ -261,11 +261,13 @@
                     System Invoice
                     <a href="{{$ctrl.invoice_pdf_generate_url}}/{{$ctrl.invoice.id}}" class="approve-btn pull-left preview-batch">Download</a>
                 </div> -->
-                <div ng-if="$ctrl.canViewPaymentInfo && $ctrl.type_id == 3" class="">
+                <div ng-if="$ctrl.canViewPaymentInfo && $ctrl.type_id != 1">
                     <div class="viewData-wrapper" style="padding-top: 30px;">
                         <div class="viewData-toggle--wrapper">
                             <label class="title-label" style="margin: 0; margin-right: 25px; display: inline-block; vertical-align: middle;">Payment Details</label>
-                            <button type="button" id="refresh_asp_invoice_payment_info_btn" class="btn btn-primary btn-green" ng-click="getPaymenyInfo()">Refresh</button>
+                            <button type="button" id="refresh_asp_invoice_payment_info_btn" class="btn-refresh" ng-click="getPaymenyInfo()">
+                                <img class="img-refresh" src="{{$ctrl.refresh_img_url}}" alt="Refresh" />
+                            </button>
                             <div class="noToggle--inner" style="margin-top: 15px;">
                                 <!-- <div class="row viewData-identification--wrapper"> -->
                                 <div class="row">
@@ -324,3 +326,12 @@
         </div><!-- Column -->
     </div><!-- Row -->
 </div><!-- Container Fluid -->
+<div class="row">
+    <div class="col-md-12">
+        <!-- Button Loader Starts -->
+        <div class="loader-type-2 loader-hide">
+            <div class="loader-inner"></div>
+        </div>
+        <!-- Button Loader Ends -->
+    </div>
+</div>

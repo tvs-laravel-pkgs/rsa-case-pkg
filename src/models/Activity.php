@@ -7,6 +7,7 @@ use Abs\ImportCronJobPkg\ImportCronJob;
 use Abs\RsaCasePkg\ActivityAspStatus;
 use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
+use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
 use Abs\RsaCasePkg\AspPoRejectedReason;
@@ -479,31 +480,111 @@ class Activity extends Model {
 						'case_date' => 'required',
 						'case_data_filled_date' => 'required',
 						'case_description' => 'nullable|string|max:255',
-						'status' => 'required|string|max:191|exists:case_statuses,name',
-						'cancel_reason' => 'nullable|string|max:100|exists:case_cancelled_reasons,name',
-						'call_center' => 'required|string|max:64|exists:call_centers,name',
-						'client' => 'required|string|max:124|exists:clients,name',
-						'customer_name' => 'required|string|max:128',
+						'status' => [
+							'required',
+							'string',
+							'max:191',
+							Rule::exists('case_statuses', 'name')
+								->where(function ($query) {
+									$query->whereNull('deleted_at');
+								}),
+						],
+						'cancel_reason' => [
+							'nullable',
+							'string',
+							'max:100',
+							Rule::exists('case_cancelled_reasons', 'name')
+								->where(function ($query) {
+									$query->whereNull('deleted_at');
+								}),
+						],
+						'call_center' => [
+							'required',
+							'string',
+							'max:64',
+							Rule::exists('call_centers', 'name')
+								->where(function ($query) {
+									$query->whereNull('deleted_at');
+								}),
+						],
+						'client' => [
+							'required',
+							'string',
+							'max:124',
+							Rule::exists('clients', 'name')
+								->where(function ($query) {
+									$query->whereNull('deleted_at');
+								}),
+						],
+						'customer_name' => 'required|string|max:255',
 						// 'customer_contact_number' => 'required|numeric|min:10|max:10',
-						'contact_name' => 'nullable|string|max:128',
+						'contact_name' => 'nullable|string|max:50',
 						// 'contact_number' => 'nullable|numeric|min:10|max:10',
-						'vehicle_make' => 'required|string|max:191|exists:vehicle_makes,name',
-						'vehicle_model' => 'nullable|string|max:191|exists:vehicle_models,name',
-						'vehicle_registration_number' => 'required|string|max:191',
+						'vehicle_make' => [
+							'required',
+							'string',
+							'max:191',
+							Rule::exists('vehicle_makes', 'name')
+								->where(function ($query) {
+									$query->whereNull('deleted_at');
+								}),
+						],
+						'vehicle_model' => [
+							'nullable',
+							'string',
+							'max:191',
+							Rule::exists('vehicle_models', 'name')
+								->where(function ($query) {
+									$query->whereNull('deleted_at');
+								}),
+						],
+						'vehicle_registration_number' => 'required|string|max:11',
 						'vin_no' => 'nullable|string|min:17|max:17',
-						'membership_type' => 'required|string|max:255',
-						'membership_number' => 'nullable|string|max:255',
-						'subject' => 'required|string|max:191|exists:subjects,name',
-						'km_during_breakdown' => 'nullable',
+						'membership_type' => 'required|string|max:191',
+						'membership_number' => 'nullable|string|max:50',
+						'subject' => [
+							'required',
+							'string',
+							'max:191',
+							Rule::exists('subjects', 'name')
+								->where(function ($query) {
+									$query->whereNull('deleted_at');
+								}),
+						],
+						'km_during_breakdown' => 'nullable|numeric',
 						'bd_lat' => 'nullable',
 						'bd_long' => 'nullable',
 						'bd_location' => 'nullable|string|max:2048',
 						'bd_city' => 'nullable|string|max:128',
-						'bd_state' => 'nullable|string|max:50|exists:states,name',
+						'bd_state' => [
+							'nullable',
+							'string',
+							'max:50',
+							Rule::exists('states', 'name')
+								->where(function ($query) {
+									$query->whereNull('deleted_at');
+								}),
+						],
 						//ACTIVITY
 						'crm_activity_id' => 'required|numeric',
-						'asp_code' => 'required|string|max:24|exists:asps,asp_code',
-						'sub_service' => 'required|string|max:50|exists:service_types,name',
+						'asp_code' => [
+							'required',
+							'string',
+							'max:24',
+							Rule::exists('asps', 'asp_code')
+								->where(function ($query) {
+									$query->whereNull('deleted_at');
+								}),
+						],
+						'sub_service' => [
+							'required',
+							'string',
+							'max:50',
+							Rule::exists('service_types', 'name')
+								->where(function ($query) {
+									$query->whereNull('deleted_at');
+								}),
+						],
 						'asp_accepted_cc_details' => 'required|numeric',
 						'asp_rejected_cc_details_reason' => 'nullable|string',
 						'finance_status' => [
@@ -512,20 +593,45 @@ class Activity extends Model {
 							'max:191',
 							Rule::exists('activity_finance_statuses', 'name')
 								->where(function ($query) {
-									$query->where('company_id', 1);
+									$query->whereNull('deleted_at')
+										->where('company_id', 1);
 								}),
 						],
-						'asp_activity_status' => 'nullable|string|max:191|exists:activity_asp_statuses,name',
-						'asp_activity_rejected_reason' => 'nullable|string|max:191|exists:asp_activity_rejected_reasons,name',
-						'activity_status' => 'nullable|string|max:191|exists:activity_statuses,name',
+						'asp_activity_status' => [
+							'nullable',
+							'string',
+							'max:191',
+							Rule::exists('activity_asp_statuses', 'name')
+								->where(function ($query) {
+									$query->whereNull('deleted_at');
+								}),
+						],
+						'asp_activity_rejected_reason' => [
+							'nullable',
+							'string',
+							'max:191',
+							Rule::exists('asp_activity_rejected_reasons', 'name')
+								->where(function ($query) {
+									$query->whereNull('deleted_at');
+								}),
+						],
+						'activity_status' => [
+							'nullable',
+							'string',
+							'max:191',
+							Rule::exists('activity_statuses', 'name')
+								->where(function ($query) {
+									$query->whereNull('deleted_at');
+								}),
+						],
 						'cc_colleced_amount' => 'nullable|numeric',
 						'cc_not_collected_amount' => 'nullable|numeric',
 						'cc_total_km' => 'nullable|numeric',
-						'activity_description' => 'nullable|string|max:255',
+						'activity_description' => 'nullable|string|max:191',
 						'activity_remarks' => 'nullable|string|max:255',
 						'asp_reached_date' => 'nullable',
-						'asp_start_location' => 'nullable|string|max:256',
-						'asp_end_location' => 'nullable|string|max:256',
+						'asp_start_location' => 'nullable|string|max:191',
+						'asp_end_location' => 'nullable|string|max:191',
 						'onward_google_km' => 'nullable|numeric',
 						'dealer_google_km' => 'nullable|numeric',
 						'return_google_km' => 'nullable|numeric',
@@ -534,7 +640,7 @@ class Activity extends Model {
 						'return_km' => 'nullable|numeric',
 						'drop_location_type' => 'nullable|string|max:24',
 						'drop_dealer' => 'nullable|string|max:64',
-						'drop_location' => 'nullable|string|max:512',
+						'drop_location' => 'nullable|string|max:191',
 						'drop_location_lat' => 'nullable|numeric',
 						'drop_location_long' => 'nullable|numeric',
 						'amount' => 'nullable|numeric',
@@ -844,12 +950,33 @@ class Activity extends Model {
 								}
 							}
 
+							//IF DATA SRC IS CRM WEB APP
+							if ($activity->data_src_id == 261) {
+								//ON HOLD
+								$activity->status_id = 17;
+								$activity->save();
+							}
+
 							//MARKING AS OWN PATROL ACTIVITY
 							if ($activity->asp->workshop_type == 1) {
 								//Own Patrol Activity - Not Eligible for Payout
 								$activity->status_id = 16;
 								$activity->save();
 							}
+
+							//UPDATE LOG ACTIVITY AND LOG MESSAGE
+							logActivity3(config('constants.entity_types.ticket'), $activity->id, [
+								'Status' => 'Imported through MIS Import',
+								'Waiting for' => 'ASP Data Entry',
+							], 361);
+
+							$activity_log = ActivityLog::firstOrNew([
+								'activity_id' => $activity->id,
+							]);
+							$activity_log->imported_at = date('Y-m-d H:i:s');
+							$activity_log->created_by_id = 72;
+							$activity_log->save();
+
 						}
 
 					}

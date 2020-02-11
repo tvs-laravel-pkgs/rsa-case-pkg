@@ -5,6 +5,7 @@ use Abs\RsaCasePkg\Activity;
 use Abs\RsaCasePkg\ActivityAspStatus;
 use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
+use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
 use Abs\RsaCasePkg\AspPoRejectedReason;
@@ -27,9 +28,33 @@ class ActivityController extends Controller {
 			$validator = Validator::make($request->all(), [
 				'crm_activity_id' => 'required|numeric|unique:activities',
 				'data_src' => 'required|string',
-				'asp_code' => 'required|string|max:24|exists:asps,asp_code',
-				'case_number' => 'required|string|max:32|exists:cases,number',
-				'sub_service' => 'required|string|max:50|exists:service_types,name',
+				'asp_code' => [
+					'required',
+					'string',
+					'max:24',
+					Rule::exists('asps', 'asp_code')
+						->where(function ($query) {
+							$query->whereNull('deleted_at');
+						}),
+				],
+				'case_number' => [
+					'required',
+					'string',
+					'max:32',
+					Rule::exists('cases', 'number')
+						->where(function ($query) {
+							$query->whereNull('deleted_at');
+						}),
+				],
+				'sub_service' => [
+					'required',
+					'string',
+					'max:50',
+					Rule::exists('service_types', 'name')
+						->where(function ($query) {
+							$query->whereNull('deleted_at');
+						}),
+				],
 				'asp_accepted_cc_details' => 'required|numeric',
 				'reason_for_asp_rejected_cc_details' => 'nullable|string',
 				'finance_status' => [
@@ -38,23 +63,47 @@ class ActivityController extends Controller {
 					'max:191',
 					Rule::exists('activity_finance_statuses', 'name')
 						->where(function ($query) {
-							$query->where('company_id', 1);
+							$query->whereNull('deleted_at')
+								->where('company_id', 1);
 						}),
 				],
-
 				// 'asp_po_accepted' => 'nullable|numeric|max:1',
 				// 'asp_po_rejected_reason' => 'nullable|string|max:191|exists:asp_po_rejected_reasons,name',
-				'asp_activity_status' => 'nullable|string|max:191|exists:activity_asp_statuses,name',
-				'asp_activity_rejected_reason' => 'nullable|string|max:191|exists:asp_activity_rejected_reasons,name',
-				'activity_status' => 'nullable|string|max:191|exists:activity_statuses,name',
+				'asp_activity_status' => [
+					'nullable',
+					'string',
+					'max:191',
+					Rule::exists('activity_asp_statuses', 'name')
+						->where(function ($query) {
+							$query->whereNull('deleted_at');
+						}),
+				],
+				'asp_activity_rejected_reason' => [
+					'nullable',
+					'string',
+					'max:191',
+					Rule::exists('asp_activity_rejected_reasons', 'name')
+						->where(function ($query) {
+							$query->whereNull('deleted_at');
+						}),
+				],
+				'activity_status' => [
+					'nullable',
+					'string',
+					'max:191',
+					Rule::exists('activity_statuses', 'name')
+						->where(function ($query) {
+							$query->whereNull('deleted_at');
+						}),
+				],
 				'cc_colleced_amount' => 'nullable|numeric',
 				'cc_not_collected_amount' => 'nullable|numeric',
 				'cc_total_km' => 'nullable|numeric',
-				'description' => 'nullable|string|max:255',
+				'description' => 'nullable|string|max:191',
 				'remarks' => 'nullable|string|max:255',
 				'asp_reached_date' => 'nullable|date_format:"Y-m-d H:i:s"',
-				'asp_start_location' => 'nullable|string|max:256',
-				'asp_end_location' => 'nullable|string|max:256',
+				'asp_start_location' => 'nullable|string|max:191',
+				'asp_end_location' => 'nullable|string|max:191',
 				'onward_google_km' => 'nullable|numeric',
 				'dealer_google_km' => 'nullable|numeric',
 				'return_google_km' => 'nullable|numeric',
@@ -63,7 +112,7 @@ class ActivityController extends Controller {
 				'return_km' => 'nullable|numeric',
 				'drop_location_type' => 'nullable|string|max:24',
 				'drop_dealer' => 'nullable|string|max:64',
-				'drop_location' => 'nullable|string|max:512',
+				'drop_location' => 'nullable|string|max:191',
 				'drop_location_lat' => 'nullable|numeric',
 				'drop_location_long' => 'nullable|numeric',
 				'amount' => 'nullable|numeric',
@@ -307,12 +356,36 @@ class ActivityController extends Controller {
 				}
 			}
 
+			//IF DATA SRC IS CRM WEB APP
+			if ($activity->data_src_id == 261) {
+				//ON HOLD
+				$activity->status_id = 17;
+				$activity->save();
+			}
+
 			//MARKING AS OWN PATROL ACTIVITY
 			if ($activity->asp->workshop_type == 1) {
 				//Own Patrol Activity - Not Eligible for Payout
 				$activity->status_id = 16;
 				$activity->save();
 			}
+
+			//UPDATE LOG ACTIVITY AND LOG MESSAGE
+			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
+				'Status' => 'Imported through API',
+				'Waiting for' => 'ASP Data Entry',
+			], 361);
+
+			$activity_log = ActivityLog::firstOrNew([
+				'activity_id' => $activity->id,
+			]);
+			$activity_log->imported_at = date('Y-m-d H:i:s');
+			$activity_log->asp_data_filled_at = date('Y-m-d H:i:s');
+			if ($request->asp_accepted_cc_details) {
+				$activity_log->bo_approved_at = date('Y-m-d H:i:s');
+			}
+			$activity_log->created_by_id = 72;
+			$activity_log->save();
 
 			DB::commit();
 			return response()->json([

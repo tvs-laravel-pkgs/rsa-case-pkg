@@ -64,6 +64,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	//PROVISIONAL REPORT
 	Route::get('/provisional-report/get-date-filter', 'ActivityReportController@getReportBasedDate')->name('getReportBasedDate');
 	Route::get('/provisional-report/get-report', 'ActivityReportController@getProvisionalReport')->name('getProvisionalReport');
+	Route::post('/provisional-report/export-report', 'ActivityReportController@exportProvisionalReport')->name('exportProvisionalReport');
 
 	//GENERAL REPORT
 	Route::get('/general-report/get-report', 'ActivityReportController@getGeneralReport')->name('getGeneralReport');

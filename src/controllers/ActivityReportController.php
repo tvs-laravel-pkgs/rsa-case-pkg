@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\ServiceType;
 use Auth;
 use DB;
+use Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Yajra\Datatables\Datatables;
@@ -386,7 +387,7 @@ class ActivityReportController extends Controller {
 			'count_of_tickets' => $count_of_tickets,
 		];
 
-		$this->data['services_type_list'] = ServiceType::orderBy('name')->pluck('name', 'id')->toArray(0);
+		$this->data['services_type_list'] = ServiceType::select('id', 'name')->orderBy('name')->get();
 		$this->data['check_new_update'] = 0;
 
 		return response()->json($this->data);
@@ -426,7 +427,7 @@ class ActivityReportController extends Controller {
 			$before_bo_validation_net_amount = Activity::join('asps', 'asps.id', 'activities.asp_id')
 				->join('activity_details', function ($join) {
 					$join->on('activity_details.activity_id', 'activities.id')
-						->where('activity_details.key_id', 174);
+						->where('activity_details.key_id', 174); // CC AMOUNT
 				})
 				->join('cases', 'cases.id', 'activities.case_id')
 				->whereBetween('cases.date', [$date_from, $date_to])
@@ -439,7 +440,7 @@ class ActivityReportController extends Controller {
 			$before_bo_validation_tax = Activity::join('asps', 'asps.id', 'activities.asp_id')
 				->join('activity_details', function ($join) {
 					$join->on('activity_details.activity_id', 'activities.id')
-						->where('activity_details.key_id', 177);
+						->where('activity_details.key_id', 177); // CC TAX AMOUNT
 				})
 				->join('cases', 'cases.id', 'activities.case_id')
 				->whereBetween('cases.date', [$date_from, $date_to])
@@ -520,10 +521,319 @@ class ActivityReportController extends Controller {
 				'count_of_tickets' => $count_of_tickets,
 			];
 		}
-		$this->data['services_type_list'] = ServiceType::orderBy('name')->pluck('name', 'id')->toArray(0);
+		$this->data['services_type_list'] = ServiceType::select('id', 'name')->orderBy('name')->get();
 		$this->data['check_new_update'] = 1;
 
 		return response()->json($this->data);
+	}
+
+	public function exportProvisionalReport(Request $request) {
+		// dd($request->all());
+		try {
+			ini_set('max_execution_time', 0);
+			ini_set('display_errors', 1);
+			ini_set("memory_limit", "10000M");
+
+			$date = explode("-", $request->period);
+			$range1 = date("Y-m-d", strtotime(str_replace('/', '-', $date[0])));
+			$range2 = date("Y-m-d", strtotime(str_replace('/', '-', $date[1])));
+			// dump($range1, $range2, json_decode($request->services_type_id));
+
+			$services_type_ids = json_decode($request->services_type_id);
+
+			$activity_infos = Activity::whereIn('activities.service_type_id', $services_type_ids)
+				->join('cases', 'cases.id', 'activities.case_id')
+				->join('asps', 'asps.id', 'activities.asp_id')
+				->where('activities.status_id', 2) //ASP DATA ENTRY
+				->whereBetween('cases.date', [$range1, $range2])
+				->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
+			;
+
+			$activity_infos_summary_cal = Activity::whereIn('activities.service_type_id', $services_type_ids)
+				->join('asps', 'asps.id', 'activities.asp_id')
+				->join('cases', 'cases.id', 'activities.case_id')
+				->where('activities.status_id', 2) //ASP DATA ENTRY
+				->whereBetween('cases.date', [$range1, $range2])
+				->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
+				->where('asps.workshop_type', "!=", 1)
+			;
+
+			$total_count = $activity_infos->count('activities.id');
+
+			$total_activity_net_amount = $activity_infos_summary_cal->join('activity_details', function ($join) {
+				$join->on('activity_details.activity_id', 'activities.id')
+					->where('activity_details.key_id', 174); //CC AMOUNT
+			})
+				->sum('activity_details.value')
+			;
+			// dd($activity_infos_summary_cal);
+			$total_activity_tax = Activity::whereIn('activities.service_type_id', $services_type_ids)
+				->join('asps', 'asps.id', 'activities.asp_id')
+				->join('cases', 'cases.id', 'activities.case_id')
+				->join('activity_details', function ($join) {
+					$join->on('activity_details.activity_id', 'activities.id')
+						->where('activity_details.key_id', 177); //CC TAX AMOUNT
+				})
+				->where('activities.status_id', 2) //ASP DATA ENTRY
+				->whereBetween('cases.date', [$range1, $range2])
+				->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
+				->where('asps.workshop_type', "!=", 1)
+				->sum('activity_details.value')
+			;
+
+			$total_activity_invoice_amount = Activity::whereIn('activities.service_type_id', $services_type_ids)
+				->join('asps', 'asps.id', 'activities.asp_id')
+				->join('cases', 'cases.id', 'activities.case_id')
+				->join('activity_details', function ($join) {
+					$join->on('activity_details.activity_id', 'activities.id')
+						->where('activity_details.key_id', 180); //CC AMOUNT
+				})
+				->where('activities.status_id', 2) //ASP DATA ENTRY
+				->whereBetween('cases.date', [$range1, $range2])
+				->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
+				->where('asps.workshop_type', "!=", 1)
+				->sum('activity_details.value')
+			;
+
+			$count_splitup = Activity::select(
+				DB::raw('COUNT(activities.id) as ticket_count'),
+				'activities.service_type_id as service_type_id',
+				'service_types.name as service_name'
+			)
+				->join('cases', 'cases.id', 'activities.case_id')
+				->join('asps', 'asps.id', 'activities.asp_id')
+				->join('service_types', 'service_types.id', 'activities.service_type_id')
+				->whereIn('activities.service_type_id', $services_type_ids)
+				->whereBetween('cases.date', [$range1, $range2])
+				->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
+				->where('activities.status_id', 2)
+				->groupBy('activities.service_type_id')
+				->get()
+				->keyBy('service_type_id')
+				->toArray()
+			;
+
+			if ($total_count == 0) {
+				return redirect()->back()->with(['error' => 'No Tickets found for given period & service types']);
+			}
+
+			$selected_statuses = $request->services_type_id;
+			// dd($selected_statuses);
+
+			Excel::create('ticket_provisional_report', function ($excel) use ($total_count, $request, $range1, $range2, $activity_infos, $count_splitup, $total_activity_net_amount, $total_activity_tax, $total_activity_invoice_amount) {
+
+				$excel->sheet('Summary', function ($sheet) use ($total_count, $request, $range1, $range2, $count_splitup, $total_activity_net_amount, $total_activity_tax, $total_activity_invoice_amount) {
+					$summary = [['Period', date('d/M/Y', strtotime($range1)) . ' to ' . date('d/M/Y', strtotime($range2))], ['Services', 'Count']];
+					foreach (json_decode($request->services_type_id) as $k => $services_type_id) {
+						if (isset($count_splitup[$services_type_id]['ticket_count'])) {
+							$count = $count_splitup[$services_type_id]['ticket_count'];
+							$service_name = $count_splitup[$services_type_id]['service_name'];
+						} else {
+							$count = 0;
+							$service_name = ServiceType::where('id', $services_type_id)->pluck('name')->first();
+						}
+						$summary[] = [$service_name, $count];
+					}
+
+					$summary[] = ['Total Tickets', $total_count];
+					$summary[] = [];
+					$summary[] = ['Net Total Before approved of BO', $total_activity_net_amount];
+					$summary[] = ['Tax Total Before approved of BO', $total_activity_tax];
+					$summary[] = ['Grand Total Before approved of BO', $total_activity_invoice_amount];
+					$sheet->fromArray($summary, NULL, 'A1', false, false);
+
+					$sheet->cells('A1:B1', function ($cells) {
+						$cells->setFont(array(
+							'size' => '10',
+							'bold' => true,
+						))->setBackground('#CCC9C9');
+					});
+					$sheet->cells('A2:B2', function ($cells) {
+						$cells->setFont(array(
+							'size' => '10',
+							'bold' => true,
+						))->setBackground('#F3F3F3');
+					});
+					$cell_number = count(json_decode($request->services_type_id)) + 3;
+					$sheet->cells('A' . $cell_number . ':B' . $cell_number, function ($cell) {
+						$cell->setFont(array(
+							'size' => '10',
+							'bold' => true,
+						))->setBackground('#F3F3F3');
+					});
+
+					$cell_number1 = count(json_decode($request->services_type_id)) + 5;
+					$sheet->cells('A' . $cell_number1 . ':B' . $cell_number1, function ($cell) {
+						$cell->setFont(array(
+							'size' => '10',
+							'bold' => true,
+						))->setBackground('#F3F3F3');
+					});
+
+					$cell_number2 = count(json_decode($request->services_type_id)) + 6;
+					$sheet->cells('A' . $cell_number2 . ':B' . $cell_number2, function ($cell) {
+						$cell->setFont(array(
+							'size' => '10',
+							'bold' => true,
+						))->setBackground('#F3F3F3');
+					});
+
+					$cell_number3 = count(json_decode($request->services_type_id)) + 7;
+					$sheet->cells('A' . $cell_number3 . ':B' . $cell_number3, function ($cell) {
+						$cell->setFont(array(
+							'size' => '10',
+							'bold' => true,
+						))->setBackground('#F3F3F3');
+					});
+				});
+//setAutoHeadingGeneration
+
+				$excel->sheet('Ticket Informations', function ($sheet) use ($request, $range1, $range2, $activity_infos) {
+
+					$tickets = $activity_infos
+						->select(
+							'asps.asp_code',
+							'asps.axpta_code',
+							'asps.workshop_name',
+							'asps.name',
+							'asps.workshop_type',
+							'service_types.name as mis_service_type',
+							'call_centers.name as call_centers_name',
+							'locations.name as location',
+							'districts.name as district',
+							'states.name as state',
+							'clients.name as client_name',
+							'service_types.name as asp_service_type',
+							'service_types.name as bo_service_type',
+							'Invoices.invoice_no as invoice_no',
+							DB::raw('DATE_FORMAT(Invoices.created_at,"%d/%m/%Y") as invoice_date'),
+							'activity_portal_statuses.name as flow_current_status',
+							'cc_km.value as mis_km',
+							DB::raw('cc_km_charges.value as mis_km_charge'),
+							DB::raw('not_collected.value as mis_not_collect'),
+							DB::raw('collected.value as mis_collect'),
+							DB::raw('net_amount.value as mis_paid_amount'),
+							DB::raw('tax_amount.value as mis_tax'),
+							DB::raw('invoice_amount.value as mis_invoice_amount'),
+							'activities.*'
+							// DB::raw('IF(mis_informations.claim_status=0,"NEW","DEFERED") as claim_status')
+						)
+						->join('service_types', 'service_types.id', 'activities.service_type_id')
+						->join('call_centers', 'call_centers.id', 'cases.call_center_id')
+
+						->join('clients', 'clients.id', 'cases.client_id')
+						->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+						->leftJoin('activity_details as cc_km', function ($join) {
+							$join->on('cc_km.activity_id', 'activities.id')
+								->where('cc_km.key_id', 280); //CC TOTAL KM
+						})
+						->join('activity_details as cc_km_charges', function ($join) {
+							$join->on('cc_km_charges.activity_id', 'activities.id')
+								->where('cc_km_charges.key_id', 150); //CC TOTAL KM CHARGES
+						})
+						->join('activity_details as not_collected', function ($join) {
+							$join->on('not_collected.activity_id', 'activities.id')
+								->where('not_collected.key_id', 282); //CC NOT COLLECTED AMOUNT
+						})
+						->join('activity_details as collected', function ($join) {
+							$join->on('collected.activity_id', 'activities.id')
+								->where('collected.key_id', 281); //CC COLLECTED AMOUNT
+						})
+						->join('activity_details as net_amount', function ($join) {
+							$join->on('net_amount.activity_id', 'activities.id')
+								->where('net_amount.key_id', 174); //CC NET AMOUNT
+						})
+						->join('activity_details as tax_amount', function ($join) {
+							$join->on('tax_amount.activity_id', 'activities.id')
+								->where('tax_amount.key_id', 174); //CC NET AMOUNT
+						})
+						->join('activity_details as invoice_amount', function ($join) {
+							$join->on('invoice_amount.activity_id', 'activities.id')
+								->where('invoice_amount.key_id', 182); //BO AMOUNT
+						})
+						// ->leftJoin('service_types as asp_services', 'asp_services.id', 'mis_informations.asp_service_type_id')
+
+						// ->leftJoin('service_types as bo_services', 'bo_services.id', 'mis_informations.bo_service_type_id')
+						->join('locations', 'asps.location_id', 'locations.id')
+						->leftJoin('Invoices', 'Invoices.id', 'activities.invoice_id')
+						->join('districts', 'districts.id', 'asps.district_id')
+						->join('states', 'states.id', 'asps.state_id')
+						->where('activity_portal_statuses.company_id', Auth::user()->company_id)
+						->orderBy('asps.asp_code')
+						->orderBy('cases.date')
+						->get()
+						->toArray()
+					;
+
+					dd($tickets);
+
+					foreach ($tickets as $ticket) {
+						$asp_status = config('rsa.asp_statuses_label')[$ticket['asp_status_id']];
+						$location_type = config('constants.asp_filter_types_label')[$ticket['location_type']];
+						$workshop_type = config('constants.workshop_types_label')[$ticket['workshop_type']];
+						$created_at = $ticket['created_at'];
+						$updated_at = $ticket['updated_at'];
+						$collection = collect($ticket);
+						$collection->forget(['invoice_id', 'asp_id', 'service_type_id', 'asp_service_type_id', 'bo_service_type_id', 'asp_status_id', 'call_center_id', 'client_id', 'updated_by', 'mis_net_amount', 'workshop_type', 'total_km', 'paid_amount_by_customer', 'unpaid_amount', 'created_at', 'updated_at']);
+
+						$mis_km_charge = ($ticket['workshop_type'] == 1) ? 0 : (float) $ticket['mis_km_charge'];
+						$mis_not_collect = ($ticket['workshop_type'] == 1) ? 0 : (float) $ticket['mis_not_collect'];
+						$mis_collect = ($ticket['workshop_type'] == 1) ? 0 : (float) $ticket['mis_collect'];
+						$mis_paid_amount = ($ticket['workshop_type'] == 1) ? 0 : (float) $ticket['mis_paid_amount'];
+						$mis_tax = ($ticket['workshop_type'] == 1) ? 0 : (float) $ticket['mis_tax'];
+						$mis_invoice_amount = ($ticket['workshop_type'] == 1) ? 0 : (float) $ticket['mis_invoice_amount'];
+						$collection->put('mis_km_charge', $mis_km_charge);
+						$collection->put('mis_not_collect', $mis_not_collect);
+						$collection->put('mis_collect', $mis_collect);
+						$collection->put('mis_paid_amount', $mis_paid_amount);
+						$collection->put('mis_tax', $mis_tax);
+						$collection->put('mis_invoice_amount', $mis_invoice_amount);
+
+						$collection->put('km_during_breakdown', (int) $ticket['km_during_breakdown']);
+						$collection->put('excess_km_charges', (float) $ticket['excess_km_charges']);
+						$collection->put('non_member_charges', (float) $ticket['non_member_charges']);
+						$collection->put('service_charges', (float) $ticket['service_charges']);
+						$collection->put('bo_net_amount', (float) $ticket['bo_net_amount']);
+
+						$collection->put('deduction', (float) $ticket['deduction']);
+						$collection->put('tax', (float) $ticket['tax']);
+						$collection->put('payout_amount', (float) $ticket['payout_amount']);
+						$collection->put('bo_invoice_amount', (float) $ticket['bo_invoice_amount']);
+						$collection->put('onward_google_km', (float) $ticket['onward_google_km']);
+						$collection->put('dealer_google_km', (float) $ticket['dealer_google_km']);
+
+						$collection->put('return_google_km', (float) $ticket['return_google_km']);
+						$collection->put('excess_km', (float) $ticket['excess_km']);
+						$collection->put('asp_collected_charges', (float) $ticket['asp_collected_charges']);
+						$collection->put('bo_collected_charges', (float) $ticket['bo_collected_charges']);
+						$collection->put('bo_other_charges', (float) $ticket['bo_other_charges']);
+						$collection->put('bo_km', (float) $ticket['bo_km']);
+						$collection->put('asp_other_charges', (float) $ticket['asp_other_charges']);
+						$collection->put('asp_km', (float) $ticket['asp_km']);
+
+						$collection->put('asp_status', $asp_status);
+						$collection->put('location_type', $location_type);
+						$collection->put('workshop_type', $workshop_type);
+						$collection->put('created_at', $created_at);
+						$collection->put('updated_at', $updated_at);
+						$result[] = $collection->toArray();
+					}
+
+					$sheet->fromArray($result);
+
+					$sheet->cells('A1:CT1', function ($cells) {
+						$cells->setFont(array(
+							'size' => '10',
+							'bold' => true,
+						))->setBackground('#CCC9C9');
+					});
+				});
+
+			})->download('xls');
+
+		} catch (\Exception $e) {
+			$message = ['error' => $e->getline()];
+		}
 	}
 
 	public function getGeneralReport() {

@@ -43,7 +43,8 @@ class InvoiceController extends Controller {
 
 		$invoices = Invoices::select(
 			'Invoices.id',
-			DB::raw("(CASE WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0) THEN  Invoices.invoice_no ELSE CONCAT(Invoices.invoice_no,'-',Invoices.id) END) as invoice_no"),
+			'Invoices.invoice_no',
+			// DB::raw("(CASE WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0) THEN  Invoices.invoice_no ELSE CONCAT(Invoices.invoice_no,'-',Invoices.id) END) as invoice_no"),
 			// DB::raw("(CASE WHEN (asps.is_auto_invoice = 1) THEN CONCAT(Invoices.invoice_no,'-',Invoices.id) ELSE Invoices.invoice_no END) as invoice_no"),
 			// DB::raw("CONCAT(Invoices.invoice_no,'-',Invoices.id) as invoice_no"),
 			DB::raw("date_format(Invoices.created_at,'%d-%m-%Y') as invoice_date"),
@@ -109,9 +110,9 @@ class InvoiceController extends Controller {
 					return route('angular') . '/#!/rsa-case-pkg/invoice/view/' . $invoices->id . '/' . $request->type_id;
 				},
 			])
-			->filterColumn('invoice_no', function ($query, $keyword) {
-				$query->whereRaw("CONCAT(Invoices.invoice_no,'-',Invoices.id) like ?", ["%{$keyword}%"]);
-			})
+		// ->filterColumn('invoice_no', function ($query, $keyword) {
+		// 	$query->whereRaw("CONCAT(Invoices.invoice_no,'-',Invoices.id) like ?", ["%{$keyword}%"]);
+		// })
 			->addColumn('action', function ($invoices) {
 				return '<input type="checkbox" class="ticket_id no-link child_select_all" name="invoice_ids[]" value="' . $invoices->id . '">';
 			})
@@ -228,11 +229,12 @@ class InvoiceController extends Controller {
 		$asp = $invoice->asp;
 		$asp->rm = $invoice->asp->rm;
 		$this->data['period'] = $invoice->startdate . ' to ' . $invoice->enddate;
-		if ($asp->has_gst && !$asp->is_auto_invoice) {
-			$this->data['inv_no'] = $invoice->invoice_no;
-		} else {
-			$this->data['inv_no'] = $invoice->invoice_no . '-' . $invoice->id;
-		}
+		// if ($asp->has_gst && !$asp->is_auto_invoice) {
+		// 	$this->data['inv_no'] = $invoice->invoice_no;
+		// } else {
+		// 	$this->data['inv_no'] = $invoice->invoice_no . '-' . $invoice->id;
+		// }
+		$this->data['inv_no'] = $invoice->invoice_no;
 		$this->data['inv_date'] = $invoice->created_at;
 		$this->data['batch'] = "";
 		$this->data['asp'] = $asp;
@@ -309,7 +311,8 @@ class InvoiceController extends Controller {
 				DB::raw('DATE_FORMAT(cases.created_at,"%d-%m-%Y %H:%i:%s") as created_at'),
 				'asps.axpta_code as axpta_code',
 				'asps.workshop_name as workshop_name',
-				DB::raw("(CASE WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0) THEN  Invoices.invoice_no ELSE CONCAT(Invoices.invoice_no,'-',Invoices.id) END) as invoice_no"),
+				'Invoices.invoice_no',
+				// DB::raw("(CASE WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0) THEN  Invoices.invoice_no ELSE CONCAT(Invoices.invoice_no,'-',Invoices.id) END) as invoice_no"),
 				// DB::raw("(CASE WHEN (asps.is_auto_invoice = 1) THEN CONCAT(Invoices.invoice_no,'-',Invoices.id) ELSE Invoices.invoice_no END) as invoice_no"),
 				'Invoices.created_at as created_at',
 				'asps.asp_code as asp_code',

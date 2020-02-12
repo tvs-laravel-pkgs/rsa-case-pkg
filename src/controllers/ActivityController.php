@@ -366,20 +366,21 @@ class ActivityController extends Controller {
 			DB::raw('IF(activities.remarks IS NULL OR activities.remarks="","-",activities.remarks) as remarks'),
 			//'activities.remarks as remarks',
 			'cases.*',
-			DB::raw('CASE
-				    	WHEN (Invoices.invoice_no IS NOT NULL)
-			    		THEN
-			    			CASE
-			    				WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0)
-			   					THEN
-			    					Invoices.invoice_no
-			    				ELSE
-			    					CONCAT(Invoices.invoice_no,"-",Invoices.id)
-			    			END
-			    		ELSE
-			    			"-"
-					END as invoice_no'),
-			//DB::RAW('invoices.invoice_no) as invoice_no',
+			// DB::raw('CASE
+			// 	    	WHEN (Invoices.invoice_no IS NOT NULL)
+			//     		THEN
+			//     			CASE
+			//     				WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0)
+			//    					THEN
+			//     					Invoices.invoice_no
+			//     				ELSE
+			//     					CONCAT(Invoices.invoice_no,"-",Invoices.id)
+			//     			END
+			//     		ELSE
+			//     			"-"
+			// 		END as invoice_no'),
+			'Invoices.invoice_no',
+			// DB::RAW('invoices.invoice_no) as invoice_no',
 			DB::raw('IF(Invoices.invoice_amount IS NULL,"-",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
 			DB::raw('IF((asps.has_gst =1 && asps.is_auto_invoice=0),"NO","Yes") as auto_invoice'),
 			DB::raw('IF(Invoices.invoice_amount IS NULL,"-",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
@@ -1555,7 +1556,8 @@ class ActivityController extends Controller {
 				$activity->activityStatus ? $activity->activityStatus->name : '',
 				$activity->description != NULL ? $activity->description : '',
 				$activity->remarks != NULL ? $activity->remarks : '',
-				$activity->invoice ? ($activity->asp->has_gst == 1 && $activity->asp->is_auto_invoice == 0 ? ($activity->invoice->invoice_no) : ($activity->invoice->invoice_no . '-' . $activity->invoice->id)) : '',
+				// $activity->invoice ? ($activity->asp->has_gst == 1 && $activity->asp->is_auto_invoice == 0 ? ($activity->invoice->invoice_no) : ($activity->invoice->invoice_no . '-' . $activity->invoice->id)) : '',
+				$activity->invoice ? $activity->invoice->invoice_no : '',
 				$activity->invoice ? date('d-m-Y', strtotime($activity->invoice->start_date)) : '',
 				$activity->invoice ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice->invoice_amount, 2))) : '',
 				$activity->invoice ? ($activity->invoice->invoiceStatus ? $activity->invoice->invoiceStatus->name : '') : '',

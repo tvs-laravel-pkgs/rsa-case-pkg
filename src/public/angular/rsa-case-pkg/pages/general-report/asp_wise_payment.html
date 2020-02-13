@@ -1,0 +1,52 @@
+<div class="col-xs-12 col-sm-12">
+    <div class="mobile-breadcrumbs-wrapper">
+        <ul class="mobile-breadcrumbs-group list-inline">
+            <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
+            <li><a href="#!">Report</a></li>
+            <li><a href="#!/rsa-case-pkg/general-report/view">General Report</a></li>
+            <li><a href="#!">ASP Wise Payment Summary</a></li>
+        </ul>
+    </div>
+</div><!-- Column -->
+<div class="container-fluid dataTable-content--wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12">
+            <div class="row">
+                <div class="col-xs-12 col-sm-6">
+                    <div class="dataTable--left_wrapper">
+                        <h2 class="dataTable-title">
+                            ASP Wise Payment Summary
+                            <a href="javascript:void(0)" class="btn-refresh" ng-click="refresh()" data-toggle="tooltip" title="Refresh">
+                                <img class="img-refresh" src="./resources/assets/images/refresh-arrow.svg" alt="Refresh" />
+                            </a>
+                        </h2>
+                        <p>Total - <span class="orange-txt"><span class="count">0</span></span></p>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-6">
+                    <div class="dataTable-top--right_wrapper">
+                        <ul class="dataTable-top--right_group list-inline">
+                            <li><input class="filterTable" type="text" placeholder="Search"></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table id="asp_payment_summary" class="display table dataTable">
+                    <thead>
+                        <tr>
+                            <th>ASP Code</th>
+                            <th>ASP Name</th>
+                            <th>ASP Type</th>
+                            <th>City</th>
+                            <th>State</th>
+                            <th>No of tickets</th>
+                            <th>Amount collected from customer</th>
+                            <th>Amount Paid to ASP</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

@@ -68,5 +68,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 
 	//GENERAL REPORT
 	Route::get('/general-report/get-report', 'ActivityReportController@getGeneralReport')->name('getGeneralReport');
+	Route::get('/general-report/asp-payment-list', 'ActivityReportController@getAspPaymentList')->name('getAspPaymentList');
+	Route::get('/general-report/city-payment-list', 'ActivityReportController@getCityPaymentList')->name('getCityPaymentList');
 
 });

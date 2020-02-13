@@ -837,7 +837,227 @@ class ActivityReportController extends Controller {
 	}
 
 	public function getGeneralReport() {
-		dd('general report');
+
+		$general_report_ticket_count = Activity::select(
+			DB::raw('COUNT(id) as total'),
+			DB::raw('DATE_FORMAT(updated_at,"%b") month'))
+			->whereYear('updated_at', date('Y'))
+			->groupby('month')
+			->pluck('total', 'month')
+			->toArray()
+		;
+
+		//OVERALL AMOUNT PAID IN CURRENT YEAR
+		$general_report_ticket_count_year = Activity::whereYear('updated_at', date('Y'))
+			->where('status_id', 14) //PAID
+			->count('id');
+
+		//TOP ASP LIST
+		$top_ASPs = Activity::select(
+			'asps.workshop_name as workshop_name',
+			'asps.asp_code as asp_code',
+			'states.name as states_name',
+			'districts.name as city_name',
+			'users.image as image',
+			'users.image_type as image_type',
+			DB::raw('SUM(activity_details.value) as total'),
+			DB::raw('COUNT(activities.id) as count')
+		)
+			->join('activity_details', function ($join) {
+				$join->on('activity_details.activity_id', 'activities.id')
+					->where('activity_details.key_id', 182); //BO AMOUNT
+			})
+			->join('asps', 'activities.asp_id', 'asps.id')
+			->join('states', 'asps.state_id', 'states.id')
+			->join('districts', 'asps.district_id', 'districts.id')
+			->join('users', 'asps.user_id', 'users.id')
+			->whereYear('activities.updated_at', date('Y'))
+			->where('activities.status_id', 14) //PAID
+			->groupBy('asps.id')
+			->orderBy('total', 'desc')
+			->take(10)
+			->get()
+			->toArray();
+		// dd($top_ASPs);
+
+		//CITY WISE COUNT
+		$city_wise_list = Activity::select(
+			DB::raw('COUNT(activities.id) as ticket_count'),
+			DB::raw('COUNT(clients.id) as client_count'),
+			'cases.bd_city as city_name'
+		)
+			->join('cases', 'cases.id', 'activities.case_id')
+			->join('clients', 'clients.id', 'cases.client_id')
+			->whereYear('activities.updated_at', date('Y'))
+			->where('activities.status_id', 14) //PAID
+			->groupBy('cases.bd_city')
+			->get()
+			->toArray()
+		;
+
+		// foreach ($city_wise_list as $city) {
+		// 	// dd($city['city_name']);
+		// 	$state_ids = District::where('name', 'LIKE', '%' . $city['city_name'] . '%')
+		// 		->pluck('state_id')
+		// 		->toArray()
+		// 	;
+		// }
+		// dd(array_unique($state_ids));
+
+		// STATE WISE COUNT
+		// $state_wise_list = Activity::select(
+		// 	DB::raw('COUNT(activities.id) as ticket_count'),
+		// 	DB::raw('COUNT(clients.id) as client_count'),
+		// 	'states.name as state_name'
+		// )
+		// 	->join('cases', 'cases.id', 'activities.case_id')
+		// 	->join('clients', 'clients.id', 'cases.client_id')
+		// 	->join('users', 'users.id', 'clients.user_id')
+		// 	->join('state_user', 'state_user.user_id', 'users.id')
+		// 	->join('states', 'states.id', 'state_user.state_id')
+		// 	->whereYear('activities.updated_at', date('Y'))
+		// 	->where('activities.status_id', 14) //PAID
+		// 	->get()
+		// 	->toArray()
+		// ;
+		// dd($state_wise_list);
+
+		$this->data['general'] = [
+			'general_report_ticket_count' => $general_report_ticket_count,
+			'general_report_ticket_count_year' => $general_report_ticket_count_year,
+			'top_ASPs' => $top_ASPs,
+			'city_wise_list' => $city_wise_list,
+			// 'state_wise_list' => $state_wise_list,
+		];
+
+		// dd($state_wise_list);
+
+		return response()->json($this->data);
+	}
+
+	public function getAspPaymentList(Request $request) {
+
+		$ticket = Activity::select(
+			'asps.asp_code',
+			'asps.name as asp_name',
+			'asps.is_self',
+			'asp_collected_amt.value as collected_from_customer',
+			DB::raw('SUM(activity_details.value) as invoice_amount'),
+			DB::raw('COUNT(activities.id) as ticket_count'),
+			'states.name as state_name',
+			'districts.name as city_name'
+		)
+			->join('activity_details', function ($join) {
+				$join->on('activity_details.activity_id', 'activities.id')
+					->where('activity_details.key_id', 182) //BO AMOUNT
+				;
+			})
+			->join('activity_details as asp_collected_amt', function ($join) {
+				$join->on('asp_collected_amt.activity_id', 'activities.id')
+					->where('asp_collected_amt.key_id', 155) //ASP COLLECTED AMOUNT
+				;
+			})
+			->join('asps', 'asps.id', 'activities.asp_id')
+			->join('districts', 'districts.id', 'asps.district_id')
+			->join('states', 'states.id', 'districts.state_id')
+			->whereYear('activities.updated_at', date('Y'))
+			->where('activities.status_id', 14) //PAID
+			->groupBy('asps.id')
+		// ->get()
+		;
+		// dd($ticket);
+
+		return Datatables::of($ticket)
+		// ->setRowAttr([
+		// 	'id' => function ($ticket) {
+		// 	},
+		// ])
+			->addColumn('asp_type', function ($ticket) {
+				return ($ticket->is_self) ? 'Self' : 'Non Self';
+			})
+			->make(true);
+	}
+
+	public function getCityPaymentList() {
+		// dd($request->all());
+		$all_city_wise = Activity::select(
+			DB::raw('SUM(activity_details.value) as amount'),
+			DB::raw('Count(activities.id) as ticket_count'),
+			'cases.bd_city as city_name',
+			'service_types.name as service_name',
+			'service_types.id as service_id',
+			'call_centers.name as call_center_name'
+		)
+			->join('activity_details', function ($join) {
+				$join->on('activity_details.activity_id', 'activities.id')
+					->where('activity_details.key_id', 182); //BO AMOUNT
+			})
+			->join('cases', 'cases.id', 'activities.case_id')
+			->join('call_centers', 'call_centers.id', 'cases.call_center_id')
+			->join('service_types', 'service_types.id', 'activities.service_type_id')
+			->whereYear('activities.updated_at', date('Y'))
+			->where('activities.status_id', 14) //PAID
+		// ->where('cases.bd_city', $request->name)
+			->groupBy('cases.bd_city', 'activities.service_type_id')
+			->orderBy('activity_details.value', 'Desc')
+			->get()
+			->toArray()
+		;
+
+		// dd($all_city_wise);
+
+		$city_wise = [];
+		$overall_city = [];
+		foreach ($all_city_wise as $result) {
+			$overall_city[$result['city_name']] = $result['city_name'];
+			$city_wise[$result['city_name']]['city_name'] = $result['city_name'];
+			// $city_wise[$result['city_name']]['statename'] = $result->state_name;
+			$city_wise[$result['city_name']]['callcenter'] = $result['call_center_name'];
+			$city_wise[$result['city_name']][$result['service_id']]['amount'] = $result['amount'];
+			$city_wise[$result['city_name']][$result['service_id']]['count'] = $result['ticket_count'];
+			$city_wise[$result['city_name']][$result['service_id']]['service_name'] = $result['service_name'];
+		}
+
+		$all_city_wise_total = Activity::select(
+			DB::raw('SUM(activity_details.value) as amount'),
+			DB::raw('COUNT(activities.id) as ticket_count'),
+			'cases.bd_city as city_name'
+		)
+			->join('activity_details', function ($join) {
+				$join->on('activities.id', 'activity_details.activity_id')
+					->where('activity_details.key_id', 182); //BO AMOUNT
+			})
+			->join('cases', 'cases.id', 'activities.case_id')
+			->join('call_centers', 'call_centers.id', 'cases.call_center_id')
+			->whereYear('activities.updated_at', date('Y'))
+			->where('activities.status_id', 14) //PAID
+		// ->where('cases.bd_city', $request->name)
+			->groupBy('cases.bd_city')
+			->orderBy('activity_details.value', 'Desc')
+			->get()
+			->toArray()
+		;
+
+		$city_wise_total = [];
+		foreach ($all_city_wise_total as $result) {
+			$city_wise_total[$result['city_name']]['amount'] = $result['amount'];
+			$city_wise_total[$result['city_name']]['count'] = $result['ticket_count'];
+		}
+		// dd(count($city_wise_total));
+		$services = ServiceType::pluck('name', 'id');
+
+		$this->data['city'] = [
+			'all_city_wise' => $all_city_wise,
+			'city_wise' => $city_wise,
+			'total_count' => count($city_wise),
+			'overall_city' => $overall_city,
+			'all_city_wise_total' => $all_city_wise_total,
+			'city_wise_total' => $city_wise_total,
+			'services' => $services,
+		];
+
+		return response()->json($this->data);
+
 	}
 
 }

@@ -105,6 +105,14 @@ app.config(['$routeProvider', function($routeProvider) {
     when('/rsa-case-pkg/general-report/view', {
         template: '<general-report-view></general-report-view>',
         title: 'General Report',
+    }).
+    when('/rsa-case-pkg/general-report/asp-wise/list', {
+        template: '<general-report-asp></general-report-asp>',
+        title: 'ASP Payment',
+    }).
+    when('/rsa-case-pkg/general-report/city-wise/list/', {
+        template: '<general-report-city></general-report-city>',
+        title: 'City Payment',
     })
 
     ;

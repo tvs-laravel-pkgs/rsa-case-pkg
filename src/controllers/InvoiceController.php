@@ -415,11 +415,12 @@ class InvoiceController extends Controller {
 			return response()->json(['success' => false, 'error' => 'ASP not found']);
 		}
 
-		if ($asp->has_gst && !$asp->is_auto_invoice) {
-			$invoice_no = $invoice->invoice_no;
-		} else {
-			$invoice_no = $invoice->invoice_no . '-' . $invoice->id;
-		}
+		// if ($asp->has_gst && !$asp->is_auto_invoice) {
+		// 	$invoice_no = $invoice->invoice_no;
+		// } else {
+		// 	$invoice_no = $invoice->invoice_no . '-' . $invoice->id;
+		// }
+		$invoice_no = $invoice->invoice_no;
 
 		$storeInvoicePaymentInfo = $this->getSoap->GetPaymentInfoByInvoice($invoice->id, $invoice_no);
 		if (!$storeInvoicePaymentInfo) {

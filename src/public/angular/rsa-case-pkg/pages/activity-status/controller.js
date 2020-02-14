@@ -157,7 +157,7 @@ app.component('activityStatusList', {
             window.mdSelectOnKeyDownOverride = function(event) {
                 event.stopPropagation();
             };
-            $('.filter-content').bind('click', function(event) {
+            $('.filter-content, .modal-dialog, #asp_excel_export').bind('click', function(event) {
                 if ($('.md-select-menu-container').hasClass('md-active')) {
                     $mdSelect.hide();
                 }

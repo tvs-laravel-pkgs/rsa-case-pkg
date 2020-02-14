@@ -366,20 +366,21 @@ class ActivityController extends Controller {
 			DB::raw('IF(activities.remarks IS NULL OR activities.remarks="","-",activities.remarks) as remarks'),
 			//'activities.remarks as remarks',
 			'cases.*',
-			DB::raw('CASE
-				    	WHEN (Invoices.invoice_no IS NOT NULL)
-			    		THEN
-			    			CASE
-			    				WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0)
-			   					THEN
-			    					Invoices.invoice_no
-			    				ELSE
-			    					CONCAT(Invoices.invoice_no,"-",Invoices.id)
-			    			END
-			    		ELSE
-			    			"-"
-					END as invoice_no'),
-			//DB::RAW('invoices.invoice_no) as invoice_no',
+			// DB::raw('CASE
+			// 	    	WHEN (Invoices.invoice_no IS NOT NULL)
+			//     		THEN
+			//     			CASE
+			//     				WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0)
+			//    					THEN
+			//     					Invoices.invoice_no
+			//     				ELSE
+			//     					CONCAT(Invoices.invoice_no,"-",Invoices.id)
+			//     			END
+			//     		ELSE
+			//     			"-"
+			// 		END as invoice_no'),
+			'Invoices.invoice_no',
+			// DB::RAW('invoices.invoice_no) as invoice_no',
 			DB::raw('IF(Invoices.invoice_amount IS NULL,"-",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
 			DB::raw('IF((asps.has_gst =1 && asps.is_auto_invoice=0),"NO","Yes") as auto_invoice'),
 			DB::raw('IF(Invoices.invoice_amount IS NULL,"-",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
@@ -509,6 +510,13 @@ class ActivityController extends Controller {
 				'Waiting for' => $log_waiting,
 			], 361);
 
+			$activity_log = ActivityLog::firstOrNew([
+				'activity_id' => $activity->id,
+			]);
+			$activity_log->bo_approved_at = date('Y-m-d H:i:s');
+			$activity_log->updated_by_id = Auth::id();
+			$activity_log->save();
+
 			//sending confirmation SMS to ASP
 			// $mobile_number = $activity->asp->contact_number1;
 			// $sms_message = 'BO_APPROVED';
@@ -568,6 +576,13 @@ class ActivityController extends Controller {
 					'Waiting for' => $log_waiting,
 				], 361);
 
+				$activity_log = ActivityLog::firstOrNew([
+					'activity_id' => $activity->id,
+				]);
+				$activity_log->bo_approved_at = date('Y-m-d H:i:s');
+				$activity_log->updated_by_id = Auth::id();
+				$activity_log->save();
+
 				$mobile_number = $activity->asp->contact_number1;
 				$sms_message = 'BO_APPROVED';
 				$array = [$activity->case->number];
@@ -611,6 +626,13 @@ class ActivityController extends Controller {
 				'Status' => $log_status,
 				'Waiting for' => $log_waiting,
 			], 361);
+
+			$activity_log = ActivityLog::firstOrNew([
+				'activity_id' => $activity->id,
+			]);
+			$activity_log->bo_deffered_at = date('Y-m-d H:i:s');
+			$activity_log->updated_by_id = Auth::id();
+			$activity_log->save();
 
 			//SMS record
 			$mobile_number = $activity->asp->contact_number1;
@@ -955,6 +977,13 @@ class ActivityController extends Controller {
 				'Status' => $log_status,
 				'Waiting for' => $log_waiting,
 			], 361);
+
+			$activity_log = ActivityLog::firstOrNew([
+				'activity_id' => $activity->id,
+			]);
+			$activity_log->asp_data_filled_at = date('Y-m-d H:i:s');
+			$activity_log->updated_by_id = Auth::id();
+			$activity_log->save();
 
 			//sending confirmation SMS to ASP
 			$mobile_number = $activity->asp->contact_number1;
@@ -1555,7 +1584,8 @@ class ActivityController extends Controller {
 				$activity->activityStatus ? $activity->activityStatus->name : '',
 				$activity->description != NULL ? $activity->description : '',
 				$activity->remarks != NULL ? $activity->remarks : '',
-				$activity->invoice ? ($activity->asp->has_gst == 1 && $activity->asp->is_auto_invoice == 0 ? ($activity->invoice->invoice_no) : ($activity->invoice->invoice_no . '-' . $activity->invoice->id)) : '',
+				// $activity->invoice ? ($activity->asp->has_gst == 1 && $activity->asp->is_auto_invoice == 0 ? ($activity->invoice->invoice_no) : ($activity->invoice->invoice_no . '-' . $activity->invoice->id)) : '',
+				$activity->invoice ? $activity->invoice->invoice_no : '',
 				$activity->invoice ? date('d-m-Y', strtotime($activity->invoice->start_date)) : '',
 				$activity->invoice ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice->invoice_amount, 2))) : '',
 				$activity->invoice ? ($activity->invoice->invoiceStatus ? $activity->invoice->invoiceStatus->name : '') : '',

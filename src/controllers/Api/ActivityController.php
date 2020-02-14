@@ -5,6 +5,7 @@ use Abs\RsaCasePkg\Activity;
 use Abs\RsaCasePkg\ActivityAspStatus;
 use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
+use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
 use Abs\RsaCasePkg\AspPoRejectedReason;
@@ -374,6 +375,17 @@ class ActivityController extends Controller {
 				'Status' => 'Imported through API',
 				'Waiting for' => 'ASP Data Entry',
 			], 361);
+
+			$activity_log = ActivityLog::firstOrNew([
+				'activity_id' => $activity->id,
+			]);
+			$activity_log->imported_at = date('Y-m-d H:i:s');
+			$activity_log->asp_data_filled_at = date('Y-m-d H:i:s');
+			if ($request->asp_accepted_cc_details) {
+				$activity_log->bo_approved_at = date('Y-m-d H:i:s');
+			}
+			$activity_log->created_by_id = 72;
+			$activity_log->save();
 
 			DB::commit();
 			return response()->json([

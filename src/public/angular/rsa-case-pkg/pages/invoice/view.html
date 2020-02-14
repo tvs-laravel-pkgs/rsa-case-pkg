@@ -261,7 +261,7 @@
                     System Invoice
                     <a href="{{$ctrl.invoice_pdf_generate_url}}/{{$ctrl.invoice.id}}" class="approve-btn pull-left preview-batch">Download</a>
                 </div> -->
-                <div ng-if="$ctrl.canViewPaymentInfo" class="">
+                <div ng-if="$ctrl.canViewPaymentInfo && $ctrl.type_id != 1">
                     <div class="viewData-wrapper" style="padding-top: 30px;">
                         <div class="viewData-toggle--wrapper">
                             <label class="title-label" style="margin: 0; margin-right: 25px; display: inline-block; vertical-align: middle;">Payment Details</label>

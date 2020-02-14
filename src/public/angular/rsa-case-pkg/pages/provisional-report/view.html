@@ -48,7 +48,7 @@
                                         </div>
                                         <div class="col-xs-12 col-sm-6">
                                             <div class="provisionalReport--right">
-                                                <h2><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.before_bo_validation_invoice_amount | number:2}}</h2>
+                                                <h2><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.report.before_bo_validation_invoice_amount | number:2}}</h2>
                                                 <p>Actual ASP Cost</p>
                                             </div>
                                         </div>
@@ -79,7 +79,7 @@
                                                 </tr>
                                                 <tr>
                                                     <td><input type="text" value="Grand Invoice Total before validation of BO" placeholder="Enter Text" readonly=""></td>
-                                                    <td><i class="fa fa-inr rupeeSym" aria-hidden="true"></i><input type="text" name="" value="{{$ctrl.before_bo_validation_invoice_amount|number:2}}" placeholder="Enter Text" readonly=""></td>
+                                                    <td><i class="fa fa-inr rupeeSym" aria-hidden="true"></i><input type="text" name="" value="{{$ctrl.report.before_bo_validation_invoice_amount|number:2}}" placeholder="Enter Text" readonly=""></td>
                                                 </tr>
                                             </tbody>
                                             <tfoot>
@@ -107,7 +107,7 @@
                                         </div>
                                         <div class="col-xs-12 col-sm-6">
                                             <div class="provisionalReport--right">
-                                                <h2><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.before_bo_validation_invoice_amount|number:2}}</h2>
+                                                <h2><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.summary.before_bo_validation_invoice_amount|number:2}}</h2>
                                                 <p>Actual ASP Cost</p>
                                             </div>
                                         </div>

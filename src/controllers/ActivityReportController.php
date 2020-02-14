@@ -401,7 +401,7 @@ class ActivityReportController extends Controller {
 		$date2 = strtr(trim($date_from_to[1]), '/', '-');
 		$date_to = date('Y-m-d', strtotime($date2));
 
-		$this->data['before_bo_validation_invoice_amount'] = Activity::join('asps', 'asps.id', 'activities.asp_id')
+		$before_bo_validation_invoice_amount = Activity::join('asps', 'asps.id', 'activities.asp_id')
 			->join('activity_details', function ($join) {
 				$join->on('activity_details.activity_id', 'activities.id')
 					->where('activity_details.key_id', 180); //CC AMOUNT
@@ -455,6 +455,7 @@ class ActivityReportController extends Controller {
 				'date_from' => trim($date_from_to[0]),
 				'date_to' => trim($date_from_to[1]),
 				'before_bo_validation_ticket_count' => $before_bo_validation_ticket_count,
+				'before_bo_validation_invoice_amount' => $before_bo_validation_invoice_amount,
 				'before_bo_validation_net_amount' => $before_bo_validation_net_amount,
 				'before_bo_validation_tax' => $before_bo_validation_tax ? $before_bo_validation_tax : 0,
 			];
@@ -517,6 +518,7 @@ class ActivityReportController extends Controller {
 				'date_from' => trim($date_from_to[0]),
 				'date_to' => trim($date_from_to[1]),
 				'report_summary' => $report_summary,
+				'before_bo_validation_invoice_amount' => $before_bo_validation_invoice_amount,
 				'report_summary_total_amount' => $report_summary_total_amount,
 				'count_of_tickets' => $count_of_tickets,
 			];

@@ -1044,16 +1044,12 @@ class ActivityReportController extends Controller {
 			$city_wise_total[$result['city_name']]['count'] = $result['ticket_count'];
 		}
 		// dd(count($city_wise_total));
-		$services = ServiceType::pluck('name', 'id');
+		// $services = ServiceType::pluck('name', 'id');
 
 		$this->data['city'] = [
-			'all_city_wise' => $all_city_wise,
 			'city_wise' => $city_wise,
 			'total_count' => count($city_wise),
-			'overall_city' => $overall_city,
-			'all_city_wise_total' => $all_city_wise_total,
 			'city_wise_total' => $city_wise_total,
-			'services' => $services,
 		];
 
 		return response()->json($this->data);

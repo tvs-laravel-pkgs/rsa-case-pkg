@@ -879,7 +879,8 @@ class ActivityReportController extends Controller {
 			->orderBy('total', 'desc')
 			->take(10)
 			->get()
-			->toArray();
+			->toArray()
+		;
 		// dd($top_ASPs);
 
 		//CITY WISE COUNT
@@ -1040,6 +1041,20 @@ class ActivityReportController extends Controller {
 			->toArray()
 		;
 
+		$total_paid_ticket_count = Activity::whereYear('activities.updated_at', date('Y'))
+			->where('activities.status_id', 14) //PAID
+			->count()
+		;
+		$total_paid_ticket_amount = Activity::join('activity_details', function ($join) {
+			$join->on('activities.id', 'activity_details.activity_id')
+				->where('activity_details.key_id', 182); //BO AMOUNT
+		})
+			->whereYear('activities.updated_at', date('Y'))
+			->where('activities.status_id', 14) //PAID
+			->sum('activity_details.value')
+		;
+		// dd($total_paind_ticket_amount);
+
 		$city_wise_total = [];
 		foreach ($all_city_wise_total as $result) {
 			$city_wise_total[$result['city_name']]['amount'] = $result['amount'];
@@ -1050,7 +1065,8 @@ class ActivityReportController extends Controller {
 
 		$this->data['city'] = [
 			'city_wise' => $city_wise,
-			'total_count' => count($city_wise),
+			'total_count' => $total_paid_ticket_count,
+			'total_amount' => $total_paid_ticket_amount,
 			'city_wise_total' => $city_wise_total,
 		];
 

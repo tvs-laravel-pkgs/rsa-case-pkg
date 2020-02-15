@@ -103,36 +103,36 @@
                 <!-- Swiper -->
                 <div class="swiper-container">
                     <div class="swiper-wrapper">
-                        <div class="swiper-slide" ng-repeat="(key, topASPs) in $ctrl.general.top_ASPs">
+                        <div class="swiper-slide" ng-repeat="(key, topASP) in $ctrl.general.top_ASPs">
                             <div class="user-card">
                                 <div class="title-wrap">
                                     <div class="title-inner">
-                                        <h4>{{topASPs.workshop_name}}</h4>
-                                        <h5 class="user-code">ASP CODE : {{topASPs.asp_code}}</h5>
+                                        <h4>{{topASP.workshop_name}}</h4>
+                                        <h5 class="user-code">ASP CODE : {{topASP.asp_code}}</h5>
                                     </div>
-                                    <span ng-show="topASPs.image !=NULL">
-                                        <img class="img-responsive" src="data:image/{{topASPs.image_type}};base64,{{topASPs.image}}" />
+                                    <span ng-show="topASP.image !=NULL">
+                                        <img class="img-responsive" src="data:image/{{topASP.image_type}};base64,{{topASP.image}}" />
                                     </span>
-                                    <span ng-show="topASPs.image ==NULL">
+                                    <span ng-show="topASP.image ==NULL">
                                         <img class="img-responsive" src="resources/assets/images/icon-profile.png" />
                                     </span>
                                 </div>
                                 <ul class="location-wrap">
                                     <li><label>State : </label>
-                                        <span>{{topASPs.states_name}}</span></li>
+                                        <span>{{topASP.states_name}}</span></li>
                                     <li><label>City : </label>
-                                        <span> {{topASPs.city_name}}</span></li>
+                                        <span> {{topASP.city_name}}</span></li>
                                 </ul>
                                 <ul class="amount-wrap">
                                     <li>Amount</li>
-                                    <li><label>₹ {{topASPs.total | number:2}}</label></li>
+                                    <li><label>₹ {{topASP.total | number:2}}</label></li>
                                 </ul>
                                 <ul class="ticket-wrap">
                                     <li>
                                         <label>No. of Tickets</label>
                                     </li>
                                     <li>
-                                        <span> {{topASPs.count}}</span>
+                                        <span> {{topASP.count}}</span>
                                     </li>
                                 </ul>
                             </div><!-- User card -->

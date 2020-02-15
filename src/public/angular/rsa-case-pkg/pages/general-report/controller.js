@@ -76,6 +76,48 @@ app.component('generalReportView', {
             });
             /* ------- Chart Main ------------*/
 
+            /* ---------- Swipper ---------- */
+            setTimeout(function() {
+                var swiper = new Swiper('.swiper-container', {
+                    slidesPerView: 4,
+                    spaceBetween: 10,
+                    freeMode: true,
+                    navigation: {
+                        nextEl: '.swiper-button-next',
+                        prevEl: '.swiper-button-prev',
+                    },
+                    breakpoints: {
+                        1024: {
+                            slidesPerView: 3,
+                            spaceBetween: 20,
+                        },
+                        768: {
+                            slidesPerView: 2,
+                            spaceBetween: 30,
+                        },
+                        640: {
+                            slidesPerView: 1,
+                            spaceBetween: 15,
+                        },
+                        320: {
+                            slidesPerView: 1,
+                            spaceBetween: 10,
+                        }
+                    }
+                });
+
+                /* Custom Scroller */
+                (function($) {
+                    $(window).on("load", function() {
+                        $("#content-1").mCustomScrollbar({
+                            theme: "minimal-dark",
+                            mouseWheelPixels: 50
+                        });
+                    });
+                })(jQuery);
+            }, 500);
+            /* ---------- Swipper ---------- */
+
             $rootScope.loading = false;
         });
     }

@@ -33,13 +33,13 @@ app.component('reconciliationReportView', {
             });
             for (var i in months) {
                 var month = months[i];
-                console.log(month);
+                // console.log(month);
                 if (typeof(amounts1[month]) == 'undefined') {
                     amounts1[i] = 0;
                 } else {
                     amounts1[i] = amounts1[month];
                 }
-                console.log(amounts1);
+                // console.log(amounts1);
                 if (typeof(amounts2[month]) == 'undefined') {
                     amounts2[i] = 0;
                 } else {
@@ -102,13 +102,13 @@ app.component('reconciliationReportView', {
             });
             for (var i in months) {
                 var month = months[i];
-                console.log(month);
+                // console.log(month);
                 if (typeof(counts1[month]) == 'undefined') {
                     counts1[i] = 0;
                 } else {
                     counts1[i] = counts1[month];
                 }
-                console.log(counts1);
+                // console.log(counts1);
                 if (typeof(counts2[month]) == 'undefined') {
                     counts2[i] = 0;
                 } else {

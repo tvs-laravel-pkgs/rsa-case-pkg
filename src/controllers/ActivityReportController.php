@@ -451,7 +451,7 @@ class ActivityReportController extends Controller {
 			;
 
 			$this->data['report'] = [
-				'date' => date('m Y'),
+				'date' => date('M Y'),
 				'date_from' => trim($date_from_to[0]),
 				'date_to' => trim($date_from_to[1]),
 				'before_bo_validation_ticket_count' => $before_bo_validation_ticket_count,
@@ -514,7 +514,7 @@ class ActivityReportController extends Controller {
 			;
 
 			$this->data['summary'] = [
-				'date' => date('m Y'),
+				'date' => date('M Y'),
 				'date_from' => trim($date_from_to[0]),
 				'date_to' => trim($date_from_to[1]),
 				'report_summary' => $report_summary,
@@ -524,7 +524,7 @@ class ActivityReportController extends Controller {
 			];
 		}
 		$this->data['services_type_list'] = ServiceType::select('id', 'name')->orderBy('name')->get();
-		$this->data['check_new_update'] = 1;
+		$this->data['check_new_update'] = 0;
 
 		return response()->json($this->data);
 	}

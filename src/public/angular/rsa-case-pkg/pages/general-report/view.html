@@ -68,14 +68,15 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <!-- @foreach($state_wise_list as $key=>$value)
-                                                <tr>
-                                                    <?php $state_name_as_id = str_replace(' ', '_', $value->state_name);?>
-                                                    <td><a href="{{route('general_report_all_state_wise')}}#{{$state_name_as_id}}">{{$value->state_name}}</a></td>
-                                                    <td>{{$value->client_count}}</td>
-                                                    <td>{{$value->ticket_count}}</td>
+                                                <tr ng-repeat="(key, state) in $ctrl.general.state_wise_list">
+                                                    <td>
+                                                        <a href="#!/rsa-case-pkg/general-report/state-wise/list">
+                                                            {{state.state_name}}
+                                                        </a>
+                                                    </td>
+                                                    <td>{{state.client_count}}</td>
+                                                    <td>{{state.ticket_count}}</td>
                                                 </tr>
-                                                @endforeach -->
                                             </tbody>
                                         </table>
                                     </div><!-- Responsive -->

@@ -15,7 +15,7 @@ app.config(['$routeProvider', function($routeProvider) {
         title: 'Edit RsaCase',
     }).
     //DASHBOARD
-     when('/rsa-case-pkg/dashboard', {
+    when('/rsa-case-pkg/dashboard', {
         template: '<dashboard></dashboard>',
         title: 'Dashboard',
     }).
@@ -117,6 +117,10 @@ app.config(['$routeProvider', function($routeProvider) {
     when('/rsa-case-pkg/general-report/city-wise/list/', {
         template: '<general-report-city></general-report-city>',
         title: 'City Payment',
+    }).
+    when('/rsa-case-pkg/general-report/state-wise/list/', {
+        template: '<general-report-state></general-report-state>',
+        title: 'State Payment',
     })
 
     ;

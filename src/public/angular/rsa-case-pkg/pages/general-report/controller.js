@@ -209,3 +209,27 @@ app.component('generalReportCity', {
         });
     }
 });
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+app.component('generalReportState', {
+    templateUrl: general_report_state_wise_template_url,
+    controller: function($http, $window, HelperService, $scope, $rootScope, $mdSelect, $routeParams) {
+        $scope.loading = true;
+        var self = this;
+        self.hasPermission = HelperService.hasPermission;
+        self.csrf = token;
+        $http.get(
+            laravel_routes['getStatePaymentList']
+            // , {
+            //     params: {
+            //         name: $routeParams.state_name,
+            //     }
+            // }
+        ).then(function(response) {
+            // console.log(response.data.state);
+            self.state = response.data.state;
+
+            $rootScope.loading = false;
+        });
+    }
+});

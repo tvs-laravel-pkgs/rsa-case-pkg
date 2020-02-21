@@ -1619,7 +1619,6 @@ class ActivityController extends Controller {
 		//dd($activity_details_header,$activity_details_data);
 		Excel::create('Activity Status Report', function ($excel) use ($summary, $activity_details_header, $activity_details_data, $status_ids, $summary_period) {
 			$excel->sheet('Summary', function ($sheet) use ($summary, $status_ids, $summary_period) {
-				//dd($summary);
 				$sheet->fromArray($summary, NULL, 'A1');
 				$sheet->row(1, $summary_period);
 

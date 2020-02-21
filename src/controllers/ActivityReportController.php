@@ -537,6 +537,8 @@ class ActivityReportController extends Controller {
 			ini_set('max_execution_time', 0);
 			ini_set('display_errors', 1);
 			ini_set("memory_limit", "10000M");
+			ob_end_clean();
+			ob_start();
 
 			$date = explode("-", $request->period);
 			$range1 = date("Y-m-d", strtotime(str_replace('/', '-', $date[0])));
@@ -624,7 +626,7 @@ class ActivityReportController extends Controller {
 			$selected_statuses = $request->services_type_id;
 			// dd($selected_statuses);
 
-			Excel::create('ticket_provisional_report', function ($excel) use ($total_count, $request, $range1, $range2, $activity_infos, $count_splitup, $total_activity_net_amount, $total_activity_tax, $total_activity_invoice_amount) {
+			Excel::create('Ticket_Provisional_Report', function ($excel) use ($total_count, $request, $range1, $range2, $activity_infos, $count_splitup, $total_activity_net_amount, $total_activity_tax, $total_activity_invoice_amount) {
 
 				$excel->sheet('Summary', function ($sheet) use ($total_count, $request, $range1, $range2, $count_splitup, $total_activity_net_amount, $total_activity_tax, $total_activity_invoice_amount) {
 					$summary = [['Period', date('d/M/Y', strtotime($range1)) . ' to ' . date('d/M/Y', strtotime($range2))], ['Services', 'Count']];
@@ -690,17 +692,20 @@ class ActivityReportController extends Controller {
 						))->setBackground('#F3F3F3');
 					});
 				});
-//setAutoHeadingGeneration
+				//setAutoHeadingGeneration
 
-				$excel->sheet('Ticket Informations', function ($sheet) use ($request, $range1, $range2, $activity_infos) {
+				$excel->sheet('Ticket_Informations', function ($sheet) use ($request, $range1, $range2, $activity_infos) {
 
 					$tickets = $activity_infos
 						->select(
 							'asps.asp_code',
 							'asps.axpta_code',
 							'asps.workshop_name',
+							// 'asps.asp_status_id',
+							'cases.km_during_breakdown',
 							'asps.name',
 							'asps.workshop_type',
+							'asps.location_type',
 							'service_types.name as mis_service_type',
 							'call_centers.name as call_centers_name',
 							'locations.name as location',
@@ -712,13 +717,6 @@ class ActivityReportController extends Controller {
 							'Invoices.invoice_no as invoice_no',
 							DB::raw('DATE_FORMAT(Invoices.created_at,"%d/%m/%Y") as invoice_date'),
 							'activity_portal_statuses.name as flow_current_status',
-							'cc_km.value as mis_km',
-							DB::raw('cc_km_charges.value as mis_km_charge'),
-							DB::raw('not_collected.value as mis_not_collect'),
-							DB::raw('collected.value as mis_collect'),
-							DB::raw('net_amount.value as mis_paid_amount'),
-							DB::raw('tax_amount.value as mis_tax'),
-							DB::raw('invoice_amount.value as mis_invoice_amount'),
 							'activities.*'
 							// DB::raw('IF(mis_informations.claim_status=0,"NEW","DEFERED") as claim_status')
 						)
@@ -727,33 +725,6 @@ class ActivityReportController extends Controller {
 
 						->join('clients', 'clients.id', 'cases.client_id')
 						->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
-						->leftJoin('activity_details as cc_km', function ($join) {
-							$join->on('cc_km.activity_id', 'activities.id')
-								->where('cc_km.key_id', 280); //CC TOTAL KM
-						})
-						->join('activity_details as cc_km_charges', function ($join) {
-							$join->on('cc_km_charges.activity_id', 'activities.id')
-								->where('cc_km_charges.key_id', 150); //CC TOTAL KM CHARGES
-						})
-						->join('activity_details as not_collected', function ($join) {
-							$join->on('not_collected.activity_id', 'activities.id')
-								->where('not_collected.key_id', 282); //CC NOT COLLECTED AMOUNT
-						})
-						->join('activity_details as collected', function ($join) {
-							$join->on('collected.activity_id', 'activities.id')
-								->where('collected.key_id', 281); //CC COLLECTED AMOUNT
-						})
-						->join('activity_details as tax_amount', function ($join) {
-							$join->on('tax_amount.activity_id', 'activities.id')
-								->where('tax_amount.key_id', 174); //CC NET AMOUNT
-						})
-						->join('activity_details as invoice_amount', function ($join) {
-							$join->on('invoice_amount.activity_id', 'activities.id')
-								->where('invoice_amount.key_id', 182); //BO AMOUNT
-						})
-						// ->leftJoin('service_types as asp_services', 'asp_services.id', 'mis_informations.asp_service_type_id')
-
-						// ->leftJoin('service_types as bo_services', 'bo_services.id', 'mis_informations.bo_service_type_id')
 						->join('locations', 'asps.location_id', 'locations.id')
 						->leftJoin('Invoices', 'Invoices.id', 'activities.invoice_id')
 						->join('districts', 'districts.id', 'asps.district_id')
@@ -762,29 +733,50 @@ class ActivityReportController extends Controller {
 						->orderBy('asps.asp_code')
 						->orderBy('cases.date')
 						->get()
-						->toArray()
+						// ->toArray()
 					;
-					dump($tickets);
 
 					foreach ($tickets as $ticket) {
-						dump("test" . $ticket['asp_status_id'], $ticket['location_type'], $ticket['workshop_type']);
-						dd();
-						// dd($ticket);
-						$asp_status = config('rsa.asp_statuses_label')[$ticket['asp_status_id']];
-						$location_type = config('constants.asp_filter_types_label')[$ticket['location_type']];
-						$workshop_type = config('constants.workshop_types_label')[$ticket['workshop_type']];
-						dd($asp_status, $location_type, $workshop_type);
-						$created_at = $ticket['created_at'];
-						$updated_at = $ticket['updated_at'];
-						$collection = collect($ticket);
-						$collection->forget(['invoice_id', 'asp_id', 'service_type_id', 'asp_service_type_id', 'bo_service_type_id', 'asp_status_id', 'call_center_id', 'client_id', 'updated_by', 'mis_net_amount', 'workshop_type', 'total_km', 'paid_amount_by_customer', 'unpaid_amount', 'created_at', 'updated_at']);
+						$mis_km = $ticket->detail(280) ? $ticket->detail(280) : NULL; //CC TOTAL KM
+						$non_member_charges = $ticket->detail(303) ? $ticket->detail(303) : NULL; //MEMBERSHIP CHARGES
+						$service_charges = $ticket->detail(302) ? $ticket->detail(302) : NULL; //SERVICE CHARGES
+						$bo_net_amount = $ticket->detail(176) ? $ticket->detail(176) : NULL; //BO NET AMOUNT
+						$deduction = $ticket->detail(173) ? $ticket->detail(173) : NULL; //DETECTION
+						$mis_km_charge = $ticket->detail(150) ? $ticket->detail(150) : NULL; //CC TOTAL KM CHARGES
+						$mis_not_collect = $ticket->detail(282) ? $ticket->detail(282) : NULL; //CC NOT COLLECTED AMOUNT
+						$mis_collect = $ticket->detail(281) ? $ticket->detail(281) : NULL; //CC COLLECTED AMOUNT
+						$mis_paid_amount = $ticket->detail(174) ? $ticket->detail(174) : NULL; //CC NET AMOUNT
+						$mis_tax = $ticket->detail(177) ? $ticket->detail(177) : NULL; //CC TAX AMOUNT
 
-						$mis_km_charge = ($ticket['workshop_type'] == 1) ? 0 : (float) $ticket['mis_km_charge'];
-						$mis_not_collect = ($ticket['workshop_type'] == 1) ? 0 : (float) $ticket['mis_not_collect'];
-						$mis_collect = ($ticket['workshop_type'] == 1) ? 0 : (float) $ticket['mis_collect'];
-						$mis_paid_amount = ($ticket['workshop_type'] == 1) ? 0 : (float) $ticket['mis_paid_amount'];
-						$mis_tax = ($ticket['workshop_type'] == 1) ? 0 : (float) $ticket['mis_tax'];
-						$mis_invoice_amount = ($ticket['workshop_type'] == 1) ? 0 : (float) $ticket['mis_invoice_amount'];
+						$mis_invoice_amount = $ticket->detail(182) ? $ticket->detail(182) : NULL; //BO AMOUNT
+						$payout_amount = $ticket->detail(340) ? $ticket->detail(340) : NULL; //NORMAL PAYOUT
+						$onward_google_km = $ticket->detail(286) ? $ticket->detail(286) : NULL; //onward_google_km
+						$dealer_google_km = $ticket->detail(287) ? $ticket->detail(287) : NULL; //dealer_google_km
+						$return_google_km = $ticket->detail(288) ? $ticket->detail(288) : NULL; //return_google_km
+						$asp_collected_charges = $ticket->detail(155) ? $ticket->detail(155) : NULL; //ASP COLLECTED AMOUNT
+						$bo_collected_charges = $ticket->detail(159) ? $ticket->detail(159) : NULL; //BO COLLECTED AMOUNT
+						$bo_km = $ticket->detail(158) ? $ticket->detail(158) : NULL; //BO KM TRAVELLED
+						$asp_km = $ticket->detail(154) ? $ticket->detail(154) : NULL; //ASP KM TRAVELLED
+
+						// $asp_status = config('rsa.asp_statuses_label')[$ticket['asp_status_id']];
+						$asp_status = DB::table('activity_finance_statuses')->select('name')->where('id', $ticket['status_id'])->first();
+						$location_type = config('constants.asp_filter_types_label')[$ticket->location_type];
+						$workshop_type = config('constants.workshop_types_label')[$ticket->workshop_type];
+						// dd($asp_status->name, $location_type, $workshop_type);
+
+						$created_at = $ticket->created_at;
+						$updated_at = $ticket->updated_at;
+						$collection = collect($ticket);
+
+						$collection->forget(['created_at', 'updated_at']);
+
+						$mis_km_charge = ($ticket->workshop_type == 1) ? 0 : (float) $mis_km_charge->value;
+						$mis_not_collect = ($ticket->workshop_type == 1) ? 0 : (float) $mis_not_collect->value;
+						$mis_collect = ($ticket->workshop_type == 1) ? 0 : (float) $mis_collect->value;
+						$mis_paid_amount = ($ticket->workshop_type == 1) ? 0 : (float) $mis_paid_amount->value;
+						$mis_tax = ($ticket->workshop_type == 1) ? 0 : !empty($mis_tax) ? (float) $mis_tax : 0;
+						$mis_invoice_amount = ($ticket->workshop_type == 1) ? 0 : (float) $mis_invoice_amount->value;
+
 						$collection->put('mis_km_charge', $mis_km_charge);
 						$collection->put('mis_not_collect', $mis_not_collect);
 						$collection->put('mis_collect', $mis_collect);
@@ -792,36 +784,37 @@ class ActivityReportController extends Controller {
 						$collection->put('mis_tax', $mis_tax);
 						$collection->put('mis_invoice_amount', $mis_invoice_amount);
 
-						$collection->put('km_during_breakdown', (int) $ticket['km_during_breakdown']);
-						$collection->put('excess_km_charges', (float) $ticket['excess_km_charges']);
-						$collection->put('non_member_charges', (float) $ticket['non_member_charges']);
-						$collection->put('service_charges', (float) $ticket['service_charges']);
-						$collection->put('bo_net_amount', (float) $ticket['bo_net_amount']);
+						$collection->put('km_during_breakdown', $ticket->km_during_breakdown ? (int) $ticket->km_during_breakdown : 0);
+						// $collection->put('excess_km_charges', (float) $ticket['excess_km_charges']);
+						$collection->put('non_member_charges', !empty($non_member_charges) ? (float) $non_member_charges->value : 0);
 
-						$collection->put('deduction', (float) $ticket['deduction']);
-						$collection->put('tax', (float) $ticket['tax']);
-						$collection->put('payout_amount', (float) $ticket['payout_amount']);
-						$collection->put('bo_invoice_amount', (float) $ticket['bo_invoice_amount']);
-						$collection->put('onward_google_km', (float) $ticket['onward_google_km']);
-						$collection->put('dealer_google_km', (float) $ticket['dealer_google_km']);
+						$collection->put('service_charges', !empty($service_charges) ? (float) $service_charges->value : 0);
 
-						$collection->put('return_google_km', (float) $ticket['return_google_km']);
-						$collection->put('excess_km', (float) $ticket['excess_km']);
-						$collection->put('asp_collected_charges', (float) $ticket['asp_collected_charges']);
-						$collection->put('bo_collected_charges', (float) $ticket['bo_collected_charges']);
-						$collection->put('bo_other_charges', (float) $ticket['bo_other_charges']);
-						$collection->put('bo_km', (float) $ticket['bo_km']);
-						$collection->put('asp_other_charges', (float) $ticket['asp_other_charges']);
-						$collection->put('asp_km', (float) $ticket['asp_km']);
+						$collection->put('bo_net_amount', !empty($bo_net_amount) ? (float) $bo_net_amount->value : 0);
+						$collection->put('deduction', !empty($deduction) ? (float) $deduction->value : 0);
+						$collection->put('tax', (float) $mis_tax);
+						$collection->put('payout_amount', !empty($payout_amount) ? (float) $payout_amount : 0);
+						$collection->put('bo_invoice_amount', !empty($mis_invoice_amount) ? (float) $mis_invoice_amount : 0);
+						$collection->put('onward_google_km', !empty($onward_google_km) ? (float) $onward_google_km->value : 0);
+						$collection->put('dealer_google_km', !empty($dealer_google_km) ? (float) $onward_google_km->value : 0);
 
-						$collection->put('asp_status', $asp_status);
+						$collection->put('return_google_km', $return_google_km ? (float) $return_google_km->value : 0);
+						// $collection->put('excess_km', (float) $ticket['excess_km']);
+						$collection->put('asp_collected_charges', !empty($asp_collected_charges) ? (float) $asp_collected_charges->value : 0);
+						$collection->put('bo_collected_charges', !empty($bo_collected_charges) ? (float) $bo_collected_charges->value : 0);
+						// $collection->put('bo_other_charges', (float) $ticket['bo_other_charges']);
+						$collection->put('bo_km', !empty($bo_km) ? (float) $bo_km->value : 0);
+						// $collection->put('asp_other_charges', (float) $ticket['asp_other_charges']);
+						$collection->put('asp_km', !empty($asp_km) ? (float) $asp_km->value : 0);
+
+						$collection->put('asp_status', $asp_status->name);
 						$collection->put('location_type', $location_type);
 						$collection->put('workshop_type', $workshop_type);
 						$collection->put('created_at', $created_at);
 						$collection->put('updated_at', $updated_at);
 						$result[] = $collection->toArray();
 					}
-
+					// dd($result);
 					$sheet->fromArray($result);
 
 					$sheet->cells('A1:CT1', function ($cells) {
@@ -831,7 +824,6 @@ class ActivityReportController extends Controller {
 						))->setBackground('#CCC9C9');
 					});
 				});
-
 			})->download('xls');
 
 		} catch (\Exception $e) {

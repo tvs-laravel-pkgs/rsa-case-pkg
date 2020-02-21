@@ -691,6 +691,10 @@ class ActivityReportController extends Controller {
 					'vehicle_makes.name as vehicle_makes',
 					'cases.vehicle_registration_number',
 					'cases.vin_no',
+					'cases.membership_type',
+					'cases.bd_lat',
+					'cases.bd_long',
+					'cases.bd_location',
 					'activities.*'
 
 					// $ticket->asp->has_gst ? 'Yes' : 'No';
@@ -700,6 +704,7 @@ class ActivityReportController extends Controller {
 				)
 				->join('service_types', 'service_types.id', 'activities.service_type_id')
 				->join('call_centers', 'call_centers.id', 'cases.call_center_id')
+				->join('subjects', 'subjects.id', 'cases.subject_id')
 
 				->join('clients', 'clients.id', 'cases.client_id')
 				->join('vehicle_models', 'vehicle_models.id', 'cases.vehicle_model_id')

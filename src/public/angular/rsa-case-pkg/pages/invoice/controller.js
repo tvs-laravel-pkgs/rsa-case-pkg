@@ -232,6 +232,7 @@ app.component('invoiceView', {
             self.invoice_availability = response.data.invoice_availability;
             self.invoice_vouchers_amount = response.data.invoice_vouchers_amount;
             self.invoice_vouchers = response.data.invoice_vouchers;
+            self.new_company_address = response.data.new_company_address;
 
             if (self.asp.tax_calculation_method == '1') {
                 self.asp.tax_calculation_method = true;

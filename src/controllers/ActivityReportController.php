@@ -695,6 +695,7 @@ class ActivityReportController extends Controller {
 					'cases.bd_lat',
 					'cases.bd_long',
 					'cases.bd_location',
+					'subjects.name as service_type',
 					'activities.*'
 
 					// $ticket->asp->has_gst ? 'Yes' : 'No';

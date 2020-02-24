@@ -1,0 +1,56 @@
+<h3 class="mb-20">Approved Value Calculation</h3>
+<div class="table-responsive">
+<table class="table table-bordered table-wide style-normal table-label-hide">
+	<thead>
+		<tr>
+			<th>Description</th>
+			<th style="text-align: right;">Amount in INR</th>
+		</tr>
+	</thead>
+	<tbody>
+		<!-- <?php $index = 0?>
+        @foreach($infos as $service_id => $service_infos)
+        	<?php $service = App\ServiceType::findOrFail($service_id);?>
+        	@foreach($service_infos as $asp_status_id => $info )
+		
+			@endforeach
+		@endforeach -->
+		<tr class="warning">
+			<td>Net Amount</td>
+			<td>
+				<div class="net_amount_text">{{$ctrl.data.payout)}}</div>
+				<!-- {{ Form::text('net_amount','0.00',['class'=>'form-control hide_temp net_amount', 'readonly' => 'readonly', 'id' => 'net_amount'])}} -->
+			</td>
+		</tr>
+		<!-- @if($mis_info->has_gst) -->
+		<!-- @foreach($taxes as $tax)
+		<tr class="active">
+			<td>{{$tax->tax_name}} ({{$tax->tax_rate}}%)</td>
+			<td>
+				<div class="tax_text">0.00</div>
+				{{ Form::text('mis_info[taxes][]','0.00',['class'=>'form-control hide_temp tax', 'readonly' => 'readonly'])}}
+			</td>
+		</tr>
+		@endforeach
+		@endif -->
+	</tbody>
+</table>
+</div>
+<div class="table-data-footer">
+	<div class="col-md-6">
+		<h4 class="title">APPROVED VALUE</h4>
+	</div>
+	<div class="col-md-6 text-right">
+		<h4 class="price invoice_amount_text"><i class="fa fa-inr fa-2x"></i>$0.00</h4>
+		{{ Form::hidden('invoice_amount','0.00',['class'=>'form-control hide_temp invoice_amount', 'readonly' => 'readonly', 'id' => 'invoice_amount'])}}
+		<ul class="inline-btns">
+			<li><a href="javascript:;" id="reject-ticket" class="differed-btn btn btn-primary blue">DEFER</a></li>
+			<!-- <li><a href="javascript:;" id="defer-ticket" class="differed-btn btn btn-primary blue">DEFER</a></li> -->
+			@if(empty($approved_view))
+
+			<li><button type="submit" class="differed-btn btn btn-primary blue">APPROVE</button></li>
+
+			@endif
+		</ul>
+	</div>
+</div>

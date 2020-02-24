@@ -1,0 +1,79 @@
+<h3 class="mt-30 mb-20">Price  Calculation</h3>
+<div class="table-responsive">
+<table class="table table-bordered table-wide style-normal table-minimal">
+	<thead>
+		<tr>
+			<th>Price Calculation</th>
+			<th>Amount in INR</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Payout (+)</td>
+			<td>
+				<div class="payout_text_{{$index}}">0.00</div>
+				{{ Form::text('bo_info['.$index.'][payout]','0.0',['class' => 'form-control hide_temp payout_'.$index, 'readonly' => 'readonly']) }}
+			</td>
+		</tr>
+		<tr>
+			<td>Charges Not Collected From Customer (+) </td>
+			<td>
+				<div class="not_collected_text_{{$index}}">0.00</div>
+				{{ Form::text('bo_info['.$index.'][not_collected]','0.0',['class' => 'form-control hide_temp total_not_collected_'.$index, 'readonly' => 'readonly']) }}
+			</td>
+		</tr>
+		<tr>
+			<td>Charges Collected From Customer (-)</td>
+			<td>
+				<div class="collected_text_{{$index}}">0.00</div>
+				{{ Form::text('bo_info['.$index.'][collected]','0.0',['class' => 'form-control hide_temp total_collected_'.$index, 'readonly' => 'readonly']) }}
+			</td>
+		</tr>
+		<tr>
+			<td>Tax Calculation Method</td>
+			<td>
+				<div class="">
+					<span class="alert alert-danger">
+						{{$asp->tax_calculation_method == 0 ? 'Calculate Tax without Not Collected Amount' : 'Calculate Tax with Not Collected Amount'}}
+					</span>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td>Deduction (-)</td>
+			<td>
+				@if(!empty($approved_view))
+				{{ Form::text('bo_info['.$index.'][deduction]',$mis_info->deduction,['class' => 'form-control valid_number hide_temp deduction_'.$index, 'readonly' => 'readonly']) }}
+				@else
+				{{ Form::text('bo_info['.$index.'][deduction]','0.0',['class' => 'form-control valid_number not_required_amount calculate-totals deduction_'.$index, 'autocomplete' => 'off']) }}
+				@endif
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2">
+				@if(!empty($approved_view))
+				{{ Form::textarea('bo_info['.$index.'][cancelled_reason]',$mis_info->cancelled_reason,['class' => 'form-control',  "placeholder" => "Enter Reason For Deduction", 'readonly' => 'readonly']) }}
+				@else
+				{{ Form::textarea('bo_info['.$index.'][cancelled_reason]','',['class' => 'form-control',  "placeholder" => "Enter Reason For Deduction", 'autocomplete' => 'off']) }}
+				@endif
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2">
+				@if(!empty($approved_view))
+				{{ Form::textarea('bo_info['.$index.'][comments]',$mis_info->comments,['class' => 'form-control',  "placeholder" => "Enter comments", 'readonly' => 'readonly']) }}
+				@else
+				{{ Form::textarea('bo_info['.$index.'][comments]','',['class' => 'form-control',  "placeholder" => "Enter comments", 'autocomplete' => 'off']) }}
+				@endif
+			</td>
+		</tr>
+		<tr>
+			<td></td>
+			<td>
+				<div class="total_text_{{$index}}" style="display:none;">0.00</div>
+				{{ Form::hidden('bo_info['.$index.'][amount]','0.00',['class' => 'form-control hide_temp service_amount_'.$index, 'readonly' => 'readonly']) }}
+			</td>
+		</tr>
+	</tbody>
+</table>
+</div>

@@ -1,0 +1,53 @@
+<div class="col-xs-12 col-sm-12" ng-show="$ctrl.data.verification==0">
+    <div class="mobile-breadcrumbs-wrapper">
+        <ul class="mobile-breadcrumbs-group list-inline">
+            <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
+            <li><a href="#">Asp Activities</a></li>
+            <li><a href="#!/rsa-case-pkg/activity-status/list">Status</a></li>
+            <li ng-show="$ctrl.data.verification==0"><a href="javascript:;">View</a></li>
+        </ul>
+    </div>
+</div>
+<div class="col-xs-12 col-sm-12" ng-show="$ctrl.data.verification==1">
+    <div class="mobile-breadcrumbs-wrapper">
+        <ul class="mobile-breadcrumbs-group list-inline">
+            <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
+            <li><a href="#">Asp Activities</a></li>
+            <li ng-show="$ctrl.data.verification==1"><a href="#!/rsa-case-pkg/activity-verification/list">Approval</a></li>
+        </ul>
+    </div>
+</div>
+<div class="container-fluid dataTable-content--wrapper">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="dataTable--left_wrapper">
+                <h2 class="dataTable-title">Ticket {{$ctrl.data.page_title}}</h2>
+                <p></p>
+            </div>
+        </div>
+    </div><!-- Row -->
+    <asp-activities-header data="$ctrl.data"></asp-activities-header>
+    <div class="tab-content">
+        <div id="bill" class="tab-pane fade in active">
+            <billing-details data="$ctrl.data"></billing-details>
+        </div>
+        <div id="activity" class="tab-pane fade">
+            <activity-details data="$ctrl.data"></activity-details>
+        </div>
+        <div id="location" class="tab-pane fade">
+            <location-details data="$ctrl.data"></location-details>
+        </div>
+        <div id="km" class="tab-pane fade">
+            <km-details data="$ctrl.data"></km-details>
+        </div>
+        <div id="invoice" class="tab-pane fade">
+            <invoice-details data="$ctrl.data"></invoice-details>
+        </div>
+        <div id="financial" class="tab-pane fade">
+            <financial-details data="$ctrl.data"></financial-details>
+        </div>
+        <div id="case" class="tab-pane fade">
+            <case-details data="$ctrl.data"></case-details>
+        </div>
+    </div>
+</div><!-- pricing-table-data -->

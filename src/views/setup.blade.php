@@ -24,6 +24,12 @@
 	        title: 'Edit RSA Case',
 	    }).
 
+	    //DASHBOARD
+	     when('/rsa-case-pkg/dashboard', {
+	        template: '<dashboard></dashboard>',
+	        title: 'Dashboard',
+	    }).
+
 	    //ACTIVITIES
 	    when('/rsa-case-pkg/activity-status/list', {
 	        template: '<activity-status-list></activity-status-list>',

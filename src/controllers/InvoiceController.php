@@ -285,8 +285,10 @@ class InvoiceController extends Controller {
 		}
 
 		//CALL SOAP API TO GET INVOCIE VOUCHER DETAILS
-		$invoice_no = $invoice->invoice_no;
-		$this->getSoap->GetPaymentInfoByInvoice($invoice->id, $invoice_no);
+		if (Entrust::can('view-invoice-payment-info')) {
+			$invoice_no = $invoice->invoice_no;
+			$this->getSoap->GetPaymentInfoByInvoice($invoice->id, $invoice_no);
+		}
 
 		$this->data['invoice_vouchers_amount'] = InvoiceVoucher::select(
 			DB::raw("SUM(paid_amount) as total_amount")

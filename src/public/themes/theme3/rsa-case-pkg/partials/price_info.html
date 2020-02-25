@@ -1,0 +1,44 @@
+<h3 class="mt-30 mb-20">Price Info</h3>
+<div class="table-responsive">
+<table class="table  table-bordered table-wide style-normal">
+    <thead>
+        <tr class="warning">
+            <th>Below {{ $ctrl.data.asp_service_type_data.range_limit }}</th>
+            <th>Above {{ $ctrl.data.asp_service_type_data.range_limit }} (for every KM)</th>
+            <th>Waiting Charge</th>
+            <th>Empty Return Charge</th>
+            <th>Adjustment Type</th>
+            <th>Adjustment</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr class="active"> 
+            <th>
+                {{$ctrl.data.asp_service_type_data.below_range_price}}
+                <input class="form-control viewData-input below_40 hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.below_range_price}}">
+                <input class="form-control viewData-input limit hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.range_limit}}">
+            </th>
+            <td>
+                {{$ctrl.data.asp_service_type_data.above_range_price}}
+                <input class="form-control viewData-input  above_40 hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.above_range_price}}">
+            </td>
+            <td>
+                {{$ctrl.data.asp_service_type_data.waiting_charge_per_hour}}
+                <input class="form-control viewData-input waiting_charge hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.waiting_charge_per_hour}}">
+            </td>
+            <td>
+                {{$ctrl.data.asp_service_type_data.empty_return_range_price }}
+                <input class="form-control viewData-input mt_return_price hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.empty_return_range_price}}">
+            </td>
+            <td>
+                {{$ctrl.data.asp_service_type_data.adjustment_type == 1 ? 'Percentage' : 'Amount'}}
+                <input class="form-control viewData-input adjustment_type hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.adjustment_type == 1 ? 'Percentage' : 'Amount'}}">
+            </td>
+            <td>
+                {{$ctrl.data.asp_service_type_data.adjustment}}
+                <input class="form-control viewData-input adjustment hide_temp" disabled="disabled" type="text" value="{{ $ctrl.data.asp_service_type_data.adjustment }}">
+            </td>
+        </tr>
+    </tbody>
+</table>
+</div>

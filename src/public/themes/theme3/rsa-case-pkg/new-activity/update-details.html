@@ -1,0 +1,153 @@
+<div class="col-xs-12 col-sm-12">
+    <div class="mobile-breadcrumbs-wrapper">
+        <ul class="mobile-breadcrumbs-group list-inline">
+            <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
+            <li><a href="#!/rsa-case-pkg/new-activity">New Ticket</a></li>
+            <li><a href="#">Update Ticket</a></li>
+        </ul>
+    </div>
+</div>
+<div class="container-fluid asp_for_find">
+    <div class="dataTable-content--wrapper">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12">
+                <div class="row">
+                    <div class="col-xs-12 col-sm-12">
+                        <div class="dataTable--left_wrapper">
+                            <h2 class="dataTable-title customForm-title">Update Ticket - {{$ctrl.case_details.number}}</h2>
+                        </div>
+                    </div>
+                </div>
+                <form id="new-tickect-form" enctype="multipart-formdata">
+                    <input type="hidden" name="activity_id" class="activity_id" value="{{$ctrl.activity.id}}" ng-model="$ctrl.activity_id">
+                    <input type="hidden" name="for_differ_km" class="for_differ_km" value='1' ng-model="$ctrl.for_differ_km">
+                    <input type="hidden" name="for_differ_other" class="for_differ_other" value='0' ng-model="$ctrl.for_differ_other">
+                    <input type="hidden" name="range_limit" class="service_range_limit" value="<%$ctrl.range_limit%>" ng-model="$ctrl.range_limit">
+                    <input type="hidden" name="for_update_deferred" value="<%$ctrl.for_deffer_activity%>" ng-model="$ctrl.for_deffer_activity">
+                    <input type="hidden" name="modal" value="no">
+                    <input type="hidden" name="data_reentry" value="0">
+                    <!-- Defer ticket update hidden values-->
+                    <div class="defer_hidden"></div>
+                    <div class="alert alert-danger" style="display: none;"></div>
+                    <div class="customTab-content">
+                        <div class="customForm-wrapper">
+                            <div class="row">
+                                <input type="hidden" class="actual_km" value="<%$ctrl.actual_km%>">
+                                <input type="hidden" class="unpaid_amount" value="<%$ctrl.unpaid_amount%>">
+                                <div class="col-sm-3">
+                                    <div class="input-text form-group">
+                                        <label>KM Travelled <span class="mandatory">*</span></label>
+                                        <input type="number" name="km_travelled" class="km_travel form-control customForm-input" ng-model="$ctrl.km_travelled" autocomplete='off' oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                    </div><!-- Field -->
+                                </div><!-- Column -->
+                                <div class="col-sm-3">
+                                    <div class="input-text form-group">
+                                        <label>Other charges (Not Collected) <span class="mandatory">*</span></label>
+                                        <input type="number" class="form-control other_charge customForm-input" name="other_charge" pattern="[0-9]*" ng-model="$ctrl.other_charge" autocomplete='off' oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                    </div><!-- Field -->
+                                </div><!-- Column -->
+                                <div class="col-sm-3">
+                                    <div class="input-text form-group">
+                                        <label>Collected amount from Customer <span class="mandatory">*</span></label>
+                                        <input type="number" class="form-control asp_collected_charges customForm-input" name="asp_collected_charges" autocomplete='off' ng-model="$ctrl.asp_collected_charges" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                    </div><!-- Field -->
+                                </div><!-- Column -->
+                                <div class="col-sm-3">
+                                    <div class="input-text form-group">
+                                        <label>Services <span class="mandatory">*</span></label>
+                                        <md-select ng-model="$ctrl.service_type_id">
+                                            <md-option ng-repeat="val in $ctrl.service_types_list" value="<% val.id %>">
+                                                <% val.name %>
+                                            </md-option>
+                                        </md-select>
+                                        <!-- <ui-select ng-model="$ctrl.service_type_id" theme="select2">
+                        <ui-select-match>
+                            {{$select.selected.name || $select.selected}}
+                        </ui-select-match>
+                        <ui-select-choices repeat="i.id as i in $ctrl.service_types_list | propsFilter: {name: $select.search}">
+                            <div ng-bind-html="i.name | highlight: $select.search"></div>
+                        </ui-select-choices>
+                    </ui-select> -->
+                                        <input type="hidden" name="asp_service_type_id" value="<% $ctrl.service_type_id %>" class="required">
+                                        <!-- <?php echo Form::select("asp_service_type_id", $service_types, "", ["class" => "form-control service_type_id", "autocomplete" => "off"]); ?> -->
+                                    </div><!-- Field -->
+                                </div><!-- Column -->
+                                <!-- <div class="ccdv_btn multiUpload-wrapper" style="overflow: hidden;">
+                    <a href="javascript:;" class="multiUpload" style="width: auto !important;">
+                        Other Attachment
+                    </a>
+                    <div class="popup-field">
+                      <//?php echo Form::file("other_attachment[]",['multiple'=>'multiple']); ?>
+                    </div>
+                </div> -->
+                                <div class="col-sm-3 remarks_notcollected" style="display: none;">
+                                    <div class="input-text form-group">
+                                        <label>Remarks for Charges Not Collected <sup class="req" style="color:red">*</sup></label>
+                                        <textarea class="form-control remarks_not_collected" rows="1" name="remarks_not_collected" ng-model="$ctrl.remarks_not_collected" autocomplete='off'></textarea>
+                                    </div><!-- Field -->
+                                </div>
+                                <div class="col-sm-3 other_attachment" style="display: none;">
+                                    <div class="input-text form-group">
+                                        <label>Other Attachment <sup class="req" style="color:red">*</sup></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" readonly placeholder="Select File">
+                                            <span class="errorfile">This File is Required</span>
+                                            <span class="input-group-btn">
+                                                <span class="btn btn-file">
+                                                    Browse
+                                                    <input name="other_attachment[]" type="file" multiple="multiple" class="form-control other_attachment_data" autocomplete='off' ng-model="$ctrl.other_attachment" />
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div class="other_after"></div>
+                                    </div><!-- Field -->
+                                </div><!-- Column -->
+                                <div class="col-sm-3 map_attachment" style="display: none;">
+                                    <div class="input-text form-group">
+                                        <label>Map Attachment<sup class="req" style="color:red">*</sup></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" readonly placeholder="Select File">
+                                            <span class="input-group-btn">
+                                                <span class="btn btn-file">
+                                                    Browse
+                                                    <input name="map_attachment[]" type="file" multiple="multiple" class="form-control map_attachment_data" autocomplete='off' ng-model="$ctrl.map_attachment" />
+                                                </span>
+                                            </span>
+                                        </div>
+                                    </div><!-- Field -->
+                                    <div class="map_after"></div>
+                                    <a href="https://www.google.com/maps" class="blue" target="_blank">GO TO GOOGLE MAP</a>
+                                    <!-- <div class="ccdv_btn multiUpload-wrapper" style="overflow: hidden;">
+                      <a href="javascript:;" class="multiUpload" style="width: auto !important;">
+                          Map Attachment
+                      </a>
+                      <//?php echo Form::file("map_attachment[]",["class"=>"form-control","autocomplete" =>"off","multiple"=>"multiple"]); ?>
+                    </div> -->
+                                </div><!-- Column -->
+                                <!-- Map Attachement -->
+                                <div class="col-sm-3 resolve_comment" style="display:none;">
+                                    <div class="input-text form-group">
+                                        <label>Resolve Comments</label>
+                                        <textarea name="comments" class="comments form-control" autocomplete='off' ng-model="$ctrl.comments"></textarea>
+                                    </div><!-- Field -->
+                                </div><!-- Column -->
+                                <div class="col-xs-12 col-sm-12">
+                                    <div class="form-group">
+                                        <button type="submit" class="btn btn-primary customForm-btn" id="submit">Submit</button>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <!-- Button Loader Starts -->
+                                    <div class="loader-type-2 loader-hide">
+                                        <div class="loader-inner"></div>
+                                    </div>
+                                    <!-- Button Loader Ends -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

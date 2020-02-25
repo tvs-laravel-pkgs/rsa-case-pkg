@@ -3,7 +3,7 @@
         <ul class="mobile-breadcrumbs-group list-inline">
             <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
             <li><a href="#">Activities</a></li>
-            <li><a href="#!/rsa-case-pkg/approved-activity/list">Approved</a></li>
+            <li><a href="#!/rsa-case-pkg/deferred-activity/list">Deferred</a></li>
         </ul>
     </div>
 </div>
@@ -14,7 +14,7 @@
                 <div class="col-xs-12 col-sm-6">
                     <div class="dataTable--left_wrapper">
                         <h2 class="dataTable-title">
-                            Approved
+                            Deferred
                             <a href="javascript:void(0)" class="btn-refresh" ng-click="refresh()">
                                 <img class="img-refresh" src="./resources/assets/images/refresh-arrow.svg" alt="Refresh" />
                             </a>
@@ -72,6 +72,22 @@
                                                 </div>
                                                 <div class="col-sm-6">
                                                     <div class="form-group">
+                                                        <md-select ng-model="$ctrl.status_id" ng-change="changeCommonFilter($ctrl.status_id,'status_id')" placeholder="Select Status">
+                                                            <md-option ng-repeat="val in $ctrl.extras.status_list" value="{{val.id}}">{{val.name}}</md-option>
+                                                        </md-select>
+                                                        <input type="hidden" name="status_id" value="" id="status_id">
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <md-select ng-model="$ctrl.activity_status_id" ng-change="changeCommonFilter($ctrl.activity_status_id,'activity_status_id')" placeholder="Select Activity Status">
+                                                            <md-option ng-repeat="val in $ctrl.extras.activity_status_list" value="{{val.id}}">{{val.name}}</md-option>
+                                                        </md-select>
+                                                        <input type="hidden" name="activity_status_id" value="" id="activity_status_id">
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
                                                         <md-select ng-model="$ctrl.client_id" ng-change="changeCommonFilter($ctrl.client_id,'client_id')" placeholder="Select Client">
                                                             <md-option ng-repeat="val in $ctrl.extras.client_list" value="{{val.id}}">{{val.name}}</md-option>
                                                         </md-select>
@@ -95,51 +111,27 @@
                     </div>
                 </div>
             </div>
-<!--             <div class="row">
-                <div class="col-xs-12 col-sm-12">
-                    <div class="alert alert-danger">
-                        <p style="font-size: 18px;">
-                        We are merging TVS Auto Assist with our Parent company. So the system will not work for another two days.
-                        </p>
-                    </div>
-                </div>
-            </div>
- -->            <div class="table-responsive">
-                <div class="customTab-content">
-                    <div class="tab-content">
-                        <div id="about40" class="tab-pane fade in active">
-                            <form id="invoice_generation" method="post">
-                                <table id="invoice_generation_table" class="display table dataTable row_linked_table">
-                                    <thead>
-                                        <tr>
-                                            <th><input type="checkbox" class="check_all" id="select_all_checkbox" autocomplete="off"></th>
-                                            <th>Date</th>
-                                            <th>Case Number</th>
-                                            <th>CRM Activity ID</th>
-                                            <th>Client</th>
-                                            <th>Call Center</th>
-                                            <th>Service</th>
-                                            <th>Finance Status</th>
-                                            <th>Net Amount</th>
-                                            <th>Not Collected Charges</th>
-                                            <th>Collected Charges</th>
-                                            <th>Invoice Amount</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                                <button type="submit" id="submit" class="approve-btn pull-right preview-batch">Generate Invoice</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+            <div class="table-responsive">
+                <table id="activities_deferred_table" class="display table dataTable">
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Date</th>
+                            <th>Case Number</th>
+                            <!-- <th>ASP Code</th> -->
+                            <th>CRM Activity ID</th>
+                            <!-- <th>Activity Number</th> -->
+                            <th>Service</th>
+                            <!-- <th>ASP Status</th> -->
+                            <th>Finance Status</th>
+                            <th>Status</th>
+                            <th>Activity Status</th>
+                            <th>Client</th>
+                            <th>Call Center</th>
+                        </tr>
+                    </thead>
+                </table>
             </div>
         </div>
     </div>
-</div>
-<div class="col-md-12">
-    <!-- Button Loader Starts -->
-    <div class="loader-type-2 loader-hide">
-        <div class="loader-inner"></div>
-    </div>
-    <!-- Button Loader Ends -->
 </div>

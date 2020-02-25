@@ -1,0 +1,79 @@
+<h3 class="mt-30 mb-20">Price  Comparision</h3>
+<div class="table-responsive">
+<table class="table table-responsive table-bordered table-wide style-normal">
+	<thead>
+		<tr>
+			<th>Title</th>
+			<th>CC Data</th>
+			<th>ASP Data</th>
+			<th>BO Data</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<th scope="row">Service</th>
+			<td>{{$ctrl.data.service}}</td>
+			<td class="">{{$ctrl.data.service}}</td>
+			<td style="text-align:left" >{{$ctrl.data.service}}</td>
+		</tr>
+
+		<tr>
+			<th scope="row">KM Travelled</th>
+			<td class="">{{$ctrl.data.cc_total_km}}</td>
+			<td class="asp_value" >{{$ctrl.data.asp_km_travelled}}</td>
+			<td style="text-align:left" class=""ng-show ="$ctrl.data.verification==0">{{$ctrl.data.bo_km_travelled}}</td>
+			<td style="text-align:left" ng-show ="$ctrl.data.verification==1">
+				<input type="text" name="bo_km_travelled" ng-model="$ctrl.data.bo_km_travelled" value="{{$ctrl.data.bo_km_travelled}}" class="km_value"><br><span class="alert alert-danger" style="display:none;">Enter Value less than Asp Value</span>
+			</td>
+
+		</tr>
+
+
+		<tr>
+			<th scope="row">Charges Not Collected From Customer </th>
+			<td class="">{{$ctrl.data.cc_not_collected_amount}}</td>
+			<td class="">{{$ctrl.data.asp_not_collected}}</td>
+			<td style="text-align:left" class=""ng-show ="$ctrl.data.verification==0">{{$ctrl.data.bo_not_collected}}</td>
+			<td style="text-align:left" class=""ng-show ="$ctrl.data.verification==1">
+				<input type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_not_collected" class="non_collected_amount" value="{{$ctrl.data.raw_bo_not_collected}}">
+				<br>
+				<input type="hidden" ng-model="$ctrl.data.raw_asp_not_collected" class="other_value" value="{{$ctrl.data.raw_asp_not_collected}}">	
+				<span class="alert alert-danger2" style="display:none;">Enter Value less than Not Collected Value</span>
+			</td>
+		</tr>
+
+
+		<tr>
+			<th scope="row">Charges Collected From Customer </th>
+			<td class="">{{$ctrl.data.cc_colleced_amount}}</td>
+			<td class="">{{$ctrl.data.asp_collected}}</td>
+			<td style="text-align:left" class=""ng-show ="$ctrl.data.verification==0">{{$ctrl.data.bo_collected}}</td>
+			<td style="text-align:left" ng-show ="$ctrl.data.verification==1">
+				<input type="text" name="bo_collected" ng-model="$ctrl.data.raw_bo_collected" class="collected_amount" value="{{$ctrl.data.raw_bo_collected}}">
+				<input type="hidden" ng-model="$ctrl.data.raw_asp_collected" class="collected_value" value="{{$ctrl.data.raw_asp_collected}}">
+				<br>
+				<span class="alert alert-danger1" style="display:none;">Enter Value less than Collected Value</span>
+			</td>
+		</tr>
+		<!-- @if(!empty($ctrl.remarks_not_collected)) -->
+		<!-- <tr>
+			<th scope="row">Remarks Comments for not collected charges</th>
+			<td>
+				{{ $ctrl.remarks_not_collected }}
+			</td>
+		</tr> -->
+		<!-- @endif
+
+		@if($ctrl.claim_status == 1) -->
+		<!-- <tr>
+			<th scope="row" class="alert-danger">Resolved Comments from ASP</th>
+			<td class="alert-danger">
+				{{ $ctrl.comments }}
+			</td>
+		</tr> -->
+		<!-- @endif -->
+
+
+	</tbody>
+</table>
+</div>

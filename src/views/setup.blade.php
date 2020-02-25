@@ -159,6 +159,18 @@
 </script>
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/controller.js?v=2')}}"></script>
 
+<!-- RSA-DASHBOARD -->
+<script type="text/javascript">
+    var dashboard_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/dashboard/dashboard.html')}}";
+    var dashboard_data_url = "{{url('rsa-case-pkg/dashboard/get-data/')}}";
+    var dash2 = "{{ asset('resources/assets/images/dash-icon-2.svg') }}";
+    var dash1 = "{{ asset('resources/assets/images/dash-icon-1.svg') }}";
+    var dash3 = "{{ asset('resources/assets/images/dash-icon-3.svg') }}";
+    var dash4 = "{{ asset('resources/assets/images/dash-icon-4.svg') }}";
+
+</script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/dashboard/controller.js?v=2')}}"></script>
+
 <!-- RSA-ACTIVITY-VERIFICATION-PKG -->
 <script type="text/javascript">
     var activity_verification_list_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-verification/list.html')}}";

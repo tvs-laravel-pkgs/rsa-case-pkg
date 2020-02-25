@@ -247,7 +247,7 @@ class InvoiceController extends Controller {
 		$label_effect_date = config('rsa.NEW_COMPANY_EFFECT_DATE');
 
 		$this->data['new_company_address'] = true;
-		if($inv_created < $label_effect_date){
+		if ($inv_created < $label_effect_date) {
 			$this->data['new_company_address'] = false;
 		}
 
@@ -283,6 +283,10 @@ class InvoiceController extends Controller {
 		} else {
 			$this->data['bank_ifsc_code'] = $invoice->bank_ifsc_code;
 		}
+
+		//CALL SOAP API TO GET INVOCIE VOUCHER DETAILS
+		$invoice_no = $invoice->invoice_no;
+		$this->getSoap->GetPaymentInfoByInvoice($invoice->id, $invoice_no);
 
 		$this->data['invoice_vouchers_amount'] = InvoiceVoucher::select(
 			DB::raw("SUM(paid_amount) as total_amount")

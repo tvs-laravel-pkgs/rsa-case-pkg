@@ -56,7 +56,7 @@ class DashboardController extends Controller {
 
 				}
 
-				$new_ticket_count = Activity::where('status_id',2);
+				$new_ticket_count = DB::table('activities');
 				if(Entrust::can('bo-dashboard')){
 					$new_ticket_count = $this->boData($new_ticket_count,$states);
 				}
@@ -66,7 +66,7 @@ class DashboardController extends Controller {
 				$this->data['new_ticket_count'] =  $new_ticket_count->count();
 
 				$today_new_ticket_count = Activity::join('cases','activities.case_id','=','cases.id')
-					->where('activities.status_id',2)
+					/*->where('activities.status_id',2)*/
 					->whereDate('cases.created_at', $today);
 				if(Entrust::can('bo-dashboard')){
 					$today_new_ticket_count = $this->boData($today_new_ticket_count,$states);
@@ -77,7 +77,7 @@ class DashboardController extends Controller {
 				$this->data['today_new_ticket_count'] = $today_new_ticket_count->count();
 
 				//
-				$this_month_new_ticket_count =  Activity::join('cases','activities.case_id','=','cases.id')->where('activities.status_id',2)
+				$this_month_new_ticket_count =  Activity::join('cases','activities.case_id','=','cases.id')/*->where('activities.status_id',2)*/
 					->whereMonth('cases.created_at', date('m', strtotime($today)))
 					->whereYear('cases.created_at', date('Y', strtotime($today)));
 				if(Entrust::can('bo-dashboard')){
@@ -89,7 +89,7 @@ class DashboardController extends Controller {
 				$this->data['this_month_new_ticket_count'] = $this_month_new_ticket_count->count();
 
 				//
-				$prev_month_new_ticket_count = Activity::join('cases','activities.case_id','=','cases.id')->where('activities.status_id',2)
+				$prev_month_new_ticket_count = Activity::join('cases','activities.case_id','=','cases.id')/*->where('activities.status_id',2)*/
 					->whereMonth('cases.created_at', date('m', strtotime($previous_month)))
 					->whereYear('cases.created_at',date('Y', strtotime($previous_month)));
 				if(Entrust::can('bo-dashboard')){
@@ -100,6 +100,57 @@ class DashboardController extends Controller {
 				}
 				$this->data['prev_month_new_ticket_count'] = $prev_month_new_ticket_count->count();
 				//dd($previous_month,$prev_month_new_ticket_count->pluck('activities.id'),$this->data['prev_month_new_ticket_count']);
+
+
+				//Ticket Waiting for ASP Data Entry
+
+				$ticket_waiting_asp_entry = DB::table('activities')->whereIn('activities.status_id',[2,4,7]);
+				if(Entrust::can('bo-dashboard')){
+					$ticket_waiting_asp_entry = $this->boData($ticket_waiting_asp_entry,$states);
+				}
+				if(Entrust::can('rm-dashboard')){
+					$ticket_waiting_asp_entry = $this->rmData($ticket_waiting_asp_entry);
+				}
+				$this->data['ticket_waiting_asp_entry'] =  $ticket_waiting_asp_entry->count();
+
+				$today_ticket_waiting_asp_entry = Activity::join('cases','activities.case_id','=','cases.id')
+					->whereIn('activities.status_id',[2,4,7])
+					->whereDate('cases.created_at', $today);
+				if(Entrust::can('bo-dashboard')){
+					$today_ticket_waiting_asp_entry = $this->boData($today_ticket_waiting_asp_entry,$states);
+				}
+				if(Entrust::can('rm-dashboard')){
+					$today_ticket_waiting_asp_entry = $this->rmData($today_ticket_waiting_asp_entry);
+				}
+				$this->data['today_ticket_waiting_asp_entry'] = $today_ticket_waiting_asp_entry->count();
+
+				//
+				$this_month_ticket_waiting_asp_entry =  Activity::join('cases','activities.case_id','=','cases.id')
+				->whereIn('activities.status_id',[2,4,7])
+					->whereMonth('cases.created_at', date('m', strtotime($today)))
+					->whereYear('cases.created_at', date('Y', strtotime($today)));
+				if(Entrust::can('bo-dashboard')){
+					$this_month_ticket_waiting_asp_entry = $this->boData($this_month_ticket_waiting_asp_entry,$states);
+				}
+				if(Entrust::can('rm-dashboard')){
+					$this_month_ticket_waiting_asp_entry = $this->rmData($this_month_ticket_waiting_asp_entry);
+				}
+				$this->data['this_month_ticket_waiting_asp_entry'] = $this_month_ticket_waiting_asp_entry->count();
+
+				//
+				$prev_month_ticket_waiting_asp_entry = Activity::join('cases','activities.case_id','=','cases.id')
+				->whereIn('activities.status_id',[2,4,7])
+					->whereMonth('cases.created_at', date('m', strtotime($previous_month)))
+					->whereYear('cases.created_at',date('Y', strtotime($previous_month)));
+				if(Entrust::can('bo-dashboard')){
+					$prev_month_ticket_waiting_asp_entry = $this->boData($prev_month_ticket_waiting_asp_entry,$states);
+				}
+				if(Entrust::can('rm-dashboard')){
+					$prev_month_ticket_waiting_asp_entry = $this->rmData($prev_month_ticket_waiting_asp_entry);
+				}
+				$this->data['prev_month_ticket_waiting_asp_entry'] = $prev_month_ticket_waiting_asp_entry->count();
+
+
 				//Ticket in approval
 				$tickets_in_approval = Activity::whereIn('status_id',[8,9,5,6]);
 				if(Entrust::can('bo-dashboard')){

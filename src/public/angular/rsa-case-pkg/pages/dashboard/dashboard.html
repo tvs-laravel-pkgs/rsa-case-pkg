@@ -24,7 +24,21 @@
 										<figcaption>
 											<div class="dashboardItem-content">
 												<h2 class="title">{{$ctrl.data.new_ticket_count}}</h2>
-												<p>New Tickets<!-- - {{date('M')}} --></p>
+												<p>Total Tickets<!-- - {{date('M')}} --></p>
+											</div>
+											<!-- <span class="date">{{date('M', strtotime("-1 month"))}} : {{$prev_month_new_ticket_count}}</span> -->
+										</figcaption>
+									</figure>
+								</aside>
+							</td>
+							<td ng-show="$ctrl.data.role_name!='finance'">
+								<aside class="dashboardItem">
+									<figure>
+										<img src="{{$ctrl.data.dash1}}">
+										<figcaption>
+											<div class="dashboardItem-content">
+												<h2 class="title">{{$ctrl.data.ticket_waiting_asp_entry}}</h2>
+												<p>Tickets Waiting for ASP Data Entry<!-- - {{date('M')}} --></p>
 											</div>
 											<!-- <span class="date">{{date('M', strtotime("-1 month"))}} : {{$prev_month_new_ticket_count}}</span> -->
 										</figcaption>
@@ -138,10 +152,16 @@
 							</thead>
 							<tbody>
 								<tr ng-show="$ctrl.data.role_name!='finance'">
-									<td>New Tickets</td>
+									<td>Total Tickets</td>
 									<td><label class="yellow">{{$ctrl.data.today_new_ticket_count}}</label></td>
 									<td><label class="blue">{{$ctrl.data.this_month_new_ticket_count}}</label></td>
 									<td><label class="cyan">{{$ctrl.data.prev_month_new_ticket_count}}</label></td>
+								</tr>
+								<tr ng-show="$ctrl.data.role_name!='finance'">
+									<td>Waiting for ASP Entry</td>
+									<td><label class="yellow">{{$ctrl.data.today_ticket_waiting_asp_entry}}</label></td>
+									<td><label class="blue">{{$ctrl.data.this_month_ticket_waiting_asp_entry}}</label></td>
+									<td><label class="cyan">{{$ctrl.data.prev_month_ticket_waiting_asp_entry}}</label></td>
 								</tr>
 								<tr ng-show="$ctrl.data.role_name=='finance'">
 									<td>New Invoices</td>

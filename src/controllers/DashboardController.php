@@ -198,7 +198,7 @@ class DashboardController extends Controller {
 				//
 
 				$current_waiting_batch = Activity::join('cases','activities.case_id','=','cases.id')
-				->where('activities.status_id',11);
+				->whereIn('activities.status_id',[11,3,1]);
 				if(Entrust::can('bo-dashboard')){
 					$current_waiting_batch = $this->boData($current_waiting_batch,$states);
 				}
@@ -208,7 +208,7 @@ class DashboardController extends Controller {
 				$this->data['current_waiting_batch'] =  $current_waiting_batch->count();
 
 				//tickets_approved
-				$today_tickets_in_approved = Activity::where('activities.status_id',11)
+				$today_tickets_in_approved = Activity::whereIn('activities.status_id',[11,3,1])
 				->whereDate('activities.updated_at', $today);
 				if(Entrust::can('bo-dashboard')){
 					$today_tickets_in_approved = $this->boData($today_tickets_in_approved,$states);
@@ -218,7 +218,7 @@ class DashboardController extends Controller {
 				}
 				$this->data['today_tickets_in_approved'] =  $today_tickets_in_approved->count();
 
-				$this_month_tickets_in_approved = Activity::where('activities.status_id',11)
+				$this_month_tickets_in_approved = Activity::whereIn('activities.status_id',[11,3,1])
 					->whereMonth('activities.updated_at', date('m', strtotime($today)))
 					->whereYear('activities.updated_at', date('Y', strtotime($today)));
 				if(Entrust::can('bo-dashboard')){
@@ -230,7 +230,7 @@ class DashboardController extends Controller {
 				$this->data['this_month_tickets_in_approved'] = $this_month_tickets_in_approved->count();
 
 				//
-				$prev_month_tickets_in_approved = Activity::where('activities.status_id',11)
+				$prev_month_tickets_in_approved = Activity::whereIn('activities.status_id',[11,3,1])
 					->whereMonth('activities.updated_at', date('m', strtotime($previous_month)))
 					->whereYear('activities.updated_at', date('Y', strtotime($previous_month)));
 				if(Entrust::can('bo-dashboard')){
@@ -363,6 +363,7 @@ class DashboardController extends Controller {
 				return redirect()->route('sales_dashboard');
 			}else {
 				$this->data['no_access'] = [];
+				return response()->json(['success' => true,'errors'=>'No Access']);
 			}
 			//dd('a',$this->data);
 			//return view('dashboard/dashboards', $this->data);

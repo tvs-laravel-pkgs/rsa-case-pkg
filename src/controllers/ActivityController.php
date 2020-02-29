@@ -4,6 +4,7 @@ namespace Abs\RsaCasePkg;
 use Abs\RsaCasePkg\Activity;
 use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
+use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityPortalStatus;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\RsaCase;

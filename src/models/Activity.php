@@ -662,14 +662,14 @@ class Activity extends Model {
 					}
 
 					//ASSIGN ZERO IF IT IS EMPTY
-					if (!$request->cc_total_km) {
-						$request->cc_total_km = 0;
+					if (!$record['cc_total_km']) {
+						$record['cc_total_km'] = 0;
 					}
-					if (!$request->cc_not_collected_amount) {
-						$request->cc_not_collected_amount = 0;
+					if (!$record['cc_not_collected_amount']) {
+						$record['cc_not_collected_amount'] = 0;
 					}
-					if (!$request->cc_colleced_amount) {
-						$request->cc_colleced_amount = 0;
+					if (!$record['cc_colleced_amount']) {
+						$record['cc_colleced_amount'] = 0;
 					}
 
 					//Dont allow updations if current status is Cancelled or Closed

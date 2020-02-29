@@ -1,0 +1,69 @@
+<h3 class="mb-20">Approved Value Calculation</h3>
+<div class="table-responsive">
+<table class="table table-bordered table-wide style-normal table-label-hide">
+	<thead>
+		<tr>
+			<th>Description</th>
+			<th style="text-align: right;">Amount in INR</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr class="warning" ng-show ="!($ctrl.data.verification)">
+			<td>Net Amount</td>
+			<td>
+				<div>{{$ctrl.data.bo_net_amount}}</div>
+
+			</td>
+		</tr>
+		<tr class="warning" ng-show ="($ctrl.data.verification)">
+			<td>Net Amount</td>
+			<td>
+				<div>{{$ctrl.data.cc_po_amount - $ctrl.data.bo_not_collected}}</div>
+			</td>
+		</tr>
+
+		<!-- <tr class="active">
+			<td>Total Tax</td>
+			<td>
+				<div>{{$mis_info->tax}}</div>
+			</td>
+		</tr> -->
+
+	</tbody>
+</table>
+</div>
+<div class="table-data-footer" >
+	<div class="row">
+		<div class="col-md-6">
+			<h4 class="title">APPROVED VALUE</h4>
+		</div>
+		<div class="col-md-6 text-right">
+			<h4 class="price"><i class="fa fa-inr fa-2x"></i>{{$ctrl.data.bo_amount}}</h4>
+			
+			<ul class="inline-btns">
+				<!-- <li><a href="javascript:;" id="reject-ticket" class="differed-btn btn btn-primary blue">REJECT</a></li> -->
+				<!-- <li><a href="javascript:;" id="defer-ticket" class="differed-btn btn btn-primary blue">DEFER</a></li> -->
+				<!-- @if(empty($approved_view)) -->
+				<!-- <li><button type="submit" class="differed-btn btn btn-primary blue">APPROVE</button></li> -->
+				<!-- @endif -->
+			</ul>
+		</div>
+	</div>
+</div>
+
+<div class="table-data-footer" ng-show="($ctrl.data.verification)">
+	<div class="col-md-6">
+		<h4 class="title">APPROVED VALUE</h4>
+	</div>
+	<div class="col-md-6 text-right">
+		<h4 class="price"><i class="fa fa-inr fa-2x"></i>0.00</h4>
+		<ul class="inline-btns">
+			<li><a href="javascript:;" id="reject-ticket" class="differed-btn btn btn-primary blue" ng-click="deferTicket()">DEFER</a></li>
+			<li><button type="button" class="differed-btn btn btn-primary blue" ng-click="approveTicket()">APPROVE</button></li>
+		</ul>
+	</div>
+	<!-- Modal -->
+ 
+</div>
+
+

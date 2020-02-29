@@ -339,6 +339,39 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'rm-dashboard',
 				'display_name' => 'RM Dashboard',
 			],
+
+			//PROVISION APPROVAL
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'provision-approval',
+				'display_name' => 'Provision Approval',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'provision-approval',
+				'name' => 'edit-provision-approval',
+				'display_name' => 'Edit',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'provision-approval',
+				'name' => 'export-provision-approval',
+				'display_name' => 'Export',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'provision-approval',
+				'name' => 'view-all-provision-approval',
+				'display_name' => 'View All',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'provision-approval',
+				'name' => 'view-mapped-state-provision-approval',
+				'display_name' => 'Only Mapped States',
+			],
+
 		];
 		Permission::createFromArrays($permissions);
 	}

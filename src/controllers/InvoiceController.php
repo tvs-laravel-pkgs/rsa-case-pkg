@@ -45,7 +45,8 @@ class InvoiceController extends Controller {
 
 		$invoices = Invoices::select(
 			'Invoices.id',
-			DB::raw("(CASE WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0) THEN  Invoices.invoice_no ELSE CONCAT(Invoices.invoice_no,'-',Invoices.id) END) as invoice_no"),
+			'Invoices.invoice_no',
+			// DB::raw("(CASE WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0) THEN  Invoices.invoice_no ELSE CONCAT(Invoices.invoice_no,'-',Invoices.id) END) as invoice_no"),
 			// DB::raw("(CASE WHEN (asps.is_auto_invoice = 1) THEN CONCAT(Invoices.invoice_no,'-',Invoices.id) ELSE Invoices.invoice_no END) as invoice_no"),
 			// DB::raw("CONCAT(Invoices.invoice_no,'-',Invoices.id) as invoice_no"),
 			DB::raw("date_format(Invoices.created_at,'%d-%m-%Y') as invoice_date"),
@@ -111,9 +112,9 @@ class InvoiceController extends Controller {
 					return route('angular') . '/#!/rsa-case-pkg/invoice/view/' . $invoices->id . '/' . $request->type_id;
 				},
 			])
-			->filterColumn('invoice_no', function ($query, $keyword) {
-				$query->whereRaw("CONCAT(Invoices.invoice_no,'-',Invoices.id) like ?", ["%{$keyword}%"]);
-			})
+		// ->filterColumn('invoice_no', function ($query, $keyword) {
+		// 	$query->whereRaw("CONCAT(Invoices.invoice_no,'-',Invoices.id) like ?", ["%{$keyword}%"]);
+		// })
 			->addColumn('action', function ($invoices) {
 				return '<input type="checkbox" class="ticket_id no-link child_select_all" name="invoice_ids[]" value="' . $invoices->id . '">';
 			})
@@ -230,15 +231,25 @@ class InvoiceController extends Controller {
 		$asp = $invoice->asp;
 		$asp->rm = $invoice->asp->rm;
 		$this->data['period'] = $invoice->startdate . ' to ' . $invoice->enddate;
-		if ($asp->has_gst && !$asp->is_auto_invoice) {
-			$this->data['inv_no'] = $invoice->invoice_no;
-		} else {
-			$this->data['inv_no'] = $invoice->invoice_no . '-' . $invoice->id;
-		}
+		// if ($asp->has_gst && !$asp->is_auto_invoice) {
+		// 	$this->data['inv_no'] = $invoice->invoice_no;
+		// } else {
+		// 	$this->data['inv_no'] = $invoice->invoice_no . '-' . $invoice->id;
+		// }
+		$this->data['inv_no'] = $invoice->invoice_no;
 		$this->data['inv_date'] = $invoice->created_at;
 		$this->data['batch'] = "";
 		$this->data['asp'] = $asp;
 		$this->data['rsa_address'] = config('rsa.INVOICE_ADDRESS');
+
+		//CHECK NEW/OLD COMPANY ADDRESS BY INVOICE CREATION DATE
+		$inv_created = date('Y-m-d', strtotime(str_replace('/', '-', $invoice->created_at)));
+		$label_effect_date = config('rsa.NEW_COMPANY_EFFECT_DATE');
+
+		$this->data['new_company_address'] = true;
+		if ($inv_created < $label_effect_date) {
+			$this->data['new_company_address'] = false;
+		}
 
 		$this->data['signature_attachment'] = Attachment::where('entity_id', $asp->id)->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))->first();
 
@@ -271,6 +282,12 @@ class InvoiceController extends Controller {
 			$this->data['bank_ifsc_code'] = $invoice->asp_bank_ifsc_code;
 		} else {
 			$this->data['bank_ifsc_code'] = $invoice->bank_ifsc_code;
+		}
+
+		//CALL SOAP API TO GET INVOCIE VOUCHER DETAILS
+		if (Entrust::can('view-invoice-payment-info')) {
+			$invoice_no = $invoice->invoice_no;
+			$this->getSoap->GetPaymentInfoByInvoice($invoice->id, $invoice_no);
 		}
 
 		$this->data['invoice_vouchers_amount'] = InvoiceVoucher::select(
@@ -311,7 +328,8 @@ class InvoiceController extends Controller {
 				DB::raw('DATE_FORMAT(cases.created_at,"%d-%m-%Y %H:%i:%s") as created_at'),
 				'asps.axpta_code as axpta_code',
 				'asps.workshop_name as workshop_name',
-				DB::raw("(CASE WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0) THEN  Invoices.invoice_no ELSE CONCAT(Invoices.invoice_no,'-',Invoices.id) END) as invoice_no"),
+				'Invoices.invoice_no',
+				// DB::raw("(CASE WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0) THEN  Invoices.invoice_no ELSE CONCAT(Invoices.invoice_no,'-',Invoices.id) END) as invoice_no"),
 				// DB::raw("(CASE WHEN (asps.is_auto_invoice = 1) THEN CONCAT(Invoices.invoice_no,'-',Invoices.id) ELSE Invoices.invoice_no END) as invoice_no"),
 				'Invoices.created_at as created_at',
 				'asps.asp_code as asp_code',
@@ -412,11 +430,12 @@ class InvoiceController extends Controller {
 			return response()->json(['success' => false, 'error' => 'ASP not found']);
 		}
 
-		if ($asp->has_gst && !$asp->is_auto_invoice) {
-			$invoice_no = $invoice->invoice_no;
-		} else {
-			$invoice_no = $invoice->invoice_no . '-' . $invoice->id;
-		}
+		// if ($asp->has_gst && !$asp->is_auto_invoice) {
+		// 	$invoice_no = $invoice->invoice_no;
+		// } else {
+		// 	$invoice_no = $invoice->invoice_no . '-' . $invoice->id;
+		// }
+		$invoice_no = $invoice->invoice_no;
 
 		$storeInvoicePaymentInfo = $this->getSoap->GetPaymentInfoByInvoice($invoice->id, $invoice_no);
 		if (!$storeInvoicePaymentInfo) {

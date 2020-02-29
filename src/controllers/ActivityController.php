@@ -4,10 +4,10 @@ namespace Abs\RsaCasePkg;
 use Abs\RsaCasePkg\Activity;
 use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
+use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityPortalStatus;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\RsaCase;
-use Abs\RsaCasePkg\ActivityLog;
 use App\Asp;
 use App\AspServiceType;
 use App\Attachment;
@@ -124,7 +124,7 @@ class ActivityController extends Controller {
 		return Datatables::of($activities)
 			->addColumn('action', function ($activity) {
 				$status_id = 1;
-				$return_status_ids = [5,6,8,9,11,1,7];
+				$return_status_ids = [5, 6, 8, 9, 11, 1, 7];
 
 				$action = '<div class="dataTable-actions wid-100">
 				<a href="#!/rsa-case-pkg/activity-status/' . $status_id . '/view/' . $activity->id . '">
@@ -135,8 +135,8 @@ class ActivityController extends Controller {
 						                <i class="fa fa-trash dataTable-icon--trash cl-delete" data-cl-id =' . $activity->id . ' aria-hidden="true"></i>
 						            </a>';
 				}
-				if(Entrust::can('backstep-activity') && in_array($activity->status_id,$return_status_ids)){
-					$action .="<a href='javascript:void(0)' onclick='angular.element(this).scope().backConfirm(" . $activity . ")' class='ticket_back_button'><i class='fa fa-arrow-left dataTable-icon--edit-1' data-cl-id =" . $activity->id . " aria-hidden='true'></i></a>";
+				if (Entrust::can('backstep-activity') && in_array($activity->status_id, $return_status_ids)) {
+					$action .= "<a href='javascript:void(0)' onclick='angular.element(this).scope().backConfirm(" . $activity . ")' class='ticket_back_button'><i class='fa fa-arrow-left dataTable-icon--edit-1' data-cl-id =" . $activity->id . " aria-hidden='true'></i></a>";
 				}
 				$action .= '</div>';
 				return $action;
@@ -147,7 +147,7 @@ class ActivityController extends Controller {
 	public function activityBackAsp(Request $request) {
 		//	dd($request->all());
 		$activity = Activity::findOrFail($request->activty_id);
-		$return_status_ids = [5,6,8,9,11,1,7];
+		$return_status_ids = [5, 6, 8, 9, 11, 1, 7];
 
 		if (!$activity) {
 			return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['error' => 'Activity not found']);
@@ -446,19 +446,20 @@ class ActivityController extends Controller {
 			DB::raw('IF(activities.remarks IS NULL OR activities.remarks="","-",activities.remarks) as remarks'),
 			//'activities.remarks as remarks',
 			'cases.*',
-			DB::raw('CASE
-				    	WHEN (Invoices.invoice_no IS NOT NULL)
-			    		THEN
-			    			CASE
-			    				WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0)
-			   					THEN
-			    					Invoices.invoice_no
-			    				ELSE
-			    					CONCAT(Invoices.invoice_no,"-",Invoices.id)
-			    			END
-			    		ELSE
-			    			"NA"
-					END as invoice_no'),
+			// DB::raw('CASE
+			// 	    	WHEN (Invoices.invoice_no IS NOT NULL)
+			//     		THEN
+			//     			CASE
+			//     				WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0)
+			//    					THEN
+			//     					Invoices.invoice_no
+			//     				ELSE
+			//     					CONCAT(Invoices.invoice_no,"-",Invoices.id)
+			//     			END
+			//     		ELSE
+			//     			"NA"
+			// 		END as invoice_no'),
+			'Invoices.invoice_no',
 			DB::raw('CASE
 				    	WHEN (Invoices.asp_gst_registration_number IS NULL || Invoices.asp_gst_registration_number = "")
 			    		THEN
@@ -539,65 +540,65 @@ class ActivityController extends Controller {
 			}
 
 		}
-			
+
 		/*$this->data['activities']['invoice_activities'] = Activity::with(['case','serviceType','activityDetail'])->where('invoice_id',$activity->invoice_id)->get();*/
-		if($activity->invoice_id){
+		if ($activity->invoice_id) {
 
-		$this->data['activities']['invoice_activities'] = Activity::join('cases', 'cases.id', 'activities.case_id')
-			->join('service_types', 'service_types.id', 'activities.service_type_id')
-			->leftJoin('activity_details as km_charge', function ($join) {
-				$join->on('km_charge.activity_id', 'activities.id')
-					->where('km_charge.key_id', 172); //BO PO AMOUNT OR KM CHARGE
-			})
-			->leftJoin('activity_details as km_travelled', function ($join) {
-				$join->on('km_travelled.activity_id', 'activities.id')
-					->where('km_travelled.key_id', 158); //BO KM TRAVELLED
-			})
-			->leftJoin('activity_details as net_amount', function ($join) {
-				$join->on('net_amount.activity_id', 'activities.id')
-					->where('net_amount.key_id', 176); //BO NET AMOUNT
-			})
-			->leftJoin('activity_details as collect_amount', function ($join) {
-				$join->on('collect_amount.activity_id', 'activities.id')
-					->where('collect_amount.key_id', 159); //BO COLLECT AMOUNT
-			})
-			->leftJoin('activity_details as not_collected_amount', function ($join) {
-				$join->on('not_collected_amount.activity_id', 'activities.id')
-					->where('not_collected_amount.key_id', 160); //BO NOT COLLECT AMOUNT
-			})
-			->leftJoin('activity_details as total_tax_perc', function ($join) {
-				$join->on('total_tax_perc.activity_id', 'activities.id')
-					->where('total_tax_perc.key_id', 185); //BO TOTAL TAX PERC
-			})
-			->leftJoin('activity_details as total_tax_amount', function ($join) {
-				$join->on('total_tax_amount.activity_id', 'activities.id')
-					->where('total_tax_amount.key_id', 179); //BO TOTAL TAX AMOUNT
-			})
-			->leftJoin('activity_details as total_amount', function ($join) {
-				$join->on('total_amount.activity_id', 'activities.id')
-					->where('total_amount.key_id', 182); //BO INVOICE AMOUNT
-			})
-			->select(
-				'cases.number',
-				'activities.id',
-				'activities.crm_activity_id',
-				DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
-				'cases.vehicle_registration_number',
-				'service_types.name as service_type',
-				'km_charge.value as km_charge_value',
-				'km_travelled.value as km_value',
-				'not_collected_amount.value as not_collect_value',
-				'net_amount.value as net_value',
-				'collect_amount.value as collect_value',
-				'total_amount.value as total_value',
-				'total_tax_perc.value as total_tax_perc_value',
-				'total_tax_amount.value as total_tax_amount_value'
-			)
-			->where('invoice_id', $activity->invoice_id)
-			->groupBy('activities.id')
-			->get();
+			$this->data['activities']['invoice_activities'] = Activity::join('cases', 'cases.id', 'activities.case_id')
+				->join('service_types', 'service_types.id', 'activities.service_type_id')
+				->leftJoin('activity_details as km_charge', function ($join) {
+					$join->on('km_charge.activity_id', 'activities.id')
+						->where('km_charge.key_id', 172); //BO PO AMOUNT OR KM CHARGE
+				})
+				->leftJoin('activity_details as km_travelled', function ($join) {
+					$join->on('km_travelled.activity_id', 'activities.id')
+						->where('km_travelled.key_id', 158); //BO KM TRAVELLED
+				})
+				->leftJoin('activity_details as net_amount', function ($join) {
+					$join->on('net_amount.activity_id', 'activities.id')
+						->where('net_amount.key_id', 176); //BO NET AMOUNT
+				})
+				->leftJoin('activity_details as collect_amount', function ($join) {
+					$join->on('collect_amount.activity_id', 'activities.id')
+						->where('collect_amount.key_id', 159); //BO COLLECT AMOUNT
+				})
+				->leftJoin('activity_details as not_collected_amount', function ($join) {
+					$join->on('not_collected_amount.activity_id', 'activities.id')
+						->where('not_collected_amount.key_id', 160); //BO NOT COLLECT AMOUNT
+				})
+				->leftJoin('activity_details as total_tax_perc', function ($join) {
+					$join->on('total_tax_perc.activity_id', 'activities.id')
+						->where('total_tax_perc.key_id', 185); //BO TOTAL TAX PERC
+				})
+				->leftJoin('activity_details as total_tax_amount', function ($join) {
+					$join->on('total_tax_amount.activity_id', 'activities.id')
+						->where('total_tax_amount.key_id', 179); //BO TOTAL TAX AMOUNT
+				})
+				->leftJoin('activity_details as total_amount', function ($join) {
+					$join->on('total_amount.activity_id', 'activities.id')
+						->where('total_amount.key_id', 182); //BO INVOICE AMOUNT
+				})
+				->select(
+					'cases.number',
+					'activities.id',
+					'activities.crm_activity_id',
+					DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
+					'cases.vehicle_registration_number',
+					'service_types.name as service_type',
+					'km_charge.value as km_charge_value',
+					'km_travelled.value as km_value',
+					'not_collected_amount.value as not_collect_value',
+					'net_amount.value as net_value',
+					'collect_amount.value as collect_value',
+					'total_amount.value as total_value',
+					'total_tax_perc.value as total_tax_perc_value',
+					'total_tax_amount.value as total_tax_amount_value'
+				)
+				->where('invoice_id', $activity->invoice_id)
+				->groupBy('activities.id')
+				->get();
 
-			$this->data['activities']['invoice_amount_in_word'] =getIndianCurrency($activity->inv_amount);
+			$this->data['activities']['invoice_amount_in_word'] = getIndianCurrency($activity->inv_amount);
 		}
 
 		$this->data['activities']['asp_service_type_data'] = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();
@@ -622,7 +623,7 @@ class ActivityController extends Controller {
 				//AMOUNT
 				$this->data['activities']['bo_deduction'] = $this->data['activities']['asp_service_type_data']->adjustment;
 		*/
-				//dd( $this->data);
+		//dd( $this->data);
 		return response()->json(['success' => true, 'data' => $this->data]);
 
 	}
@@ -677,6 +678,13 @@ class ActivityController extends Controller {
 				'Status' => $log_status,
 				'Waiting for' => $log_waiting,
 			], 361);
+
+			$activity_log = ActivityLog::firstOrNew([
+				'activity_id' => $activity->id,
+			]);
+			$activity_log->bo_approved_at = date('Y-m-d H:i:s');
+			$activity_log->updated_by_id = Auth::id();
+			$activity_log->save();
 
 			//sending confirmation SMS to ASP
 			// $mobile_number = $activity->asp->contact_number1;
@@ -737,6 +745,13 @@ class ActivityController extends Controller {
 					'Waiting for' => $log_waiting,
 				], 361);
 
+				$activity_log = ActivityLog::firstOrNew([
+					'activity_id' => $activity->id,
+				]);
+				$activity_log->bo_approved_at = date('Y-m-d H:i:s');
+				$activity_log->updated_by_id = Auth::id();
+				$activity_log->save();
+
 				$mobile_number = $activity->asp->contact_number1;
 				$sms_message = 'BO_APPROVED';
 				$array = [$activity->case->number];
@@ -780,6 +795,13 @@ class ActivityController extends Controller {
 				'Status' => $log_status,
 				'Waiting for' => $log_waiting,
 			], 361);
+
+			$activity_log = ActivityLog::firstOrNew([
+				'activity_id' => $activity->id,
+			]);
+			$activity_log->bo_deffered_at = date('Y-m-d H:i:s');
+			$activity_log->updated_by_id = Auth::id();
+			$activity_log->save();
 
 			//SMS record
 			$mobile_number = $activity->asp->contact_number1;
@@ -1124,6 +1146,13 @@ class ActivityController extends Controller {
 				'Status' => $log_status,
 				'Waiting for' => $log_waiting,
 			], 361);
+
+			$activity_log = ActivityLog::firstOrNew([
+				'activity_id' => $activity->id,
+			]);
+			$activity_log->asp_data_filled_at = date('Y-m-d H:i:s');
+			$activity_log->updated_by_id = Auth::id();
+			$activity_log->save();
 
 			//sending confirmation SMS to ASP
 			$mobile_number = $activity->asp->contact_number1;
@@ -1607,15 +1636,15 @@ class ActivityController extends Controller {
 		$activities = Activity::join('cases', 'activities.case_id', '=', 'cases.id')->join('asps', 'activities.asp_id', '=', 'asps.id')->whereIn('activities.status_id', $status_ids)
 			->whereDate('activities.created_at', '>=', $range1)
 			->whereDate('activities.created_at', '<=', $range2)
-			->select('activities.*','activities.id as id');
+			->select('activities.*', 'activities.id as id');
 		if (!empty($request->get('asp_id'))) {
-			$activities =$activities->where('activities.asp_id', $request->get('asp_id'));
+			$activities = $activities->where('activities.asp_id', $request->get('asp_id'));
 		}
 		if (!empty($request->get('client_id'))) {
-			$activities =$activities->where('cases.client_id', $request->get('client_id'));
+			$activities = $activities->where('cases.client_id', $request->get('client_id'));
 		}
 		if (!empty($request->get('ticket'))) {
-			$activities =$activities->where('cases.number', $request->get('ticket'));
+			$activities = $activities->where('cases.number', $request->get('ticket'));
 		}
 		if (!Entrust::can('view-all-activities')) {
 			if (Entrust::can('view-mapped-state-activities')) {
@@ -1708,7 +1737,7 @@ class ActivityController extends Controller {
 			'Axapta Generated',
 			'Duration Between Axapta Generated and Payment Completed',
 			'Payment Completed',
-			'Total No. Of Days'
+			'Total No. Of Days',
 		];
 		$activity_details_data = [];
 		//dd($activities);
@@ -1746,7 +1775,8 @@ class ActivityController extends Controller {
 				$activity->activityStatus ? $activity->activityStatus->name : '',
 				$activity->description != NULL ? $activity->description : '',
 				$activity->remarks != NULL ? $activity->remarks : '',
-				$activity->invoice ? ($activity->asp->has_gst == 1 && $activity->asp->is_auto_invoice == 0 ? ($activity->invoice->invoice_no) : ($activity->invoice->invoice_no . '-' . $activity->invoice->id)) : '',
+				// $activity->invoice ? ($activity->asp->has_gst == 1 && $activity->asp->is_auto_invoice == 0 ? ($activity->invoice->invoice_no) : ($activity->invoice->invoice_no . '-' . $activity->invoice->id)) : '',
+				$activity->invoice ? $activity->invoice->invoice_no : '',
 				$activity->invoice ? date('d-m-Y', strtotime($activity->invoice->start_date)) : '',
 				$activity->invoice ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice->invoice_amount, 2))) : '',
 				$activity->invoice ? ($activity->invoice->invoiceStatus ? $activity->invoice->invoiceStatus->name : '') : '',
@@ -1778,43 +1808,43 @@ class ActivityController extends Controller {
 			}
 			$total_days = 0;
 			//dump($activity);
-			$activity_log = ActivityLog::where('activity_id',$activity->id)->first();
-			if($activity_log){
+			$activity_log = ActivityLog::where('activity_id', $activity->id)->first();
+			if ($activity_log) {
 
-				$activity_details_data[$activity_key][] = $activity_log->imported_at ? date('d-m-Y H:i:s',strtotime($activity_log->imported_at)) : '';
-				$tot = ($activity_log->imported_at && $activity_log->asp_data_filled_at) ? $this->findDifference($activity_log->imported_at,$activity_log->asp_data_filled_at) : '';
-				$total_days = is_numeric($tot) ? ($tot+$total_days) : $total_days;
-				$activity_details_data[$activity_key][] = is_numeric($tot) ? ( $tot>1 ? ($tot.' Days') : ($tot.' Day')) : '';
+				$activity_details_data[$activity_key][] = $activity_log->imported_at ? date('d-m-Y H:i:s', strtotime($activity_log->imported_at)) : '';
+				$tot = ($activity_log->imported_at && $activity_log->asp_data_filled_at) ? $this->findDifference($activity_log->imported_at, $activity_log->asp_data_filled_at) : '';
+				$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+				$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-				$activity_details_data[$activity_key][] = $activity_log->asp_data_filled_at ? date('d-m-Y H:i:s',strtotime($activity_log->asp_data_filled_at)) : '';
-				$tot =($activity_log->asp_data_filled_at && $activity_log->bo_deffered_at) ? $this->findDifference($activity_log->asp_data_filled_at,$activity_log->bo_deffered_at) : '';
-				$total_days = is_numeric($tot) ? ($tot+$total_days) : $total_days;
-				$activity_details_data[$activity_key][] = is_numeric($tot) ? ( $tot>1 ? ($tot.' Days') : ($tot.' Day')) : '';
+				$activity_details_data[$activity_key][] = $activity_log->asp_data_filled_at ? date('d-m-Y H:i:s', strtotime($activity_log->asp_data_filled_at)) : '';
+				$tot = ($activity_log->asp_data_filled_at && $activity_log->bo_deffered_at) ? $this->findDifference($activity_log->asp_data_filled_at, $activity_log->bo_deffered_at) : '';
+				$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+				$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-				$activity_details_data[$activity_key][] = $activity_log->bo_deffered_at ? date('d-m-Y H:i:s',strtotime($activity_log->bo_deffered_at)) : '';
-				$tot =($activity_log->asp_data_filled_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->asp_data_filled_at,$activity_log->bo_approved_at) : '';
-				$total_days = is_numeric($tot) ? ($tot+$total_days) : $total_days;
-				$activity_details_data[$activity_key][] = is_numeric($tot) ? ( $tot>1 ? ($tot.' Days') : ($tot.' Day')) : '';
+				$activity_details_data[$activity_key][] = $activity_log->bo_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_deffered_at)) : '';
+				$tot = ($activity_log->asp_data_filled_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->asp_data_filled_at, $activity_log->bo_approved_at) : '';
+				$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+				$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-				$activity_details_data[$activity_key][] = $activity_log->bo_approved_at ? date('d-m-Y H:i:s',strtotime($activity_log->bo_approved_at)) : '';
-				$tot =($activity_log->invoice_generated_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->invoice_generated_at,$activity_log->bo_approved_at) : '';
-				$total_days = is_numeric($tot) ? ($tot+$total_days) : $total_days;
-				$activity_details_data[$activity_key][] = is_numeric($tot) ? ( $tot>1 ? ($tot.' Days') : ($tot.' Day')) : '';
+				$activity_details_data[$activity_key][] = $activity_log->bo_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_approved_at)) : '';
+				$tot = ($activity_log->invoice_generated_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->bo_approved_at) : '';
+				$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+				$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-				$activity_details_data[$activity_key][] = $activity_log->invoice_generated_at ? date('d-m-Y H:i:s',strtotime($activity_log->invoice_generated_at)) : '';
-				$tot =($activity_log->invoice_generated_at && $activity_log->axapta_generated_at) ? $this->findDifference($activity_log->invoice_generated_at,$activity_log->axapta_generated_at) : '';
-				$total_days = is_numeric($tot) ? ($tot+$total_days) : $total_days;
-				$activity_details_data[$activity_key][] = is_numeric($tot) ? ( $tot>1 ? ($tot.' Days') : ($tot.' Day')) : '';
+				$activity_details_data[$activity_key][] = $activity_log->invoice_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->invoice_generated_at)) : '';
+				$tot = ($activity_log->invoice_generated_at && $activity_log->axapta_generated_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->axapta_generated_at) : '';
+				$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+				$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-				$activity_details_data[$activity_key][] = $activity_log->axapta_generated_at ? date('d-m-Y H:i:s',strtotime($activity_log->axapta_generated_at)) : '';
-				$tot =($activity_log->axapta_generated_at && $activity_log->payment_completed_at) ? $this->findDifference($activity_log->axapta_generated_at,$activity_log->payment_completed_at) : '';
-				$total_days = is_numeric($tot) ? ($tot+$total_days) : $total_days;
-				$activity_details_data[$activity_key][] = is_numeric($tot) ? ( $tot>1 ? ($tot.' Days') : ($tot.' Day')) : '';
+				$activity_details_data[$activity_key][] = $activity_log->axapta_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->axapta_generated_at)) : '';
+				$tot = ($activity_log->axapta_generated_at && $activity_log->payment_completed_at) ? $this->findDifference($activity_log->axapta_generated_at, $activity_log->payment_completed_at) : '';
+				$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+				$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-				$activity_details_data[$activity_key][] = $activity_log->payment_completed_at ? date('d-m-Y H:i:s',strtotime($activity_log->payment_completed_at)) : '';
-				$activity_details_data[$activity_key][] = $total_days>1 ? ($total_days.' Days') : ($total_days.' Day');
+				$activity_details_data[$activity_key][] = $activity_log->payment_completed_at ? date('d-m-Y H:i:s', strtotime($activity_log->payment_completed_at)) : '';
+				$activity_details_data[$activity_key][] = $total_days > 1 ? ($total_days . ' Days') : ($total_days . ' Day');
 
-			}else{
+			} else {
 				$activity_details_data[$activity_key][] = '';
 				$activity_details_data[$activity_key][] = '';
 				$activity_details_data[$activity_key][] = '';
@@ -1830,7 +1860,7 @@ class ActivityController extends Controller {
 				$activity_details_data[$activity_key][] = '';
 				$activity_details_data[$activity_key][] = '';
 			}
-			
+
 		}
 		//dd('s');
 		//$activity_details_data = array_merge($activity_details_header, $activity_details_data);
@@ -1876,10 +1906,10 @@ class ActivityController extends Controller {
 
 		return redirect()->back()->with(['success' => 'exported!']);
 	}
-	public static function findDifference($date1,$date2){
-		$date1=date_create(date('Y-m-d',strtotime($date1)));
-		$date2=date_create(date('Y-m-d',strtotime($date2)));
-		$diff_date=date_diff($date1,$date2);
+	public static function findDifference($date1, $date2) {
+		$date1 = date_create(date('Y-m-d', strtotime($date1)));
+		$date2 = date_create(date('Y-m-d', strtotime($date2)));
+		$diff_date = date_diff($date1, $date2);
 		$duration = ($diff_date->format("%d") > 1) ? $diff_date->format("%d") : $diff_date->format("%d");
 		return $duration;
 	}

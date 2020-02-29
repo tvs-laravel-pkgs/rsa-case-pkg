@@ -1,0 +1,65 @@
+<h3 class="mt-30 mb-20">Price  Comparision</h3>
+<div class="table-responsive">
+<table class="table table-responsive table-bordered table-wide style-normal">
+	<thead>
+		<tr>
+			<th>Title</th>
+			<th>BO Data</th>
+		</tr>
+	</thead>
+	<tbody>
+	<?php $fields = json_decode($service->fields); ?>
+	
+		<tr>
+			<th scope="row">Service</th>
+			<td>{{$bo_service_name}}</td>
+		</tr>
+
+		<tr>
+			<th scope="row">KM Travelled</th>
+			<td>{{$mis_info->bo_km}}</td>
+		</tr>
+
+
+		<tr>
+			<th scope="row">Charges Not Collected From Customer </th>
+			<td>{{$mis_info->bo_other_charges}}</td>
+		</tr>
+
+
+		<tr>
+			<th scope="row">Charges Collected From Customer </th>
+			<td>{{$mis_info->bo_collected_charges}}</td>
+			
+		</tr>
+		
+        
+		
+	</tbody>
+</table>
+</div>
+<script type="text/javascript">
+	$(".km_value").keyup(function(){
+			var entry = parseInt($(this).val());
+			var asp = parseInt($(".asp_value").text());
+			if(entry > asp){ $(this).val(""); $(".alert-danger").show(); }else {  $(".alert-danger").hide(); }
+
+		});
+	$(".collected_amount").keyup(function(){
+			var entry = parseInt($(this).val());
+			var asp = parseInt($(".collected_value").text());
+			if(entry > asp){ $(this).val(""); $(".alert-danger1").show(); }else { console.log(entry); $("#info-1 .collected_by_asp").val(entry); $(".alert-danger1").hide(); }
+
+		});
+	$(".non_collected_amount").keyup(function(){
+			var entry = parseInt($(this).val());
+			var asp = parseInt($(".other_value").text());
+			if(entry > asp){ $(this).val(""); $(".alert-danger2").show(); }else { console.log(entry); $("#info-1 .not_collected_by_asp").val(entry); $(".alert-danger2").hide(); }
+
+		});
+	// $(".calculate-totals-other").keyup(function(){
+	// 		var entry = parseInt($(this).val());
+	// 		var asp = parseInt($(".asp_value_other").text());
+	// 		if(entry > asp){ $(this).val(""); $(".alert-danger1").show(); }else { $(".alert-danger1").hide(); }
+	// 	});
+</script>

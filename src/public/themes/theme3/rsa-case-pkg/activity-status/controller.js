@@ -8,18 +8,14 @@ app.component('activityStatusList', {
         self.export_activities = export_activities;
         self.canExportActivity = canExportActivity;
         self.canImportActivity = canImportActivity;
-        self.activity_back_asp_update = activity_back_asp_update;
+
         self.csrf = token;
         $http.get(
             activity_status_filter_url
         ).then(function(response) {
             self.extras = response.data.extras;
             // response.data.extras.status_list.splice(0, 1);
-            console.log(self.extras);
-
             self.status_list = response.data.extras.portal_status_list;
-            self.client_list= response.data.extras.export_client_list;
-            self.asp_list = response.data.extras.asp_list;
             // self.status_list.splice(0, 1);
             self.modal_close = modal_close;
             var cols = [
@@ -139,7 +135,6 @@ app.component('activityStatusList', {
                     }
                 });
             }
-           
             $('.filterToggle').click(function() {
                 $('#filterticket').toggleClass('open');
             });
@@ -213,27 +208,6 @@ app.component('activityStatusList', {
             });
 
         });
-             $scope.backConfirm = function(activity) {
-                $scope.$apply();
-                $("#ticket_back_asp_Modal").modal('toggle');
-                setTimeout(function(){
-                 self.activity_form_data = activity;
-                console.log(self.activity_form_data);
-                  }, 1000);
-            }
-            $scope.asp_data_entry_submit=function(){
-                var ticket_status_id = $('#ticket_status_id').val(1);
-                setTimeout(function(){
-                    $('#tickect-back-asp-form').submit();
-                  }, 1000);
-            };
-
-            $scope.asp_bo_deffered_submit=function(){
-                var ticket_status_id = $('#ticket_status_id').val(2);
-                setTimeout(function(){
-                    $('#tickect-back-asp-form').submit();
-                  }, 1000);
-            };
 
     }
 });
@@ -311,6 +285,7 @@ app.component('activityStatusView', {
             self.data.style_phone_image_url = style_car_image_url;
             self.data.verification = 0;
             self.data.page_title = 'Status';
+
             $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
             $('#viewData-toggle--btn1').click(function() {
                 $(this).toggleClass('viewData-toggle--btn_reverse');

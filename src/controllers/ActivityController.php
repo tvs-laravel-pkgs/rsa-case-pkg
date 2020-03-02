@@ -1435,6 +1435,7 @@ class ActivityController extends Controller {
 			->select(
 				'cases.number',
 				'activities.id',
+				'activities.asp_id as asp_id',
 				'activities.crm_activity_id',
 				DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
 				'activity_portal_statuses.name as status',
@@ -1454,7 +1455,16 @@ class ActivityController extends Controller {
 			->groupBy('activities.id')
 			->get();
 			foreach($activities as $key => $activity){
-				$activities[$key]['taxes'] = DB::table('activity_tax')->leftjoin('taxes','activity_tax.tax_id','=','taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name','taxes.tax_rate','activity_tax.*')->get();
+				$taxes = DB::table('activity_tax')->leftjoin('taxes','activity_tax.tax_id','=','taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name','taxes.tax_rate','activity_tax.*')->get();
+				if($taxes->count() == 0){
+					$asp = Asp::where('id',$activity->asp_id)->first();
+					if($asp->tax_group_id){
+						$taxes =Tax::where('tax_group_id',$asp->tax_group_id)->select('taxes.tax_name','taxes.tax_rate',DB::raw('0 as amount'))->get();	
+					}else{
+						$taxes = collect();
+					}
+				}
+				$activities[$key]['taxes'] = $taxes;
 			}
 		if (count($activities) == 0) {
 			return response()->json([

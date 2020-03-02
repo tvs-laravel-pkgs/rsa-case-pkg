@@ -3,6 +3,7 @@
 namespace Abs\RsaCasePkg;
 use Abs\RsaCasePkg\Activity;
 use App\Asp;
+use App\Tax;
 use App\Attachment;
 use App\Http\Controllers\Admin\AxaptaExportController;
 use App\Http\Controllers\Controller;
@@ -131,7 +132,6 @@ class InvoiceController extends Controller {
 	}
 
 	public function viewInvoice($invoice_id, $type_id) {
-
 		$this->data['invoice'] = $invoice = Invoices::where('Invoices.id', $invoice_id)->
 			select(
 			'Invoices.*',
@@ -204,6 +204,7 @@ class InvoiceController extends Controller {
 			})
 			->select(
 				// 'activities.number',
+				'activities.asp_id as asp_id',
 				'cases.number',
 				DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
 				'activity_portal_statuses.name as status',
@@ -222,7 +223,21 @@ class InvoiceController extends Controller {
 			->where('invoice_id', $invoice_id)
 			->groupBy('activities.id')
 			->get();
+			foreach($activities as $key => $activity){
+				$taxes = DB::table('activity_tax')->leftjoin('taxes','activity_tax.tax_id','=','taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name','taxes.tax_rate','activity_tax.*')->get();
+				$asp = Asp::where('id',$activity->asp_id)->first();
+				if($taxes->count() == 0){
+					if($asp->tax_group_id){
+						$taxes =Tax::where('tax_group_id',$asp->tax_group_id)->select('taxes.tax_name','taxes.tax_rate',DB::raw('0 as amount'))->get();	
+					}else{
+						$taxes = collect();
+					}
+				}
 
+				$activities[$key]['taxes'] = $taxes;
+			}
+
+			//dd($activities);
 		$this->data['activities'] = $activities;
 		$this->data['invoice_amount'] = number_format($invoice->amount, 2);
 		$this->data['invoice_amount_in_word'] = getIndianCurrency($invoice->amount);

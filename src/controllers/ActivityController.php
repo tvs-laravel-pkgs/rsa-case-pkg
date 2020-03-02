@@ -1396,7 +1396,6 @@ class ActivityController extends Controller {
 
 		//CALCULATE TAX FOR INVOICE
 		Invoices::calculateTax($asp, $activity_ids);
-
 		$activities = Activity::join('cases', 'cases.id', 'activities.case_id')
 			->join('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->join('service_types', 'service_types.id', 'activities.service_type_id')
@@ -1454,7 +1453,9 @@ class ActivityController extends Controller {
 			->whereIn('activities.id', $activity_ids)
 			->groupBy('activities.id')
 			->get();
-
+			foreach($activities as $key => $activity){
+				$activities[$key]['taxes'] = DB::table('activity_tax')->leftjoin('taxes','activity_tax.tax_id','=','taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name','taxes.tax_rate','activity_tax.*')->get();
+			}
 		if (count($activities) == 0) {
 			return response()->json([
 				'success' => false,

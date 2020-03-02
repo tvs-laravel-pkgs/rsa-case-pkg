@@ -15,6 +15,7 @@ use Abs\RsaCasePkg\CaseCancelledReason;
 use Abs\RsaCasePkg\CaseStatus;
 use Abs\RsaCasePkg\RsaCase;
 use App\Asp;
+use App\Tax;
 use App\AspServiceType;
 use App\Attachment;
 use App\CallCenter;
@@ -140,6 +141,10 @@ class Activity extends Model {
 
 	public function deletedBy() {
 		return $this->belongsTo('App\User', 'deleted_by_id');
+	}
+
+	public function activityTaxes() {
+		return $this->belongsToMany('App\Tax','activity_tax')->withPivot('amount');
 	}
 
 	public static function getFormData($id = NULL, $for_deffer_activity) {

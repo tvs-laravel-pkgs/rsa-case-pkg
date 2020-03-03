@@ -9,6 +9,7 @@ use Abs\RsaCasePkg\ActivityPortalStatus;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\RsaCase;
 use App\Asp;
+use App\Tax;
 use App\AspServiceType;
 use App\Attachment;
 use App\CallCenter;
@@ -446,20 +447,20 @@ class ActivityController extends Controller {
 			DB::raw('IF(activities.remarks IS NULL OR activities.remarks="","-",activities.remarks) as remarks'),
 			//'activities.remarks as remarks',
 			'cases.*',
-			// DB::raw('CASE
-			// 	    	WHEN (Invoices.invoice_no IS NOT NULL)
-			//     		THEN
-			//     			CASE
-			//     				WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0)
-			//    					THEN
-			//     					Invoices.invoice_no
-			//     				ELSE
-			//     					CONCAT(Invoices.invoice_no,"-",Invoices.id)
-			//     			END
-			//     		ELSE
-			//     			"NA"
-			// 		END as invoice_no'),
-			'Invoices.invoice_no',
+			DB::raw('CASE
+				    	WHEN (Invoices.invoice_no IS NOT NULL)
+			    		THEN
+			    			CASE
+			    				WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0)
+			   					THEN
+			    					Invoices.invoice_no
+			    				ELSE
+			    					CONCAT(Invoices.invoice_no,"-",Invoices.id)
+			    			END
+			    		ELSE
+			    			"NA"
+					END as invoice_no'),
+			//'Invoices.invoice_no',
 			DB::raw('CASE
 				    	WHEN (Invoices.asp_gst_registration_number IS NULL || Invoices.asp_gst_registration_number = "")
 			    		THEN
@@ -513,6 +514,8 @@ class ActivityController extends Controller {
 			->groupBy('activities.id')
 			->where('activities.id', $activity_status_id)
 			->first();
+
+			
 		$this->data['activities']['km_travelled_attachments'] = $km_travelled_attachments = Attachment::where([['entity_id', '=', $activity_status_id], ['entity_type', '=', 16]])->get();
 		$this->data['activities']['other_charges_attachments'] = $other_charges_attachments = Attachment::where([['entity_id', '=', $activity_status_id], ['entity_type', '=', 17]])->get();
 		$other_charges_attachment_url = $km_travelled_attachment_url = [];
@@ -544,7 +547,7 @@ class ActivityController extends Controller {
 		/*$this->data['activities']['invoice_activities'] = Activity::with(['case','serviceType','activityDetail'])->where('invoice_id',$activity->invoice_id)->get();*/
 		if ($activity->invoice_id) {
 
-			$this->data['activities']['invoice_activities'] = Activity::join('cases', 'cases.id', 'activities.case_id')
+			$this->data['activities']['invoice_activities'] = $invoice_activities =Activity::join('cases', 'cases.id', 'activities.case_id')
 				->join('service_types', 'service_types.id', 'activities.service_type_id')
 				->leftJoin('activity_details as km_charge', function ($join) {
 					$join->on('km_charge.activity_id', 'activities.id')
@@ -581,6 +584,7 @@ class ActivityController extends Controller {
 				->select(
 					'cases.number',
 					'activities.id',
+					'activities.asp_id',
 					'activities.crm_activity_id',
 					DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
 					'cases.vehicle_registration_number',
@@ -599,6 +603,22 @@ class ActivityController extends Controller {
 				->get();
 
 			$this->data['activities']['invoice_amount_in_word'] = getIndianCurrency($activity->inv_amount);
+			foreach($invoice_activities as $key => $activity){
+				$taxes = DB::table('activity_tax')->leftjoin('taxes','activity_tax.tax_id','=','taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name','taxes.tax_rate','activity_tax.*')->get();
+				$asp = Asp::where('id',$activity->asp_id)->first();
+				if($taxes->count() == 0){
+					if($asp->tax_group_id){
+						$taxes =Tax::where('tax_group_id',$asp->tax_group_id)->select('taxes.tax_name','taxes.tax_rate',DB::raw('0 as amount'))->get();	
+					}else{
+						$taxes = collect();
+					}
+				}
+				$this->data['activities']['invoice_activities'][$key]['taxes'] = $taxes;
+			}
+			$this->data['activities']['signature_attachment'] = Attachment::where('entity_id',$invoice_activities[0]->asp_id)->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))->first();
+
+			$this->data['activities']['signature_attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
+
 		}
 
 		$this->data['activities']['asp_service_type_data'] = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();

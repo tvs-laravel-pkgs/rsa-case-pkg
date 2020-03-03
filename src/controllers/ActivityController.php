@@ -1469,6 +1469,7 @@ class ActivityController extends Controller {
 		$activities = Activity::join('asps', 'activities.asp_id', '=', 'asps.id')->whereIn('status_id', $status_ids)
 			->whereDate('activities.created_at', '>=', $range1)
 			->whereDate('activities.created_at', '<=', $range2)
+			->select('asps.*','activities.*','activities.id as id')
 		;
 
 		if (!Entrust::can('view-all-activities')) {
@@ -1550,9 +1551,6 @@ class ActivityController extends Controller {
 			$activity_details_header[] = str_replace("_", " ", strtolower($config->name));
 		}
 		$activity_details_data = [];
-		//dd($activities);
-		//$activity_details_header = array_merge($activity_details_header, $activity_details_sub_header);
-		//dd($activity->asp->has_gst);
 		foreach ($activities->get() as $activity_key => $activity) {
 			$activity_details_data[] = [
 				$activity->case->number,
@@ -1594,7 +1592,7 @@ class ActivityController extends Controller {
 				'',
 				'',
 			];
-			foreach ($config_ids as $config_key => $config_id) {
+			foreach ($config_ids as $config_id) {
 				$config = Config::where('id', $config_id)->first();
 				$detail = ActivityDetail::where('activity_id', $activity->id)->where('key_id', $config_id)->first();
 				if (strcmp('amount', $config->name) == 0 || strpos($config->name, '_charges') || strpos($config->name, 'Amount') || strpos($config->name, 'Collected') || strpos($config->name, 'date')) {
@@ -1617,7 +1615,6 @@ class ActivityController extends Controller {
 			}
 		}
 		//$activity_details_data = array_merge($activity_details_header, $activity_details_data);
-		//dd($activity_details_header,$activity_details_data);
 		Excel::create('Activity Status Report', function ($excel) use ($summary, $activity_details_header, $activity_details_data, $status_ids, $summary_period) {
 			$excel->sheet('Summary', function ($sheet) use ($summary, $status_ids, $summary_period) {
 				//dd($summary);

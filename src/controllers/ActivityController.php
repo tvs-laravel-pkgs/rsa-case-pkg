@@ -9,7 +9,6 @@ use Abs\RsaCasePkg\ActivityPortalStatus;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\RsaCase;
 use App\Asp;
-use App\Tax;
 use App\AspServiceType;
 use App\Attachment;
 use App\CallCenter;
@@ -19,6 +18,7 @@ use App\Http\Controllers\Controller;
 use App\Invoices;
 use App\ServiceType;
 use App\StateUser;
+use App\Tax;
 use Auth;
 use Carbon\Carbon;
 use DB;
@@ -515,7 +515,6 @@ class ActivityController extends Controller {
 			->where('activities.id', $activity_status_id)
 			->first();
 
-			
 		$this->data['activities']['km_travelled_attachments'] = $km_travelled_attachments = Attachment::where([['entity_id', '=', $activity_status_id], ['entity_type', '=', 16]])->get();
 		$this->data['activities']['other_charges_attachments'] = $other_charges_attachments = Attachment::where([['entity_id', '=', $activity_status_id], ['entity_type', '=', 17]])->get();
 		$other_charges_attachment_url = $km_travelled_attachment_url = [];
@@ -547,7 +546,7 @@ class ActivityController extends Controller {
 		/*$this->data['activities']['invoice_activities'] = Activity::with(['case','serviceType','activityDetail'])->where('invoice_id',$activity->invoice_id)->get();*/
 		if ($activity->invoice_id) {
 
-			$this->data['activities']['invoice_activities'] = $invoice_activities =Activity::join('cases', 'cases.id', 'activities.case_id')
+			$this->data['activities']['invoice_activities'] = $invoice_activities = Activity::join('cases', 'cases.id', 'activities.case_id')
 				->join('service_types', 'service_types.id', 'activities.service_type_id')
 				->leftJoin('activity_details as km_charge', function ($join) {
 					$join->on('km_charge.activity_id', 'activities.id')
@@ -603,19 +602,19 @@ class ActivityController extends Controller {
 				->get();
 
 			$this->data['activities']['invoice_amount_in_word'] = getIndianCurrency($activity->inv_amount);
-			foreach($invoice_activities as $key => $activity){
-				$taxes = DB::table('activity_tax')->leftjoin('taxes','activity_tax.tax_id','=','taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name','taxes.tax_rate','activity_tax.*')->get();
-				$asp = Asp::where('id',$activity->asp_id)->first();
-				if($taxes->count() == 0){
-					if($asp->tax_group_id){
-						$taxes =Tax::where('tax_group_id',$asp->tax_group_id)->select('taxes.tax_name','taxes.tax_rate',DB::raw('0 as amount'))->get();	
-					}else{
+			foreach ($invoice_activities as $key => $activity) {
+				$taxes = DB::table('activity_tax')->leftjoin('taxes', 'activity_tax.tax_id', '=', 'taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name', 'taxes.tax_rate', 'activity_tax.*')->get();
+				$asp = Asp::where('id', $activity->asp_id)->first();
+				if ($taxes->count() == 0) {
+					if ($asp->tax_group_id) {
+						$taxes = Tax::where('tax_group_id', $asp->tax_group_id)->select('taxes.tax_name', 'taxes.tax_rate', DB::raw('0 as amount'))->get();
+					} else {
 						$taxes = collect();
 					}
 				}
 				$this->data['activities']['invoice_activities'][$key]['taxes'] = $taxes;
 			}
-			$this->data['activities']['signature_attachment'] = Attachment::where('entity_id',$invoice_activities[0]->asp_id)->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))->first();
+			$this->data['activities']['signature_attachment'] = Attachment::where('entity_id', $invoice_activities[0]->asp_id)->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))->first();
 
 			$this->data['activities']['signature_attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
 
@@ -1474,18 +1473,18 @@ class ActivityController extends Controller {
 			->whereIn('activities.id', $activity_ids)
 			->groupBy('activities.id')
 			->get();
-			foreach($activities as $key => $activity){
-				$taxes = DB::table('activity_tax')->leftjoin('taxes','activity_tax.tax_id','=','taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name','taxes.tax_rate','activity_tax.*')->get();
-				if($taxes->count() == 0){
-					$asp = Asp::where('id',$activity->asp_id)->first();
-					if($asp->tax_group_id){
-						$taxes =Tax::where('tax_group_id',$asp->tax_group_id)->select('taxes.tax_name','taxes.tax_rate',DB::raw('0 as amount'))->get();	
-					}else{
-						$taxes = collect();
-					}
+		foreach ($activities as $key => $activity) {
+			$taxes = DB::table('activity_tax')->leftjoin('taxes', 'activity_tax.tax_id', '=', 'taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name', 'taxes.tax_rate', 'activity_tax.*')->get();
+			if ($taxes->count() == 0) {
+				$asp = Asp::where('id', $activity->asp_id)->first();
+				if ($asp->tax_group_id) {
+					$taxes = Tax::where('tax_group_id', $asp->tax_group_id)->select('taxes.tax_name', 'taxes.tax_rate', DB::raw('0 as amount'))->get();
+				} else {
+					$taxes = collect();
 				}
-				$activities[$key]['taxes'] = $taxes;
 			}
+			$activities[$key]['taxes'] = $taxes;
+		}
 		if (count($activities) == 0) {
 			return response()->json([
 				'success' => false,
@@ -1667,7 +1666,7 @@ class ActivityController extends Controller {
 		$activities = Activity::join('cases', 'activities.case_id', '=', 'cases.id')->join('asps', 'activities.asp_id', '=', 'asps.id')->whereIn('activities.status_id', $status_ids)
 			->whereDate('activities.created_at', '>=', $range1)
 			->whereDate('activities.created_at', '<=', $range2)
-			->select('activities.*', 'activities.id as id');
+			->select('asps.*', 'activities.*', 'activities.id as id');
 		if (!empty($request->get('asp_id'))) {
 			$activities = $activities->where('activities.asp_id', $request->get('asp_id'));
 		}
@@ -1677,6 +1676,7 @@ class ActivityController extends Controller {
 		if (!empty($request->get('ticket'))) {
 			$activities = $activities->where('cases.number', $request->get('ticket'));
 		}
+
 		if (!Entrust::can('view-all-activities')) {
 			if (Entrust::can('view-mapped-state-activities')) {
 				$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
@@ -1774,6 +1774,7 @@ class ActivityController extends Controller {
 		//dd($activities);
 		$activity_details_header = array_merge($activity_details_header, $status_headers);
 		//dd($activity_details_header );
+
 		foreach ($activities->get() as $activity_key => $activity) {
 			$activity_details_data[] = [
 				$activity->case->number,
@@ -1815,7 +1816,7 @@ class ActivityController extends Controller {
 				'',
 				'',
 			];
-			foreach ($config_ids as $config_key => $config_id) {
+			foreach ($config_ids as $config_id) {
 				$config = Config::where('id', $config_id)->first();
 				$detail = ActivityDetail::where('activity_id', $activity->id)->where('key_id', $config_id)->first();
 				if (strcmp('amount', $config->name) == 0 || strpos($config->name, '_charges') || strpos($config->name, 'Amount') || strpos($config->name, 'Collected') || strpos($config->name, 'date')) {
@@ -1895,7 +1896,6 @@ class ActivityController extends Controller {
 		}
 		//dd('s');
 		//$activity_details_data = array_merge($activity_details_header, $activity_details_data);
-		//dd($activity_details_header,$activity_details_data);
 		Excel::create('Activity Status Report', function ($excel) use ($summary, $activity_details_header, $activity_details_data, $status_ids, $summary_period) {
 			$excel->sheet('Summary', function ($sheet) use ($summary, $status_ids, $summary_period) {
 				//dd($summary);

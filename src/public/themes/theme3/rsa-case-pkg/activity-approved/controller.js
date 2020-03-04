@@ -229,6 +229,7 @@ app.component('approvedActivityInvoicePreview', {
             self.inv_no = response.data.inv_no;
             self.inv_date = response.data.inv_date;
             self.signature_attachment = response.data.signature_attachment;
+            self.signature_attachment_path = response.data.signature_attachment_path;
 
             if (self.asp.tax_calculation_method == '1') {
                 self.asp.tax_calculation_method = true;

@@ -99,8 +99,8 @@
                                     <div class="aai-head-left-title">Invoice</div>
                                     <div class="aai-head-left-address">
                                         <p>
-                                            TVS Auto Assist (India) Limited (A division of TVS Automobile Solutions (P) Ltd.,) <br/>10, JAWAHAR ROAD,<br/>CHOKKIKULAM,<br/>MADURAI – 625002<br/>
-                                            CIN - U34100TN2009PTC071439<br/>GSTIN - 33AAGCM0329K1ZM
+                                            TVS Auto Assist (A division of TVS Automobile Solutions (P) Ltd.,) <br />10, JAWAHAR ROAD,<br />CHOKKIKULAM,<br />MADURAI – 625002<br />
+                                            CIN - U34100TN2009PTC071439<br />GSTIN - 33AAGCM0329K1ZM
                                         </p>
                                     </div>
                                 </div>
@@ -247,7 +247,7 @@
                                                 <h4 class="amountinwords-title">Bank Details:</h4>
                                                 <p>Name : {{$ctrl.asp.workshop_name ? $ctrl.asp.workshop_name : 'N/A'}} | Account Number : {{$ctrl.asp.bank_account_number ? $ctrl.asp.bank_account_number : 'N/A'}} | Bank : {{$ctrl.asp.bank_name ? $ctrl.asp.bank_name : 'N/A'}} | Branch : {{$ctrl.asp.bank_branch_name ? $ctrl.asp.bank_branch_name : 'N/A'}} | IFSC : {{$ctrl.asp.bank_ifsc_code ? $ctrl.asp.bank_ifsc_code : 'N/A'}}</p>
                                             </div>
-                                            <div ng-show="$ctrl.signature_attachment != ''" class="pull-right">
+                                            <div ng-show="$ctrl.signature_attachment" class="pull-right">
                                                 <img src="{{$ctrl.signature_attachment_path}}/{{$ctrl.asp.id}}/{{$ctrl.signature_attachment.attachment_file_name}}" weight="80px" height="50px" alt="Authorised Signature" />
                                             </div>
                                             <div class="clearfix"></div>

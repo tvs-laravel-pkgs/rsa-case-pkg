@@ -99,7 +99,7 @@
                                     <div class="aai-head-left-title">Invoice</div>
                                     <div class="aai-head-left-address">
                                         <p>
-                                            TVS Auto Assist (India) Limited (A division of TVS Automobile Solutions (P) Ltd.,) <br />10, JAWAHAR ROAD,<br />CHOKKIKULAM,<br />MADURAI – 625002<br />
+                                            TVS Auto Assist (A division of TVS Automobile Solutions Private Limited) <br />10, JAWAHAR ROAD,<br />CHOKKIKULAM,<br />MADURAI – 625002<br />
                                             CIN - U34100TN2009PTC071439<br />GSTIN - 33AAGCM0329K1ZM
                                         </p>
                                     </div>
@@ -174,7 +174,7 @@
                                                         <th class="text-right">Collected Amount</th>
                                                         <th ng-if="$ctrl.asp.tax_calculation_method" class="text-right">Not Collected Amount</th>
                                                         <th class="text-right">Net Amount</th>
-                                                         <th class="text-right" ng-repeat="(index, tax) in $ctrl.activities[0].taxes">{{tax.tax_name}} ({{tax.tax_rate}}%)</th>
+                                                        <th class="text-right" ng-repeat="(index, tax) in $ctrl.activities[0].taxes">{{tax.tax_name}} ({{tax.tax_rate}}%)</th>
                                                         <th ng-if="!$ctrl.asp.tax_calculation_method" class="text-right">Not Collected Amount</th>
                                                         <th class="text-right">Invoice Amount</th>
                                                     </tr>

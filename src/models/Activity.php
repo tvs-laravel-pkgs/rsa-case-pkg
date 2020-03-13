@@ -56,6 +56,7 @@ class Activity extends Model {
 		'activity_status_id',
 		'description',
 		'remarks',
+		'asp_resolve_comments',
 		'deduction_reason',
 		'bo_comments',
 		'defer_reason',

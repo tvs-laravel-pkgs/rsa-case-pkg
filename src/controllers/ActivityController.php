@@ -997,7 +997,8 @@ class ActivityController extends Controller {
 			}
 
 			if (!empty($request->comments)) {
-				$activity->comments = $request->comments;
+				// $activity->comments = $request->comments;
+				$activity->asp_resolve_comments = $request->comments;
 			}
 
 			$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
@@ -1133,6 +1134,7 @@ class ActivityController extends Controller {
 
 			if (!empty($request->comments)) {
 				//$activity->comments = $request->comments;
+				$activity->asp_resolve_comments = $request->comments;
 			}
 
 			if (!empty($request->remarks_not_collected)) {

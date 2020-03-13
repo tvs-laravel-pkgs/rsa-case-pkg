@@ -810,7 +810,8 @@ class ActivityController extends Controller {
 			}
 
 			if (!empty($request->comments)) {
-				$activity->comments = $request->comments;
+				// $activity->comments = $request->comments;
+				$activity->asp_resolve_comments = $request->comments;
 			}
 
 			$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
@@ -946,6 +947,7 @@ class ActivityController extends Controller {
 
 			if (!empty($request->comments)) {
 				//$activity->comments = $request->comments;
+				$activity->asp_resolve_comments = $request->comments;
 			}
 
 			if (!empty($request->remarks_not_collected)) {
@@ -1469,7 +1471,7 @@ class ActivityController extends Controller {
 		$activities = Activity::join('asps', 'activities.asp_id', '=', 'asps.id')->whereIn('status_id', $status_ids)
 			->whereDate('activities.created_at', '>=', $range1)
 			->whereDate('activities.created_at', '<=', $range2)
-			->select('asps.*','activities.*','activities.id as id')
+			->select('asps.*', 'activities.*', 'activities.id as id')
 		;
 
 		if (!Entrust::can('view-all-activities')) {

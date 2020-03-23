@@ -98,7 +98,7 @@ class CaseController extends Controller {
 						}),
 				],
 				'vehicle_registration_number' => 'required|string|max:11',
-				'vin_no' => 'nullable|string|min:17|max:17',
+				'vin_no' => 'nullable|string|max:20',
 				'membership_type' => 'required|string|max:191',
 				'membership_number' => 'nullable|string|max:50',
 				'subject' => [

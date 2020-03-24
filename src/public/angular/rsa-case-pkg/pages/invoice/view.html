@@ -96,8 +96,12 @@
                                 <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
                                     <div class="aai-head-left-title">Invoice</div>
                                     <div class="aai-head-left-address">
-                                        <p>
+                                        <p ng-if="!$ctrl.new_company_address">
                                             TVS Auto Assist (India) Limited<br />9th Floor, Kochar Bliss,<br />Plot No. Super A8 & 9,<br />Thiru-Vi-Ka Industrial Estate,<br />Guindy,<br />Chennai – 600032<br /> GST- 33AANCA3184D1ZV
+                                        </p>
+                                        <p ng-if="$ctrl.new_company_address">
+                                            TVS Auto Assist (A division of TVS Automobile Solutions (P) Ltd.,) <br />10, JAWAHAR ROAD,<br />CHOKKIKULAM,<br />MADURAI – 625002<br />
+                                            CIN - U34100TN2009PTC071439<br />GSTIN - 33AAGCM0329K1ZM
                                         </p>
                                     </div>
                                 </div>
@@ -261,7 +265,7 @@
                     System Invoice
                     <a href="{{$ctrl.invoice_pdf_generate_url}}/{{$ctrl.invoice.id}}" class="approve-btn pull-left preview-batch">Download</a>
                 </div> -->
-                <div ng-if="$ctrl.canViewPaymentInfo && $ctrl.type_id != 1">
+                <div ng-if="$ctrl.canViewPaymentInfo">
                     <div class="viewData-wrapper" style="padding-top: 30px;">
                         <div class="viewData-toggle--wrapper">
                             <label class="title-label" style="margin: 0; margin-right: 25px; display: inline-block; vertical-align: middle;">Payment Details</label>

@@ -1,0 +1,201 @@
+<!--  All dashboard in this page : super-admin,rm,bo,approval-1,approval-2,finance -->
+<div class="col-xs-12 col-sm-12">
+    <div class="mobile-breadcrumbs-wrapper">
+        <ul class="mobile-breadcrumbs-group list-inline">
+            <li><a href="#!/rsa-case-pkg/dashboard">Home</a></li>
+            <li><a href="#!/rsa-case-pkg/dashboard">Dashboard</a></li>
+        </ul>
+    </div>
+</div>
+<!--  All dashboard in this page : super-admin,rm,bo,approval-1,approval-2,finance -->
+<div class="container-fluid" ng-show="$ctrl.data.role_name=='super-admin' || $ctrl.data.role_name=='bo' || $ctrl.data.role_name=='rm' || $ctrl.data.role_name=='finance'">
+    <div class="row">
+        <div class="col-xs-12 no-padding">
+            <div class="dashboardItem-group">
+                <table class="dashboardTable">
+                    <tr>
+                        <td ng-show="$ctrl.data.role_name!='finance'">
+                            <aside class="dashboardItem">
+                                <figure>
+                                    <img src="{{$ctrl.data.dash1}}">
+                                    <figcaption>
+                                        <div class="dashboardItem-content">
+                                            <h2 class="title">{{$ctrl.data.new_ticket_count}}</h2>
+                                            <p>Total Tickets
+                                                <!-- - {{date('M')}} -->
+                                            </p>
+                                        </div>
+                                        <!-- <span class="date">{{date('M', strtotime("-1 month"))}} : {{$prev_month_new_ticket_count}}</span> -->
+                                    </figcaption>
+                                </figure>
+                            </aside>
+                        </td>
+                        <td ng-show="$ctrl.data.role_name=='finance'">
+                            <aside class="dashboardItem">
+                                <figure>
+                                    <img src="{{$ctrl.data.dash1}}">
+                                    <figcaption>
+                                        <div class="dashboardItem-content">
+                                            <h2 class="title">{{$ctrl.data.invoiced}}</h2>
+                                            <p>New Invoices
+                                                <!-- - {{date('M')}} -->
+                                            </p>
+                                        </div>
+                                        <!-- <span class="date">{{date('M', strtotime("-1 month"))}} : {{$prev_month_new_ticket_count}}</span> -->
+                                    </figcaption>
+                                </figure>
+                            </aside>
+                        </td>
+                        <td ng-show="$ctrl.data.role_name!='finance'">
+                            <aside class="dashboardItem">
+                                <figure>
+                                    <img src="{{$ctrl.data.dash2}}">
+                                    <figcaption>
+                                        <div class="dashboardItem-content">
+                                            <h2 class="title">{{$ctrl.data.tickets_in_approval}}</h2>
+                                            <p ng-show="$ctrl.data.role_name=='super-admin' || $ctrl.data.role_name=='rm'">Tickets In Approval
+                                                <!-- - {{date('M')}} -->
+                                            </p>
+                                            <p ng-show="$ctrl.data.role_name=='bo'">Waiting for Approval
+                                                <!-- - {{date('M')}} -->
+                                            </p>
+                                        </div>
+                                        <!-- <span class="date">{{date('M', strtotime("-1 month"))}} : {{$prev_month_tickets_in_approval}}</span> -->
+                                    </figcaption>
+                                </figure>
+                            </aside>
+                        </td>
+                        <td ng-show="$ctrl.data.role_name!='bo' && $ctrl.data.role_name!='finance'  && $ctrl.data.role_name!='rm'">
+                            <aside class="dashboardItem">
+                                <figure>
+                                    <img src="{{$ctrl.data.dash3}}">
+                                    <figcaption>
+                                        <div class="dashboardItem-content">
+                                            <h2 class="title">{{$ctrl.data.invoiced}}</h2>
+                                            <p>Invoiced</p>
+                                        </div>
+                                        <!-- <span class="date">{{date('M', strtotime("-1 month"))}} : {{$prev_month_invoiced}}</span> -->
+                                    </figcaption>
+                                </figure>
+                            </aside>
+                        </td>
+                        <td ng-show="$ctrl.data.role_name=='bo'">
+                            <aside class="dashboardItem">
+                                <figure>
+                                    <img src="{{$ctrl.data.dash3}}">
+                                    <figcaption>
+                                        <div class="dashboardItem-content">
+                                            <h2 class="title">{{$ctrl.data.current_waiting_batch}}</h2>
+                                            <p>Tickets Waiting for Invoice Generation</p>
+                                        </div>
+                                        <!-- <span class="date">{{date('M', strtotime("-1 month"))}} : {{$previous_waiting_batch}}</span> -->
+                                    </figcaption>
+                                </figure>
+                            </aside>
+                        </td>
+                        <td ng-show="$ctrl.data.role_name!='rm'">
+                            <aside class="dashboardItem">
+                                <figure>
+                                    <img src="{{$ctrl.data.dash4}}">
+                                    <figcaption>
+                                        <div class="dashboardItem-content">
+                                            <h2 class="title">{{$ctrl.data.total_ticket_complete}}</h2>
+                                            <p ng-show="$ctrl.data.role_name!='finance'">Paid Tickets
+                                                <!-- - {{date('M')}} -->
+                                            </p>
+                                            <p ng-show="$ctrl.data.role_name=='finance'">Payment Completed
+                                                <!-- - {{date('M')}} -->
+                                            </p>
+                                        </div>
+                                        <!-- <span class="date">{{date('M', strtotime("-1 month"))}} : {{$prev_month_total_ticket_complete}}</span> -->
+                                    </figcaption>
+                                </figure>
+                            </aside>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="clearfix"></div>
+            <div class="legendNav-group" ng-show="$ctrl.data.role_name=='super-admin'">
+                <ul class="nav nav-tabs">
+                    <li><a data-toggle="tab" data-target="#monthly">Monthly</a></li>
+                    <li class="active"><a data-toggle="tab" data-target="#yearly">Yearly</a></li>
+                </ul>
+            </div>
+            <div class="tab-content" ng-show="$ctrl.data.role_name=='super-admin'">
+                <div id="monthly" class="tab-pane fade">
+                    <div class="paymentChart-wrapper" id="paymentChartMonthly"></div>
+                </div>
+                <div id="yearly" class="tab-pane fade in active">
+                    <div class="paymentChart-wrapper" id="paymentChart"></div>
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-6">
+                <div class="table-responsive tickets-count--table">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td><strong>Tickets Count</strong></td>
+                                <td>Today</td>
+                                <td>This Month</td>
+                                <td>Last Month</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-show="$ctrl.data.role_name!='finance'">
+                                <td>Total Tickets</td>
+                                <td><label class="yellow">{{$ctrl.data.today_new_ticket_count}}</label></td>
+                                <td><label class="blue">{{$ctrl.data.this_month_new_ticket_count}}</label></td>
+                                <td><label class="cyan">{{$ctrl.data.prev_month_new_ticket_count}}</label></td>
+                            </tr>
+                            <tr ng-show="$ctrl.data.role_name=='finance'">
+                                <td>New Invoices</td>
+                                <td><label class="yellow">{{$ctrl.data.today_tickets_invoiced}}</label></td>
+                                <td><label class="blue">{{$ctrl.data.tickets_invoiced_this_month}}</label></td>
+                                <td><label class="cyan">{{$ctrl.data.prev_month_tickets_invoiced}}</label></td>
+                            </tr>
+                            <tr ng-show="$ctrl.data.role_name!='finance'">
+                                <td>
+                                    <span ng-show="$ctrl.data.role_name!='bo' && $ctrl.data.role_name!='rm'">In Approval </span>
+                                    <span ng-show="$ctrl.data.role_name=='rm'">Tickets in Approval</span>
+                                    <span ng-show="$ctrl.data.role_name=='bo'">Waiting for Approval </span>
+                                </td>
+                                <td><label class="yellow">{{$ctrl.data.today_tickets_in_approval}}</label></td>
+                                <td><label class="blue">{{$ctrl.data.this_month_tickets_in_approval}}</label></td>
+                                <td><label class="cyan">{{$ctrl.data.prev_month_tickets_in_approval}}</label></td>
+                            </tr>
+                            <tr ng-show="$ctrl.data.role_name!='finance' && $ctrl.data.role_name!='rm'">
+                                <td>
+                                    <span ng-show="$ctrl.data.role_name!='bo'">Approved</span>
+                                    <span ng-show="$ctrl.data.role_name=='bo'">Waiting for Invoice Generation</span>
+                                </td>
+                                <td><label class="yellow">{{$ctrl.data.today_tickets_in_approved}}</label></td>
+                                <td><label class="blue">{{$ctrl.data.this_month_tickets_in_approved}}</label></td>
+                                <td><label class="cyan">{{$ctrl.data.prev_month_tickets_in_approved}}</label></td>
+                            </tr>
+                            <tr ng-show="$ctrl.data.role_name!='finance' && $ctrl.data.role_name!='bo'  && $ctrl.data.role_name!='rm'">
+                                <td>Invoiced</td>
+                                <td><label class="yellow">{{$ctrl.data.today_tickets_invoiced}}</label></td>
+                                <td><label class="blue">{{$ctrl.data.tickets_invoiced_this_month}}</label></td>
+                                <td><label class="cyan">{{$ctrl.data.prev_month_tickets_invoiced}}</label></td>
+                            </tr>
+                            <tr ng-show="$ctrl.data.role_name!='rm'">
+                                <td>
+                                    <span ng-show="$ctrl.data.role_name=='super-admin'">Completed</span>
+                                    <span ng-show="$ctrl.data.role_name=='finance'">Payment Completed</span>
+                                    <span ng-show="$ctrl.data.role_name=='bo'">Paid Tickets</span>
+                                </td>
+                                <td><label class="yellow">{{$ctrl.data.today_total_ticket_complete}}</label></td>
+                                <td><label class="blue">{{$ctrl.data.this_month_total_ticket_complete}}</label></td>
+                                <td><label class="cyan">{{$ctrl.data.prev_month_total_ticket_complete}}</label></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-6">
+                <div id="completed_ticket" class="completed-ticket--wrapper"></div>
+            </div>
+        </div>
+    </div>
+</div>

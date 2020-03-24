@@ -242,6 +242,15 @@ class InvoiceController extends Controller {
 		$this->data['asp'] = $asp;
 		$this->data['rsa_address'] = config('rsa.INVOICE_ADDRESS');
 
+		//CHECK NEW/OLD COMPANY ADDRESS BY INVOICE CREATION DATE
+		$inv_created = date('Y-m-d', strtotime(str_replace('/', '-', $invoice->created_at)));
+		$label_effect_date = config('rsa.NEW_COMPANY_EFFECT_DATE');
+
+		$this->data['new_company_address'] = true;
+		if ($inv_created < $label_effect_date) {
+			$this->data['new_company_address'] = false;
+		}
+
 		$this->data['signature_attachment'] = Attachment::where('entity_id', $asp->id)->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))->first();
 
 		$this->data['signature_attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
@@ -273,6 +282,12 @@ class InvoiceController extends Controller {
 			$this->data['bank_ifsc_code'] = $invoice->asp_bank_ifsc_code;
 		} else {
 			$this->data['bank_ifsc_code'] = $invoice->bank_ifsc_code;
+		}
+
+		//CALL SOAP API TO GET INVOCIE VOUCHER DETAILS
+		if (Entrust::can('view-invoice-payment-info')) {
+			$invoice_no = $invoice->invoice_no;
+			$this->getSoap->GetPaymentInfoByInvoice($invoice->id, $invoice_no);
 		}
 
 		$this->data['invoice_vouchers_amount'] = InvoiceVoucher::select(

@@ -55,6 +55,7 @@ class Activity extends Model {
 		'activity_status_id',
 		'description',
 		'remarks',
+		'asp_resolve_comments',
 		'deduction_reason',
 		'bo_comments',
 		'defer_reason',
@@ -539,7 +540,7 @@ class Activity extends Model {
 								}),
 						],
 						'vehicle_registration_number' => 'required|string|max:11',
-						'vin_no' => 'nullable|string|min:17|max:17',
+						'vin_no' => 'nullable|string|max:20',
 						'membership_type' => 'required|string|max:191',
 						'membership_number' => 'nullable|string|max:50',
 						'subject' => [
@@ -662,14 +663,14 @@ class Activity extends Model {
 					}
 
 					//ASSIGN ZERO IF IT IS EMPTY
-					if (!$request->cc_total_km) {
-						$request->cc_total_km = 0;
+					if (!$record['cc_total_km']) {
+						$record['cc_total_km'] = 0;
 					}
-					if (!$request->cc_not_collected_amount) {
-						$request->cc_not_collected_amount = 0;
+					if (!$record['cc_not_collected_amount']) {
+						$record['cc_not_collected_amount'] = 0;
 					}
-					if (!$request->cc_colleced_amount) {
-						$request->cc_colleced_amount = 0;
+					if (!$record['cc_colleced_amount']) {
+						$record['cc_colleced_amount'] = 0;
 					}
 
 					//Dont allow updations if current status is Cancelled or Closed

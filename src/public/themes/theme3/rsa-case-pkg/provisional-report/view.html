@@ -1,0 +1,212 @@
+<div class="col-xs-12 col-sm-12">
+    <div class="mobile-breadcrumbs-wrapper">
+        <ul class="mobile-breadcrumbs-group list-inline">
+            <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
+            <li><a href="#">Report</a></li>
+            <li><a href="#!/rsa-case-pkg/provisional-report/view">Provisional Report</a></li>
+        </ul>
+    </div>
+</div><!-- Column -->
+<div class="reports-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12">
+                <div class="row">
+                    <div class="col-xs-12 col-sm-4">
+                        <div class="dataTable--left_wrapper">
+                            <h2 class="dataTable-title">Provisional Report</h2>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-4 col-sm-offset-4">
+                    </div>
+                </div>
+                <div class="reports-nav--group">
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a name="report-tab" data-toggle="tab" data-target="#report-tab" role="tab">Report</a></li>
+                        <li><a name="summary-tab" data-toggle="tab" data-target="#summary-tab" role="tab">Summary</a></li>
+                    </ul>
+                </div>
+                <div class="provisionalReport-tabContent">
+                    <div class="tab-content">
+                        <div id="report-tab" class="tab-pane fade in active">
+                            <div class="dataTable-top--right_wrapper export-btn-wrap">
+                                <ul class="dataTable-top--right_group list-inline">
+                                    <li>
+                                        <img src="{{ asset('resources/assets/images/icon-export.svg') }}" class="filterToggle" width="30">
+                                        <button class="btn btn-md preview-batch export" data-toggle="modal" data-target="#provisional_excel_export">Provisional Export</button>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="provisionalReport--wrapper">
+                                <div class="provisionalReport--header">
+                                    <div class="row">
+                                        <div class="col-xs-12 col-sm-6">
+                                            <div class="provisionalReport--left">
+                                                <h2 ng-if="$ctrl.check_new_update !=1">For the month of {{$ctrl.report.date}}</h2>
+                                                <input type="text" id="date_1" name="daterange" class="form-control date-control" />
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-12 col-sm-6">
+                                            <div class="provisionalReport--right">
+                                                <h2><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.report.before_bo_validation_invoice_amount | number:2}}</h2>
+                                                <p>Actual ASP Cost</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="provisionalReport--content">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered provisionalReport--table" id="table_1">
+                                            <thead>
+                                                <tr>
+                                                    <th>Title</th>
+                                                    <th colspan="2">Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <input type="hidden" id="date2" value="" placeholder="" readonly="">
+                                                <tr>
+                                                    <td><input type="text" value="Total Ticket Counts before validation of BO" placeholder="Enter Text" readonly=""></td>
+                                                    <td><input type="number" name="" value="{{$ctrl.report.before_bo_validation_ticket_count}}" placeholder="Enter Text" readonly=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><input type="text" value="Grand Net Total before validation of BO" placeholder="Enter Text" readonly=""></td>
+                                                    <td><i class="fa fa-inr rupeeSym" aria-hidden="true"></i><input type="text" name="" value="{{$ctrl.report.before_bo_validation_net_amount|number:2}}" placeholder="Enter Text" readonly=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><input type="text" value="Grand Tax Total before validation of BO" placeholder="Enter Text" readonly=""></td>
+                                                    <td><i class="fa fa-inr rupeeSym" aria-hidden="true"></i><input type="text" name="" value="{{$ctrl.report.before_bo_validation_tax|number:2}}" placeholder="Enter Text" readonly=""></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><input type="text" value="Grand Invoice Total before validation of BO" placeholder="Enter Text" readonly=""></td>
+                                                    <td><i class="fa fa-inr rupeeSym" aria-hidden="true"></i><input type="text" name="" value="{{$ctrl.report.before_bo_validation_invoice_amount|number:2}}" placeholder="Enter Text" readonly=""></td>
+                                                </tr>
+                                            </tbody>
+                                            <tfoot>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="summary-tab" class="tab-pane fade">
+                            <div class="dataTable-top--right_wrapper export-btn-wrap">
+                                <ul class="dataTable-top--right_group list-inline">
+                                    <li>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="provisionalReport--wrapper">
+                                <div class="provisionalReport--header">
+                                    <div class="row">
+                                        <div class="col-xs-12 col-sm-6">
+                                            <div class="provisionalReport--left">
+                                                <h2 ng-if="$ctrl.check_new_update !=1">For the month of {{$ctrl.summary.date}}</h2>
+                                                <input type="text" id="date_2" name="daterange" class="form-control date-control" />
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-12 col-sm-6">
+                                            <div class="provisionalReport--right">
+                                                <h2><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.summary.before_bo_validation_invoice_amount|number:2}}</h2>
+                                                <p>Actual ASP Cost</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="provisionalReport--content">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered summaryTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Service</th>
+                                                    <th>Date</th>
+                                                    <th>Call centre</th>
+                                                    <th>Ticket Count</th>
+                                                    <th>Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr ng-repeat="(key, summary_report) in $ctrl.summary.report_summary">
+                                                    <td>{{summary_report.service_name}}</td>
+                                                    <td>{{summary_report.min_day}} T0 {{summary_report.max_day}}</td>
+                                                    <td>{{summary_report.call_center_name}}</td>
+                                                    <td>{{summary_report.ticket_count}}</td>
+                                                    <td><i class="fa fa-inr rupeeSym" aria-hidden="true"></i> {{summary_report.total}}</td>
+                                                </tr>
+                                                <tr ng-if="$ctrl.summary.report_summary.length==0">
+                                                    <td>-</td>
+                                                    <td>-</td>
+                                                    <td>-</td>
+                                                    <td>0</td>
+                                                    <td>0</td>
+                                                </tr>
+                                            </tbody>
+                                            <tfoot>
+                                                <th colspan="3"></th>
+                                                <th>{{$ctrl.summary.count_of_tickets}}</th>
+                                                <th><i class="fa fa-inr rupeeSym" aria-hidden="true"></i>{{$ctrl.summary.report_summary_total_amount}}</th>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade asp_for_find" id="provisional_excel_export" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <img class="close_btn" src="./resources/assets/images/modal-close.svg">
+                </a>
+                <h4 class="modal-title">Export Tickets Provisional Report</h4>
+            </div>
+            <form name="export_provisional_form" action="{{$ctrl.export_provisional_report}}" method="post">
+                <input type="hidden" name="_token" value="{{$ctrl.csrf}}" />
+                <div class="modal-body">
+                    <div class="approvalModal-wrapper">
+                        <div class="viewData-threeColumn--wrapper">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                <label>Period<sup class="req">*</sup></label>
+                                                <input class="form-control customForm-input" autocomplete="off" name="period" type="text" value=''>
+                                            </div><!-- Field -->
+                                        </div><!-- Column -->
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                <label>Service Names<sup class="req">*</sup></label>
+                                                <md-select ng-model="$ctrl.service_ids" md-on-close="clearSearchTerm()" data-md-container-class="selectdemoSelectHeader" multiple md-no-asterisk class="error_messages required" ng-required="true" placeholder="Select Service Type" ng-change="changeService($ctrl.service_ids)">
+                                                    <md-select-header class="demo-select-header mdselect-header">
+                                                        <input ng-model="searchTerm" type="search" placeholder="Search for a Service Type" class="demo-header-searchbox md-text" onkeydown="mdSelectOnKeyDownOverride(event)">
+                                                    </md-select-header>
+                                                    <md-optgroup label="activity_portal_status">
+                                                        <md-button class="select-all-button" layout-fill ng-value="$ctrl.pc_all" ng-click="selectAll($ctrl.pc_all)" id="pc_sel_all">All</md-button>
+                                                        <md-option ng-value="service.id" ng-repeat="service in $ctrl.service_type_list |filter:searchTerm">{{service.name}}</md-option>
+                                                    </md-optgroup>
+                                                </md-select>
+                                                <input type="hidden" name="services_type_id" value="{{$ctrl.service_ids}}" class="required" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-danger">Sometimes Export may take few miniutes to export large amount of data. So please be patient.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="approvalModal-btns">
+                        <button type="submit" class="differed-btn blue approve-btn">Export Provisional Report</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

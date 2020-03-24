@@ -1,0 +1,98 @@
+<div class="col-xs-12 col-sm-12">
+    <div class="mobile-breadcrumbs-wrapper">
+        <ul class="mobile-breadcrumbs-group list-inline">
+            <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
+            <li><a href="#!">Report</a></li>
+            <li><a href="#!/rsa-case-pkg/general-report/view">General Report</a></li>
+            <li><a href="#!">City Wise Payment Summary</a></li>
+        </ul>
+    </div>
+</div><!-- Column -->
+<div class="container-fluid dataTable-content--wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12">
+            <div class="row">
+                <div class="col-xs-12 col-sm-6">
+                    <div class="dataTable--left_wrapper">
+                        <h2 class="dataTable-title">
+                            City Wise Payment Summary
+                            <!-- <a href="javascript:void(0)" class="btn-refresh" ng-click="refresh()" data-toggle="tooltip" title="Refresh">
+                                <img class="img-refresh" src="./resources/assets/images/refresh-arrow.svg" alt="Refresh" />
+                            </a> -->
+                        </h2>
+                        <p>Total Ticket Count- {{$ctrl.city.total_count}}, Total Paid Amount- <i class="fa fa-inr rupeeSym" aria-hidden="true"></i> {{$ctrl.city.total_amount |number:2}}</p>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-6">
+                    <div class="dataTable-top--right_wrapper">
+                        <ul class="dataTable-top--right_group list-inline">
+                            <!-- <li><input class="filterTable" type="text" placeholder="Search"></li> -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Table Item -->
+        <!-- <?php  -->
+        <!-- foreach($city_wise as $city_name => $city_service_detail){ -->
+        <!-- ?> -->
+        <div class="col-sm-12" ng-repeat="(key, city_service_detail) in $ctrl.city.city_wise">
+            <div class="content-box">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="box-title">
+                            <h3 id="">
+                                {{city_service_detail.city_name}}
+                            </h3>
+                            <ul class="sub-breadcrumb">
+                                <li>
+                                    <label>State :
+                                        {{city_service_detail.state_name ? city_service_detail.state_name : '--'}} </label>
+                                    <span><span>
+                                </li>
+                                <li>
+                                    <label>Call Center :
+                                        {{city_service_detail.callcenter}} </label>
+                                    <span><span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="box-title text-right">
+                            <h3><i class="fa fa-inr fa-2x" aria-hidden="true">
+                                    {{$ctrl.city.city_wise_total[key].amount }}</i></h3>
+                            <p>Total Amount collected from <span class="orange-txt">
+                                    {{$ctrl.city.city_wise_total[key].count}}</span> Tickets</p>
+                        </div>
+                    </div>
+                </div>
+                <table class="table table-bordered table-wide">
+                    <thead>
+                        <tr>
+                            <th>Services</th>
+                            <th>
+                                {{city_service_detail[1].service_name}}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row">Count</th>
+                            <th>
+                                {{city_service_detail[1].count}}
+                            </th>
+                        </tr>
+                        <tr>
+                            <th scope="row">Amount</th>
+                            <th>
+                                {{city_service_detail[1].amount}}
+                            </th>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div><!-- Column -->
+        <!-- <?php } ?> -->
+    </div><!-- Container -->
+</div><!-- Table Content -->

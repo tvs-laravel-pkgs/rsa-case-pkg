@@ -1,0 +1,154 @@
+<div class="col-xs-12 col-sm-12">
+    <div class="mobile-breadcrumbs-wrapper">
+        <ul class="mobile-breadcrumbs-group list-inline">
+            <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
+            <li><a href="#">Report</a></li>
+            <li><a href="#!/rsa-case-pkg/reconciliation-report/view">Reconciliation Report</a></li>
+        </ul>
+    </div>
+</div><!-- Column -->
+<div class="reports-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12">
+                <div class="reports-title">
+                    <h2>Reconciliation Report</h2>
+                </div>
+                <div class="reports-nav--group">
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a data-target="#report-graph" role="tab" data-toggle="tab" aria-expanded="true">Graph</a></li>
+                        <li><a data-target="#report-table" role="tab" data-toggle="tab" aria-expanded="true">Table</a></li>
+                    </ul>
+                </div>
+                <div class="reports-tabContent">
+                    <div class="tab-content">
+                        <div id="report-graph" class="tab-pane fade in active">
+                            <div class="reports-graph--row">
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-12 col-md-5">
+                                        <div class="reports-info--wrapper">
+                                            <div class="reports-info--top">
+                                                <h2><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.extras.total_amount_paid_in_year}}</h2>
+                                                <label>Total Amount paid in year {{$ctrl.current_year}}</label>
+                                            </div>
+                                            <div class="reports-info--bottom">
+                                                <p>Amount of tickets submitted <span class="orange"><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.extras.amount_of_tickets_submitted}}</span></p>
+                                                <p>Amount of Bills yet to receive from ASP <span class="blue"><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.extras.amount_of_bills_yet_to_receive}}</span></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-7">
+                                        <div id="chart1" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="reports-graph--row">
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-12 col-md-5">
+                                        <div class="reports-info--wrapper">
+                                            <div class="reports-info--top">
+                                                <h2>{{$ctrl.extras.total_count_of_tickets_in_year}}</h2>
+                                                <label>Total Count of tickets in year {{$ctrl.current_year}}</label>
+                                            </div>
+                                            <div class="reports-info--bottom">
+                                                <p>Count of tickets submitted <span class="orange">{{$ctrl.extras.total_count_of_tickets_submitted}}</span></p>
+                                                <p>Count of Bills yet to receive from ASP <span class="blue">{{$ctrl.extras.bills_yet_to_receive}}</span></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-7">
+                                        <div id="chart2" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="report-table" class="tab-pane fade">
+                            <div class="report-easy--wrapper">
+                                <div class="report-easy--header">
+                                    <h3 class="pull-right">Year : {{$ctrl.current_year}}</h3>
+                                </div>
+                                <div class="report-easy--content">
+                                    <div class="row">
+                                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-4">
+                                            <div class="reportChart-row">
+                                                <div class="chartContent-wrapper">
+                                                    <div class="chartContent-header">
+                                                        <h2 class="color_1"><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.extras.total_amount_paid_in_year}}</h2>
+                                                        <p>Finance Paid Amount</p>
+                                                    </div>
+                                                    <p>Count : {{$ctrl.extras.total_count_of_tickets_in_year}}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-4">
+                                            <div class="reportChart-row">
+                                                <div class="chartContent-wrapper">
+                                                    <div class="chartContent-header">
+                                                        <h2 class="color_2"><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.extras.amount_of_tickets_submitted}}</h2>
+                                                        <p>Submitted To Finance</p>
+                                                    </div>
+                                                    <p>Count : {{$ctrl.extras.total_count_of_tickets_submitted}}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-4">
+                                            <div class="reportChart-row">
+                                                <div class="chartContent-wrapper">
+                                                    <div class="chartContent-header">
+                                                        <h2 class="color_3"><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.extras.amount_of_bills_yet_to_receive}}</h2>
+                                                        <p>Yet to Receive From ASP</p>
+                                                    </div>
+                                                    <p>Count : {{$ctrl.extras.bills_yet_to_receive}}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="report-monthlyInfo--table">
+                                    <div class="table-responsive">
+                                        <table id="reportMonthly-table" class="table">
+                                            <caption>Monthly Information</caption>
+                                            <thead>
+                                                <tr>
+                                                    <th>Month</th>
+                                                    <th>Paid Tickets</th>
+                                                    <th>Count</th>
+                                                    <th>Submitted To Finance</th>
+                                                    <th>Count</th>
+                                                    <th>Pending Bills</th>
+                                                    <th>Count</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr ng-repeat="(key, month) in $ctrl.monthes">
+                                                    <td>{{month}}</td>
+                                                    <td><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.data.Total_amount_paids[month]}}</td>
+                                                    <td>{{$ctrl.data.Total_count_of_tickets[month]}}</td>
+                                                    <td><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.data.total_amount_submit_in_year[month]}}</td>
+                                                    <td>{{$ctrl.data.total_count_submit_in_year[month]}}</td>
+                                                    <td><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.data.amount_bills_yet_to_receive[month]}}</td>
+                                                    <td>{{$ctrl.data.count_bills_yet_to_receive[month]}}</td>
+                                                </tr>
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <th>Total</th>
+                                                    <th><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.extras.total_amount_paid_in_year}}</th>
+                                                    <th>{{$ctrl.extras.total_count_of_tickets_in_year}}</th>
+                                                    <th><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.extras.amount_of_tickets_submitted}}</th>
+                                                    <th>{{$ctrl.extras.total_count_of_tickets_submitted}}</th>
+                                                    <th><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.extras.amount_of_bills_yet_to_receive}}</th>
+                                                    <th>{{$ctrl.extras.bills_yet_to_receive}}</th>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

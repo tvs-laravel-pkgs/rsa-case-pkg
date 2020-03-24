@@ -96,7 +96,44 @@
 	    when('/rsa-case-pkg/batch-generation/list', {
 	        template: '<batch-generation-list></batch-generation-list>',
 	        title: 'Invoices',
+	    }).
+
+	    //EXCEPTIONAL REPORT
+	    when('/rsa-case-pkg/exceptional-report/list', {
+	        template: '<exceptional-report-list></exceptional-report-list>',
+	        title: 'Exceptional Report',
+	    }).
+
+	    //RECONCILIATION REPORT
+	    when('/rsa-case-pkg/reconciliation-report/view', {
+	        template: '<reconciliation-report-view></reconciliation-report-view>',
+	        title: 'Reconciliation Report',
+	    }).
+
+	    //PROVISIONAL REPORT
+	    when('/rsa-case-pkg/provisional-report/view', {
+	        template: '<provisional-report-view></provisional-report-view>',
+	        title: 'Provisional Report',
+	    }).
+
+	    //GENERAL REPORT
+	    when('/rsa-case-pkg/general-report/view', {
+	        template: '<general-report-view></general-report-view>',
+	        title: 'General Report',
+	    }).
+	    when('/rsa-case-pkg/general-report/asp-wise/list', {
+	        template: '<general-report-asp></general-report-asp>',
+	        title: 'ASP Payment',
+	    }).
+	    when('/rsa-case-pkg/general-report/city-wise/list/', {
+	        template: '<general-report-city></general-report-city>',
+	        title: 'City Payment',
+	    }).
+	    when('/rsa-case-pkg/general-report/state-wise/list/', {
+	        template: '<general-report-state></general-report-state>',
+	        title: 'State Payment',
 	    })
+
 	    ;
 	}]);
 
@@ -227,4 +264,34 @@
     var activity_approved_invoice_preview_data_url = "{{url('rsa-case-pkg/activity-approved/get-details/')}}";
 </script>
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-approved/controller.js?v=1')}}"></script>
+
+<!-- RSA-EXCEPTIONAL-REPORT -->
+<script type="text/javascript">
+    var exceptional_report_list_template_url = "{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/exceptional-report/list.html')}}";
+    var exceptional_report_filter_url = "{{url('rsa-case-pkg/exceptional-report/get-filter-data')}}";
+    var exceptional_report_get_list_url = "{{url('rsa-case-pkg/exceptional-report/get-list/')}}";
+
+</script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/exceptional-report/controller.js?v=1')}}"></script>
+
+<!-- RSA-RECONCILIATION-REPORT -->
+<script type="text/javascript">
+    var reconciliation_report_list_template_url = "{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/reconciliation-report/view.html')}}";
+</script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/reconciliation-report/controller.js?v=1')}}"></script>
+
+<!-- RSA-PROVISIONAL-REPORT -->
+<script type="text/javascript">
+    var provisional_report_list_template_url = "{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/provisional-report/view.html')}}";
+</script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/provisional-report/controller.js?v=1')}}"></script>
+
+<!-- RSA-GENERAL-REPORT -->
+<script type="text/javascript">
+    var general_report_list_template_url = "{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/general-report/view.html')}}";
+    var general_report_asp_wise_template_url = "{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/general-report/asp_wise_payment.html')}}";
+    var general_report_city_wise_template_url = "{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/general-report/city_wise_payment.html')}}";
+    var general_report_state_wise_template_url = "{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/general-report/state_wise_payment.html')}}";
+</script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/general-report/controller.js?v=1')}}"></script>
 

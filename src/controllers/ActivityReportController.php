@@ -50,11 +50,11 @@ class ActivityReportController extends Controller {
 				$join->on('bo_paid_amt.activity_id', 'activities.id')
 					->where('bo_paid_amt.key_id', 182); //BO AMOUNT
 			})
-			->join('Invoices as invoice', function ($join) {
-				$join->on('Invoice.id', 'activities.invoice_id')
-					->where('invoice.status_id', 2); //PAID
+			->join('Invoices', function ($join) {
+				$join->on('Invoices.id', 'activities.invoice_id')
+					->where('Invoices.status_id', 2); //PAID
 			})
-			->where('activities.is_exceptional_check', 0)
+			->where('activities.is_exceptional_check', 1) // IS EXCEPTIONAL
 			->where('cases.company_id', Auth::user()->company_id)
 			->orderBy('cases.date', 'DESC')
 		;

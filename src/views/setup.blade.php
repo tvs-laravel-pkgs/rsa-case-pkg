@@ -145,6 +145,7 @@
     var export_activities = "{{route('exportActivities')}}";
     var canExportActivity = "{{Entrust::can('export-activities')}}";
     var canImportActivity = "{{Entrust::can('import-cron-jobs')}}";
+    var activity_back_asp_update = "{{route('activityBackAspUpdate')}}";
     //NEW ACTIVITY
 
 </script>

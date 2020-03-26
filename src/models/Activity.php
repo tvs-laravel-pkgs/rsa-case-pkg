@@ -560,8 +560,8 @@ class Activity extends Model {
 						'km_during_breakdown' => 'nullable|numeric',
 						'bd_lat' => 'nullable',
 						'bd_long' => 'nullable',
-						'bd_location' => 'nullable|string|max:2048',
-						'bd_city' => 'nullable|string|max:128',
+						'bd_location' => 'nullable|string|max:191',
+						'bd_city' => 'nullable|string|max:191',
 						'bd_state' => [
 							'nullable',
 							'string',

@@ -446,20 +446,20 @@ class ActivityController extends Controller {
 			DB::raw('IF(activities.remarks IS NULL OR activities.remarks="","-",activities.remarks) as remarks'),
 			//'activities.remarks as remarks',
 			'cases.*',
-			DB::raw('CASE
-				    	WHEN (Invoices.invoice_no IS NOT NULL)
-			    		THEN
-			    			CASE
-			    				WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0)
-			   					THEN
-			    					Invoices.invoice_no
-			    				ELSE
-			    					CONCAT(Invoices.invoice_no,"-",Invoices.id)
-			    			END
-			    		ELSE
-			    			"NA"
-					END as invoice_no'),
-			//'Invoices.invoice_no',
+			// DB::raw('CASE
+			// 	    	WHEN (Invoices.invoice_no IS NOT NULL)
+			//     		THEN
+			//     			CASE
+			//     				WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0)
+			//    					THEN
+			//     					Invoices.invoice_no
+			//     				ELSE
+			//     					CONCAT(Invoices.invoice_no,"-",Invoices.id)
+			//     			END
+			//     		ELSE
+			//     			"NA"
+			// 		END as invoice_no'),
+			'Invoices.invoice_no',
 			DB::raw('CASE
 				    	WHEN (Invoices.asp_gst_registration_number IS NULL || Invoices.asp_gst_registration_number = "")
 			    		THEN

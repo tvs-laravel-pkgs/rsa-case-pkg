@@ -1,5 +1,5 @@
 @if(config('rsa-case-pkg.DEV'))
-    <?php $rsa_case_pkg_path = 'packages/abs/rsa-case-pkg/src/'?>
+    <?php $rsa_case_pkg_path = 'packages/abs/rsa-case-pkg/src'?>
 @else
     <?php $rsa_case_pkg_path = ''?>
 @endif

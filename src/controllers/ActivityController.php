@@ -18,7 +18,6 @@ use App\Http\Controllers\Controller;
 use App\Invoices;
 use App\ServiceType;
 use App\StateUser;
-use App\Tax;
 use Auth;
 use Carbon\Carbon;
 use DB;
@@ -602,18 +601,13 @@ class ActivityController extends Controller {
 				->get();
 
 			$this->data['activities']['invoice_amount_in_word'] = getIndianCurrency($activity->inv_amount);
-			foreach ($invoice_activities as $key => $activity) {
-				$taxes = DB::table('activity_tax')->leftjoin('taxes', 'activity_tax.tax_id', '=', 'taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name', 'taxes.tax_rate', 'activity_tax.*')->get();
-				$asp = Asp::where('id', $activity->asp_id)->first();
-				if ($taxes->count() == 0) {
-					if ($asp->tax_group_id) {
-						$taxes = Tax::where('tax_group_id', $asp->tax_group_id)->select('taxes.tax_name', 'taxes.tax_rate', DB::raw('0 as amount'))->get();
-					} else {
-						$taxes = collect();
-					}
+			if (count($invoice_activities) > 0) {
+				foreach ($invoice_activities as $key => $activity) {
+					$taxes = DB::table('activity_tax')->leftjoin('taxes', 'activity_tax.tax_id', '=', 'taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name', 'taxes.tax_rate', 'activity_tax.*')->get();
+					$activity->taxes = $taxes;
 				}
-				$this->data['activities']['invoice_activities'][$key]['taxes'] = $taxes;
 			}
+
 			$this->data['activities']['signature_attachment'] = Attachment::where('entity_id', $invoice_activities[0]->asp_id)->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))->first();
 
 			$this->data['activities']['signature_attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
@@ -1475,18 +1469,7 @@ class ActivityController extends Controller {
 			->whereIn('activities.id', $activity_ids)
 			->groupBy('activities.id')
 			->get();
-		foreach ($activities as $key => $activity) {
-			$taxes = DB::table('activity_tax')->leftjoin('taxes', 'activity_tax.tax_id', '=', 'taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name', 'taxes.tax_rate', 'activity_tax.*')->get();
-			if ($taxes->count() == 0) {
-				$asp = Asp::where('id', $activity->asp_id)->first();
-				if ($asp->tax_group_id) {
-					$taxes = Tax::where('tax_group_id', $asp->tax_group_id)->select('taxes.tax_name', 'taxes.tax_rate', DB::raw('0 as amount'))->get();
-				} else {
-					$taxes = collect();
-				}
-			}
-			$activities[$key]['taxes'] = $taxes;
-		}
+
 		if (count($activities) == 0) {
 			return response()->json([
 				'success' => false,
@@ -1494,6 +1477,11 @@ class ActivityController extends Controller {
 					'Activities not found',
 				],
 			]);
+		}
+
+		foreach ($activities as $key => $activity) {
+			$taxes = DB::table('activity_tax')->leftjoin('taxes', 'activity_tax.tax_id', '=', 'taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name', 'taxes.tax_rate', 'activity_tax.*')->get();
+			$activity->taxes = $taxes;
 		}
 
 		//GET INVOICE AMOUNT FROM ACTIVITY DETAIL

@@ -15,9 +15,9 @@
                         <table style="width:100%">  
                             <tr>    
                                 <td class="text-right">Invoice Generation :</td>    
-                                <td ng-if="self.data.asp.has_gst && !self.data.asp.is_auto_invoice"><span>Self</span>   
+                                <td ng-if="isSelf($ctrl.data.asp)"><span>Self</span>   
                                 </td>   
-                                <td ng-if="!self.data.asp.has_gst || (self.data.asp.has_gst && self.data.asp.is_auto_invoice)"><span>System</span>  
+                                <td ng-if="isSystem($ctrl.data.asp)"><span>System</span>  
                                 </td>   
                             </tr>   
                             <tr>    
@@ -64,8 +64,7 @@
                                         <th class="text-right">Collected Amount</th>    
                                         <th ng-if="$ctrl.data.asp.tax_calculation_method==1" class="text-right">Not Collected Amount</th>   
                                         <th class="text-right">Net Amount</th>  
-                                        <th class="text-right">Tax %</th>   
-                                        <th class="text-right">Tax Amount</th>  
+                                        <th class="text-right" ng-repeat="(index, tax) in $ctrl.data.invoice_activities[0].taxes">{{tax.tax_name}} ({{tax.tax_rate}}%)</th>
                                         <th ng-if="$ctrl.data.asp.tax_calculation_method==0" class="text-right">Not Collected Amount</th>   
                                         <th class="text-right">Invoice Amount</th>  
                                     </tr>   
@@ -99,12 +98,9 @@
                                         <td class="text-right"> 
                                             {{activity.net_value | number : 2}} 
                                         </td>   
-                                        <td class="text-right"> 
-                                            {{activity.total_tax_perc_value | number : 2}}  
-                                        </td>   
-                                        <td class="text-right"> 
-                                            {{activity.total_tax_amount_value | number : 2}}    
-                                        </td>   
+                                        <td class="text-right" ng-repeat="(index, tax) in activity.taxes">
+                                            {{tax.amount | number : 2}}
+                                        </td>
                                         <td ng-if="$ctrl.data.asp.tax_calculation_method==0" class="text-right">    
                                             {{activity.not_collect_value | number : 2}} 
                                         </td>   

@@ -10,7 +10,6 @@ use App\Http\Controllers\SoapController;
 use App\Invoices;
 use App\InvoiceVoucher;
 use App\StateUser;
-use App\Tax;
 use Auth;
 use DB;
 use Entrust;
@@ -204,6 +203,7 @@ class InvoiceController extends Controller {
 			})
 			->select(
 				// 'activities.number',
+				'activities.id',
 				'activities.asp_id as asp_id',
 				'cases.number',
 				DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
@@ -227,18 +227,9 @@ class InvoiceController extends Controller {
 		if (count($activities) > 0) {
 			foreach ($activities as $key => $activity) {
 				$taxes = DB::table('activity_tax')->leftjoin('taxes', 'activity_tax.tax_id', '=', 'taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name', 'taxes.tax_rate', 'activity_tax.*')->get();
-				$asp = Asp::where('id', $activity->asp_id)->first();
-				if ($taxes->count() == 0) {
-					if ($asp->tax_group_id) {
-						$taxes = Tax::where('tax_group_id', $asp->tax_group_id)->select('taxes.tax_name', 'taxes.tax_rate', DB::raw('0 as amount'))->get();
-					} else {
-						$taxes = collect();
-					}
-				}
-				$activities[$key]['taxes'] = $taxes;
+				$activity->taxes = $taxes;
 			}
 		}
-		//dd($activities);
 		$this->data['activities'] = $activities;
 		$this->data['invoice_amount'] = number_format($invoice->amount, 2);
 		$this->data['invoice_amount_in_word'] = getIndianCurrency($invoice->amount);

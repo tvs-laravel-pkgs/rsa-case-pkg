@@ -216,6 +216,23 @@ app.component('invoiceDetails', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
+
+        $scope.isSelf = function(asp) {
+            if (asp.has_gst && !asp.is_auto_invoice) {
+                return true;
+            } else {
+                return false;
+            }
+        };
+
+        $scope.isSystem = function(asp) {
+            if (!asp.has_gst || (asp.has_gst && asp.is_auto_invoice)) {
+                return true;
+            } else {
+                return false;
+            }
+        };
+
     }
 });
 //----------------------------------------------------------------------------------------------------------------------------

@@ -8,7 +8,7 @@ app.component('activityStatusList', {
         self.export_activities = export_activities;
         self.canExportActivity = canExportActivity;
         self.canImportActivity = canImportActivity;
-        self.activity_back_asp_update = activity_back_asp_update;
+        self.activity_back_asp_update_route = activity_back_asp_update;
         self.csrf = token;
         $http.get(
             activity_status_filter_url

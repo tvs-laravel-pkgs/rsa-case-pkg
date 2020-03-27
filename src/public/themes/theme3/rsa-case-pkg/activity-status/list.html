@@ -158,7 +158,7 @@
           <button type="button" class="close" data-dismiss="modal"><img src="{{$ctrl.modal_close}}"></button>
           <h4 class="modal-title">Ticket Back Step</h4>
         </div>
-            <form id="tickect-back-asp-form" name="tickect_back_asp_form" action="{{$ctrl.activity_back_asp_update}}" method="post">
+            <form id="tickect-back-asp-form" name="tickect_back_asp_form" action="{{$ctrl.activity_back_asp_update_route}}" method="post">
                 <input type="hidden" name="_token" value="{{$ctrl.csrf}}" />
         <input type="hidden" name="activty_id" id="activty_id" value="{{$ctrl.activity_form_data.id}}" ng-model="$ctrl.activity_form_data.id">
         <input type="hidden" name="ticket_status_id" id="ticket_status_id" ng-model="$ctrl.activity_form_data.status_id">

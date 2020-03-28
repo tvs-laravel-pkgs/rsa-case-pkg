@@ -249,6 +249,12 @@
                                             </div>
                                         </div>
                                         <div class="col-sm-6">
+                                          <div class="input-text form-group">
+                                            <label>Ticket Number</label>
+                                            <input type="text" value="" name="ticket" id="ticket_export" class="form-control valid" placeholder="Enter Ticket Number" autocomplete="off">
+                                          </div>
+                                        </div>
+                                        <div class="col-sm-6">
                                             <div class="input-text form-group">
                                                 <label>ASP</label>
                                                 <md-select ng-model="$ctrl.asp_id" md-on-close="clearSearchTerm()" name="asp_id" data-md-container-class="selectdemoSelectHeader" md-no-asterisk class="error_messages" placeholder="Select ASP">
@@ -275,12 +281,6 @@
                                                 </md-select>
                                                 <input type="hidden" name="client_id" value="{{$ctrl.client_id}}" />
                                             </div>
-                                        </div>
-                                        <div class="col-sm-6">
-                                          <div class="input-text form-group">
-                                            <label>Ticket</label>
-                                            <input type="text" value="" name="ticket" id="ticket_export" class="form-control valid" placeholder="Enter Ticket Number" autocomplete="off">
-                                          </div>
                                         </div>
                                     </div>
 

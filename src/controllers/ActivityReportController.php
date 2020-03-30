@@ -1077,7 +1077,7 @@ class ActivityReportController extends Controller {
 		}
 
 		$all_city_wise_total = Activity::select(
-			DB::raw('SUM(activity_details.value) as amount'),
+			DB::raw('FORMAT(SUM(activity_details.value), 2) as amount'),
 			DB::raw('COUNT(activities.id) as ticket_count'),
 			'cases.bd_city as city_name'
 		)
@@ -1130,7 +1130,7 @@ class ActivityReportController extends Controller {
 	public function getStatePaymentList() {
 		// dd($request->all());
 		$all_state_wise = State::select(
-			DB::raw('SUM(activity_details.value) as amount'),
+			DB::raw('FORMAT(SUM(activity_details.value), 2) as amount'),
 			DB::raw('Count(activities.id) as ticket_count'),
 			// 'cases.bd_city as city_name',
 			'service_types.name as service_name',
@@ -1168,7 +1168,7 @@ class ActivityReportController extends Controller {
 		}
 
 		$all_state_wise_total = State::select(
-			DB::raw('SUM(activity_details.value) as amount'),
+			DB::raw('FORMAT(SUM(activity_details.value), 2) as amount'),
 			DB::raw('COUNT(activities.id) as ticket_count'),
 			'states.name as state_name'
 		)

@@ -80,13 +80,15 @@
                         <tr>
                             <th scope="row">Count</th>
                             <th>
-                                {{city_service_detail[1].count}}
+                                <!-- {{city_service_detail[1].count}} -->
+                                {{$ctrl.city.city_wise_total[key].count}}
                             </th>
                         </tr>
                         <tr>
                             <th scope="row">Amount</th>
                             <th>
-                                {{city_service_detail[1].amount}}
+                                <!-- {{city_service_detail[1].amount}} -->
+                                {{$ctrl.city.city_wise_total[key].amount}}
                             </th>
                         </tr>
                     </tbody>

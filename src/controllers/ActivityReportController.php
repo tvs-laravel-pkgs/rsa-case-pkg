@@ -877,6 +877,7 @@ class ActivityReportController extends Controller {
 			DB::raw('COUNT(id) as total'),
 			DB::raw('DATE_FORMAT(updated_at,"%b") month'))
 			->whereYear('updated_at', date('Y'))
+			->where('status_id', 14) //PAID
 			->groupby('month')
 			->pluck('total', 'month')
 			->toArray()
@@ -997,8 +998,8 @@ class ActivityReportController extends Controller {
 			'asps.asp_code',
 			'asps.name as asp_name',
 			'asps.is_self',
-			'asp_collected_amt.value as collected_from_customer',
-			DB::raw('SUM(activity_details.value) as invoice_amount'),
+			DB::raw('FORMAT(asp_collected_amt.value, 2) as collected_from_customer'),
+			DB::raw('FORMAT(SUM(activity_details.value), 2) as invoice_amount'),
 			DB::raw('COUNT(activities.id) as ticket_count'),
 			'states.name as state_name',
 			'districts.name as city_name'
@@ -1037,7 +1038,7 @@ class ActivityReportController extends Controller {
 	public function getCityPaymentList() {
 		// dd($request->all());
 		$all_city_wise = Activity::select(
-			DB::raw('SUM(activity_details.value) as amount'),
+			DB::raw('FORMAT(SUM(activity_details.value), 2) as amount'),
 			DB::raw('Count(activities.id) as ticket_count'),
 			'cases.bd_city as city_name',
 			'service_types.name as service_name',
@@ -1062,8 +1063,6 @@ class ActivityReportController extends Controller {
 			->get()
 			->toArray()
 		;
-
-		// dd($all_city_wise);
 
 		$city_wise = [];
 		$overall_city = [];

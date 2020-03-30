@@ -268,37 +268,37 @@ class ActivityReportController extends Controller {
 			->join('cases', 'cases.id', 'activities.case_id')
 			->whereDate('cases.date', '>=', date('Y-m-d'))
 			->whereDate('cases.date', '<=', date('Y-m-d'))
-			->where('asps.workshop_type', "!=", 1)
-			->where('activities.finance_status_id', "!=", 3)
-			->where('activities.status_id', 2)
+			->where('asps.workshop_type', "!=", 1) // OWN PATROL OF TVSAA
+			->where('activities.finance_status_id', "!=", 3) // NOT MATURED
+			->whereIn('activities.status_id', [2, 4]) // ASP Rejected CC Details - Waiting for ASP Data Entry && ASP Rejected Invoice Amount - Waiting for ASP Data Entry
 			->count('activities.id')
 		;
 
 		$before_bo_validation_net_amount = Activity::join('asps', 'asps.id', 'activities.asp_id')
 			->join('activity_details', function ($join) {
 				$join->on('activity_details.activity_id', 'activities.id')
-					->where('activity_details.key_id', 174);
+					->where('activity_details.key_id', 174); // CC Net amount
 			})
 			->join('cases', 'cases.id', 'activities.case_id')
 			->whereDate('cases.date', '>=', date('Y-m-d'))
 			->whereDate('cases.date', '<=', date('Y-m-d'))
-			->where('activities.finance_status_id', "!=", 3)
-			->where('asps.workshop_type', "!=", 1)
-			->where('activities.status_id', 2)
+			->where('activities.finance_status_id', "!=", 3) // NOT MATURED
+			->where('asps.workshop_type', "!=", 1) // OWN PATROL OF TVSAA
+			->whereIn('activities.status_id', [2, 4]) // ASP Rejected CC Details - Waiting for ASP Data Entry && ASP Rejected Invoice Amount - Waiting for ASP Data Entry
 			->sum('activity_details.value')
 		;
 
 		$before_bo_validation_tax = Activity::join('asps', 'asps.id', 'activities.asp_id')
 			->join('activity_details', function ($join) {
 				$join->on('activity_details.activity_id', 'activities.id')
-					->where('activity_details.key_id', 177);
+					->where('activity_details.key_id', 177); // CC Tax amount
 			})
 			->join('cases', 'cases.id', 'activities.case_id')
 			->whereDate('cases.date', '>=', date('Y-m-d'))
 			->whereDate('cases.date', '<=', date('Y-m-d'))
-			->where('activities.finance_status_id', "!=", 3)
-			->where('asps.workshop_type', "!=", 1)
-			->where('activities.status_id', 2)
+			->where('activities.finance_status_id', "!=", 3) // NOT MATURED
+			->where('asps.workshop_type', "!=", 1) // OWN PATROL OF TVSAA
+			->whereIn('activities.status_id', [2, 4]) // ASP Rejected CC Details - Waiting for ASP Data Entry && ASP Rejected Invoice Amount - Waiting for ASP Data Entry
 			->sum('activity_details.value')
 		;
 
@@ -310,9 +310,9 @@ class ActivityReportController extends Controller {
 			->join('cases', 'cases.id', 'activities.case_id')
 			->whereDate('cases.date', '>=', date('Y-m-d'))
 			->whereDate('cases.date', '<=', date('Y-m-d'))
-			->where('activities.finance_status_id', "!=", 3)
-			->where('asps.workshop_type', "!=", 1)
-			->where('activities.status_id', 2)
+			->where('activities.finance_status_id', "!=", 3) // NOT MATURED
+			->where('asps.workshop_type', "!=", 1) // OWN PATROL OF TVSAA
+			->whereIn('activities.status_id', [2, 4]) // ASP Rejected CC Details - Waiting for ASP Data Entry && ASP Rejected Invoice Amount - Waiting for ASP Data Entry
 			->sum('activity_details.value')
 		;
 
@@ -344,9 +344,10 @@ class ActivityReportController extends Controller {
 			->join('service_types', 'service_types.id', 'activities.service_type_id')
 			->whereDate('cases.date', '>=', date('Y-m-d'))
 			->whereDate('cases.date', '<=', date('Y-m-d'))
-			->where('activities.status_id', 2) //ASP DATA ENTRY
+			->whereIn('activities.status_id', [2, 4]) // ASP Rejected CC Details - Waiting for ASP Data Entry && ASP Rejected Invoice Amount - Waiting for ASP Data Entry
+		// ->where('activities.status_id', 2) //ASP DATA ENTRY
 			->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
-			->where('asps.workshop_type', "!=", 1)
+			->where('asps.workshop_type', "!=", 1) // OWN PATROL OF TVSAA
 			->groupBy('service_types.id')
 			->get()
 			->toArray()
@@ -362,9 +363,10 @@ class ActivityReportController extends Controller {
 			->join('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->whereDate('cases.date', '>=', date('Y-m-d'))
 			->whereDate('cases.date', '<=', date('Y-m-d'))
-			->where('activities.status_id', 2) //ASP DATA ENTRY
+			->whereIn('activities.status_id', [2, 4]) // ASP Rejected CC Details - Waiting for ASP Data Entry && ASP Rejected Invoice Amount - Waiting for ASP Data Entry
+		// ->where('activities.status_id', 2) //ASP DATA ENTRY
 			->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
-			->where('asps.workshop_type', "!=", 1)
+			->where('asps.workshop_type', "!=", 1) // OWN PATROL OF TVSAA
 			->sum('activity_details.value')
 		;
 
@@ -374,9 +376,10 @@ class ActivityReportController extends Controller {
 			->join('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->whereDate('cases.date', '>=', date('Y-m-d'))
 			->whereDate('cases.date', '<=', date('Y-m-d'))
-			->where('activities.status_id', 2) //ASP DATA ENTRY
+			->whereIn('activities.status_id', [2, 4]) // ASP Rejected CC Details - Waiting for ASP Data Entry && ASP Rejected Invoice Amount - Waiting for ASP Data Entry
+		// ->where('activities.status_id', 2) //ASP DATA ENTRY
 			->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
-			->where('asps.workshop_type', "!=", 1)
+			->where('asps.workshop_type', "!=", 1) // OWN PATROL OF TVSAA
 			->get()
 			->count()
 		;
@@ -411,9 +414,9 @@ class ActivityReportController extends Controller {
 			})
 			->join('cases', 'cases.id', 'activities.case_id')
 			->whereBetween('cases.date', [$date_from, $date_to])
-			->where('activities.finance_status_id', "!=", 3)
-			->where('asps.workshop_type', "!=", 1)
-			->where('activities.status_id', 2)
+			->whereIn('activities.status_id', [2, 4]) // ASP Rejected CC Details - Waiting for ASP Data Entry && ASP Rejected Invoice Amount - Waiting for ASP Data Entry
+			->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
+			->where('asps.workshop_type', "!=", 1) // OWN PATROL OF TVSAA
 			->sum('activity_details.value')
 		;
 
@@ -421,9 +424,9 @@ class ActivityReportController extends Controller {
 			$before_bo_validation_ticket_count = Activity::join('asps', 'asps.id', 'activities.asp_id')
 				->join('cases', 'cases.id', 'activities.case_id')
 				->whereBetween('cases.date', [$date_from, $date_to])
-				->where('asps.workshop_type', "!=", 1)
-				->where('activities.finance_status_id', "!=", 3)
-				->where('activities.status_id', 2)
+				->whereIn('activities.status_id', [2, 4]) // ASP Rejected CC Details - Waiting for ASP Data Entry && ASP Rejected Invoice Amount - Waiting for ASP Data Entry
+				->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
+				->where('asps.workshop_type', "!=", 1) // OWN PATROL OF TVSAA
 				->count('activities.id')
 			;
 
@@ -434,9 +437,9 @@ class ActivityReportController extends Controller {
 				})
 				->join('cases', 'cases.id', 'activities.case_id')
 				->whereBetween('cases.date', [$date_from, $date_to])
-				->where('activities.finance_status_id', "!=", 3)
-				->where('asps.workshop_type', "!=", 1)
-				->where('activities.status_id', 2)
+				->whereIn('activities.status_id', [2, 4]) // ASP Rejected CC Details - Waiting for ASP Data Entry && ASP Rejected Invoice Amount - Waiting for ASP Data Entry
+				->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
+				->where('asps.workshop_type', "!=", 1) // OWN PATROL OF TVSAA
 				->sum('activity_details.value')
 			;
 
@@ -447,9 +450,9 @@ class ActivityReportController extends Controller {
 				})
 				->join('cases', 'cases.id', 'activities.case_id')
 				->whereBetween('cases.date', [$date_from, $date_to])
-				->where('activities.finance_status_id', "!=", 3)
-				->where('asps.workshop_type', "!=", 1)
-				->where('activities.status_id', 2)
+				->whereIn('activities.status_id', [2, 4]) // ASP Rejected CC Details - Waiting for ASP Data Entry && ASP Rejected Invoice Amount - Waiting for ASP Data Entry
+				->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
+				->where('asps.workshop_type', "!=", 1) // OWN PATROL OF TVSAA
 				->sum('activity_details.value')
 			;
 
@@ -481,9 +484,9 @@ class ActivityReportController extends Controller {
 				->join('asps', 'asps.id', 'activities.asp_id')
 				->join('service_types', 'service_types.id', 'activities.service_type_id')
 				->whereBetween('cases.date', [$date_from, $date_to])
-				->where('activities.status_id', 2) //ASP DATA ENTRY
+				->whereIn('activities.status_id', [2, 4]) // ASP Rejected CC Details - Waiting for ASP Data Entry && ASP Rejected Invoice Amount - Waiting for ASP Data Entry
 				->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
-				->where('asps.workshop_type', "!=", 1)
+				->where('asps.workshop_type', "!=", 1) // OWN PATROL OF TVSAA
 				->groupBy('service_types.id')
 				->get()
 				->toArray()
@@ -498,9 +501,9 @@ class ActivityReportController extends Controller {
 				->join('asps', 'asps.id', 'activities.asp_id')
 				->join('call_centers', 'call_centers.id', 'cases.call_center_id')
 				->whereBetween('cases.date', [$date_from, $date_to])
-				->where('activities.status_id', 2) //ASP DATA ENTRY
+				->whereIn('activities.status_id', [2, 4]) // ASP Rejected CC Details - Waiting for ASP Data Entry && ASP Rejected Invoice Amount - Waiting for ASP Data Entry
 				->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
-				->where('asps.workshop_type', "!=", 1)
+				->where('asps.workshop_type', "!=", 1) // OWN PATROL OF TVSAA
 				->sum('activity_details.value')
 			;
 
@@ -509,9 +512,9 @@ class ActivityReportController extends Controller {
 				->join('service_types', 'service_types.id', 'activities.service_type_id')
 				->join('call_centers', 'call_centers.id', 'cases.call_center_id')
 				->whereBetween('cases.date', [$date_from, $date_to])
-				->where('activities.status_id', 2) //ASP DATA ENTRY
+				->whereIn('activities.status_id', [2, 4]) // ASP Rejected CC Details - Waiting for ASP Data Entry && ASP Rejected Invoice Amount - Waiting for ASP Data Entry
 				->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
-				->where('asps.workshop_type', "!=", 1)
+				->where('asps.workshop_type', "!=", 1) // OWN PATROL OF TVSAA
 				->get()
 				->count()
 			;
@@ -564,15 +567,16 @@ class ActivityReportController extends Controller {
 			$activity_infos = Activity::whereIn('activities.service_type_id', $services_type_ids)
 				->join('cases', 'cases.id', 'activities.case_id')
 				->join('asps', 'asps.id', 'activities.asp_id')
-				->where('activities.status_id', 2) //ASP DATA ENTRY
+				->whereIn('activities.status_id', [2, 4]) // ASP Rejected CC Details - Waiting for ASP Data Entry && ASP Rejected Invoice Amount - Waiting for ASP Data Entry
 				->whereBetween('cases.date', [$range1, $range2])
+				->where('asps.workshop_type', "!=", 1)
 				->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
 			;
 
 			$activity_infos_summary_cal = Activity::whereIn('activities.service_type_id', $services_type_ids)
 				->join('asps', 'asps.id', 'activities.asp_id')
 				->join('cases', 'cases.id', 'activities.case_id')
-				->where('activities.status_id', 2) //ASP DATA ENTRY
+				->whereIn('activities.status_id', [2, 4]) // ASP Rejected CC Details - Waiting for ASP Data Entry && ASP Rejected Invoice Amount - Waiting for ASP Data Entry
 				->whereBetween('cases.date', [$range1, $range2])
 				->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
 				->where('asps.workshop_type', "!=", 1)
@@ -594,7 +598,7 @@ class ActivityReportController extends Controller {
 					$join->on('activity_details.activity_id', 'activities.id')
 						->where('activity_details.key_id', 177); //CC TAX AMOUNT
 				})
-				->where('activities.status_id', 2) //ASP DATA ENTRY
+				->whereIn('activities.status_id', [2, 4]) // ASP Rejected CC Details - Waiting for ASP Data Entry && ASP Rejected Invoice Amount - Waiting for ASP Data Entry
 				->whereBetween('cases.date', [$range1, $range2])
 				->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
 				->where('asps.workshop_type', "!=", 1)
@@ -608,7 +612,7 @@ class ActivityReportController extends Controller {
 					$join->on('activity_details.activity_id', 'activities.id')
 						->where('activity_details.key_id', 180); //CC AMOUNT
 				})
-				->where('activities.status_id', 2) //ASP DATA ENTRY
+				->whereIn('activities.status_id', [2, 4]) // ASP Rejected CC Details - Waiting for ASP Data Entry && ASP Rejected Invoice Amount - Waiting for ASP Data Entry
 				->whereBetween('cases.date', [$range1, $range2])
 				->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
 				->where('asps.workshop_type', "!=", 1)
@@ -626,7 +630,8 @@ class ActivityReportController extends Controller {
 				->whereIn('activities.service_type_id', $services_type_ids)
 				->whereBetween('cases.date', [$range1, $range2])
 				->where('activities.finance_status_id', "!=", 3) //NO PAYOUT
-				->where('activities.status_id', 2)
+				->whereIn('activities.status_id', [2, 4]) // ASP Rejected CC Details - Waiting for ASP Data Entry && ASP Rejected Invoice Amount - Waiting for ASP Data Entry
+				->where('asps.workshop_type', "!=", 1)
 				->groupBy('activities.service_type_id')
 				->get()
 				->keyBy('service_type_id')

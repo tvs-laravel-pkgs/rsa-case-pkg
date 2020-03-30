@@ -340,6 +340,14 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'RM Dashboard',
 			],
 
+			//ACTIVITY REPORT
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'activity-reports',
+				'display_name' => 'Activities Report',
+			],
+
 			//PROVISION APPROVAL
 			[
 				'display_order' => 99,

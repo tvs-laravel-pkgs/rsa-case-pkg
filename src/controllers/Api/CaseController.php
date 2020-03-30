@@ -97,7 +97,7 @@ class CaseController extends Controller {
 							$query->whereNull('deleted_at');
 						}),
 				],
-				'vehicle_registration_number' => 'required|string|max:11',
+				'vehicle_registration_number' => 'nullable|string|max:11',
 				'vin_no' => 'nullable|string|max:20',
 				'membership_type' => 'required|string|max:191',
 				'membership_number' => 'nullable|string|max:50',
@@ -113,17 +113,17 @@ class CaseController extends Controller {
 				'km_during_breakdown' => 'nullable|numeric',
 				'bd_lat' => 'nullable',
 				'bd_long' => 'nullable',
-				'bd_location' => 'nullable|string|max:2048',
-				'bd_city' => 'nullable|string|max:128',
-				'bd_state' => [
-					'nullable',
-					'string',
-					'max:50',
-					Rule::exists('states', 'name')
-						->where(function ($query) {
-							$query->whereNull('deleted_at');
-						}),
-				],
+				'bd_location' => 'nullable|string',
+				'bd_city' => 'nullable|string|max:255',
+				// 'bd_state' => [
+				// 	'nullable',
+				// 	'string',
+				// 	'max:50',
+				// 	Rule::exists('states', 'name')
+				// 		->where(function ($query) {
+				// 			$query->whereNull('deleted_at');
+				// 		}),
+				// ],
 			]);
 
 			if ($validator->fails()) {
@@ -180,6 +180,17 @@ class CaseController extends Controller {
 					'error' => 'Validation Error',
 					'errors' => [
 						"Selected vehicle make doesn't matches with vehicle model",
+					],
+				], $this->successStatus);
+			}
+
+			//VIN NO OR VEHICLE REGISTRATION NUMBER ANY ONE IS MANDATORY
+			if (!$request->vehicle_registration_number && !$request->vin_no) {
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						"VIN or Vehicle Registration Number is required",
 					],
 				], $this->successStatus);
 			}

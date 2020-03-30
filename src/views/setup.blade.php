@@ -267,31 +267,31 @@
 
 <!-- RSA-EXCEPTIONAL-REPORT -->
 <script type="text/javascript">
-    var exceptional_report_list_template_url = "{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/exceptional-report/list.html')}}";
+    var exceptional_report_list_template_url = "{{URL::asset($rsa_case_pkg_path.'public/themes/'.$theme.'/rsa-case-pkg/exceptional-report/list.html')}}";
     var exceptional_report_filter_url = "{{url('rsa-case-pkg/exceptional-report/get-filter-data')}}";
     var exceptional_report_get_list_url = "{{url('rsa-case-pkg/exceptional-report/get-list/')}}";
 
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/exceptional-report/controller.js?v=1')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'public/themes/'.$theme.'/rsa-case-pkg/exceptional-report/controller.js?v=1')}}"></script>
 
 <!-- RSA-RECONCILIATION-REPORT -->
 <script type="text/javascript">
-    var reconciliation_report_list_template_url = "{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/reconciliation-report/view.html')}}";
+    var reconciliation_report_list_template_url = "{{URL::asset($rsa_case_pkg_path.'public/themes/'.$theme.'/rsa-case-pkg/reconciliation-report/view.html')}}";
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/reconciliation-report/controller.js?v=1')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'public/themes/'.$theme.'/rsa-case-pkg/reconciliation-report/controller.js?v=1')}}"></script>
 
 <!-- RSA-PROVISIONAL-REPORT -->
 <script type="text/javascript">
-    var provisional_report_list_template_url = "{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/provisional-report/view.html')}}";
+    var provisional_report_list_template_url = "{{URL::asset($rsa_case_pkg_path.'public/themes/'.$theme.'/rsa-case-pkg/provisional-report/view.html')}}";
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/provisional-report/controller.js?v=1')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'public/themes/'.$theme.'/rsa-case-pkg/provisional-report/controller.js?v=1')}}"></script>
 
 <!-- RSA-GENERAL-REPORT -->
 <script type="text/javascript">
-    var general_report_list_template_url = "{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/general-report/view.html')}}";
-    var general_report_asp_wise_template_url = "{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/general-report/asp_wise_payment.html')}}";
-    var general_report_city_wise_template_url = "{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/general-report/city_wise_payment.html')}}";
-    var general_report_state_wise_template_url = "{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/general-report/state_wise_payment.html')}}";
+    var general_report_list_template_url = "{{URL::asset($rsa_case_pkg_path.'public/themes/'.$theme.'/rsa-case-pkg/general-report/view.html')}}";
+    var general_report_asp_wise_template_url = "{{URL::asset($rsa_case_pkg_path.'public/themes/'.$theme.'/rsa-case-pkg/general-report/asp_wise_payment.html')}}";
+    var general_report_city_wise_template_url = "{{URL::asset($rsa_case_pkg_path.'public/themes/'.$theme.'/rsa-case-pkg/general-report/city_wise_payment.html')}}";
+    var general_report_state_wise_template_url = "{{URL::asset($rsa_case_pkg_path.'public/themes/'.$theme.'/rsa-case-pkg/general-report/state_wise_payment.html')}}";
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'public/angular/rsa-case-pkg/pages/general-report/controller.js?v=1')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'public/themes/'.$theme.'/rsa-case-pkg/general-report/controller.js?v=1')}}"></script>
 

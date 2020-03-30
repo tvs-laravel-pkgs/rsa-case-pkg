@@ -122,12 +122,12 @@
                                             <tbody>
                                                 <tr ng-repeat="(key, month) in $ctrl.monthes">
                                                     <td>{{month}}</td>
-                                                    <td><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.data.Total_amount_paids[month]}}</td>
-                                                    <td>{{$ctrl.data.Total_count_of_tickets[month]}}</td>
-                                                    <td><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.data.total_amount_submit_in_year[month]}}</td>
-                                                    <td>{{$ctrl.data.total_count_submit_in_year[month]}}</td>
-                                                    <td><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.data.amount_bills_yet_to_receive[month]}}</td>
-                                                    <td>{{$ctrl.data.count_bills_yet_to_receive[month]}}</td>
+                                                    <td><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.data.Total_amount_paids[month] ? $ctrl.data.Total_amount_paids[month] : '0.00'}}</td>
+                                                    <td>{{$ctrl.data.Total_count_of_tickets[month] ? $ctrl.data.Total_count_of_tickets[month] : '0'}}</td>
+                                                    <td><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.data.total_amount_submit_in_year[month] ? $ctrl.data.total_amount_submit_in_year[month].toFixed(2) : '0.00'}}</td>
+                                                    <td>{{$ctrl.data.total_count_submit_in_year[month] ? $ctrl.data.total_count_submit_in_year[month] : '0'}}</td>
+                                                    <td><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.data.amount_bills_yet_to_receive[month] ? $ctrl.data.amount_bills_yet_to_receive[month].toFixed(2) : '0.00'}}</td>
+                                                    <td>{{$ctrl.data.count_bills_yet_to_receive[month] ? $ctrl.data.count_bills_yet_to_receive[month] : '0'}}</td>
                                                 </tr>
                                             </tbody>
                                             <tfoot>

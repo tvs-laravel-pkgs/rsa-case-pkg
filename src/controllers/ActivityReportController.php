@@ -99,6 +99,16 @@ class ActivityReportController extends Controller {
 			->sum('activity_details.value')
 		;
 
+		$amount_of_tickets_submitted = Activity::join('activity_details', function ($join) {
+			$join->on('activity_details.activity_id', 'activities.id')
+				->where('activity_details.key_id', 182); //BO AMOUNT
+		})
+			->where('activities.status_id', 12) //INVOICED-WAITING FOR PAYMENT
+			->orWhere('activities.status_id', 13) //PAYMENT INPROGRESS
+			->whereYear('activities.updated_at', date('Y'))
+			->sum('activity_details.value')
+		;
+
 		$total_amount_submit_in_year = Activity::select(
 			'activities.id',
 			DB::raw('sum(activity_details.value) as total'),
@@ -115,6 +125,16 @@ class ActivityReportController extends Controller {
 			->orderBy('activities.updated_at', 'ASC')
 			->pluck('total', 'month')
 			->toArray()
+		;
+
+		$amount_of_bills_yet_to_receive = Activity::join('activity_details', function ($join) {
+			$join->on('activity_details.activity_id', 'activities.id')
+				->where('activity_details.key_id', 182); //BO AMOUNT
+		})
+			->whereYear('activities.updated_at', date('Y'))
+			->where('activities.status_id', 1) //CASE CLOSED WAITING FOR ASP GENERATE INVOICE
+			->orWhere('activities.status_id', 11) //BP APPROVED WAITING FOR ASP INVOICE GENERATION
+			->sum('activity_details.value')
 		;
 
 		$amount_bills_yet_to_receive = Activity::select(
@@ -136,16 +156,21 @@ class ActivityReportController extends Controller {
 			->toArray()
 		;
 
-		$count_bills_yet_to_receive = Activity::select(
-			DB::raw('count(id) as total'),
-			DB::raw('DATE_FORMAT(updated_at,"%b") month')
-		)
+		$total_count_of_tickets_in_year = Activity::where('status_id', 14) //PAID
 			->whereYear('updated_at', date('Y'))
-			->where('activities.status_id', 1) //CASE CLOSED WAITING FOR ASP GENERATE INVOICE
-			->orWhere('activities.status_id', 11) //BP APPROVED WAITING FOR ASP INVOICE GENERATION
-			->groupBy('month')
-			->pluck('total', 'month')
+			->count();
+
+		$total_count_of_tickets_submitted = Activity::where('status_id', 12) //INVOICED-WAITING FOR PAYMENT
+			->orWhere('status_id', 13) //PAYMENT INPROGRESS
+			->whereYear('updated_at', date('Y'))
+			->pluck('id')
 			->toArray()
+		;
+
+		$bills_yet_to_receive = Activity::where('activities.status_id', 1) //CASE CLOSED WAITING FOR ASP GENERATE INVOICE
+			->orWhere('activities.status_id', 11) //BP APPROVED WAITING FOR ASP INVOICE GENERATION
+			->whereYear('activities.updated_at', date('Y'))
+			->count()
 		;
 
 		$total_count_submit_in_year = Activity::select(
@@ -166,41 +191,16 @@ class ActivityReportController extends Controller {
 			->toArray()
 		;
 
-		$amount_of_tickets_submitted = Activity::join('activity_details', function ($join) {
-			$join->on('activity_details.activity_id', 'activities.id')
-				->where('activity_details.key_id', 182); //BO AMOUNT
-		})
-			->where('activities.status_id', 12) //INVOICED-WAITING FOR PAYMENT
-			->orWhere('activities.status_id', 13) //PAYMENT INPROGRESS
-			->whereYear('activities.updated_at', date('Y'))
-			->sum('activity_details.value')
-		;
-
-		$amount_of_bills_yet_to_receive = Activity::join('activity_details', function ($join) {
-			$join->on('activity_details.activity_id', 'activities.id')
-				->where('activity_details.key_id', 182); //BO AMOUNT
-		})
-			->whereYear('activities.updated_at', date('Y'))
+		$count_bills_yet_to_receive = Activity::select(
+			DB::raw('count(id) as total'),
+			DB::raw('DATE_FORMAT(updated_at,"%b") month')
+		)
+			->whereYear('updated_at', date('Y'))
 			->where('activities.status_id', 1) //CASE CLOSED WAITING FOR ASP GENERATE INVOICE
 			->orWhere('activities.status_id', 11) //BP APPROVED WAITING FOR ASP INVOICE GENERATION
-			->sum('activity_details.value')
-		;
-
-		$total_count_of_tickets_in_year = Activity::where('status_id', 14) //PAID
-			->whereYear('updated_at', date('Y'))
-			->count();
-
-		$total_count_of_tickets_submitted = Activity::where('status_id', 12) //INVOICED-WAITING FOR PAYMENT
-			->orWhere('status_id', 13) //PAYMENT INPROGRESS
-			->whereYear('updated_at', date('Y'))
-			->pluck('id')
+			->groupBy('month')
+			->pluck('total', 'month')
 			->toArray()
-		;
-
-		$bills_yet_to_receive = Activity::where('activities.status_id', 1) //CASE CLOSED WAITING FOR ASP GENERATE INVOICE
-			->orWhere('activities.status_id', 11) //BP APPROVED WAITING FOR ASP INVOICE GENERATION
-			->whereYear('activities.updated_at', date('Y'))
-			->count()
 		;
 
 		$this->data['extras'] = [
@@ -208,16 +208,16 @@ class ActivityReportController extends Controller {
 			'amount_of_bills_yet_to_receive_chart' => $amount_bills_yet_to_receive,
 			'total_count_yet_to_receive_in_year_chart' => $count_bills_yet_to_receive,
 			'total_count_submit_in_year_chart' => $total_count_submit_in_year,
-			'total_amount_paid_in_year' => $total_amount_paid_in_year,
-			'amount_of_tickets_submitted' => $amount_of_tickets_submitted,
-			'amount_of_bills_yet_to_receive' => $amount_of_bills_yet_to_receive,
+			'total_amount_paid_in_year' => number_format($total_amount_paid_in_year, 2),
+			'amount_of_tickets_submitted' => number_format($amount_of_tickets_submitted, 2),
+			'amount_of_bills_yet_to_receive' => number_format($amount_of_bills_yet_to_receive, 2),
 			'total_count_of_tickets_in_year' => $total_count_of_tickets_in_year,
 			'total_count_of_tickets_submitted' => count($total_count_of_tickets_submitted),
 			'bills_yet_to_receive' => $bills_yet_to_receive,
 		];
 
 		$Total_amount_paid = Activity::select(
-			DB::raw('sum(activity_details.value) as total'),
+			DB::raw('FORMAT(sum(activity_details.value), 2) as total'),
 			DB::raw('DATE_FORMAT(activities.updated_at,"%b") as month')
 		)
 			->join('activity_details', function ($join) {

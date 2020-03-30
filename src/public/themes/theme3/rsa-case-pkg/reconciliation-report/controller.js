@@ -26,10 +26,12 @@ app.component('reconciliationReportView', {
             var amounts1 = [];
             var amounts2 = [];
             angular.forEach(self.extras.total_amount_submit_in_year_chart, function(value, key) {
-                amounts1[key] = value;
+                // amounts1[key] = value;
+                amounts1[key] = Number(value.toFixed(2));
             });
             angular.forEach(self.extras.amount_of_bills_yet_to_receive_chart, function(value, key) {
-                amounts2[key] = value;
+                // amounts2[key] = value;
+                amounts2[key] = Number(value.toFixed(2));
             });
             for (var i in months) {
                 var month = months[i];
@@ -46,7 +48,6 @@ app.component('reconciliationReportView', {
                     amounts2[i] = amounts2[month];
                 }
             }
-
             // /* Chart */
             Highcharts.chart('chart1', {
                 chart: {

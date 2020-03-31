@@ -544,7 +544,7 @@ class Activity extends Model {
 									$query->whereNull('deleted_at');
 								}),
 						],
-						'vehicle_registration_number' => 'required|string|max:11',
+						'vehicle_registration_number' => 'nullable|string|max:11',
 						'vin_no' => 'nullable|string|max:20',
 						'membership_type' => 'required|string|max:191',
 						'membership_number' => 'nullable|string|max:50',
@@ -560,17 +560,17 @@ class Activity extends Model {
 						'km_during_breakdown' => 'nullable|numeric',
 						'bd_lat' => 'nullable',
 						'bd_long' => 'nullable',
-						'bd_location' => 'nullable|string|max:191',
-						'bd_city' => 'nullable|string|max:191',
-						'bd_state' => [
-							'nullable',
-							'string',
-							'max:50',
-							Rule::exists('states', 'name')
-								->where(function ($query) {
-									$query->whereNull('deleted_at');
-								}),
-						],
+						'bd_location' => 'nullable|string',
+						'bd_city' => 'nullable|string|max:255',
+						// 'bd_state' => [
+						// 	'nullable',
+						// 	'string',
+						// 	'max:50',
+						// 	Rule::exists('states', 'name')
+						// 		->where(function ($query) {
+						// 			$query->whereNull('deleted_at');
+						// 		}),
+						// ],
 						//ACTIVITY
 						'crm_activity_id' => 'required|numeric',
 						'asp_code' => [
@@ -636,8 +636,8 @@ class Activity extends Model {
 						'activity_description' => 'nullable|string|max:191',
 						'activity_remarks' => 'nullable|string|max:255',
 						'asp_reached_date' => 'nullable',
-						'asp_start_location' => 'nullable|string|max:191',
-						'asp_end_location' => 'nullable|string|max:191',
+						'asp_start_location' => 'nullable|string',
+						'asp_end_location' => 'nullable|string',
 						'onward_google_km' => 'nullable|numeric',
 						'dealer_google_km' => 'nullable|numeric',
 						'return_google_km' => 'nullable|numeric',
@@ -645,8 +645,8 @@ class Activity extends Model {
 						'dealer_km' => 'nullable|numeric',
 						'return_km' => 'nullable|numeric',
 						'drop_location_type' => 'nullable|string|max:24',
-						'drop_dealer' => 'nullable|string|max:64',
-						'drop_location' => 'nullable|string|max:191',
+						'drop_dealer' => 'nullable|string',
+						'drop_location' => 'nullable|string',
 						'drop_location_lat' => 'nullable|numeric',
 						'drop_location_long' => 'nullable|numeric',
 						'amount' => 'nullable|numeric',
@@ -726,6 +726,12 @@ class Activity extends Model {
 					$vehicle_model_by_make = VehicleModel::where('name', $record['vehicle_model'])->where('vehicle_make_id', $vehicle_make_id)->first();
 					if (!$vehicle_model_by_make) {
 						$status['errors'][] = 'Selected vehicle make doesn"t matches with vehicle model';
+						$save_eligible = false;
+					}
+
+					//VIN NO OR VEHICLE REGISTRATION NUMBER ANY ONE IS MANDATORY
+					if (!$record['vehicle_registration_number'] && !$record['vin_no']) {
+						$status['errors'][] = 'VIN or Vehicle Registration Number is required';
 						$save_eligible = false;
 					}
 

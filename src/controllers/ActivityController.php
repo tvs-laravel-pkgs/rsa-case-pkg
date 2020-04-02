@@ -31,7 +31,32 @@ use Yajra\Datatables\Datatables;
 
 class ActivityController extends Controller {
 
-	public function getFilterData() {
+	public function getFilterData($type = '') {
+		if ($type == 'approved') {
+			$show_message = false;
+			$nocInfo = checkNocInfo();
+			//NOC NOT GENERATED FOR PREV QUARTERS
+			if ($nocInfo['noc']) {
+				$payment_pending_tickets_prev_qrts = Activity::join('cases', 'cases.id', 'activities.case_id')
+					->where('activities.asp_id', Auth::user()->asp->id)
+					->whereNotIn('activities.status_id', [2, 4, 7, 14])
+					->whereDate('cases.date', '>=', $nocInfo['period_start_date'])
+					->whereDate('cases.date', '<=', $nocInfo['period_end_date'])
+					->get();
+
+				if ($payment_pending_tickets_prev_qrts->count() > 0) {
+					$show_message = true;
+					$message = "Kindly complete the payment for the previous quarter tickets, so that you can continue with current quarter tickets.";
+				} else {
+					$show_message = true;
+					$message = "Kindly generate NOC for the previous quarter tickets, so that you can continue with current quarter tickets.";
+
+				}
+			}
+		} else {
+			$show_message = false;
+		}
+
 		$this->data['extras'] = [
 			'call_center_list' => collect(CallCenter::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Call Center']),
 			'service_type_list' => collect(ServiceType::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Sub Service']),
@@ -42,6 +67,7 @@ class ActivityController extends Controller {
 			'client_list' => collect(Client::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Client']),
 			'export_client_list' => collect(Client::select('name', 'id')->get()),
 			'asp_list' => collect(Asp::select('name', 'id')->get()),
+			'show_message' => ($show_message) ? $message : '',
 		];
 
 		return response()->json($this->data);
@@ -859,6 +885,8 @@ class ActivityController extends Controller {
 
 		$today = date('Y-m-d'); //current date
 
+		$nocInfo = checkNocInfo();
+
 		//THIS IS THE ORIGINAL CONDITION
 		$threeMonthsBefore = date('Y-m-d', strtotime("-3 months", strtotime($today))); //three months before
 
@@ -907,6 +935,30 @@ class ActivityController extends Controller {
 					])
 					->first();
 				if ($activity_asp) {
+					//NOC NOT GENERATED FOR PREV QUARTERS
+					if ($nocInfo['noc']) {
+						$payment_pending_tickets_prev_qrts = Activity::join('cases', 'cases.id', 'activities.case_id')
+							->where([
+								['activities.asp_id', Auth::user()->asp->id],
+								['activities.case_id', $case->id],
+							])
+							->whereNotIn('activities.status_id', [2, 4, 7, 14])
+							->whereDate('cases.date', '>=', $nocInfo['period_start_date'])
+							->whereDate('cases.date', '<=', $nocInfo['period_end_date'])
+							->get();
+
+						if ($payment_pending_tickets_prev_qrts->count() > 0) {
+							if (date("Y-m-d", strtotime($case->date)) >= $nocInfo['present_period_start_date']) {
+								$response = ['success' => false, 'errors' => ["Kindly complete the payment for the previous quarter tickets, so that you can continue with current quarter tickets."]];
+								return response()->json($response);
+							}
+						}
+						if (date("Y-m-d", strtotime($case->date)) >= $nocInfo['present_period_start_date']) {
+							$response = ['success' => false, 'errors' => ["Kindly generate NOC for the previous quarter tickets, so that you can continue with current quarter tickets."]];
+							return response()->json($response);
+						}
+					}
+
 					$activity = Activity::join('cases', 'cases.id', 'activities.case_id')
 						->where([
 							['activities.asp_id', Auth::user()->asp->id],
@@ -1359,7 +1411,31 @@ class ActivityController extends Controller {
 				},
 			])
 			->addColumn('action', function ($activities) {
-				return '<input type="checkbox" class="ticket_id no-link child_select_all" name="invoice_ids[]" value="' . $activities->id . '">';
+				$nocInfo = checkNocInfo();
+				//NOC NOT GENERATED FOR PREV QUARTERS
+				if ($nocInfo['noc']) {
+					$payment_pending_tickets_prev_qrts = Activity::join('cases', 'cases.id', 'activities.case_id')
+						->where('activities.asp_id', Auth::user()->asp->id)
+						->whereNotIn('activities.status_id', [2, 4, 7, 14])
+						->whereDate('cases.date', '>=', $nocInfo['period_start_date'])
+						->whereDate('cases.date', '<=', $nocInfo['period_end_date'])
+						->get();
+
+					if ($payment_pending_tickets_prev_qrts->count() > 0) {
+						if (date("Y-m-d", strtotime($activities->case_date)) >= $nocInfo['present_period_start_date']) {
+							return '';
+						} else {
+							return '<input type="checkbox" class="ticket_id no-link child_select_all" name="invoice_ids[]" value="' . $activities->id . '">';
+						}
+					} else if (date("Y-m-d", strtotime($activities->case_date)) >= $nocInfo['present_period_start_date']) {
+						return '';
+					} else {
+						return '<input type="checkbox" class="ticket_id no-link child_select_all" name="invoice_ids[]" value="' . $activities->id . '">';
+					}
+				} else {
+					return '<input type="checkbox" class="ticket_id no-link child_select_all" name="invoice_ids[]" value="' . $activities->id . '">';
+				}
+
 			})
 			->make(true);
 	}

@@ -48,7 +48,7 @@ app.component('newActivity', {
                             }).show();
                             setTimeout(function() {
                                 $noty.close();
-                            }, 1000);
+                            }, 5000);
                         } else {
                             $location.path('/rsa-case-pkg/new-activity/update-details/' + res.activity_id)
                             $scope.$apply()
@@ -67,7 +67,7 @@ app.component('newActivity', {
                         }).show();
                         setTimeout(function() {
                             $noty.close();
-                        }, 1000);
+                        }, 5000);
                     });
             },
         });
@@ -99,7 +99,7 @@ app.component('newActivityUpdateDetails', {
                 }).show();
                 setTimeout(function() {
                     $noty.close();
-                }, 1000);
+                }, 5000);
                 $location.path('/rsa-case-pkg/new-activity')
                 $scope.$apply()
                 return;
@@ -334,7 +334,7 @@ app.component('newActivityUpdateDetails', {
                                         }).show();
                                         setTimeout(function() {
                                             $noty.close();
-                                        }, 1000);
+                                        }, 5000);
 
                                     } else {
                                         $noty = new Noty({
@@ -347,7 +347,7 @@ app.component('newActivityUpdateDetails', {
                                         }).show();
                                         setTimeout(function() {
                                             $noty.close();
-                                        }, 1000);
+                                        }, 5000);
                                         $location.path('/rsa-case-pkg/new-activity');
                                         $scope.$apply();
                                     }
@@ -365,7 +365,7 @@ app.component('newActivityUpdateDetails', {
                                     }).show();
                                     setTimeout(function() {
                                         $noty.close();
-                                    }, 1000);
+                                    }, 5000);
                                 });
                         }
                     }

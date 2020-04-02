@@ -7,7 +7,7 @@ app.component('approvedActivityList', {
 
         self.filter_img_url = filter_img_url;
         $http.get(
-            activity_approved_filter_url
+            activity_approved_filter_url + '/approved'
         ).then(function(response) {
             self.extras = response.data.extras;
 

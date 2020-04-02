@@ -10,7 +10,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	Route::get('/case/delete/{id}', 'CaseController@deleteCase')->name('deleteCase');
 
 	//ACTIVITY STATUS
-	Route::get('/activity-status/get-filter-data', 'ActivityController@getFilterData')->name('getActivityStatusFilterData');
+	Route::get('/activity-status/get-filter-data/{type?}', 'ActivityController@getFilterData')->name('getActivityStatusFilterData');
 
 	Route::get('/activity-status/get-list', 'ActivityController@getList')->name('getActivityStatusList');
 	Route::get('/activity-status/delete/{id}', 'ActivityController@delete')->name('deleteActivity');
@@ -18,13 +18,12 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	Route::post('activity-status/export', 'ActivityController@exportActivities')->name('exportActivities');
 	Route::post('activity-status/activity-status-change', 'ActivityController@activityBackAsp')->name('activityBackAspUpdate');
 
-
 	//ASP NEW ACTIVITY
 	Route::get('/new-activity/get-form-data/{id?}', 'ActivityController@activityNewGetFormData')->name('activityNewGetFormData');
 	Route::post('asp/activity/verify', 'ActivityController@verifyActivity')->name('verifyActivity');
 
 	//ACTIVITY DEFERRED
-	Route::get('/activity-deferred/get-filter-data', 'ActivityController@getFilterData')->name('getActivityDeferredFilterData');
+	Route::get('/activity-deferred/get-filter-data/{type?}', 'ActivityController@getFilterData')->name('getActivityDeferredFilterData');
 	Route::get('/activity-deferred/get-list', 'ActivityController@getDeferredList')->name('getActivityDeferredList');
 	Route::get('/deferred-activity/get-form-data/{id?}', 'ActivityController@activityDeferredGetFormData')->name('activityDeferredGetFormData');
 	// Route::post('asp/activity-deferred/save', 'ActivityController@saveActitvity')->name('saveDeferredActitvity');
@@ -32,7 +31,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	Route::post('asp/activity/update', 'ActivityController@updateActivity')->name('updateActivity');
 
 	//ACTIVITY APPROVED
-	Route::get('/activity-approved/get-filter-data', 'ActivityController@getFilterData')->name('getActivityApprovedFilterData');
+	Route::get('/activity-approved/get-filter-data/{type?}', 'ActivityController@getFilterData')->name('getActivityApprovedFilterData');
 	Route::get('/activity-approved/get-list', 'ActivityController@getApprovedList')->name('getActivityApprovedList');
 	Route::post('/activity-approved/get-activiy-encryption-key', 'ActivityController@getActivityEncryptionKey')->name('getActivityEncryptionKey');
 	Route::get('/activity-approved/get-details/{encryption_key}', 'ActivityController@getActivityApprovedDetails')->name('getActivityApprovedDetails');

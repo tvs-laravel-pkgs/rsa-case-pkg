@@ -886,7 +886,7 @@ class ActivityController extends Controller {
 		$today = date('Y-m-d'); //current date
 
 		$nocInfo = checkNocInfo();
-
+		// dd($nocInfo);
 		//THIS IS THE ORIGINAL CONDITION
 		$threeMonthsBefore = date('Y-m-d', strtotime("-3 months", strtotime($today))); //three months before
 
@@ -938,10 +938,7 @@ class ActivityController extends Controller {
 					//NOC NOT GENERATED FOR PREV QUARTERS
 					if ($nocInfo['noc']) {
 						$payment_pending_tickets_prev_qrts = Activity::join('cases', 'cases.id', 'activities.case_id')
-							->where([
-								['activities.asp_id', Auth::user()->asp->id],
-								['activities.case_id', $case->id],
-							])
+							->where('activities.asp_id', Auth::user()->asp->id)
 							->whereNotIn('activities.status_id', [2, 4, 7, 14])
 							->whereDate('cases.date', '>=', $nocInfo['period_start_date'])
 							->whereDate('cases.date', '<=', $nocInfo['period_end_date'])
@@ -952,8 +949,7 @@ class ActivityController extends Controller {
 								$response = ['success' => false, 'errors' => ["Kindly complete the payment for the previous quarter tickets, so that you can continue with current quarter tickets."]];
 								return response()->json($response);
 							}
-						}
-						if (date("Y-m-d", strtotime($case->date)) >= $nocInfo['present_period_start_date']) {
+						} else if (date("Y-m-d", strtotime($case->date)) >= $nocInfo['present_period_start_date']) {
 							$response = ['success' => false, 'errors' => ["Kindly generate NOC for the previous quarter tickets, so that you can continue with current quarter tickets."]];
 							return response()->json($response);
 						}

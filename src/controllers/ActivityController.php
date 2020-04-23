@@ -1774,7 +1774,7 @@ class ActivityController extends Controller {
 				$activity->case->customer_name,
 				$activity->case->customer_contact_number,
 				$activity->asp->name,
-				$activity->asp->axpta_code,
+				$activity->asp->asp_code,
 				$activity->asp->contact_number1,
 				$activity->asp->email,
 				$activity->asp->has_gst ? 'Yes' : 'No',

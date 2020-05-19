@@ -4,6 +4,7 @@ namespace Abs\RsaCasePkg\Api;
 use Abs\RsaCasePkg\CaseCancelledReason;
 use Abs\RsaCasePkg\CaseStatus;
 use Abs\RsaCasePkg\RsaCase;
+use App\ApiLog;
 use App\CallCenter;
 use App\Client;
 use App\Http\Controllers\Controller;
@@ -19,18 +20,28 @@ class CaseController extends Controller {
 	private $successStatus = 200;
 
 	public function save(Request $request) {
+		ini_set('memory_limit', '-1');
+		ini_set('max_execution_time', 0);
+
+		$errors = [];
 		DB::beginTransaction();
 		try {
-
 			//Dont allow updations if current status is Cancelled or Closed
 			$case = RsaCase::where([
 				'company_id' => 1,
 				'number' => $request->number,
 			])->first();
 			if ($case && ($case->status_id == 3 || $case->status_id == 4)) {
+				//SAVE CASE API LOG
+				$errors[] = 'Update not allowed - Case already ' . $case->status->name;
+				ApiLog::save(102, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
-					'error' => 'Update not allowed - Case already ' . $case->status->name,
+					'error' => 'Validation Error',
+					'errors' => [
+						'Update not allowed - Case already ' . $case->status->name,
+					],
 				], $this->successStatus);
 			}
 
@@ -127,6 +138,10 @@ class CaseController extends Controller {
 			]);
 
 			if ($validator->fails()) {
+				//SAVE CASE API LOG
+				$errors[] = $validator->errors()->all();
+				ApiLog::save(102, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
 					'error' => 'Validation Error',
@@ -136,6 +151,10 @@ class CaseController extends Controller {
 
 			//ALLOW ONLY LETTERS AND NUMBERS
 			if (!preg_match("/^[a-zA-Z0-9]+$/", $request->number)) {
+				//SAVE CASE API LOG
+				$errors[] = 'Invalid Case Number';
+				ApiLog::save(102, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
 					'error' => 'Validation Error',
@@ -145,16 +164,6 @@ class CaseController extends Controller {
 				], $this->successStatus);
 			}
 
-			// if (preg_match("/([%\@!$#\^&()+*]+)/", $request->number)) {
-			// 	return response()->json([
-			// 		'success' => false,
-			// 		'error' => 'Validation Error',
-			// 		'errors' => [
-			// 			"Invalid Case Number",
-			// 		],
-			// 	], $this->successStatus);
-			// }
-
 			$status = CaseStatus::where('name', $request->status)->where('company_id', 1)->first();
 			$call_center = CallCenter::where('name', $request->call_center)->first();
 			$client = Client::where('name', $request->client)->first();
@@ -163,6 +172,10 @@ class CaseController extends Controller {
 			//CASE STATUS IS CANCELLED - CANCEL REASON IS MANDATORY
 			if ($status->id == 3) {
 				if (!$request->cancel_reason) {
+					//SAVE CASE API LOG
+					$errors[] = 'Cancel reason is required';
+					ApiLog::save(102, $request->all(), $errors, NULL, 121);
+
 					return response()->json([
 						'success' => false,
 						'error' => 'Validation Error',
@@ -175,6 +188,10 @@ class CaseController extends Controller {
 			//VEHICLE MODEL GOT BY VEHICLE MAKE
 			$vehicle_model_by_make = VehicleModel::where('name', $request->vehicle_model)->where('vehicle_make_id', $vehicle_make->id)->first();
 			if (!$vehicle_model_by_make) {
+				//SAVE CASE API LOG
+				$errors[] = "Selected vehicle make doesn't matches with vehicle model";
+				ApiLog::save(102, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
 					'error' => 'Validation Error',
@@ -186,6 +203,10 @@ class CaseController extends Controller {
 
 			//VIN NO OR VEHICLE REGISTRATION NUMBER ANY ONE IS MANDATORY
 			if (!$request->vehicle_registration_number && !$request->vin_no) {
+				//SAVE CASE API LOG
+				$errors[] = 'VIN or Vehicle Registration Number is required';
+				ApiLog::save(102, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
 					'error' => 'Validation Error',
@@ -213,6 +234,10 @@ class CaseController extends Controller {
 			if (!$case->exists) {
 				//WITH CANCELLED OR CLOSED STATUS
 				if ($status->id == 3 || $status->id == 4) {
+					//SAVE CASE API LOG
+					$errors[] = 'Case should not start with cancelled or closed status';
+					ApiLog::save(102, $request->all(), $errors, NULL, 121);
+
 					return response()->json([
 						'success' => false,
 						'error' => 'Validation Error',
@@ -256,6 +281,9 @@ class CaseController extends Controller {
 			}
 
 			DB::commit();
+			//SAVE CASE API LOG
+			ApiLog::save(102, $request->all(), $errors, NULL, 120);
+
 			return response()->json([
 				'success' => true,
 				'message' => 'Case saved successfully',
@@ -263,6 +291,10 @@ class CaseController extends Controller {
 			], $this->successStatus);
 		} catch (\Exception $e) {
 			DB::rollBack();
+			//SAVE CASE API LOG
+			$errors[] = $e->getMessage() . ' Line:' . $e->getLine();
+			ApiLog::save(102, $request->all(), $errors, NULL, 121);
+
 			return response()->json(['success' => false, 'errors' => [$e->getMessage() . ' Line:' . $e->getLine()]], $this->successStatus);
 		}
 	}

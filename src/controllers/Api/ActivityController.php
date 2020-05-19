@@ -10,6 +10,7 @@ use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
 use Abs\RsaCasePkg\AspPoRejectedReason;
 use Abs\RsaCasePkg\RsaCase;
+use App\ApiLog;
 use App\Asp;
 use App\Config;
 use App\Http\Controllers\Controller;
@@ -23,8 +24,13 @@ class ActivityController extends Controller {
 	private $successStatus = 200;
 
 	public function createActivity(Request $request) {
+		ini_set('memory_limit', '-1');
+		ini_set('max_execution_time', 0);
+
+		$errors = [];
 		DB::beginTransaction();
 		try {
+
 			$validator = Validator::make($request->all(), [
 				'crm_activity_id' => 'required|numeric|unique:activities',
 				'data_src' => 'required|string',
@@ -131,6 +137,10 @@ class ActivityController extends Controller {
 			]);
 
 			if ($validator->fails()) {
+				//SAVE ACTIVITY API LOG
+				$errors[] = $validator->errors()->all();
+				ApiLog::save(103, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
 					'error' => 'Validation Error',
@@ -151,6 +161,10 @@ class ActivityController extends Controller {
 
 			//ALLOW ONLY LETTERS AND NUMBERS
 			if (!preg_match("/^[a-zA-Z0-9]+$/", $request->case_number)) {
+				//SAVE ACTIVITY API LOG
+				$errors[] = 'Invalid Case Number';
+				ApiLog::save(103, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
 					'error' => 'Validation Error',
@@ -165,6 +179,10 @@ class ActivityController extends Controller {
 				'name' => $request->data_src,
 			])->first();
 			if (!$data_src) {
+				//SAVE ACTIVITY API LOG
+				$errors[] = 'Invalid Data Source';
+				ApiLog::save(103, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
 					'error' => 'Validation Error',
@@ -178,6 +196,10 @@ class ActivityController extends Controller {
 
 			//CHECK ASP IS NOT ACTIVE
 			if (!$asp->is_active) {
+				//SAVE ACTIVITY API LOG
+				$errors[] = 'ASP is inactive';
+				ApiLog::save(103, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
 					'error' => 'Validation Error',
@@ -190,6 +212,10 @@ class ActivityController extends Controller {
 			//ASP ACCEPTED CC DETAILS == 0 -- REASON IS MANDATORY
 			if (!$request->asp_accepted_cc_details) {
 				if (!$request->reason_for_asp_rejected_cc_details) {
+					//SAVE ACTIVITY API LOG
+					$errors[] = 'Reason for ASP rejected cc details is required';
+					ApiLog::save(103, $request->all(), $errors, NULL, 121);
+
 					return response()->json([
 						'success' => false,
 						'error' => 'Validation Error',
@@ -201,6 +227,10 @@ class ActivityController extends Controller {
 			}
 
 			if ($request->drop_location_type && strtolower($request->drop_location_type) != 'garage' && strtolower($request->drop_location_type) != 'dealer' && strtolower($request->drop_location_type) != 'customer preferred') {
+				//SAVE ACTIVITY API LOG
+				$errors[] = 'Invalid drop_location_type';
+				ApiLog::save(103, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
 					'error' => 'Validation Error',
@@ -211,6 +241,10 @@ class ActivityController extends Controller {
 			}
 
 			if ($request->paid_to && strtolower($request->paid_to) != 'asp' && strtolower($request->paid_to) != 'online') {
+				//SAVE ACTIVITY API LOG
+				$errors[] = 'Invalid paid_to';
+				ApiLog::save(103, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
 					'error' => 'Validation Error',
@@ -221,6 +255,10 @@ class ActivityController extends Controller {
 			}
 
 			if ($request->payment_mode && strtolower($request->payment_mode) != 'cash' && strtolower($request->payment_mode) != 'paytm' && strtolower($request->payment_mode) != 'online') {
+				//SAVE ACTIVITY API LOG
+				$errors[] = 'Invalid payment_mode';
+				ApiLog::save(103, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
 					'error' => 'Validation Error',
@@ -345,6 +383,10 @@ class ActivityController extends Controller {
 				$response = $activity->calculatePayoutAmount('CC');
 				if (!$response['success']) {
 
+					//SAVE ACTIVITY API LOG
+					$errors[] = $response['error'];
+					ApiLog::save(103, $request->all(), $errors, NULL, 121);
+
 					return response()->json([
 						'success' => false,
 						'error' => 'Validation Error',
@@ -388,6 +430,9 @@ class ActivityController extends Controller {
 			$activity_log->save();
 
 			DB::commit();
+			//SAVE ACTIVITY API LOG
+			ApiLog::save(103, $request->all(), $errors, NULL, 120);
+
 			return response()->json([
 				'success' => true,
 				'message' => 'Activity saved successfully',
@@ -395,6 +440,10 @@ class ActivityController extends Controller {
 			], $this->successStatus);
 		} catch (\Exception $e) {
 			DB::rollBack();
+			//SAVE ACTIVITY API LOG
+			$errors[] = $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile();
+			ApiLog::save(103, $request->all(), $errors, NULL, 121);
+
 			return response()->json([
 				'success' => false,
 				'errors' => [
@@ -405,6 +454,9 @@ class ActivityController extends Controller {
 	}
 
 	public function getInvoiceableActivities(Request $request) {
+		ini_set('memory_limit', '-1');
+		ini_set('max_execution_time', 0);
+		$errors = [];
 		DB::beginTransaction();
 		try {
 			$validator = Validator::make($request->all(), [
@@ -412,6 +464,10 @@ class ActivityController extends Controller {
 			]);
 
 			if ($validator->fails()) {
+				//SAVE INVOICEABLE ACTIVITIES API LOG
+				$errors[] = $validator->errors()->all();
+				ApiLog::save(105, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
 					'error' => 'Validation Error',
@@ -461,6 +517,9 @@ class ActivityController extends Controller {
 				->get();
 
 			DB::commit();
+			//SAVE INVOICEABLE ACTIVITIES API LOG
+			ApiLog::save(105, $request->all(), $errors, NULL, 120);
+
 			return response()->json([
 				'success' => true,
 				'invoiceable_activities' => $invoiceable_activities,
@@ -468,6 +527,10 @@ class ActivityController extends Controller {
 			], $this->successStatus);
 		} catch (\Exception $e) {
 			DB::rollBack();
+			//SAVE INVOICEABLE ACTIVITIES API LOG
+			$errors[] = $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile();
+			ApiLog::save(105, $request->all(), $errors, NULL, 121);
+
 			return response()->json([
 				'success' => false, 'errors' => [
 					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
@@ -477,6 +540,9 @@ class ActivityController extends Controller {
 	}
 
 	public function rejectActivityPo(Request $request) {
+		ini_set('memory_limit', '-1');
+		ini_set('max_execution_time', 0);
+		$errors = [];
 		DB::beginTransaction();
 		try {
 			$validator = Validator::make($request->all(), [
@@ -485,6 +551,10 @@ class ActivityController extends Controller {
 			]);
 
 			if ($validator->fails()) {
+				//SAVE REJECT ACTIVITY API LOG
+				$errors[] = $validator->errors()->all();
+				ApiLog::save(104, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
 					'error' => 'Validation Error',
@@ -498,6 +568,10 @@ class ActivityController extends Controller {
 
 			//ALLOW REJECTION ONLY FOR (BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice)
 			if ($activity->status_id != 1 && $activity->status_id != 11) {
+				//SAVE REJECT ACTIVITY API LOG
+				$errors[] = 'Rejection not allowed';
+				ApiLog::save(104, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
 					'error' => 'Rejection not allowed',
@@ -510,12 +584,19 @@ class ActivityController extends Controller {
 			$activity->save();
 
 			DB::commit();
+			//SAVE REJECT ACTIVITY API LOG
+			ApiLog::save(104, $request->all(), $errors, NULL, 120);
+
 			return response()->json([
 				'success' => true,
 				'mesage' => 'Status updated successfully!',
 			], $this->successStatus);
 		} catch (\Exception $e) {
 			DB::rollBack();
+			//SAVE REJECT ACTIVITY API LOG
+			$errors[] = $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile();
+			ApiLog::save(104, $request->all(), $errors, NULL, 121);
+
 			return response()->json([
 				'success' => false, 'errors' => [
 					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),

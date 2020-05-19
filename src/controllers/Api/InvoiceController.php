@@ -2,6 +2,7 @@
 
 namespace Abs\RsaCasePkg\Api;
 use Abs\RsaCasePkg\Activity;
+use App\ApiLog;
 use App\Asp;
 use App\Http\Controllers\Controller;
 use App\Invoices;
@@ -16,6 +17,10 @@ class InvoiceController extends Controller {
 	private $successStatus = 200;
 
 	public function createInvoice(Request $request) {
+		ini_set('memory_limit', '-1');
+		ini_set('max_execution_time', 0);
+
+		$errors = [];
 		DB::beginTransaction();
 		try {
 			$validator = Validator::make($request->all(), [
@@ -26,6 +31,10 @@ class InvoiceController extends Controller {
 				'invoice_copy' => 'nullable|image',
 			]);
 			if ($validator->fails()) {
+				//CREATE INVOICE API LOG
+				$errors[] = $validator->errors()->all();
+				ApiLog::save(106, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
 					'message' => 'Validation Error',
@@ -34,10 +43,16 @@ class InvoiceController extends Controller {
 			}
 
 			if (!isset($request->activity_id)) {
+				//CREATE INVOICE API LOG
+				$errors[] = 'Activity ID is required';
+				ApiLog::save(106, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
 					'message' => 'Validation Error',
-					'errors' => 'Activity ID is required',
+					'errors' => [
+						'Activity ID is required',
+					],
 				], $this->successStatus);
 			}
 
@@ -56,18 +71,30 @@ class InvoiceController extends Controller {
 				foreach ($activities as $key => $activity) {
 					//CHECK ASP MATCHES WITH ACTIVITY ASP
 					if ($activity->asp_id != $asp->id) {
+						//CREATE INVOICE API LOG
+						$errors[] = 'ASP not matched for activity ID ' . $activity->crm_activity_id;
+						ApiLog::save(106, $request->all(), $errors, NULL, 121);
+
 						return response()->json([
 							'success' => false,
 							'message' => 'Validation Error',
-							'errors' => 'ASP not matched for activity ID ' . $activity->crm_activity_id,
+							'errors' => [
+								'ASP not matched for activity ID ' . $activity->crm_activity_id,
+							],
 						], $this->successStatus);
 					}
 					//CHECK IF INVOICE ALREADY CREATED FOR ACTIVITY
 					if (!empty($activity->invoice_id)) {
+						//CREATE INVOICE API LOG
+						$errors[] = 'Invoice already created for activity ID ' . $activity->crm_activity_id;
+						ApiLog::save(106, $request->all(), $errors, NULL, 121);
+
 						return response()->json([
 							'success' => false,
 							'message' => 'Validation Error',
-							'errors' => 'Invoice already created for activity ID ' . $activity->crm_activity_id,
+							'errors' => [
+								'Invoice already created for activity ID ' . $activity->crm_activity_id,
+							],
 						], $this->successStatus);
 					}
 				}
@@ -79,10 +106,16 @@ class InvoiceController extends Controller {
 				foreach ($activities_with_accepted as $key => $activity_accepted) {
 					//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND BO Approved - Waiting for Invoice Generation by ASP)
 					if ($activity_accepted->status_id != 1 && $activity_accepted->status_id != 11) {
+						//CREATE INVOICE API LOG
+						$errors[] = 'ASP not accepted for activity ID ' . $activity_accepted->crm_activity_id;
+						ApiLog::save(106, $request->all(), $errors, NULL, 121);
+
 						return response()->json([
 							'success' => false,
 							'message' => 'Validation Error',
-							'errors' => 'ASP not accepted for activity ID ' . $activity_accepted->crm_activity_id,
+							'errors' => [
+								'ASP not accepted for activity ID ' . $activity_accepted->crm_activity_id,
+							],
 						], $this->successStatus);
 					}
 				}
@@ -91,17 +124,29 @@ class InvoiceController extends Controller {
 			//SELF INVOICE
 			if ($asp->has_gst && !$asp->is_auto_invoice) {
 				if (!$request->invoice_number) {
+					//CREATE INVOICE API LOG
+					$errors[] = 'Invoice number is required';
+					ApiLog::save(106, $request->all(), $errors, NULL, 121);
+
 					return response()->json([
 						'success' => false,
 						'message' => 'Validation Error',
-						'errors' => 'Invoice number is required',
+						'errors' => [
+							'Invoice number is required',
+						],
 					], $this->successStatus);
 				}
 				if (!$request->invoice_date) {
+					//CREATE INVOICE API LOG
+					$errors[] = 'Invoice date is required';
+					ApiLog::save(106, $request->all(), $errors, NULL, 121);
+
 					return response()->json([
 						'success' => false,
 						'message' => 'Validation Error',
-						'errors' => 'Invoice date is required',
+						'errors' => [
+							'Invoice date is required',
+						],
 					], $this->successStatus);
 				}
 				// if (!$request->invoice_copy) {
@@ -115,10 +160,16 @@ class InvoiceController extends Controller {
 				//CHECK INVOICE NUMBER EXIST
 				$is_invoice_no_exist = Invoices::where('invoice_no', $request->invoice_number)->first();
 				if ($is_invoice_no_exist) {
+					//CREATE INVOICE API LOG
+					$errors[] = 'Invoice number already exist';
+					ApiLog::save(106, $request->all(), $errors, NULL, 121);
+
 					return response()->json([
 						'success' => false,
 						'message' => 'Validation Error',
-						'errors' => 'Invoice number already exist',
+						'errors' => [
+							'Invoice number already exist',
+						],
 					], $this->successStatus);
 				}
 
@@ -154,14 +205,24 @@ class InvoiceController extends Controller {
 			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $invoice_date, $value);
 
 			if (!$invoice_c['success']) {
+				//CREATE INVOICE API LOG
+				$errors[] = $invoice_c['message'];
+				ApiLog::save(106, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
-					'message' => $invoice_c['message'],
+					'message' => 'Validation Error',
+					'errors' => [
+						$invoice_c['message'],
+					],
 				], $this->successStatus);
 			}
 
 			DB::commit();
 			if ($invoice_c['success']) {
+				//CREATE INVOICE API LOG
+				ApiLog::save(106, $request->all(), $errors, NULL, 120);
+
 				return response()->json([
 					'success' => true,
 					'message' => 'Invoice created successfully',
@@ -171,11 +232,23 @@ class InvoiceController extends Controller {
 
 		} catch (\Exception $e) {
 			DB::rollBack();
-			return response()->json(['success' => false, 'errors' => ['Exception Error' => $e->getMessage()]]);
+			//CREATE INVOICE API LOG
+			$errors[] = $e->getMessage();
+			ApiLog::save(106, $request->all(), $errors, NULL, 121);
+
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Exception Error' => $e->getMessage(),
+				],
+			]);
 		}
 	}
 
 	public function getList(Request $request) {
+		ini_set('memory_limit', '-1');
+		ini_set('max_execution_time', 0);
+		$errors = [];
 		DB::beginTransaction();
 		try {
 			$validator = Validator::make($request->all(), [
@@ -185,7 +258,15 @@ class InvoiceController extends Controller {
 			]);
 
 			if ($validator->fails()) {
-				return response()->json(['success' => false, 'message' => 'Validation Error', 'errors' => $validator->errors()->all()], $this->successStatus);
+				//GET INVOICE LIST API LOG
+				$errors[] = $validator->errors()->all();
+				ApiLog::save(107, $request->all(), $errors, NULL, 121);
+
+				return response()->json([
+					'success' => false,
+					'message' => 'Validation Error',
+					'errors' => $validator->errors()->all(),
+				], $this->successStatus);
 			}
 
 			//GET ASP
@@ -228,14 +309,33 @@ class InvoiceController extends Controller {
 			}
 
 			DB::commit();
-			return response()->json(['success' => true, 'invoices' => $invoices], $this->successStatus);
+			//GET INVOICE LIST API LOG
+			ApiLog::save(107, $request->all(), $errors, NULL, 120);
+
+			return response()->json([
+				'success' => true,
+				'invoices' => $invoices,
+			], $this->successStatus);
 		} catch (\Exception $e) {
 			DB::rollBack();
-			return response()->json(['success' => false, 'errors' => [$e->getMessage() . ' Line:' . $e->getLine()]], $this->successStatus);
+			//GET INVOICE LIST API LOG
+			$errors[] = $e->getMessage() . ' Line:' . $e->getLine();
+			ApiLog::save(107, $request->all(), $errors, NULL, 121);
+
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					$e->getMessage() . ' Line:' . $e->getLine(),
+				],
+			], $this->successStatus);
 		}
 	}
 
 	public function getDetails(Request $request) {
+		ini_set('memory_limit', '-1');
+		ini_set('max_execution_time', 0);
+		$errors = [];
+
 		DB::beginTransaction();
 		try {
 			$validator = Validator::make($request->all(), [
@@ -244,6 +344,10 @@ class InvoiceController extends Controller {
 			]);
 
 			if ($validator->fails()) {
+				//GET INVOICE DETAIL API LOG
+				$errors[] = $validator->errors()->all();
+				ApiLog::save(108, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
 					'message' => 'Validation Error',
@@ -254,6 +358,10 @@ class InvoiceController extends Controller {
 			$invoice = Invoices::whereRaw("CONCAT(invoice_no,'-',id) like ?", ["%$request->invoice_no%"])->first();
 
 			if (!$invoice) {
+				//GET INVOICE DETAIL API LOG
+				$errors[] = 'Selected invoice no is invalid';
+				ApiLog::save(108, $request->all(), $errors, NULL, 121);
+
 				return response()->json([
 					'success' => false,
 					'message' => 'Validation Error',
@@ -279,10 +387,25 @@ class InvoiceController extends Controller {
 
 			$invoices->asp = $asp;
 			DB::commit();
-			return response()->json(['success' => true, 'invoices' => $invoices], $this->successStatus);
+			//GET INVOICE DETAIL API LOG
+			ApiLog::save(108, $request->all(), $errors, NULL, 120);
+
+			return response()->json([
+				'success' => true,
+				'invoices' => $invoices,
+			], $this->successStatus);
 		} catch (\Exception $e) {
 			DB::rollBack();
-			return response()->json(['success' => false, 'errors' => [$e->getMessage() . ' Line:' . $e->getLine()]], $this->successStatus);
+			//GET INVOICE DETAIL API LOG
+			$errors[] = $e->getMessage() . ' Line:' . $e->getLine();
+			ApiLog::save(108, $request->all(), $errors, NULL, 121);
+
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					$e->getMessage() . ' Line:' . $e->getLine(),
+				],
+			], $this->successStatus);
 		}
 	}
 }

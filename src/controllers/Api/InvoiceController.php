@@ -31,7 +31,7 @@ class InvoiceController extends Controller {
 			]);
 			if ($validator->fails()) {
 				//CREATE INVOICE API LOG
-				$errors[] = $validator->errors()->all();
+				$errors = $validator->errors()->all();
 				saveApiLog(106, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
@@ -267,7 +267,7 @@ class InvoiceController extends Controller {
 
 			if ($validator->fails()) {
 				//GET INVOICE LIST API LOG
-				$errors[] = $validator->errors()->all();
+				$errors = $validator->errors()->all();
 				saveApiLog(107, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
@@ -354,7 +354,7 @@ class InvoiceController extends Controller {
 
 			if ($validator->fails()) {
 				//GET INVOICE DETAIL API LOG
-				$errors[] = $validator->errors()->all();
+				$errors = $validator->errors()->all();
 				saveApiLog(108, $request->all(), $errors, NULL, 121);
 				DB::commit();
 

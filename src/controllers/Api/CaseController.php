@@ -139,7 +139,7 @@ class CaseController extends Controller {
 
 			if ($validator->fails()) {
 				//SAVE CASE API LOG
-				$errors[] = $validator->errors()->all();
+				$errors = $validator->errors()->all();
 				saveApiLog(102, $request->all(), $errors, NULL, 121);
 				DB::commit();
 

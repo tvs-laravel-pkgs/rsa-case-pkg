@@ -137,7 +137,7 @@ class ActivityController extends Controller {
 
 			if ($validator->fails()) {
 				//SAVE ACTIVITY API LOG
-				$errors[] = $validator->errors()->all();
+				$errors = $validator->errors()->all();
 				saveApiLog(103, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
@@ -473,7 +473,7 @@ class ActivityController extends Controller {
 
 			if ($validator->fails()) {
 				//SAVE INVOICEABLE ACTIVITIES API LOG
-				$errors[] = $validator->errors()->all();
+				$errors = $validator->errors()->all();
 				saveApiLog(105, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
@@ -561,7 +561,7 @@ class ActivityController extends Controller {
 
 			if ($validator->fails()) {
 				//SAVE REJECT ACTIVITY API LOG
-				$errors[] = $validator->errors()->all();
+				$errors = $validator->errors()->all();
 				saveApiLog(104, $request->all(), $errors, NULL, 121);
 				DB::commit();
 

@@ -34,6 +34,7 @@ class CaseController extends Controller {
 				//SAVE CASE API LOG
 				$errors[] = 'Update not allowed - Case already ' . $case->status->name;
 				saveApiLog(102, $request->all(), $errors, NULL, 121);
+				DB::commit();
 
 				return response()->json([
 					'success' => false,
@@ -140,6 +141,7 @@ class CaseController extends Controller {
 				//SAVE CASE API LOG
 				$errors[] = $validator->errors()->all();
 				saveApiLog(102, $request->all(), $errors, NULL, 121);
+				DB::commit();
 
 				return response()->json([
 					'success' => false,
@@ -153,6 +155,7 @@ class CaseController extends Controller {
 				//SAVE CASE API LOG
 				$errors[] = 'Invalid Case Number';
 				saveApiLog(102, $request->all(), $errors, NULL, 121);
+				DB::commit();
 
 				return response()->json([
 					'success' => false,
@@ -174,6 +177,7 @@ class CaseController extends Controller {
 					//SAVE CASE API LOG
 					$errors[] = 'Cancel reason is required';
 					saveApiLog(102, $request->all(), $errors, NULL, 121);
+					DB::commit();
 
 					return response()->json([
 						'success' => false,
@@ -190,6 +194,7 @@ class CaseController extends Controller {
 				//SAVE CASE API LOG
 				$errors[] = "Selected vehicle make doesn't matches with vehicle model";
 				saveApiLog(102, $request->all(), $errors, NULL, 121);
+				DB::commit();
 
 				return response()->json([
 					'success' => false,
@@ -205,6 +210,7 @@ class CaseController extends Controller {
 				//SAVE CASE API LOG
 				$errors[] = 'VIN or Vehicle Registration Number is required';
 				saveApiLog(102, $request->all(), $errors, NULL, 121);
+				DB::commit();
 
 				return response()->json([
 					'success' => false,
@@ -236,6 +242,7 @@ class CaseController extends Controller {
 					//SAVE CASE API LOG
 					$errors[] = 'Case should not start with cancelled or closed status';
 					saveApiLog(102, $request->all(), $errors, NULL, 121);
+					DB::commit();
 
 					return response()->json([
 						'success' => false,
@@ -279,10 +286,10 @@ class CaseController extends Controller {
 					]);
 			}
 
-			DB::commit();
 			//SAVE CASE API LOG
 			saveApiLog(102, $request->all(), $errors, NULL, 120);
 
+			DB::commit();
 			return response()->json([
 				'success' => true,
 				'message' => 'Case saved successfully',

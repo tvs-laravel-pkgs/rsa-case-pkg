@@ -139,6 +139,7 @@ class ActivityController extends Controller {
 				//SAVE ACTIVITY API LOG
 				$errors[] = $validator->errors()->all();
 				saveApiLog(103, $request->all(), $errors, NULL, 121);
+				DB::commit();
 
 				return response()->json([
 					'success' => false,
@@ -163,6 +164,7 @@ class ActivityController extends Controller {
 				//SAVE ACTIVITY API LOG
 				$errors[] = 'Invalid Case Number';
 				saveApiLog(103, $request->all(), $errors, NULL, 121);
+				DB::commit();
 
 				return response()->json([
 					'success' => false,
@@ -181,6 +183,7 @@ class ActivityController extends Controller {
 				//SAVE ACTIVITY API LOG
 				$errors[] = 'Invalid Data Source';
 				saveApiLog(103, $request->all(), $errors, NULL, 121);
+				DB::commit();
 
 				return response()->json([
 					'success' => false,
@@ -198,6 +201,7 @@ class ActivityController extends Controller {
 				//SAVE ACTIVITY API LOG
 				$errors[] = 'ASP is inactive';
 				saveApiLog(103, $request->all(), $errors, NULL, 121);
+				DB::commit();
 
 				return response()->json([
 					'success' => false,
@@ -214,6 +218,7 @@ class ActivityController extends Controller {
 					//SAVE ACTIVITY API LOG
 					$errors[] = 'Reason for ASP rejected cc details is required';
 					saveApiLog(103, $request->all(), $errors, NULL, 121);
+					DB::commit();
 
 					return response()->json([
 						'success' => false,
@@ -229,6 +234,7 @@ class ActivityController extends Controller {
 				//SAVE ACTIVITY API LOG
 				$errors[] = 'Invalid drop_location_type';
 				saveApiLog(103, $request->all(), $errors, NULL, 121);
+				DB::commit();
 
 				return response()->json([
 					'success' => false,
@@ -243,6 +249,7 @@ class ActivityController extends Controller {
 				//SAVE ACTIVITY API LOG
 				$errors[] = 'Invalid paid_to';
 				saveApiLog(103, $request->all(), $errors, NULL, 121);
+				DB::commit();
 
 				return response()->json([
 					'success' => false,
@@ -257,6 +264,7 @@ class ActivityController extends Controller {
 				//SAVE ACTIVITY API LOG
 				$errors[] = 'Invalid payment_mode';
 				saveApiLog(103, $request->all(), $errors, NULL, 121);
+				DB::commit();
 
 				return response()->json([
 					'success' => false,
@@ -385,6 +393,7 @@ class ActivityController extends Controller {
 					//SAVE ACTIVITY API LOG
 					$errors[] = $response['error'];
 					saveApiLog(103, $request->all(), $errors, NULL, 121);
+					DB::commit();
 
 					return response()->json([
 						'success' => false,
@@ -428,10 +437,10 @@ class ActivityController extends Controller {
 			$activity_log->created_by_id = 72;
 			$activity_log->save();
 
-			DB::commit();
 			//SAVE ACTIVITY API LOG
 			saveApiLog(103, $request->all(), $errors, NULL, 120);
 
+			DB::commit();
 			return response()->json([
 				'success' => true,
 				'message' => 'Activity saved successfully',
@@ -466,6 +475,7 @@ class ActivityController extends Controller {
 				//SAVE INVOICEABLE ACTIVITIES API LOG
 				$errors[] = $validator->errors()->all();
 				saveApiLog(105, $request->all(), $errors, NULL, 121);
+				DB::commit();
 
 				return response()->json([
 					'success' => false,
@@ -515,10 +525,10 @@ class ActivityController extends Controller {
 				->orderBy('activities.created_at', 'desc')
 				->get();
 
-			DB::commit();
 			//SAVE INVOICEABLE ACTIVITIES API LOG
 			saveApiLog(105, $request->all(), $errors, NULL, 120);
 
+			DB::commit();
 			return response()->json([
 				'success' => true,
 				'invoiceable_activities' => $invoiceable_activities,
@@ -553,6 +563,7 @@ class ActivityController extends Controller {
 				//SAVE REJECT ACTIVITY API LOG
 				$errors[] = $validator->errors()->all();
 				saveApiLog(104, $request->all(), $errors, NULL, 121);
+				DB::commit();
 
 				return response()->json([
 					'success' => false,
@@ -570,6 +581,7 @@ class ActivityController extends Controller {
 				//SAVE REJECT ACTIVITY API LOG
 				$errors[] = 'Rejection not allowed';
 				saveApiLog(104, $request->all(), $errors, NULL, 121);
+				DB::commit();
 
 				return response()->json([
 					'success' => false,
@@ -582,10 +594,10 @@ class ActivityController extends Controller {
 			$activity->asp_po_rejected_reason = $request->asp_po_rejected_reason;
 			$activity->save();
 
-			DB::commit();
 			//SAVE REJECT ACTIVITY API LOG
 			saveApiLog(104, $request->all(), $errors, NULL, 120);
 
+			DB::commit();
 			return response()->json([
 				'success' => true,
 				'mesage' => 'Status updated successfully!',

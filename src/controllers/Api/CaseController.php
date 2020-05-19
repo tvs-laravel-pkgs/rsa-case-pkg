@@ -4,7 +4,6 @@ namespace Abs\RsaCasePkg\Api;
 use Abs\RsaCasePkg\CaseCancelledReason;
 use Abs\RsaCasePkg\CaseStatus;
 use Abs\RsaCasePkg\RsaCase;
-use App\ApiLog;
 use App\CallCenter;
 use App\Client;
 use App\Http\Controllers\Controller;
@@ -34,7 +33,7 @@ class CaseController extends Controller {
 			if ($case && ($case->status_id == 3 || $case->status_id == 4)) {
 				//SAVE CASE API LOG
 				$errors[] = 'Update not allowed - Case already ' . $case->status->name;
-				ApiLog::saveApiLog(102, $request->all(), $errors, NULL, 121);
+				saveApiLog(102, $request->all(), $errors, NULL, 121);
 
 				return response()->json([
 					'success' => false,
@@ -140,7 +139,7 @@ class CaseController extends Controller {
 			if ($validator->fails()) {
 				//SAVE CASE API LOG
 				$errors[] = $validator->errors()->all();
-				ApiLog::saveApiLog(102, $request->all(), $errors, NULL, 121);
+				saveApiLog(102, $request->all(), $errors, NULL, 121);
 
 				return response()->json([
 					'success' => false,
@@ -153,7 +152,7 @@ class CaseController extends Controller {
 			if (!preg_match("/^[a-zA-Z0-9]+$/", $request->number)) {
 				//SAVE CASE API LOG
 				$errors[] = 'Invalid Case Number';
-				ApiLog::saveApiLog(102, $request->all(), $errors, NULL, 121);
+				saveApiLog(102, $request->all(), $errors, NULL, 121);
 
 				return response()->json([
 					'success' => false,
@@ -174,7 +173,7 @@ class CaseController extends Controller {
 				if (!$request->cancel_reason) {
 					//SAVE CASE API LOG
 					$errors[] = 'Cancel reason is required';
-					ApiLog::saveApiLog(102, $request->all(), $errors, NULL, 121);
+					saveApiLog(102, $request->all(), $errors, NULL, 121);
 
 					return response()->json([
 						'success' => false,
@@ -190,7 +189,7 @@ class CaseController extends Controller {
 			if (!$vehicle_model_by_make) {
 				//SAVE CASE API LOG
 				$errors[] = "Selected vehicle make doesn't matches with vehicle model";
-				ApiLog::saveApiLog(102, $request->all(), $errors, NULL, 121);
+				saveApiLog(102, $request->all(), $errors, NULL, 121);
 
 				return response()->json([
 					'success' => false,
@@ -205,7 +204,7 @@ class CaseController extends Controller {
 			if (!$request->vehicle_registration_number && !$request->vin_no) {
 				//SAVE CASE API LOG
 				$errors[] = 'VIN or Vehicle Registration Number is required';
-				ApiLog::saveApiLog(102, $request->all(), $errors, NULL, 121);
+				saveApiLog(102, $request->all(), $errors, NULL, 121);
 
 				return response()->json([
 					'success' => false,
@@ -236,7 +235,7 @@ class CaseController extends Controller {
 				if ($status->id == 3 || $status->id == 4) {
 					//SAVE CASE API LOG
 					$errors[] = 'Case should not start with cancelled or closed status';
-					ApiLog::saveApiLog(102, $request->all(), $errors, NULL, 121);
+					saveApiLog(102, $request->all(), $errors, NULL, 121);
 
 					return response()->json([
 						'success' => false,
@@ -282,7 +281,7 @@ class CaseController extends Controller {
 
 			DB::commit();
 			//SAVE CASE API LOG
-			ApiLog::saveApiLog(102, $request->all(), $errors, NULL, 120);
+			saveApiLog(102, $request->all(), $errors, NULL, 120);
 
 			return response()->json([
 				'success' => true,
@@ -293,7 +292,7 @@ class CaseController extends Controller {
 			DB::rollBack();
 			//SAVE CASE API LOG
 			$errors[] = $e->getMessage() . ' Line:' . $e->getLine();
-			ApiLog::saveApiLog(102, $request->all(), $errors, NULL, 121);
+			saveApiLog(102, $request->all(), $errors, NULL, 121);
 
 			return response()->json(['success' => false, 'errors' => [$e->getMessage() . ' Line:' . $e->getLine()]], $this->successStatus);
 		}

@@ -37,7 +37,7 @@ class InvoiceController extends Controller {
 
 				return response()->json([
 					'success' => false,
-					'message' => 'Validation Error',
+					'error' => 'Validation Error',
 					'errors' => $validator->errors()->all(),
 				], $this->successStatus);
 			}
@@ -50,7 +50,7 @@ class InvoiceController extends Controller {
 
 				return response()->json([
 					'success' => false,
-					'message' => 'Validation Error',
+					'error' => 'Validation Error',
 					'errors' => [
 						'Activity ID is required',
 					],
@@ -79,7 +79,7 @@ class InvoiceController extends Controller {
 
 						return response()->json([
 							'success' => false,
-							'message' => 'Validation Error',
+							'error' => 'Validation Error',
 							'errors' => [
 								'ASP not matched for activity ID ' . $activity->crm_activity_id,
 							],
@@ -94,7 +94,7 @@ class InvoiceController extends Controller {
 
 						return response()->json([
 							'success' => false,
-							'message' => 'Validation Error',
+							'error' => 'Validation Error',
 							'errors' => [
 								'Invoice already created for activity ID ' . $activity->crm_activity_id,
 							],
@@ -116,7 +116,7 @@ class InvoiceController extends Controller {
 
 						return response()->json([
 							'success' => false,
-							'message' => 'Validation Error',
+							'error' => 'Validation Error',
 							'errors' => [
 								'ASP not accepted for activity ID ' . $activity_accepted->crm_activity_id,
 							],
@@ -135,7 +135,7 @@ class InvoiceController extends Controller {
 
 					return response()->json([
 						'success' => false,
-						'message' => 'Validation Error',
+						'error' => 'Validation Error',
 						'errors' => [
 							'Invoice number is required',
 						],
@@ -149,7 +149,7 @@ class InvoiceController extends Controller {
 
 					return response()->json([
 						'success' => false,
-						'message' => 'Validation Error',
+						'error' => 'Validation Error',
 						'errors' => [
 							'Invoice date is required',
 						],
@@ -158,7 +158,7 @@ class InvoiceController extends Controller {
 				// if (!$request->invoice_copy) {
 				// 	return response()->json([
 				// 		'success' => false,
-				// 		'message' => 'Validation Error',
+				// 		'error' => 'Validation Error',
 				// 		'errors' => 'Invoice copy is required',
 				// 	], $this->successStatus);
 				// }
@@ -173,7 +173,7 @@ class InvoiceController extends Controller {
 
 					return response()->json([
 						'success' => false,
-						'message' => 'Validation Error',
+						'error' => 'Validation Error',
 						'errors' => [
 							'Invoice number already exist',
 						],
@@ -219,7 +219,7 @@ class InvoiceController extends Controller {
 
 				return response()->json([
 					'success' => false,
-					'message' => 'Validation Error',
+					'error' => 'Validation Error',
 					'errors' => [
 						$invoice_c['message'],
 					],
@@ -273,7 +273,7 @@ class InvoiceController extends Controller {
 
 				return response()->json([
 					'success' => false,
-					'message' => 'Validation Error',
+					'error' => 'Validation Error',
 					'errors' => $validator->errors()->all(),
 				], $this->successStatus);
 			}
@@ -360,7 +360,7 @@ class InvoiceController extends Controller {
 
 				return response()->json([
 					'success' => false,
-					'message' => 'Validation Error',
+					'error' => 'Validation Error',
 					'errors' => $validator->errors()->all(),
 				], $this->successStatus);
 			}
@@ -375,7 +375,7 @@ class InvoiceController extends Controller {
 
 				return response()->json([
 					'success' => false,
-					'message' => 'Validation Error',
+					'error' => 'Validation Error',
 					'errors' => [
 						'Selected invoice no is invalid',
 					],

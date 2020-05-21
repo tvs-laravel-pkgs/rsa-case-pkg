@@ -454,6 +454,7 @@ class ActivityController extends Controller {
 
 			return response()->json([
 				'success' => false,
+				'error' => 'Exception Error',
 				'errors' => [
 					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
@@ -541,7 +542,9 @@ class ActivityController extends Controller {
 			saveApiLog(105, $request->all(), $errors, NULL, 121);
 
 			return response()->json([
-				'success' => false, 'errors' => [
+				'success' => false,
+				'error' => 'Exception Error',
+				'errors' => [
 					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			], $this->successStatus);
@@ -609,7 +612,9 @@ class ActivityController extends Controller {
 			saveApiLog(104, $request->all(), $errors, NULL, 121);
 
 			return response()->json([
-				'success' => false, 'errors' => [
+				'success' => false,
+				'error' => 'Exception Error',
+				'errors' => [
 					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			], $this->successStatus);

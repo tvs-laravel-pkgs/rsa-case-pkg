@@ -301,7 +301,13 @@ class CaseController extends Controller {
 			$errors[] = $e->getMessage() . ' Line:' . $e->getLine();
 			saveApiLog(102, $request->all(), $errors, NULL, 121);
 
-			return response()->json(['success' => false, 'errors' => [$e->getMessage() . ' Line:' . $e->getLine()]], $this->successStatus);
+			return response()->json([
+				'success' => false,
+				'error' => 'Exception Error',
+				'errors' => [
+					$e->getMessage() . ' Line:' . $e->getLine(),
+				],
+			], $this->successStatus);
 		}
 	}
 

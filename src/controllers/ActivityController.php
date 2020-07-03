@@ -1654,8 +1654,8 @@ class ActivityController extends Controller {
 		$status_ids = trim($request->status_ids, '""');
 		$status_ids = explode(',', $status_ids);
 		$activities = Activity::join('cases', 'activities.case_id', '=', 'cases.id')->join('asps', 'activities.asp_id', '=', 'asps.id')->whereIn('activities.status_id', $status_ids)
-			->whereDate('activities.created_at', '>=', $range1)
-			->whereDate('activities.created_at', '<=', $range2)
+			->whereDate('cases.created_at', '>=', $range1)
+			->whereDate('cases.created_at', '<=', $range2)
 			->select('asps.*', 'activities.*', 'activities.id as id');
 		if (!empty($request->get('asp_id'))) {
 			$activities = $activities->where('activities.asp_id', $request->get('asp_id'));
@@ -1682,8 +1682,8 @@ class ActivityController extends Controller {
 				->select(DB::raw('COUNT(activities.id) as activity_count'), 'activity_portal_statuses.id', 'activity_portal_statuses.name')
 
 				->where('activity_portal_statuses.id', $status_id)
-				->whereDate('activities.created_at', '>=', $range1)
-				->whereDate('activities.created_at', '<=', $range2)
+				->whereDate('cases.created_at', '>=', $range1)
+				->whereDate('cases.created_at', '<=', $range2)
 			//->groupBy('activity_portal_statuses.id')
 				->first();
 		}

@@ -48,6 +48,14 @@ class CaseCancelledReasonTableSeeder extends Seeder {
 				'name' => 'REFUSED FOR TOWING',
 				'company_id' => 1,
 			],
+			10 => [
+				'name' => 'ASSIGNMENT DELAY',
+				'company_id' => 1,
+			],
+			11 => [
+				'name' => 'CUSTOMER ASKED SERVICE LATER',
+				'company_id' => 1,
+			],
 		];
 
 		foreach ($case_cancelled_reasons as $key => $case_cancelled_reason_val) {

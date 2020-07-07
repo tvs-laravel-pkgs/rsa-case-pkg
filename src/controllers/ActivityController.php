@@ -1679,7 +1679,7 @@ class ActivityController extends Controller {
 		}
 		foreach ($status_ids as $key => $status_id) {
 			$count_splitup[] = Activity::rightJoin('activity_portal_statuses', 'activities.status_id', 'activity_portal_statuses.id')
-				->join('cases', 'cases.id', 'activities.case_id',)
+				->join('cases', 'cases.id', 'activities.case_id')
 				->select(DB::raw('COUNT(activities.id) as activity_count'), 'activity_portal_statuses.id', 'activity_portal_statuses.name')
 
 				->where('activity_portal_statuses.id', $status_id)

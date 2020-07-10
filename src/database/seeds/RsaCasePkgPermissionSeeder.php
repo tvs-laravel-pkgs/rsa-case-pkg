@@ -372,6 +372,89 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Only Mapped States',
 			],
 
+			//DEALER WALLET
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'dealer-wallet',
+				'display_name' => 'Dealer Wallet',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'dealer-wallet',
+				'name' => 'view-dealer-wallet',
+				'display_name' => 'View',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'dealer-wallet',
+				'name' => 'topup-own-dealer-wallet',
+				'display_name' => 'Topup',
+			],
+
+			//TOPUP DEALER WALLET
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'topup-dealer-wallet',
+				'display_name' => 'Topup Dealer Wallet',
+			],
+
+			//MEMBERSHIPS
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'membership',
+				'display_name' => 'Memberships',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'membership',
+				'name' => 'add-membership',
+				'display_name' => 'Add',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'membership',
+				'name' => 'edit-membership',
+				'display_name' => 'Edit',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'membership',
+				'name' => 'delete-membership',
+				'display_name' => 'Delete',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'membership',
+				'name' => 'view-membership',
+				'display_name' => 'View',
+			],
+			[
+				'display_order' => 5,
+				'parent' => 'membership',
+				'name' => 'own-membership',
+				'display_name' => 'Own Only',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'membership',
+				'name' => 'own-dealer-membership',
+				'display_name' => 'Own Dealer',
+			],
+			[
+				'display_order' => 7,
+				'parent' => 'membership',
+				'name' => 'mapped-dealer-membership',
+				'display_name' => 'Mapped Dealers',
+			],
+			[
+				'display_order' => 8,
+				'parent' => 'membership',
+				'name' => 'all-membership',
+				'display_name' => 'All',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

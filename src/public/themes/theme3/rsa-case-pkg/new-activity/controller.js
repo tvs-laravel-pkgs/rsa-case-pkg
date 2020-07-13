@@ -131,13 +131,14 @@ app.component('newActivityUpdateDetails', {
             if ($.isNumeric(km_travel)) {
                 if (entry_val > range_limit || range_limit == "") {
                     var allowed_variation = 0.5;
-                    var mis_percentage = mis_km * allowed_variation / 100;
-                    if (entry_val > mis_km) { var per = entry_val - mis_km; }
-                    var actual_val = Math.round(per - mis_percentage);
+                    var mis_percentage_difference = mis_km * allowed_variation / 100;
                     if (entry_val) {
                         if (entry_val > mis_km) {
+                            var km_difference = entry_val - mis_km; 
+                            // var actual_val = Math.round(per - mis_percentage);
+                            // if (actual_val >= 1) {
 
-                            if (actual_val >= 1) {
+                            if (km_difference > mis_percentage_difference) {
                                 $(".map_attachment").show();
                                 $(".for_differ_km").val(1);
                             } else {

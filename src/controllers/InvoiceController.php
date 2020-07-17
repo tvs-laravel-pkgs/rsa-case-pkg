@@ -298,7 +298,7 @@ class InvoiceController extends Controller {
 		}
 
 		$this->data['invoice_vouchers_amount'] = InvoiceVoucher::select(
-			DB::raw("SUM(paid_amount) as total_amount")
+			DB::raw("SUM(invoice_amount) as total_amount")
 		)->where('invoice_id', $invoice_id)
 			->groupBy('invoice_id')
 			->first();

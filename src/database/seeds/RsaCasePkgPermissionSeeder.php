@@ -467,6 +467,18 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'all-membership',
 				'display_name' => 'All',
 			],
+			[
+				'display_order' => 9,
+				'parent' => 'membership',
+				'name' => 'dealer-report-membership',
+				'display_name' => 'Dealer Report',
+			],
+			[
+				'display_order' => 10,
+				'parent' => 'membership',
+				'name' => 'admin-report-membership',
+				'display_name' => 'Admin Report',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

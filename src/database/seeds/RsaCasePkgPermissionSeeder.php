@@ -388,17 +388,29 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 			[
 				'display_order' => 2,
 				'parent' => 'dealer-wallet',
-				'name' => 'topup-own-dealer-wallet',
+				'name' => 'topup-dealer-wallet',
 				'display_name' => 'Topup',
 			],
-
-			//TOPUP DEALER WALLET
 			[
-				'display_order' => 99,
-				'parent' => null,
-				'name' => 'topup-dealer-wallet',
-				'display_name' => 'Topup Dealer Wallet',
+				'display_order' => 3,
+				'parent' => 'dealer-wallet',
+				'name' => 'own-dealer-wallet',
+				'display_name' => 'Own Only',
 			],
+			[
+				'display_order' => 4,
+				'parent' => 'dealer-wallet',
+				'name' => 'all-dealer-wallet',
+				'display_name' => 'All',
+			],
+
+			// //TOPUP DEALER WALLET
+			// [
+			// 	'display_order' => 99,
+			// 	'parent' => null,
+			// 	'name' => 'topup-dealer-wallet',
+			// 	'display_name' => 'Topup Dealer Wallet',
+			// ],
 
 			//MEMBERSHIPS
 			[

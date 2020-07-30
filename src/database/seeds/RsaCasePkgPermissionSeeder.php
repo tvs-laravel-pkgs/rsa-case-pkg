@@ -388,7 +388,7 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 			[
 				'display_order' => 2,
 				'parent' => 'dealer-wallet',
-				'name' => 'topup-dealer-wallet',
+				'name' => 'self-topup-dealer-wallet',
 				'display_name' => 'Topup',
 			],
 			[

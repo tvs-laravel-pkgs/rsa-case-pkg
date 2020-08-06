@@ -1687,7 +1687,15 @@ class ActivityController extends Controller {
 		$activities = Activity::join('cases', 'activities.case_id', '=', 'cases.id')->join('asps', 'activities.asp_id', '=', 'asps.id')->whereIn('activities.status_id', $status_ids)
 			->whereDate('cases.date', '>=', $range1)
 			->whereDate('cases.date', '<=', $range2)
-			->select('asps.*', 'activities.*', 'activities.id as id');
+			->select(
+				'asps.*',
+				'activities.*',
+				'activities.id as id',
+				'cases.bd_lat',
+				'cases.bd_long',
+				'cases.bd_location',
+				'cases.bd_city'
+			);
 		if (!empty($request->get('asp_id'))) {
 			$activities = $activities->where('activities.asp_id', $request->get('asp_id'));
 		}
@@ -1763,9 +1771,13 @@ class ActivityController extends Controller {
 			'Invoice Date',
 			'Invoice Amount',
 			'Invoice Status',
-			'Payment Date',
-			'Payment Mode',
-			'Paid Amount',
+			// 'Payment Date',
+			// 'Payment Mode',
+			// 'Paid Amount',
+			'Breakdown Latitude',
+			'Breakdown Longitude',
+			'Breakdown Location',
+			'Breakdown City',
 		];
 		$configs = Config::where('entity_type_id', 23)->pluck('id')->toArray();
 		$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 179, 176, 172, 173, 182, 171, 175, 181];
@@ -1834,9 +1846,13 @@ class ActivityController extends Controller {
 				$activity->invoice ? date('d-m-Y', strtotime($activity->invoice->start_date)) : '',
 				$activity->invoice ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice->invoice_amount, 2))) : '',
 				$activity->invoice ? ($activity->invoice->invoiceStatus ? $activity->invoice->invoiceStatus->name : '') : '',
-				'',
-				'',
-				'',
+				// '',
+				// '',
+				// '',
+				!empty($activity->bd_lat) ? $activity->bd_lat : '',
+				!empty($activity->bd_long) ? $activity->bd_long : '',
+				!empty($activity->bd_location) ? $activity->bd_location : '',
+				!empty($activity->bd_city) ? $activity->bd_city : '',
 			];
 			foreach ($config_ids as $config_id) {
 				$config = Config::where('id', $config_id)->first();

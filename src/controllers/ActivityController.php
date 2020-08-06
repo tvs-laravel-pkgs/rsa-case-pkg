@@ -1774,10 +1774,10 @@ class ActivityController extends Controller {
 			// 'Payment Date',
 			// 'Payment Mode',
 			// 'Paid Amount',
-			'Breakdown Latitude',
-			'Breakdown Longitude',
-			'Breakdown Location',
-			'Breakdown City',
+			'BD Latitude',
+			'BD Longitude',
+			'BD Location',
+			'BD City',
 		];
 		$configs = Config::where('entity_type_id', 23)->pluck('id')->toArray();
 		$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 179, 176, 172, 173, 182, 171, 175, 181];

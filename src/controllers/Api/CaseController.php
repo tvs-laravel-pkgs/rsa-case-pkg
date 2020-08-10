@@ -6,6 +6,7 @@ use Abs\RsaCasePkg\CaseStatus;
 use Abs\RsaCasePkg\RsaCase;
 use App\CallCenter;
 use App\Client;
+use App\Config;
 use App\Http\Controllers\Controller;
 use App\Subject;
 use App\VehicleMake;
@@ -126,6 +127,25 @@ class CaseController extends Controller {
 				'bd_long' => 'nullable',
 				'bd_location' => 'nullable|string',
 				'bd_city' => 'nullable|string|max:255',
+				'bd_state' => 'nullable|string|max:255',
+				'bd_location_type' => [
+					'nullable',
+					'string',
+					'max:191',
+					Rule::exists('configs', 'name')
+						->where(function ($query) {
+							$query->where('entity_type_id', 39);
+						}),
+				],
+				'bd_location_category' => [
+					'nullable',
+					'string',
+					'max:60',
+					Rule::exists('configs', 'name')
+						->where(function ($query) {
+							$query->where('entity_type_id', 40);
+						}),
+				],
 				// 'bd_state' => [
 				// 	'nullable',
 				// 	'string',
@@ -254,6 +274,24 @@ class CaseController extends Controller {
 				}
 			}
 
+			$bd_location_type = Config::where('name', $request->bd_location_type)
+				->where('entity_type_id', 39) // BD LOCATION TYPES
+				->first();
+			if ($bd_location_type) {
+				$bd_location_type_id = $bd_location_type->id;
+			} else {
+				$bd_location_type_id = NULL;
+			}
+
+			$bd_location_category = Config::where('name', $request->bd_location_category)
+				->where('entity_type_id', 40) // BD LOCATION CATEGORIES
+				->first();
+			if ($bd_location_category) {
+				$bd_location_category_id = $bd_location_category->id;
+			} else {
+				$bd_location_category_id = NULL;
+			}
+
 			$case->fill($request->all());
 			$case->status_id = $status->id;
 			$case->cancel_reason_id = $cancel_reason_id;
@@ -261,6 +299,8 @@ class CaseController extends Controller {
 			$case->client_id = $client->id;
 			$case->vehicle_model_id = $vehicle_model_by_make->id;
 			$case->subject_id = $subject->id;
+			$case->bd_location_type_id = $bd_location_type_id;
+			$case->bd_location_category_id = $bd_location_category_id;
 			$case->save();
 
 			if ($case->status_id == 3) {

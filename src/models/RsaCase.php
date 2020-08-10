@@ -37,6 +37,9 @@ class RsaCase extends Model {
 		'bd_long',
 		'bd_location',
 		'bd_city',
+		'bd_state',
+		'bd_location_type_id',
+		'bd_location_category_id',
 	];
 
 	public function getDateAttribute($date) {

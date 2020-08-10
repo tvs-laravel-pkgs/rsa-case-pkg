@@ -101,6 +101,8 @@ class ActivityController extends Controller {
 							$query->whereNull('deleted_at');
 						}),
 				],
+				'sla_achieved_delayed' => 'nullable|string|max:30',
+				'waiting_time' => 'nullable|numeric',
 				'cc_colleced_amount' => 'nullable|numeric',
 				'cc_not_collected_amount' => 'nullable|numeric',
 				'cc_total_km' => 'nullable|numeric',
@@ -131,6 +133,7 @@ class ActivityController extends Controller {
 				'green_tax_charges' => 'nullable|numeric',
 				'border_charges' => 'nullable|numeric',
 				'octroi_charges' => 'nullable|numeric',
+				'excess_charges' => 'nullable|numeric',
 				'amount_collected_from_customer' => 'nullable|numeric',
 				'amount_refused_by_customer' => 'nullable|numeric',
 			]);
@@ -228,6 +231,19 @@ class ActivityController extends Controller {
 						],
 					], $this->successStatus);
 				}
+			}
+
+			if ($request->sla_achieved_delayed && strtolower($request->sla_achieved_delayed) != 'sla not met' && strtolower($request->sla_achieved_delayed) != 'sla met') {
+				saveApiLog(103, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						'Invalid sla_achieved_delayed',
+					],
+				], $this->successStatus);
 			}
 
 			if ($request->drop_location_type && strtolower($request->drop_location_type) != 'garage' && strtolower($request->drop_location_type) != 'dealer' && strtolower($request->drop_location_type) != 'customer preferred') {
@@ -377,7 +393,7 @@ class ActivityController extends Controller {
 					'activity_id' => $activity->id,
 					'key_id' => $activity_field->id,
 				]);
-				$detail->value = $request->{$activity_field->name};
+				$detail->value = isset($request->{$activity_field->name}) ? $request->{$activity_field->name} : NULL;
 				$detail->save();
 			}
 

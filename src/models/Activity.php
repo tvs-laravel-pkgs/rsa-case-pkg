@@ -15,7 +15,6 @@ use Abs\RsaCasePkg\CaseCancelledReason;
 use Abs\RsaCasePkg\CaseStatus;
 use Abs\RsaCasePkg\RsaCase;
 use App\Asp;
-use App\Tax;
 use App\AspServiceType;
 use App\Attachment;
 use App\CallCenter;
@@ -145,7 +144,7 @@ class Activity extends Model {
 	}
 
 	public function activityTaxes() {
-		return $this->belongsToMany('App\Tax','activity_tax')->withPivot('amount');
+		return $this->belongsToMany('App\Tax', 'activity_tax')->withPivot('amount');
 	}
 
 	public static function getFormData($id = NULL, $for_deffer_activity) {
@@ -457,7 +456,7 @@ class Activity extends Model {
 	public static function importFromExcel($job) {
 		DB::beginTransaction();
 		try {
-			$response = ImportCronJob::getRecordsFromExcel($job, 'BN');
+			$response = ImportCronJob::getRecordsFromExcel($job, 'BQ');
 			$rows = $response['rows'];
 			$header = $response['header'];
 			$all_error_records = [];
@@ -562,6 +561,25 @@ class Activity extends Model {
 						'bd_long' => 'nullable',
 						'bd_location' => 'nullable|string',
 						'bd_city' => 'nullable|string|max:255',
+						'bd_state' => 'nullable|string|max:255',
+						'bd_location_type' => [
+							'required',
+							'string',
+							'max:191',
+							Rule::exists('configs', 'name')
+								->where(function ($query) {
+									$query->where('entity_type_id', 39);
+								}),
+						],
+						'bd_location_category' => [
+							'required',
+							'string',
+							'max:60',
+							Rule::exists('configs', 'name')
+								->where(function ($query) {
+									$query->where('entity_type_id', 40);
+								}),
+						],
 						// 'bd_state' => [
 						// 	'nullable',
 						// 	'string',
@@ -630,6 +648,8 @@ class Activity extends Model {
 									$query->whereNull('deleted_at');
 								}),
 						],
+						'sla_achieved_delayed' => 'required|string|max:30',
+						'waiting_time' => 'nullable|numeric',
 						'cc_colleced_amount' => 'nullable|numeric',
 						'cc_not_collected_amount' => 'nullable|numeric',
 						'cc_total_km' => 'nullable|numeric',
@@ -660,6 +680,7 @@ class Activity extends Model {
 						'green_tax_charges' => 'nullable|numeric',
 						'border_charges' => 'nullable|numeric',
 						'octroi_charges' => 'nullable|numeric',
+						'excess_charges' => 'nullable|numeric',
 					]);
 
 					if ($validator->fails()) {
@@ -782,6 +803,11 @@ class Activity extends Model {
 						}
 					}
 
+					if ($record['sla_achieved_delayed'] && strtolower($record['sla_achieved_delayed']) != 'sla not met' && strtolower($record['sla_achieved_delayed']) != 'sla met') {
+						$status['errors'][] = 'Invalid sla_achieved_delayed';
+						$save_eligible = false;
+					}
+
 					if ($record['drop_location_type'] && strtolower($record['drop_location_type']) != 'garage' && strtolower($record['drop_location_type']) != 'dealer' && strtolower($record['drop_location_type']) != 'customer preferred') {
 						$status['errors'][] = 'Invalid drop_location_type';
 						$save_eligible = false;
@@ -830,6 +856,24 @@ class Activity extends Model {
 					if (!$finance_status) {
 						$save_eligible = false;
 					}
+
+					$bd_location_type = Config::where('name', $record['bd_location_type'])
+						->where('entity_type_id', 39) // BD LOCATION TYPES
+						->first();
+					if ($bd_location_type) {
+						$bd_location_type_id = $bd_location_type->id;
+					} else {
+						$save_eligible = false;
+					}
+					$bd_location_category = Config::where('name', $record['bd_location_category'])
+						->where('entity_type_id', 40) // BD LOCATION CATEGORIES
+						->first();
+					if ($bd_location_category) {
+						$bd_location_category_id = $bd_location_category->id;
+					} else {
+						$save_eligible = false;
+					}
+
 					//SAVE CASE AND ACTIVITY
 					if ($save_eligible) {
 
@@ -856,6 +900,8 @@ class Activity extends Model {
 						$case->client_id = $client->id;
 						$case->vehicle_model_id = $vehicle_model_by_make->id;
 						$case->subject_id = $subject->id;
+						$case->bd_location_type_id = $bd_location_type_id;
+						$case->bd_location_category_id = $bd_location_category_id;
 						$case->save();
 
 						if ($case->status_id == 3) {
@@ -945,7 +991,7 @@ class Activity extends Model {
 									'activity_id' => $activity->id,
 									'key_id' => $activity_field->id,
 								]);
-								$detail->value = $record[$activity_field->name];
+								$detail->value = isset($record[$activity_field->name]) ? $record[$activity_field->name] : NULL;
 								$detail->save();
 								// }
 							}

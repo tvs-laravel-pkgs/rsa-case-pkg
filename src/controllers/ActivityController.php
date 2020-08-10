@@ -1684,7 +1684,11 @@ class ActivityController extends Controller {
 
 		$status_ids = trim($request->status_ids, '""');
 		$status_ids = explode(',', $status_ids);
-		$activities = Activity::join('cases', 'activities.case_id', '=', 'cases.id')->join('asps', 'activities.asp_id', '=', 'asps.id')->whereIn('activities.status_id', $status_ids)
+		$activities = Activity::join('cases', 'activities.case_id', '=', 'cases.id')
+			->join('asps', 'activities.asp_id', '=', 'asps.id')
+			->leftjoin('configs as bd_location_type', 'bd_location_type.id', '=', 'cases.bd_location_type_id')
+			->leftjoin('configs as bd_location_category', 'bd_location_category.id', '=', 'cases.bd_location_category_id')
+			->whereIn('activities.status_id', $status_ids)
 			->whereDate('cases.date', '>=', $range1)
 			->whereDate('cases.date', '<=', $range2)
 			->select(
@@ -1694,7 +1698,10 @@ class ActivityController extends Controller {
 				'cases.bd_lat',
 				'cases.bd_long',
 				'cases.bd_location',
-				'cases.bd_city'
+				'cases.bd_city',
+				'cases.bd_state',
+				DB::raw('COALESCE(bd_location_type.name, "--") as location_type'),
+				DB::raw('COALESCE(bd_location_category.name, "--") as location_category')
 			);
 		if (!empty($request->get('asp_id'))) {
 			$activities = $activities->where('activities.asp_id', $request->get('asp_id'));
@@ -1751,6 +1758,8 @@ class ActivityController extends Controller {
 			'ASP Type',
 			'Auto Invoice',
 			'Workshop Name',
+			'Workshop Type',
+			'RM Name',
 			'Location',
 			'District',
 			'State',
@@ -1778,6 +1787,9 @@ class ActivityController extends Controller {
 			'BD Longitude',
 			'BD Location',
 			'BD City',
+			'BD State',
+			'Location Type',
+			'Location Category',
 		];
 		$configs = Config::where('entity_type_id', 23)->pluck('id')->toArray();
 		$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 179, 176, 172, 173, 182, 171, 175, 181];
@@ -1808,6 +1820,7 @@ class ActivityController extends Controller {
 		//dd($activities);
 		$activity_details_header = array_merge($activity_details_header, $status_headers);
 		//dd($activity_details_header );
+		$constants = config('constants');
 
 		foreach ($activities->get() as $activity_key => $activity) {
 			$activity_details_data[] = [
@@ -1825,6 +1838,8 @@ class ActivityController extends Controller {
 				$activity->asp->is_self == 1 ? 'Self' : 'Non Self',
 				$activity->asp->is_auto_invoice == 1 ? 'Yes' : 'No',
 				$activity->asp->workshop_name,
+				array_flip($constants['workshop_types'])[$activity->asp->workshop_type],
+				$activity->asp->rm->name,
 				$activity->asp->location->name,
 				$activity->asp->district->name,
 				$activity->asp->state->name,
@@ -1853,6 +1868,9 @@ class ActivityController extends Controller {
 				!empty($activity->bd_long) ? $activity->bd_long : '',
 				!empty($activity->bd_location) ? $activity->bd_location : '',
 				!empty($activity->bd_city) ? $activity->bd_city : '',
+				!empty($activity->bd_state) ? $activity->bd_state : '',
+				$activity->location_type,
+				$activity->location_category,
 			];
 			foreach ($config_ids as $config_id) {
 				$config = Config::where('id', $config_id)->first();

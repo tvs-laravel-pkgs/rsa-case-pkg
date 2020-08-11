@@ -294,6 +294,7 @@ app.component('activityStatusView', {
                 return;
             }
             self.data = response.data.data.activities;
+            self.data.has_view_own_activities = self.hasPermission('view-own-activities');
             self.data.view_cc_details = view_cc_details;
             if (view_cc_details == 1) {
                 self.data.span_value = 3;

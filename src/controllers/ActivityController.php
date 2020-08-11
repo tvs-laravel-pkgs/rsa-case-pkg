@@ -117,7 +117,7 @@ class ActivityController extends Controller {
 			}
 			if (Entrust::can('view-own-activities')) {
 				$activities->where('users.id', Auth::id())
-					->whereNotIn('activities.status_id', [2, 4]);
+					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17]);
 			}
 		}
 		return Datatables::of($activities)

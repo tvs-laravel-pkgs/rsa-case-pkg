@@ -492,7 +492,9 @@ class ActivityController extends Controller {
 			DB::raw('IF(Invoices.start_date IS NULL,"NA",DATE_FORMAT(Invoices.start_date,"%d-%m-%Y")) as invoice_date'),
 			'activity_finance_statuses.po_eligibility_type_id',
 			'activities.finance_status_id',
-			'activities.invoice_id'
+			'activities.invoice_id',
+			'bd_location_type.name as loction_type',
+			'bd_location_category.name as location_category'
 
 		)
 			->leftJoin('asps', 'asps.id', 'activities.asp_id')
@@ -509,6 +511,8 @@ class ActivityController extends Controller {
 			->leftJoin('asp_activity_rejected_reasons', 'asp_activity_rejected_reasons.id', 'activities.asp_activity_rejected_reason_id')
 			->leftJoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftJoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
+			->leftJoin('configs as bd_location_type', 'bd_location_type.id', 'cases.bd_location_type_id')
+			->leftJoin('configs as bd_location_category', 'bd_location_category.id', 'cases.bd_location_category_id')
 			->groupBy('activities.id')
 			->where('activities.id', $activity_status_id)
 			->first();

@@ -102,6 +102,14 @@ class RsaCase extends Model {
 		return $this->belongsTo('App\User', 'deleted_by_id');
 	}
 
+	public function bdLocationType() {
+		return $this->belongsTo('App\Config', 'bd_location_type_id');
+	}
+
+	public function bdLocationCategory() {
+		return $this->belongsTo('App\Config', 'bd_location_category_id');
+	}
+
 	public static function createFromObject($record_data) {
 
 		$errors = [];

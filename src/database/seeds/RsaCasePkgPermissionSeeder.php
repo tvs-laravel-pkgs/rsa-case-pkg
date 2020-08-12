@@ -485,6 +485,26 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'general-report-membership',
 				'display_name' => 'General Report',
 			],
+
+			//DEALER COMMISSION INVOICE
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'dealer-commission-invoice',
+				'display_name' => 'Dealer Commission Invoices',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'dealer-commission-invoice',
+				'name' => 'create-dealer-commission-invoice',
+				'display_name' => 'Create',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'dealer-commission-invoice',
+				'name' => 'view-dealer-commission-invoice',
+				'display_name' => 'View',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

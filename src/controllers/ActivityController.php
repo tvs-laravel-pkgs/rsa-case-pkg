@@ -398,7 +398,8 @@ class ActivityController extends Controller {
 			'case.callcenter',
 			'financeStatus',
 		])->select(
-			'activities.id as activity_id',
+			// 'activities.id as activity_id',
+			'activities.id',
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			DB::raw('DATE_FORMAT(activities.created_at,"%d-%m-%Y %H:%i:%s") as activity_date'),
 			DB::raw('IF(activities.deduction_reason IS NULL,"-",deduction_reason) as deduction_reason'),
@@ -406,6 +407,13 @@ class ActivityController extends Controller {
 			DB::raw('IF(activities.defer_reason IS NULL,"-",defer_reason) as defer_reason'),
 			'cases.number',
 			'cases.customer_name as customer_name',
+			'cases.vin_no',
+			'cases.km_during_breakdown',
+			'cases.bd_lat',
+			'cases.bd_long',
+			'cases.bd_location',
+			'cases.bd_city',
+			'cases.bd_state',
 			'activities.number as activity_number',
 			'activities.asp_po_accepted as asp_po_accepted',
 			'activities.defer_reason as defer_reason',
@@ -444,7 +452,7 @@ class ActivityController extends Controller {
 			'activities.description as description',
 			DB::raw('IF(activities.remarks IS NULL OR activities.remarks="","-",activities.remarks) as remarks'),
 			//'activities.remarks as remarks',
-			'cases.*',
+			// 'cases.*',
 			// DB::raw('CASE
 			// 	    	WHEN (Invoices.invoice_no IS NOT NULL)
 			//     		THEN
@@ -516,7 +524,6 @@ class ActivityController extends Controller {
 			->groupBy('activities.id')
 			->where('activities.id', $activity_status_id)
 			->first();
-
 		$this->data['activities']['km_travelled_attachments'] = $km_travelled_attachments = Attachment::where([['entity_id', '=', $activity_status_id], ['entity_type', '=', 16]])->get();
 		$this->data['activities']['other_charges_attachments'] = $other_charges_attachments = Attachment::where([['entity_id', '=', $activity_status_id], ['entity_type', '=', 17]])->get();
 		$other_charges_attachment_url = $km_travelled_attachment_url = [];
@@ -605,9 +612,12 @@ class ActivityController extends Controller {
 
 			$this->data['activities']['invoice_amount_in_word'] = getIndianCurrency($activity->inv_amount);
 			if (count($invoice_activities) > 0) {
-				foreach ($invoice_activities as $key => $activity) {
-					$taxes = DB::table('activity_tax')->leftjoin('taxes', 'activity_tax.tax_id', '=', 'taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name', 'taxes.tax_rate', 'activity_tax.*')->get();
-					$activity->taxes = $taxes;
+				foreach ($invoice_activities as $key => $invoice_activity) {
+					$taxes = DB::table('activity_tax')->leftjoin('taxes', 'activity_tax.tax_id', '=', 'taxes.id')
+						->where('activity_id', $invoice_activity->id)
+						->select('taxes.tax_name', 'taxes.tax_rate', 'activity_tax.*')
+						->get();
+					$invoice_activity->taxes = $taxes;
 				}
 			}
 
@@ -616,8 +626,9 @@ class ActivityController extends Controller {
 			$this->data['activities']['signature_attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
 
 		}
-
-		$this->data['activities']['asp_service_type_data'] = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();
+		$this->data['activities']['asp_service_type_data'] = AspServiceType::where('asp_id', $activity->asp_id)
+			->where('service_type_id', $activity->service_type_id)
+			->first();
 		$configs = Config::where('entity_type_id', 23)->get();
 		foreach ($configs as $config) {
 			$detail = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $config->id)->first();
@@ -676,7 +687,15 @@ class ActivityController extends Controller {
 				$var_key = Config::where('id', $keyw)->first();
 				$key_name = str_replace(" ", "_", strtolower($var_key->name));
 				$value = $request->$key_name ? str_replace(",", "", $request->$key_name) : 0;
-				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $request->activity_id, 'key_id' => $keyw, 'company_id' => 1], ['value' => $value]);
+				$var_key_val = DB::table('activity_details')->updateOrInsert(
+					[
+						'activity_id' => $request->activity_id,
+						'key_id' => $keyw, 'company_id' => 1,
+					],
+					[
+						'value' => $value,
+					]
+				);
 			}
 			if (isset($request->is_exceptional_check)) {
 				$activity->is_exceptional_check = $request->is_exceptional_check;
@@ -1172,6 +1191,7 @@ class ActivityController extends Controller {
 
 			$activity->save();
 
+			//UPDATE ASP ACTIVITY DETAILS & CALCULATE INVOICE AMOUNT FOR ASP & BO BASED ON ASP ENTERTED DETAILS
 			$asp_key_ids = [
 				//ASP
 				157 => $activity->serviceType->name,
@@ -1187,6 +1207,94 @@ class ActivityController extends Controller {
 			foreach ($asp_key_ids as $key_id => $value) {
 				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $activity->id, 'key_id' => $key_id, 'company_id' => 1], ['value' => $value]);
 			}
+
+			$response = getKMPrices($activity->serviceType, $activity->asp);
+			if (!$response['success']) {
+				return [
+					'success' => false,
+					'errors' => [
+						$response['error'],
+					],
+				];
+			}
+
+			$price = $response['asp_service_price'];
+			$total_km = $request->km_travelled; //ASP ENTERED KM
+			$collected = $request->asp_collected_charges; //ASP COLLECTED
+			$not_collected = $request->other_charge; //ASP NOT COLLECTED
+
+			//INV AMOUNT FORMULA
+			if ($activity->financeStatus->po_eligibility_type_id == 341) {
+				// Empty Return Payout
+				$below_range_price = $total_km == 0 ? 0 : $price->empty_return_range_price;
+			} else {
+				$below_range_price = $total_km == 0 ? 0 : $price->below_range_price;
+			}
+
+			$above_range_price = ($total_km > $price->range_limit) ? ($total_km - $price->range_limit) * $price->above_range_price : 0;
+			$km_charge = $below_range_price + $above_range_price;
+
+			if ($price->adjustment_type == 1) {
+				//'Percentage'
+				$adjustment = ($km_charge * $price->adjustment) / 100;
+				$km_charge = $km_charge + $adjustment;
+			} else {
+				$adjustment = $price->adjustment;
+				$km_charge = $km_charge + $adjustment;
+			}
+
+			$payout_amount = $km_charge;
+			$net_amount = $payout_amount + $not_collected - $collected;
+			$invoice_amount = $net_amount;
+
+			$asp_po_amount = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $activity->id,
+				'key_id' => 171,
+			]);
+			$asp_po_amount->value = $payout_amount;
+			$asp_po_amount->save();
+
+			$bo_po_amount = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $activity->id,
+				'key_id' => 172,
+			]);
+			$bo_po_amount->value = $payout_amount;
+			$bo_po_amount->save();
+
+			$asp_net_amount = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $activity->id,
+				'key_id' => 175,
+			]);
+			$asp_net_amount->value = $net_amount;
+			$asp_net_amount->save();
+
+			$bo_net_amount = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $activity->id,
+				'key_id' => 176,
+			]);
+			$bo_net_amount->value = $net_amount;
+			$bo_net_amount->save();
+
+			$asp_invoice_amount = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $activity->id,
+				'key_id' => 181,
+			]);
+			$asp_invoice_amount->value = $invoice_amount;
+			$asp_invoice_amount->save();
+
+			$bo_invoice_amount = ActivityDetail::firstOrNew([
+				'company_id' => 1,
+				'activity_id' => $activity->id,
+				'key_id' => 182,
+			]);
+			$bo_invoice_amount->value = $invoice_amount;
+			$bo_invoice_amount->save();
+
 			//TicketActivity::saveLog($log);
 
 			//log message

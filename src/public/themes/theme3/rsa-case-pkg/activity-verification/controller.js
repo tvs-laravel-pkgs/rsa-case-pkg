@@ -352,18 +352,7 @@ app.component('activityVerificationView', {
                 for (var i in response.data.errors) {
                     errors += '<li>' + response.data.errors[i] + '</li>';
                 }
-                $noty = new Noty({
-                    type: 'error',
-                    layout: 'topRight',
-                    text: errors,
-                    animation: {
-                        speed: 500 // unavailable - no need
-                    },
-
-                }).show();
-                setTimeout(function() {
-                    $noty.close();
-                }, 1000);
+                custom_noty('error', errors);                
                 $location.path('/rsa-case-pkg/activity-verification/list');
                 $scope.$apply();
                 return;
@@ -392,7 +381,7 @@ app.component('activityVerificationView', {
             $scope.differ = function() {
                 $http.post(
                     laravel_routes['saveActivityDiffer'], {
-                        activity_id: self.data.activity_id,
+                        activity_id: self.data.id,
                         bo_km_travelled: self.data.bo_km_travelled,
                         raw_bo_collected: self.data.raw_bo_collected,
                         raw_bo_not_collected: self.data.raw_bo_not_collected,
@@ -405,38 +394,16 @@ app.component('activityVerificationView', {
                 ).then(function(response) {
                     $('.save').button('reset');
                     $("#reject-modal").modal("hide");
-                    console.log(response.data.data);
+                    // console.log(response.data.data);
                     if (!response.data.data.success) {
                         var errors = '';
                         for (var i in response.data.data.errors) {
                             errors += '<li>' + response.data.errors[i] + '</li>';
                         }
-                        $noty = new Noty({
-                            type: 'error',
-                            layout: 'topRight',
-                            text: errors,
-                            animation: {
-                                speed: 500 // unavailable - no need
-                            },
-
-                        }).show();
-                        setTimeout(function() {
-                            $noty.close();
-                        }, 1000);
+                        custom_noty('error', errors);                
                         return;
                     }
-                    $noty = new Noty({
-                        type: 'success',
-                        layout: 'topRight',
-                        text: response.data.data.message,
-                        animation: {
-                            speed: 500
-                        }
-                    }).show();
-                    setTimeout(function() {
-                        $noty.close();
-                    }, 1000);
-
+                    custom_noty('success', response.data.data.message);                
                     item.selected = false;
                 });
             }

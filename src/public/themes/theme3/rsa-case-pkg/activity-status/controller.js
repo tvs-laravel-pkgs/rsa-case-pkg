@@ -271,24 +271,13 @@ app.component('activityStatusView', {
         $http.get(
             get_view_data_url
         ).then(function(response) {
-            console.log(response);
+            // console.log(response);
             if (!response.data.success) {
                 var errors = '';
                 for (var i in response.data.errors) {
                     errors += '<li>' + response.data.errors[i] + '</li>';
                 }
-                $noty = new Noty({
-                    type: 'error',
-                    layout: 'topRight',
-                    text: errors,
-                    animation: {
-                        speed: 500 // unavailable - no need
-                    },
-
-                }).show();
-                setTimeout(function() {
-                    $noty.close();
-                }, 1000);
+                custom_noty('error', errors);                
                 $location.path('/rsa-case-pkg/activity-status/list');
                 $scope.$apply();
                 return;

@@ -42,13 +42,7 @@ app.component('newActivity', {
                                 type: 'error',
                                 layout: 'topRight',
                                 text: errors,
-                                animation: {
-                                    speed: 500
-                                },
                             }).show();
-                            setTimeout(function() {
-                                $noty.close();
-                            }, 1000);
                         } else {
                             $location.path('/rsa-case-pkg/new-activity/update-details/' + res.activity_id)
                             $scope.$apply()
@@ -61,13 +55,7 @@ app.component('newActivity', {
                             type: 'error',
                             layout: 'topRight',
                             text: 'Something went wrong at server',
-                            animation: {
-                                speed: 500 // unavailable - no need
-                            },
                         }).show();
-                        setTimeout(function() {
-                            $noty.close();
-                        }, 1000);
                     });
             },
         });
@@ -93,13 +81,7 @@ app.component('newActivityUpdateDetails', {
                     type: 'error',
                     layout: 'topRight',
                     text: response.data.error,
-                    animation: {
-                        speed: 500 // unavailable - no need
-                    },
                 }).show();
-                setTimeout(function() {
-                    $noty.close();
-                }, 1000);
                 $location.path('/rsa-case-pkg/new-activity')
                 $scope.$apply()
                 return;
@@ -315,7 +297,6 @@ app.component('newActivityUpdateDetails', {
                                     contentType: false,
                                 })
                                 .done(function(res) {
-                                    console.log(res.errors);
                                     if (!res.success) {
                                         $(".loader-type-2").addClass("loader-hide");
                                         $('#submit').button('reset');
@@ -323,32 +304,17 @@ app.component('newActivityUpdateDetails', {
                                         for (var i in res.errors) {
                                             errors += '<li>' + res.errors[i] + '</li>';
                                         }
-                                        console.log(errors);
                                         $noty = new Noty({
                                             type: 'error',
                                             layout: 'topRight',
                                             text: errors,
-                                            animation: {
-                                                speed: 500
-                                            },
-
                                         }).show();
-                                        setTimeout(function() {
-                                            $noty.close();
-                                        }, 1000);
-
                                     } else {
                                         $noty = new Noty({
                                             type: 'success',
                                             layout: 'topRight',
                                             text: 'Activity informations saved successfully',
-                                            animation: {
-                                                speed: 500
-                                            },
                                         }).show();
-                                        setTimeout(function() {
-                                            $noty.close();
-                                        }, 1000);
                                         $location.path('/rsa-case-pkg/new-activity');
                                         $scope.$apply();
                                     }
@@ -360,13 +326,7 @@ app.component('newActivityUpdateDetails', {
                                         type: 'error',
                                         layout: 'topRight',
                                         text: 'Something went wrong at server',
-                                        animation: {
-                                            speed: 500
-                                        },
                                     }).show();
-                                    setTimeout(function() {
-                                        $noty.close();
-                                    }, 1000);
                                 });
                         }
                     }

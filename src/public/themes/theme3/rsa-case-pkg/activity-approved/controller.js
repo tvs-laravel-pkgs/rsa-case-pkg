@@ -133,9 +133,6 @@ app.component('approvedActivityList', {
                         layout: 'topRight',
                         text: 'Please select atleast one activity',
                     }).show();
-                    setTimeout(function() {
-                        $noty.close();
-                    }, 1000);
                 },
                 submitHandler: function(form) {
                     let formData = new FormData($(form_id)[0]);
@@ -160,9 +157,6 @@ app.component('approvedActivityList', {
                                     layout: 'topRight',
                                     text: res.error,
                                 }).show();
-                                setTimeout(function() {
-                                    $noty.close();
-                                }, 5000);
                             } else {
                                 $location.path('/rsa-case-pkg/approved-activity/invoice/preview/' + res.encryption_key);
                                 $scope.$apply();
@@ -176,9 +170,6 @@ app.component('approvedActivityList', {
                                 layout: 'topRight',
                                 text: 'Something went wrong at server',
                             }).show();
-                            setTimeout(function() {
-                                $noty.close();
-                            }, 5000);
                         });
                 },
             });
@@ -210,14 +201,7 @@ app.component('approvedActivityInvoicePreview', {
                     type: 'error',
                     layout: 'topRight',
                     text: errors,
-                    animation: {
-                        speed: 500 // unavailable - no need
-                    },
-
                 }).show();
-                setTimeout(function() {
-                    $noty.close();
-                }, 1000);
                 $location.path('/rsa-case-pkg/approved-activity/list');
                 $scope.$apply();
                 return;
@@ -249,7 +233,10 @@ app.component('approvedActivityInvoicePreview', {
             setTimeout(function() {
                 $('.date-picker').datepicker({
                     format: 'dd-mm-yyyy',
+                    changeMonth: true,
+                    todayHighlight: true,
                     autoclose: true,
+                    endDate: new Date(),
                 });
             }, 100);
 

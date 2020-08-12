@@ -138,13 +138,7 @@ app.component('deferredActivityUpdate', {
                     type: 'error',
                     layout: 'topRight',
                     text: response.data.error,
-                    animation: {
-                        speed: 500 // unavailable - no need
-                    },
                 }).show();
-                setTimeout(function() {
-                    $noty.close();
-                }, 1000);
                 $location.path('/rsa-case-pkg/deferred-activity/list')
                 $scope.$apply()
                 return;
@@ -393,7 +387,6 @@ app.component('deferredActivityUpdate', {
                                     contentType: false,
                                 })
                                 .done(function(res) {
-                                    // console.log(res.errors);
                                     if (!res.success) {
                                         $(".loader-type-2").addClass("loader-hide");
                                         $('#submit').button('reset');
@@ -401,7 +394,6 @@ app.component('deferredActivityUpdate', {
                                         for (var i in res.errors) {
                                             errors += '<li>' + res.errors[i] + '</li>';
                                         }
-                                        // console.log(errors);
                                         new Noty({
                                             type: 'error',
                                             layout: 'topRight',

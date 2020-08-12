@@ -1074,7 +1074,7 @@ class ActivityController extends Controller {
 			$configs = Config::where('entity_type_id', 23)->get();
 			foreach ($configs as $config) {
 				$detail = ActivityDetail::where('activity_id', $activity->id)->where('key_id', $config->id)->first();
-				$this->data['activities'][$config->name] = $detail->value ? $detail->value : 0;
+				$this->data['activities'][$config->name] = $detail ? ($detail->value ? $detail->value : 0) : 0;
 
 			}
 			$mis_km = $this->data['activities']['cc_total_km'];

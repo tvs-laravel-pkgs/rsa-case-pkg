@@ -170,6 +170,24 @@ class CaseController extends Controller {
 				], $this->successStatus);
 			}
 
+			//Till May'20 Cases not allowed
+			$case_date = date('Y-m-d', strtotime($request->date));
+			$case_restriction_date = config('rsa.CASE_RESTRICTION_DATE');
+			if ($case_date <= $case_restriction_date) {
+				//SAVE CASE API LOG
+				$errors[] = "Till May'20 Cases not allowed";
+				saveApiLog(102, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						"Till May'20 Cases not allowed",
+					],
+				], $this->successStatus);
+			}
+
 			//ALLOW ONLY LETTERS AND NUMBERS
 			if (!preg_match("/^[a-zA-Z0-9]+$/", $request->number)) {
 				//SAVE CASE API LOG

@@ -1729,6 +1729,13 @@ class ActivityController extends Controller {
 						'error' => 'Invoice date is required',
 					]);
 				}
+				//CHECK IF ZERO AS FIRST LETTER
+				if (!preg_match("/^[1-9a-zA-Z][0-9a-zA-Z]*$/", $request->invoice_no)) {
+					return response()->json([
+						'success' => false,
+						'error' => 'Invoice number should not start with zero',
+					]);
+				}
 
 				//CHECK INVOICE NUMBER EXIST
 				$is_invoice_no_exist = Invoices::where('invoice_no', $request->invoice_no)->first();

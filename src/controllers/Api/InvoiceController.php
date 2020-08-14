@@ -163,6 +163,21 @@ class InvoiceController extends Controller {
 				// 	], $this->successStatus);
 				// }
 
+				//CHECK IF ZERO AS FIRST LETTER
+				if (!preg_match("/^[1-9a-zA-Z][0-9a-zA-Z]*$/", $request->invoice_number)) {
+					//CREATE INVOICE API LOG
+					$errors[] = 'Invoice number should not start with zero';
+					saveApiLog(106, $request->all(), $errors, NULL, 121);
+					DB::commit();
+					return response()->json([
+						'success' => false,
+						'error' => 'Validation Error',
+						'errors' => [
+							'Invoice number should not start with zero',
+						],
+					], $this->successStatus);
+				}
+
 				//CHECK INVOICE NUMBER EXIST
 				$is_invoice_no_exist = Invoices::where('invoice_no', $request->invoice_number)->first();
 				if ($is_invoice_no_exist) {

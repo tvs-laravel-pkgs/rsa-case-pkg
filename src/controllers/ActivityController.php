@@ -1862,6 +1862,7 @@ class ActivityController extends Controller {
 		}
 		$summary[] = ['Total', $total_count];
 		$activity_details_header = [
+			'ID',
 			'Case Number',
 			'Case Date',
 			'Activity Number',
@@ -1869,6 +1870,7 @@ class ActivityController extends Controller {
 			'Customer Name',
 			'Customer Contact Number',
 			'ASP Name',
+			'Axapta Code',
 			'ASP Code',
 			'ASP Contact Number',
 			'ASP EMail',
@@ -1894,6 +1896,12 @@ class ActivityController extends Controller {
 			'Activity Status',
 			'Activity Description',
 			'Remarks',
+			'Comments',
+			'Deduction Reason',
+			'Deferred Reason',
+			'ASP Resolve Comments',
+			'Is Exceptional',
+			'Exceptional Reason',
 			'Invoice Number',
 			'Invoice Date',
 			'Invoice Amount',
@@ -1942,6 +1950,7 @@ class ActivityController extends Controller {
 
 		foreach ($activities->get() as $activity_key => $activity) {
 			$activity_details_data[] = [
+				$activity->id,
 				$activity->case->number,
 				date('d-m-Y H:i:s', strtotime($activity->case->date)),
 				$activity->number,
@@ -1949,6 +1958,7 @@ class ActivityController extends Controller {
 				$activity->case->customer_name,
 				$activity->case->customer_contact_number,
 				$activity->asp->name ? $activity->asp->name : '',
+				$activity->asp->axpta_code ? $activity->asp->axpta_code : '',
 				$activity->asp->asp_code ? $activity->asp->asp_code : '',
 				$activity->asp->contact_number1 ? $activity->asp->contact_number1 : '',
 				$activity->asp->email ? $activity->asp->email : '',
@@ -1974,6 +1984,12 @@ class ActivityController extends Controller {
 				$activity->activityStatus ? $activity->activityStatus->name : '',
 				$activity->description != NULL ? $activity->description : '',
 				$activity->remarks != NULL ? $activity->remarks : '',
+				$activity->bo_comments != NULL ? $activity->bo_comments : '',
+				$activity->deduction_reason != NULL ? $activity->deduction_reason : '',
+				$activity->defer_reason != NULL ? $activity->defer_reason : '',
+				$activity->asp_resolve_comments != NULL ? $activity->asp_resolve_comments : '',
+				$activity->is_exceptional_check == 1 ? 'Yes' : 'No',
+				$activity->exceptional_reason != NULL ? $activity->exceptional_reason : '',
 				// $activity->invoice ? ($activity->asp->has_gst == 1 && $activity->asp->is_auto_invoice == 0 ? ($activity->invoice->invoice_no) : ($activity->invoice->invoice_no . '-' . $activity->invoice->id)) : '',
 				$activity->invoice ? $activity->invoice->invoice_no : '',
 				$activity->invoice ? date('d-m-Y', strtotime($activity->invoice->start_date)) : '',

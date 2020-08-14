@@ -227,6 +227,7 @@ class Activity extends Model {
 			->where('entity_id', '=', $activity->id)
 			->select('id', 'attachment_file_name')
 			->get();
+		$data['for_deffer_activity'] = $for_deffer_activity;
 		$data['success'] = true;
 		return $data;
 	}

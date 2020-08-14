@@ -506,12 +506,6 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'View',
 			],
 			[
-				'display_order' => 3,
-				'parent' => 'dealer-commission-invoice',
-				'name' => 'own-dealer-commission-invoice',
-				'display_name' => 'Own Only',
-			],
-			[
 				'display_order' => 4,
 				'parent' => 'dealer-commission-invoice',
 				'name' => 'all-dealer-commission-invoice',

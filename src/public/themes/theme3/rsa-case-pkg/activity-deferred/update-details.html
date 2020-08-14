@@ -86,7 +86,7 @@
                                             </span>
                                         </div>
                                         <div class="other_after"></div>
-                                        <div ng-repeat="(index, other_attach) in $ctrl.other_attachment">
+                                        <div ng-repeat="(index, other_attach) in $ctrl.other_attachment" style="position: absolute; bottom: -30px;">
                                             {{ other_attach.attachment_file_name }}
                                             <button class='close_other' id="{{other_attach.id}}" type='button' ng-click="$ctrl.closeOtherAttach(index, other_attach.id)">X</button>
                                         </div>
@@ -107,11 +107,11 @@
                                         </div>
                                     </div><!-- Field -->
                                     <div class="map_after"></div>
-                                    <div ng-repeat="(index, km_attach) in $ctrl.km_attachment">
+                                    <div ng-repeat="(index, km_attach) in $ctrl.km_attachment" style="position: absolute; bottom: 0px; display: block;">
                                         {{ km_attach.attachment_file_name }}
                                         <button class='close_map' id="{{km_attach.id}}" ng-click="$ctrl.closeKmMapAttach(index,km_attach.id)" type='button'>X</button>
                                     </div>
-                                    <a href="https://www.google.com/maps" class="blue" target="_blank">GO TO GOOGLE MAP</a>
+                                    <a href="https://www.google.com/maps" class="blue" target="_blank" style="position: absolute; bottom: -20px;">GO TO GOOGLE MAP</a>
                                     <input ng-if="$ctrl.km_attachment.length > 0" type="hidden" name="km_attachment_exist" value="1">
                                 </div><!-- Column -->
                                 <!-- Map Attachement -->

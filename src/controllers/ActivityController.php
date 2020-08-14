@@ -1045,7 +1045,6 @@ class ActivityController extends Controller {
 			}
 
 			if (!empty($request->comments)) {
-				// $activity->comments = $request->comments;
 				$activity->asp_resolve_comments = $request->comments;
 			}
 

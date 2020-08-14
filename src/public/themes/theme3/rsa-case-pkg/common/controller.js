@@ -280,6 +280,7 @@ app.component('billingDetails', {
         //self.data = activity;
         this.$onInit = function() {
             setTimeout(function(){
+                self.show_km = 0;
                 if (self.data.verification == 1) {
                     self.data.bo_comments = "";
                     self.data.deduction_reason = "";
@@ -289,7 +290,11 @@ app.component('billingDetails', {
                 }
 
                 $scope.approveTicket = function() {
-                    $("#confirm-ticket-modal").modal();
+                    if(self.show_km == 1){
+                        custom_noty('error', 'Enter BO KM less than ASP KM');
+                    }else{
+                        $("#confirm-ticket-modal").modal();
+                    }
                 }
 
                 $scope.saveApproval = function() {
@@ -394,7 +399,10 @@ app.component('billingDetails', {
                     }
                     if (self.data.raw_bo_km_travelled > self.data.asp_km_travelled) {
                         self.show_km = 1;
+                    }else{
+                        self.show_km = 0;
                     }
+                    
                     if (self.data.asp_service_type_data.range_limit > self.data.raw_bo_km_travelled) {
                         above_amount = 0;
                     } else {

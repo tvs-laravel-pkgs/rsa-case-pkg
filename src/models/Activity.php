@@ -723,8 +723,9 @@ class Activity extends Model {
 						$save_eligible = false;
 					}
 
-					//ALLOW ONLY LETTERS AND NUMBERS
-					if (!preg_match("/^[a-zA-Z0-9]+$/", $record['case_number'])) {
+					//ALLOW ONLY LETTERS AND NUMBERS ANS HYPHENS
+					// if (!preg_match("/^[a-zA-Z0-9]+$/", $record['case_number'])) {
+					if (!preg_match("/^[A-Za-z0-9-]+$/", $record['case_number'])) {
 						$status['errors'][] = 'Invalid Case Number';
 						$save_eligible = false;
 					}

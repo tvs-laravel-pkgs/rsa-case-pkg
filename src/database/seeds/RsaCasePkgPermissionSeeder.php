@@ -483,7 +483,13 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_order' => 11,
 				'parent' => 'membership',
 				'name' => 'general-report-membership',
-				'display_name' => 'General Report',
+				'display_name' => 'General Report - All',
+			],
+			[
+				'display_order' => 12,
+				'parent' => 'membership',
+				'name' => 'own-general-report-membership',
+				'display_name' => 'General Report - Own Only',
 			],
 
 			//DEALER COMMISSION INVOICE

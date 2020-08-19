@@ -1730,11 +1730,14 @@ class ActivityController extends Controller {
 					]);
 				}
 				//CHECK IF ZERO AS FIRST LETTER
-				if (!preg_match("/^[1-9a-zA-Z][0-9a-zA-Z]*$/", $request->invoice_no)) {
-					return response()->json([
-						'success' => false,
-						'error' => 'Invoice number should not start with zero',
-					]);
+				$invoiceNumberfirstLetter = substr(trim($request->invoice_no), 0, 1);
+				if (is_numeric($invoiceNumberfirstLetter)) {
+					if ($invoiceNumberfirstLetter == 0) {
+						return response()->json([
+							'success' => false,
+							'error' => 'Invoice number should not start with zero',
+						]);
+					}
 				}
 
 				//CHECK INVOICE NUMBER EXIST

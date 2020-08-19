@@ -393,36 +393,36 @@ app.component('billingDetails', {
                     // console.log(' == calculate data==  ');
                     // console.log(self.data);
                     if (self.data.finance_status.po_eligibility_type_id == 341) {
-                        below_amount = self.data.raw_bo_km_travelled == 0 ? 0 : self.data.asp_service_type_data.empty_return_range_price;
+                        var below_amount = parseInt(self.data.raw_bo_km_travelled) == 0 ? 0 : parseFloat(self.data.asp_service_type_data.empty_return_range_price);
                     } else {
-                        below_amount = self.data.raw_bo_km_travelled == 0 ? 0 : self.data.asp_service_type_data.below_range_price;
+                        var below_amount = parseInt(self.data.raw_bo_km_travelled) == 0 ? 0 : parseFloat(self.data.asp_service_type_data.below_range_price);
                     }
-                    if (self.data.raw_bo_km_travelled > self.data.asp_km_travelled) {
+                    if (parseFloat(self.data.raw_bo_km_travelled) > parseFloat(self.data.asp_km_travelled)) {
                         self.show_km = 1;
                     }else{
                         self.show_km = 0;
                     }
                     
-                    if (self.data.asp_service_type_data.range_limit > self.data.raw_bo_km_travelled) {
-                        above_amount = 0;
+                    if (parseFloat(self.data.asp_service_type_data.range_limit) > parseFloat(self.data.raw_bo_km_travelled)) {
+                        var above_amount = 0;
                     } else {
-                        excess = self.data.raw_bo_km_travelled - self.data.asp_service_type_data.range_limit;
-                        above_amount = (parseFloat(excess) * parseFloat(self.data.asp_service_type_data.above_range_price));
+                        var excess = parseFloat(self.data.raw_bo_km_travelled) - parseFloat(self.data.asp_service_type_data.range_limit);
+                        var above_amount = (parseFloat(excess) * parseFloat(self.data.asp_service_type_data.above_range_price));
                     }
-                    amount_wo_deduction = parseFloat(below_amount) + parseFloat(above_amount);
-                    adjustment = 0;
-                    if (self.data.asp_service_type_data.adjustment_type == 2) {
+                    var amount_wo_deduction = parseFloat(below_amount) + parseFloat(above_amount);
+                    var adjustment = 0;
+                    if (parseFloat(self.data.asp_service_type_data.adjustment_type) == 2) {
                         adjustment = parseFloat(self.data.asp_service_type_data.adjustment);
                     } else if (self.data.asp_service_type_data.adjustment_type == 1) {
                         adjustment = parseFloat(parseFloat(amount_wo_deduction) * (parseFloat(self.data.asp_service_type_data.adjustment) / 100));
                     }
-                    amount = parseFloat(amount_wo_deduction) + parseFloat(adjustment);
+                    var amount = parseFloat(amount_wo_deduction) + parseFloat(adjustment);
                     self.data.bo_po_amount = amount;
                     if (self.data.asp.app_user == 0) {
                         adjustment = 0;
                     }
                     self.data.bo_deduction = parseFloat(adjustment);
-                    total = (parseFloat(amount) + parseFloat(self.data.raw_bo_not_collected)) - parseFloat(self.data.raw_bo_collected) - parseFloat(self.data.bo_deduction);
+                    var total = (parseFloat(amount) + parseFloat(self.data.raw_bo_not_collected)) - parseFloat(self.data.raw_bo_collected) - parseFloat(self.data.bo_deduction);
 
                     self.data.bo_net_amount = self.data.bo_amount = total;
                     // console.log(self.data.bo_po_amount);

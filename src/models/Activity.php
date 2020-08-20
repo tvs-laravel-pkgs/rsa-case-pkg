@@ -700,14 +700,14 @@ class Activity extends Model {
 					}
 
 					//Dont allow updations if current status is Cancelled or Closed
-					$case = RsaCase::where([
-						'company_id' => 1,
-						'number' => $record['case_number'],
-					])->first();
-					if ($case && ($case->status_id == 3 || $case->status_id == 4)) {
-						$status['errors'][] = 'Update not allowed - Case already ' . $case->status->name;
-						$save_eligible = false;
-					}
+					// $case = RsaCase::where([
+					// 	'company_id' => 1,
+					// 	'number' => $record['case_number'],
+					// ])->first();
+					// if ($case && ($case->status_id == 3 || $case->status_id == 4)) {
+					// 	$status['errors'][] = 'Update not allowed - Case already ' . $case->status->name;
+					// 	$save_eligible = false;
+					// }
 
 					//CASE VALIDATION START
 					//ALLOW ONLY LETTERS AND NUMBERS
@@ -773,15 +773,15 @@ class Activity extends Model {
 					]);
 
 					//CASE NEW
-					if (!$case->exists) {
-						//WITH CANCELLED OR CLOSED STATUS
-						if ($case_status && ($case_status->id == 3 || $case_status->id == 4)) {
-							$status['errors'][] = 'Case should not start with cancelled or closed status';
-							$save_eligible = false;
-						}
-					} else {
-						// $updated_count++;
-					}
+					// if (!$case->exists) {
+					// 	//WITH CANCELLED OR CLOSED STATUS
+					// 	if ($case_status && ($case_status->id == 3 || $case_status->id == 4)) {
+					// 		$status['errors'][] = 'Case should not start with cancelled or closed status';
+					// 		$save_eligible = false;
+					// 	}
+					// } else {
+					// 	// $updated_count++;
+					// }
 					//CASE VALIDATION END
 
 					//ACTIVITY VALIDATION START

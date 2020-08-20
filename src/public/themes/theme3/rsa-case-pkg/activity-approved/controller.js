@@ -236,6 +236,7 @@ app.component('approvedActivityInvoicePreview', {
                     changeMonth: true,
                     todayHighlight: true,
                     autoclose: true,
+                    startDate: new Date(),
                     endDate: new Date(),
                 });
             }, 100);

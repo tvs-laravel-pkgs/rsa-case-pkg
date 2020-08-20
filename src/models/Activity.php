@@ -227,6 +227,7 @@ class Activity extends Model {
 			->where('entity_id', '=', $activity->id)
 			->select('id', 'attachment_file_name')
 			->get();
+		$data['for_deffer_activity'] = $for_deffer_activity;
 		$data['success'] = true;
 		return $data;
 	}
@@ -710,8 +711,21 @@ class Activity extends Model {
 					// }
 
 					//CASE VALIDATION START
-					//ALLOW ONLY LETTERS AND NUMBERS
-					if (!preg_match("/^[a-zA-Z0-9]+$/", $record['case_number'])) {
+
+					//Till May'20 Cases not allowed
+					$case_date_format_1 = PHPExcel_Style_NumberFormat::toFormattedString($record['case_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
+					$case_date_format_2 = PHPExcel_Style_NumberFormat::toFormattedString($record['case_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_TIME4);
+					$case_date_format_3 = $case_date_format_1 . ' ' . $case_date_format_2;
+					$case_date_val = date('Y-m-d', strtotime($case_date_format_3));
+					$case_restriction_date = config('rsa.CASE_RESTRICTION_DATE');
+					if ($case_date_val <= $case_restriction_date) {
+						$status['errors'][] = "Till May'20 Cases not allowed";
+						$save_eligible = false;
+					}
+
+					//ALLOW ONLY LETTERS AND NUMBERS ANS HYPHENS
+					// if (!preg_match("/^[a-zA-Z0-9]+$/", $record['case_number'])) {
+					if (!preg_match("/^[A-Za-z0-9-]+$/", $record['case_number'])) {
 						$status['errors'][] = 'Invalid Case Number';
 						$save_eligible = false;
 					}

@@ -1045,7 +1045,6 @@ class ActivityController extends Controller {
 			}
 
 			if (!empty($request->comments)) {
-				// $activity->comments = $request->comments;
 				$activity->asp_resolve_comments = $request->comments;
 			}
 
@@ -1730,6 +1729,16 @@ class ActivityController extends Controller {
 						'error' => 'Invoice date is required',
 					]);
 				}
+				//CHECK IF ZERO AS FIRST LETTER
+				$invoiceNumberfirstLetter = substr(trim($request->invoice_no), 0, 1);
+				if (is_numeric($invoiceNumberfirstLetter)) {
+					if ($invoiceNumberfirstLetter == 0) {
+						return response()->json([
+							'success' => false,
+							'error' => 'Invoice number should not start with zero',
+						]);
+					}
+				}
 
 				//CHECK INVOICE NUMBER EXIST
 				$is_invoice_no_exist = Invoices::where('invoice_no', $request->invoice_no)->first();
@@ -1856,6 +1865,7 @@ class ActivityController extends Controller {
 		}
 		$summary[] = ['Total', $total_count];
 		$activity_details_header = [
+			'ID',
 			'Case Number',
 			'Case Date',
 			'Activity Number',
@@ -1863,6 +1873,7 @@ class ActivityController extends Controller {
 			'Customer Name',
 			'Customer Contact Number',
 			'ASP Name',
+			'Axapta Code',
 			'ASP Code',
 			'ASP Contact Number',
 			'ASP EMail',
@@ -1888,6 +1899,12 @@ class ActivityController extends Controller {
 			'Activity Status',
 			'Activity Description',
 			'Remarks',
+			'Comments',
+			'Deduction Reason',
+			'Deferred Reason',
+			'ASP Resolve Comments',
+			'Is Exceptional',
+			'Exceptional Reason',
 			'Invoice Number',
 			'Invoice Date',
 			'Invoice Amount',
@@ -1936,6 +1953,7 @@ class ActivityController extends Controller {
 
 		foreach ($activities->get() as $activity_key => $activity) {
 			$activity_details_data[] = [
+				$activity->id,
 				$activity->case->number,
 				date('d-m-Y H:i:s', strtotime($activity->case->date)),
 				$activity->number,
@@ -1943,6 +1961,7 @@ class ActivityController extends Controller {
 				$activity->case->customer_name,
 				$activity->case->customer_contact_number,
 				$activity->asp->name ? $activity->asp->name : '',
+				$activity->asp->axpta_code ? $activity->asp->axpta_code : '',
 				$activity->asp->asp_code ? $activity->asp->asp_code : '',
 				$activity->asp->contact_number1 ? $activity->asp->contact_number1 : '',
 				$activity->asp->email ? $activity->asp->email : '',
@@ -1951,16 +1970,16 @@ class ActivityController extends Controller {
 				$activity->asp->is_auto_invoice == 1 ? 'Yes' : 'No',
 				$activity->asp->workshop_name ? $activity->asp->workshop_name : '',
 				$activity->asp->workshop_type ? array_flip($constants['workshop_types'])[$activity->asp->workshop_type] : '',
-				$activity->asp->rm->name ? $activity->asp->rm->name : '',
-				$activity->asp->location->name ? $activity->asp->location->name : '',
-				$activity->asp->district->name ? $activity->asp->district->name : '',
-				$activity->asp->state->name ? $activity->asp->state->name : '',
+				$activity->asp->rm ? ($activity->asp->rm->name ? $activity->asp->rm->name : '') : '',
+				$activity->asp->location ? ($activity->asp->location->name ? $activity->asp->location->name : '') : '',
+				$activity->asp->district ? ($activity->asp->district->name ? $activity->asp->district->name : '') : '',
+				$activity->asp->state ? ($activity->asp->state->name ? $activity->asp->state->name : '') : '',
 				$activity->case->vehicle_registration_number,
-				$activity->case->vehicleModel->name,
-				$activity->case->vehicleModel->vehiclemake->name,
-				$activity->case->status->name,
-				$activity->financeStatus->name,
-				$activity->serviceType->name,
+				$activity->case->vehicleModel ? ($activity->case->vehicleModel->name ? $activity->case->vehicleModel->name : '') : '',
+				$activity->case->vehicleModel ? ($activity->case->vehicleModel->vehiclemake ? $activity->case->vehicleModel->vehiclemake->name : '') : '',
+				$activity->case->status ? $activity->case->status->name : '',
+				$activity->financeStatus ? $activity->financeStatus->name : '',
+				$activity->serviceType ? $activity->serviceType->name : '',
 				$activity->aspActivityRejectedReason ? $activity->aspActivityRejectedReason->name : '',
 				$activity->asp_po_accepted != NULL ? ($activity->asp_po_accepted == 1 ? 'Yes' : 'No') : '',
 				$activity->aspPoRejectedReason ? $activity->aspPoRejectedReason->name : '',
@@ -1968,6 +1987,12 @@ class ActivityController extends Controller {
 				$activity->activityStatus ? $activity->activityStatus->name : '',
 				$activity->description != NULL ? $activity->description : '',
 				$activity->remarks != NULL ? $activity->remarks : '',
+				$activity->bo_comments != NULL ? $activity->bo_comments : '',
+				$activity->deduction_reason != NULL ? $activity->deduction_reason : '',
+				$activity->defer_reason != NULL ? $activity->defer_reason : '',
+				$activity->asp_resolve_comments != NULL ? $activity->asp_resolve_comments : '',
+				$activity->is_exceptional_check == 1 ? 'Yes' : 'No',
+				$activity->exceptional_reason != NULL ? $activity->exceptional_reason : '',
 				// $activity->invoice ? ($activity->asp->has_gst == 1 && $activity->asp->is_auto_invoice == 0 ? ($activity->invoice->invoice_no) : ($activity->invoice->invoice_no . '-' . $activity->invoice->id)) : '',
 				$activity->invoice ? $activity->invoice->invoice_no : '',
 				$activity->invoice ? date('d-m-Y', strtotime($activity->invoice->start_date)) : '',

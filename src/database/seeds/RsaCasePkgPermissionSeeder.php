@@ -530,32 +530,6 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Finance Export',
 			],
 
-			//TAX
-			[
-				'display_order' => 99,
-				'parent' => null,
-				'name' => 'tax',
-				'display_name' => 'Tax',
-			],
-			[
-				'display_order' => 1,
-				'parent' => 'tax',
-				'name' => 'add-tax',
-				'display_name' => 'Add',
-			],
-			[
-				'display_order' => 2,
-				'parent' => 'tax',
-				'name' => 'edit-tax',
-				'display_name' => 'Edit',
-			],
-			[
-				'display_order' => 3,
-				'parent' => 'tax',
-				'name' => 'delete-tax',
-				'display_name' => 'Delete',
-			],
-
 			//TAX CODES
 			[
 				'display_order' => 99,

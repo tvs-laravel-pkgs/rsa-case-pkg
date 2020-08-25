@@ -30,7 +30,6 @@ use DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Validation\Rule;
-use PHPExcel_Style_NumberFormat;
 use Validator;
 
 class Activity extends Model {
@@ -711,12 +710,12 @@ class Activity extends Model {
 					// }
 
 					//CASE VALIDATION START
-
 					//Till May'20 Cases not allowed
-					$case_date_format_1 = PHPExcel_Style_NumberFormat::toFormattedString($record['case_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
-					$case_date_format_2 = PHPExcel_Style_NumberFormat::toFormattedString($record['case_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_TIME4);
-					$case_date_format_3 = $case_date_format_1 . ' ' . $case_date_format_2;
-					$case_date_val = date('Y-m-d', strtotime($case_date_format_3));
+					// $case_date_format_1 = PHPExcel_Style_NumberFormat::toFormattedString($record['case_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
+					// $case_date_format_2 = PHPExcel_Style_NumberFormat::toFormattedString($record['case_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_TIME6);
+					// $case_date_format_3 = $case_date_format_1 . ' ' . $case_date_format_2;
+					// $case_date_val = date('Y-m-d', strtotime($case_date_format_3));
+					$case_date_val = date('Y-m-d', strtotime($record['case_date']));
 					$case_restriction_date = config('rsa.CASE_RESTRICTION_DATE');
 					if ($case_date_val <= $case_restriction_date) {
 						$status['errors'][] = "Till May'20 Cases not allowed";
@@ -890,18 +889,19 @@ class Activity extends Model {
 
 					//SAVE CASE AND ACTIVITY
 					if ($save_eligible) {
+						// $case_date1 = PHPExcel_Style_NumberFormat::toFormattedString($record['case_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
+						// $case_date2 = PHPExcel_Style_NumberFormat::toFormattedString($record['case_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_TIME4);
+						// $case_date = $case_date1 . ' ' . $case_date2;
+						$case_date = $record['case_date'];
 
-						$case_date1 = PHPExcel_Style_NumberFormat::toFormattedString($record['case_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
-						$case_date2 = PHPExcel_Style_NumberFormat::toFormattedString($record['case_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_TIME4);
-						$case_date = $case_date1 . ' ' . $case_date2;
+						// $case_data_filled_date1 = PHPExcel_Style_NumberFormat::toFormattedString($record['case_data_filled_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
+						// $case_data_filled_date2 = PHPExcel_Style_NumberFormat::toFormattedString($record['case_data_filled_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_TIME4);
+						// $case_data_filled_date = $case_data_filled_date1 . ' ' . $case_data_filled_date2;
+						$case_data_filled_date = $record['case_data_filled_date'];
 
-						$case_data_filled_date1 = PHPExcel_Style_NumberFormat::toFormattedString($record['case_data_filled_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
-						$case_data_filled_date2 = PHPExcel_Style_NumberFormat::toFormattedString($record['case_data_filled_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_TIME4);
-						$case_data_filled_date = $case_data_filled_date1 . ' ' . $case_data_filled_date2;
-
-						$asp_reached_date1 = PHPExcel_Style_NumberFormat::toFormattedString($record['asp_reached_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
-						$asp_reached_date2 = PHPExcel_Style_NumberFormat::toFormattedString($record['asp_reached_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_TIME4);
-						$record['asp_reached_date'] = $asp_reached_date1 . ' ' . $asp_reached_date2;
+						// $asp_reached_date1 = PHPExcel_Style_NumberFormat::toFormattedString($record['asp_reached_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
+						// $asp_reached_date2 = PHPExcel_Style_NumberFormat::toFormattedString($record['asp_reached_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_TIME4);
+						// $record['asp_reached_date'] = $asp_reached_date1 . ' ' . $asp_reached_date2;
 
 						$case->fill($record);
 						$case->number = $record['case_number'];
@@ -940,9 +940,7 @@ class Activity extends Model {
 									'status_id' => 1,
 								]);
 						}
-
 						$activity_exist = Activity::where('crm_activity_id', $record['crm_activity_id'])->first();
-
 						if (!$activity_exist) {
 							$activity = new Activity([
 								'crm_activity_id' => $record['crm_activity_id'],

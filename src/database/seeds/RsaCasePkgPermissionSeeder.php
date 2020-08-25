@@ -529,6 +529,33 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'finance-export-dealer-commission-invoice',
 				'display_name' => 'Finance Export',
 			],
+
+			//TAX CODES
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'tax-code',
+				'display_name' => 'Tax Code',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'tax-code',
+				'name' => 'add-tax-code',
+				'display_name' => 'Add',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'tax-code',
+				'name' => 'edit-tax-code',
+				'display_name' => 'Edit',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'tax-code',
+				'name' => 'delete-tax-code',
+				'display_name' => 'Delete',
+			],
+
 		];
 		Permission::createFromArrays($permissions);
 	}

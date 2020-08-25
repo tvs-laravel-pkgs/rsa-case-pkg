@@ -816,22 +816,22 @@ class Activity extends Model {
 						}
 					}
 
-					if ($record['sla_achieved_delayed'] && strtolower($record['sla_achieved_delayed']) != 'sla not met' && strtolower($record['sla_achieved_delayed']) != 'sla met') {
+					if (!empty($record['sla_achieved_delayed']) && strtolower($record['sla_achieved_delayed']) != 'sla not met' && strtolower($record['sla_achieved_delayed']) != 'sla met') {
 						$status['errors'][] = 'Invalid sla_achieved_delayed';
 						$save_eligible = false;
 					}
 
-					if ($record['drop_location_type'] && strtolower($record['drop_location_type']) != 'garage' && strtolower($record['drop_location_type']) != 'dealer' && strtolower($record['drop_location_type']) != 'customer preferred') {
+					if (!empty($record['drop_location_type']) && strtolower($record['drop_location_type']) != 'garage' && strtolower($record['drop_location_type']) != 'dealer' && strtolower($record['drop_location_type']) != 'customer preferred') {
 						$status['errors'][] = 'Invalid drop_location_type';
 						$save_eligible = false;
 					}
 
-					if ($record['paid_to'] && strtolower($record['paid_to']) != 'asp' && strtolower($record['paid_to']) != 'online') {
+					if (!empty($record['paid_to']) && strtolower($record['paid_to']) != 'asp' && strtolower($record['paid_to']) != 'online') {
 						$status['errors'][] = 'Invalid paid_to';
 						$save_eligible = false;
 					}
 
-					if ($record['payment_mode'] && strtolower($record['payment_mode']) != 'cash' && strtolower($record['payment_mode']) != 'paytm' && strtolower($record['payment_mode']) != 'online') {
+					if (!empty($record['payment_mode']) && strtolower($record['payment_mode']) != 'cash' && strtolower($record['payment_mode']) != 'paytm' && strtolower($record['payment_mode']) != 'online') {
 						$status['errors'][] = 'Invalid payment_mode';
 						$save_eligible = false;
 					}

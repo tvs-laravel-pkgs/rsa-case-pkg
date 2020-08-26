@@ -12,7 +12,6 @@ class ActivitiesU3 extends Migration {
 	 */
 	public function up() {
 		Schema::table('activities', function (Blueprint $table) {
-			$table->dropUnique('activities_crm_activity_id_unique');
 			$table->string('crm_activity_id', 255)->change();
 		});
 	}
@@ -25,7 +24,6 @@ class ActivitiesU3 extends Migration {
 	public function down() {
 		Schema::table('activities', function (Blueprint $table) {
 			$table->unsignedInteger('crm_activity_id')->change();
-			$table->unique(["crm_activity_id"]);
 		});
 	}
 }

@@ -556,6 +556,20 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Delete',
 			],
 
+			//API LOGS
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'api-log',
+				'display_name' => 'API Log',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'api-log',
+				'name' => 'export-api-log',
+				'display_name' => 'Export',
+			],
+
 		];
 		Permission::createFromArrays($permissions);
 	}

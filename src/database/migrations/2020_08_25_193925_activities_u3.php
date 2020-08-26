@@ -13,7 +13,7 @@ class ActivitiesU3 extends Migration {
 	public function up() {
 		Schema::table('activities', function (Blueprint $table) {
 			$table->dropUnique('activities_crm_activity_id_unique');
-			$table->text('crm_activity_id')->change();
+			$table->string('crm_activity_id', 255)->change();
 		});
 	}
 

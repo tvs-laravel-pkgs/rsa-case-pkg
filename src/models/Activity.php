@@ -940,10 +940,11 @@ class Activity extends Model {
 									'status_id' => 1,
 								]);
 						}
-						$activity_exist = Activity::where('crm_activity_id', $record['crm_activity_id'])->first();
+						$crm_activity_id = trim($record['crm_activity_id']);
+						$activity_exist = Activity::where('crm_activity_id', $crm_activity_id)->first();
 						if (!$activity_exist) {
 							$activity = new Activity([
-								'crm_activity_id' => $record['crm_activity_id'],
+								'crm_activity_id' => $crm_activity_id,
 							]);
 							$activity->fill($record);
 
@@ -1046,7 +1047,9 @@ class Activity extends Model {
 							$activity_log->imported_at = date('Y-m-d H:i:s');
 							$activity_log->created_by_id = 72;
 							$activity_log->save();
-
+							$job->new_count++;
+						} else {
+							$job->updated_count++;
 						}
 
 					}
@@ -1065,7 +1068,6 @@ class Activity extends Model {
 
 					//UPDATING PROGRESS FOR EVERY FIVE RECORDS
 					// if (($k + 1) % 5 == 0) {
-					$job->new_count++;
 					$job->processed_count++;
 					$job->remaining_count--;
 					$job->save();

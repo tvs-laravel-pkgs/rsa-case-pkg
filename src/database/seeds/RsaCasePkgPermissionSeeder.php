@@ -566,6 +566,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 			[
 				'display_order' => 1,
 				'parent' => 'api-log',
+				'name' => 'view-api-log',
+				'display_name' => 'View',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'api-log',
 				'name' => 'export-api-log',
 				'display_name' => 'Export',
 			],

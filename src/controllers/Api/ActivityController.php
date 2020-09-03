@@ -420,13 +420,13 @@ class ActivityController extends Controller {
 					], $this->successStatus);
 
 				}
-			}
 
-			//IF DATA SRC IS CRM WEB APP
-			if ($activity->data_src_id == 261) {
-				//ON HOLD
-				$activity->status_id = 17;
-				$activity->save();
+				//IF DATA SRC IS CRM WEB APP
+				if ($activity->data_src_id == 261) {
+					//ON HOLD
+					$activity->status_id = 17;
+					$activity->save();
+				}
 			}
 
 			//MARKING AS OWN PATROL ACTIVITY

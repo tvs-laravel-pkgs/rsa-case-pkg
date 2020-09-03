@@ -12,13 +12,13 @@ class ActivitiesU4 extends Migration {
 	 */
 	public function up() {
 		Schema::table('activities', function (Blueprint $table) {
-			$table->text('description')->change();
-			$table->text('remarks')->change();
-			$table->text('asp_resolve_comments')->change();
-			$table->text('deduction_reason')->change();
-			$table->text('bo_comments')->change();
-			$table->text('defer_reason')->change();
-			$table->text('exceptional_reason')->change();
+			$table->text('description')->default(null)->change();
+			$table->text('remarks')->default(null)->change();
+			$table->text('asp_resolve_comments')->default(null)->change();
+			$table->text('deduction_reason')->default(null)->change();
+			$table->text('bo_comments')->default(null)->change();
+			$table->text('defer_reason')->default(null)->change();
+			$table->text('exceptional_reason')->default(null)->change();
 		});
 	}
 
@@ -29,13 +29,13 @@ class ActivitiesU4 extends Migration {
 	 */
 	public function down() {
 		Schema::table('activities', function (Blueprint $table) {
-			$table->string('description', 191)->change();
-			$table->string('remarks', 255)->change();
-			$table->string('asp_resolve_comments', 255)->change();
-			$table->string('deduction_reason', 191)->change();
-			$table->string('bo_comments', 191)->change();
-			$table->string('defer_reason', 191)->change();
-			$table->string('exceptional_reason', 191)->change();
+			$table->string('description', 191)->default(null)->change();
+			$table->string('remarks', 255)->default(null)->change();
+			$table->string('asp_resolve_comments', 255)->default(null)->change();
+			$table->string('deduction_reason', 191)->default(null)->change();
+			$table->string('bo_comments', 191)->default(null)->change();
+			$table->string('defer_reason', 191)->default(null)->change();
+			$table->string('exceptional_reason', 191)->default(null)->change();
 		});
 	}
 }

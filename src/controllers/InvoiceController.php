@@ -351,7 +351,7 @@ class InvoiceController extends Controller {
 				'asps.pan_number as pan_number',
 				'asps.check_in_favour as check_in_favour',
 				'clients.financial_dimension',
-				// 'bo_invoice_amount.value as invoice_amount',
+				'bo_invoice_amount.value as invoice_amount',
 				'bo_net_amount.value as net_amount',
 				'bo_tax_total.value as tax',
 				'bo_km_travelled.value as bo_km',
@@ -385,10 +385,10 @@ class InvoiceController extends Controller {
 					$join->on('bo_not_collected.activity_id', 'activities.id')
 						->where('bo_not_collected.key_id', 160); //BO NOT COLLECTED
 				})
-			// ->leftJoin('activity_details as bo_invoice_amount', function ($join) {
-			// 	$join->on('bo_invoice_amount.activity_id', 'activities.id')
-			// 		->where('bo_invoice_amount.key_id', 182); //BO INVOICE AMOUNT
-			// })
+				->leftJoin('activity_details as bo_invoice_amount', function ($join) {
+					$join->on('bo_invoice_amount.activity_id', 'activities.id')
+						->where('bo_invoice_amount.key_id', 182); //BO INVOICE AMOUNT
+				})
 				->leftJoin('activity_details as bo_net_amount', function ($join) {
 					$join->on('bo_net_amount.activity_id', 'activities.id')
 						->where('bo_net_amount.key_id', 176); //BO NET AMOUNT

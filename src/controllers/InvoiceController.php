@@ -346,6 +346,7 @@ class InvoiceController extends Controller {
 				'asps.tax_calculation_method as tax_calculation_method',
 				'asps.bank_name as bank_name',
 				'asps.has_gst',
+				'asps.tax_calculation_method',
 				'asps.bank_account_number as bank_account_number',
 				'asps.bank_ifsc_code as bank_ifsc_code',
 				'asps.pan_number as pan_number',

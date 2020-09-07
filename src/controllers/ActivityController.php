@@ -931,6 +931,38 @@ class ActivityController extends Controller {
 						],
 					]);
 				} else {
+
+					//Restriction disable - temporarily for June 2020 & July 2020 tickets
+					$sub_query = clone $query;
+					$tickets = $sub_query->addSelect([
+						'cases.created_at',
+					])
+						->whereIn('activities.status_id', [2, 4])
+						->where('activities.asp_id', Auth::user()->asp->id)
+						->get();
+
+					if ($tickets->isNotEmpty()) {
+						foreach ($tickets as $key => $ticket) {
+							$ticket_creation_date = date('Y-m-d', strtotime($ticket->created_at));
+							//If the ticket is June, then closing date is 27 Sep 2020
+							if ($ticket_creation_date >= "2020-06-01" && $ticket_creation_date <= "2020-06-31") {
+								$ticket_closing_date = "2020-09-27";
+							} else if ($ticket_creation_date >= "2020-07-01" && $ticket_creation_date <= "2020-07-31") {
+								//If the ticket is July, then closing date is 11 Oct 2020
+								$ticket_closing_date = "2020-10-11";
+							} else {
+								continue;
+							}
+
+							if ($today <= $ticket_closing_date) {
+								return response()->json([
+									'success' => true,
+									'activity_id' => $ticket->id,
+								]);
+							}
+						}
+					}
+
 					//CHECK IF TICKET DATE IS GREATER THAN 3 MONTHS OLDER
 					$query4 = clone $query;
 					$check_ticket_date = $query4->whereDate('cases.created_at', '<', $threeMonthsBefore)

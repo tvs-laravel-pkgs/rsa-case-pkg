@@ -254,29 +254,33 @@
                                         <div class="col-sm-6">
                                             <div class="input-text form-group">
                                                 <label>ASP</label>
-                                                <md-select ng-model="$ctrl.asp_id" md-on-close="clearSearchTerm()" name="asp_id" data-md-container-class="selectdemoSelectHeader" md-no-asterisk class="error_messages" placeholder="Select ASP">
-                                                    <md-select-header class="demo-select-header mdselect-header">
-                                                        <input ng-model="searchTermAsp" type="search" placeholder="Search for a ASP" class="demo-header-searchbox md-text" onkeydown="mdSelectOnKeyDownOverride(event)">
-                                                    </md-select-header>
-                                                    <md-optgroup label="asp">
-                                                        <md-option ng-value="asp.id" ng-repeat="asp in $ctrl.asp_list |filter:searchTermAsp">{{asp.asp_code}} / {{asp.name}}</md-option>
-                                                    </md-optgroup>
-                                                </md-select>
-                                                <input type="hidden" name="asp_id" value="{{$ctrl.asp_id}}" />
+                                                <md-autocomplete class="type-sm" md-items="option in $ctrl.searchAsps($ctrl.aspSearchText)" md-input-id="autoFocusId" md-selected-item="$ctrl.asp" md-search-text="$ctrl.aspSearchText" md-item-text="option.name" md-min-length="3" placeholder="Search ASP Code" md-clear-button="true" md-no-cache="true">
+                                                    <md-item-template>
+                                                        <span>
+                                                            {{option.name}}
+                                                        </span>
+                                                    </md-item-template>
+                                                    <md-not-found>
+                                                        No matching "{{$ctrl.aspSearchText}}" were found.
+                                                    </md-not-found>
+                                                </md-autocomplete>
+                                                <input type="hidden" name="asp_id" value="{{$ctrl.asp.id}}" />
                                             </div>
                                         </div>
                                         <div class="col-sm-6">
                                             <div class="input-text form-group">
                                                 <label>Client</label>
-                                                <md-select ng-model="$ctrl.client" md-on-close="clearSearchTerm()" name="client_id" data-md-container-class="selectdemoSelectHeader" md-no-asterisk class="error_messages" placeholder="Select Client">
-                                                    <md-select-header class="demo-select-header mdselect-header">
-                                                        <input ng-model="searchTermClient" type="search" placeholder="Search for a Client" class="demo-header-searchbox md-text" onkeydown="mdSelectOnKeyDownOverride(event)">
-                                                    </md-select-header>
-                                                    <md-optgroup label="client">
-                                                        <md-option ng-value="client.id" ng-repeat="client in $ctrl.client_list |filter:searchTermClient">{{client.name}}</md-option>
-                                                    </md-optgroup>
-                                                </md-select>
-                                                <input type="hidden" name="client_id" value="{{$ctrl.client_id}}" />
+                                                 <md-autocomplete class="type-sm" md-items="option in $ctrl.searchClients($ctrl.clientSearchText)" md-input-id="autoFocusId" md-selected-item="$ctrl.client" md-search-text="$ctrl.clientSearchText" md-item-text="option.name" md-min-length="3" placeholder="Search Client" md-clear-button="true" md-no-cache="true">
+                                                    <md-item-template>
+                                                        <span>
+                                                            {{option.name}}
+                                                        </span>
+                                                    </md-item-template>
+                                                    <md-not-found>
+                                                        No matching "{{$ctrl.clientSearchText}}" were found.
+                                                    </md-not-found>
+                                                </md-autocomplete>
+                                                <input type="hidden" name="client_id" value="{{$ctrl.client.id}}" />
                                             </div>
                                         </div>
                                     </div>
@@ -285,6 +289,10 @@
                                         <button type="submit" class="differed-btn blue approve-btn">Export</button>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </form>
         </div>
     </div>

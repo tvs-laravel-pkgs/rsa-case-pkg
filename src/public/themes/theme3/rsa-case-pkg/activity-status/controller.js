@@ -154,6 +154,42 @@ app.component('activityStatusList', {
                 endDate: moment().endOf('month'),
             });
 
+            self.searchAsps = function(query) {
+                if (query) {
+                    return new Promise(function(resolve, reject) {
+                        $http
+                            .post(
+                                laravel_routes['activityStatusSearchAsps'], {
+                                    key: query,
+                                }
+                            )
+                            .then(function(response) {
+                                resolve(response.data);
+                            });
+                    });
+                } else {
+                    return [];
+                }
+            }
+
+            self.searchClients = function(query) {
+                if (query) {
+                    return new Promise(function(resolve, reject) {
+                        $http
+                            .post(
+                                laravel_routes['activityStatusSearchClients'], {
+                                    key: query,
+                                }
+                            )
+                            .then(function(response) {
+                                resolve(response.data);
+                            });
+                    });
+                } else {
+                    return [];
+                }
+            }
+
             self.pc_all = false;
             $rootScope.loading = false;
             window.mdSelectOnKeyDownOverride = function(event) {

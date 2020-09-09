@@ -2171,4 +2171,12 @@ class ActivityController extends Controller {
 		$duration = ($diff_date->format("%d") > 1) ? $diff_date->format("%d") : $diff_date->format("%d");
 		return $duration;
 	}
+
+	public function searchAsps(Request $request) {
+		return Asp::searchAsps($request);
+	}
+
+	public function searchClients(Request $request) {
+		return Client::searchClient($request);
+	}
 }

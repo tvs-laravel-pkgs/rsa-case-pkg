@@ -40,7 +40,7 @@ class ActivityController extends Controller {
 			'activity_status_list' => collect(ActivityStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Activity Status']),
 			'client_list' => collect(Client::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Client']),
 			'export_client_list' => collect(Client::select('name', 'id')->get()),
-			'asp_list' => collect(Asp::select('name', 'id')->get()),
+			'asp_list' => collect(Asp::select('name', 'asp_code', 'id')->get()),
 		];
 
 		return response()->json($this->data);

@@ -231,8 +231,9 @@ class InvoiceController extends Controller {
 
 			if (!$invoice_c['success']) {
 				//CREATE INVOICE API LOG
-				// $errors[] = $invoice_c['message'];
-				// saveApiLog(106, $request->all(), $errors, NULL, 121);
+				DB::rollBack();
+				$errors[] = $invoice_c['message'];
+				saveApiLog(106, $request->all(), $errors, NULL, 121);
 				// DB::commit();
 
 				return response()->json([

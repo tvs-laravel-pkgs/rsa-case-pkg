@@ -407,9 +407,9 @@ class ActivityController extends Controller {
 				if (!$response['success']) {
 
 					//SAVE ACTIVITY API LOG
-					$errors[] = $response['error'];
-					saveApiLog(103, $request->all(), $errors, NULL, 121);
-					DB::commit();
+					// $errors[] = $response['error'];
+					// saveApiLog(103, $request->all(), $errors, NULL, 121);
+					// DB::commit();
 
 					return response()->json([
 						'success' => false,

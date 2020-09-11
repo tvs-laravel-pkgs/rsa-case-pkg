@@ -64,10 +64,10 @@ class CaseController extends Controller {
 					'nullable',
 					'string',
 					'max:100',
-					Rule::exists('case_cancelled_reasons', 'name')
-						->where(function ($query) {
-							$query->whereNull('deleted_at');
-						}),
+					// Rule::exists('case_cancelled_reasons', 'name')
+					// 	->where(function ($query) {
+					// 		$query->whereNull('deleted_at');
+					// 	}),
 				],
 				'call_center' => [
 					'required',
@@ -210,22 +210,22 @@ class CaseController extends Controller {
 			$vehicle_make = VehicleMake::where('name', $request->vehicle_make)->first();
 
 			//CASE STATUS IS CANCELLED - CANCEL REASON IS MANDATORY
-			if ($status->id == 3) {
-				if (!$request->cancel_reason) {
-					//SAVE CASE API LOG
-					$errors[] = 'Cancel reason is required';
-					saveApiLog(102, $request->all(), $errors, NULL, 121);
-					DB::commit();
+			// if ($status->id == 3) {
+			// 	if (!$request->cancel_reason) {
+			// 		//SAVE CASE API LOG
+			// 		$errors[] = 'Cancel reason is required';
+			// 		saveApiLog(102, $request->all(), $errors, NULL, 121);
+			// 		DB::commit();
 
-					return response()->json([
-						'success' => false,
-						'error' => 'Validation Error',
-						'errors' => [
-							"Cancel reason is required",
-						],
-					], $this->successStatus);
-				}
-			}
+			// 		return response()->json([
+			// 			'success' => false,
+			// 			'error' => 'Validation Error',
+			// 			'errors' => [
+			// 				"Cancel reason is required",
+			// 			],
+			// 		], $this->successStatus);
+			// 	}
+			// }
 			//VEHICLE MODEL GOT BY VEHICLE MAKE
 			$vehicle_model_by_make = VehicleModel::where('name', $request->vehicle_model)->where('vehicle_make_id', $vehicle_make->id)->first();
 			if (!$vehicle_model_by_make) {

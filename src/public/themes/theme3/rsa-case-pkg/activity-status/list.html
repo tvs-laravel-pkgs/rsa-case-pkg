@@ -151,64 +151,61 @@
     </div>
 </div>
 <!-- Modal -->
-  <div class="modal fade asp_for_find" id="ticket_back_asp_Modal" role="dialog">
+<div class="modal fade asp_for_find" id="ticket_back_asp_Modal" role="dialog">
     <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal"><img src="{{$ctrl.modal_close}}"></button>
-          <h4 class="modal-title">Ticket Back Step</h4>
-        </div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><img src="{{$ctrl.modal_close}}"></button>
+                <h4 class="modal-title">Ticket Back Step</h4>
+            </div>
             <form id="tickect-back-asp-form" name="tickect_back_asp_form" action="{{$ctrl.activity_back_asp_update_route}}" method="post">
                 <input type="hidden" name="_token" value="{{$ctrl.csrf}}" />
-        <input type="hidden" name="activty_id" id="activty_id" value="{{$ctrl.activity_form_data.id}}" ng-model="$ctrl.activity_form_data.id">
-        <input type="hidden" name="ticket_status_id" id="ticket_status_id" ng-model="$ctrl.activity_form_data.status_id">
-        <div class="alert alert-danger" style="display: none;"></div>
-        <div class="modal-body">
-          <div class="approvalModal-wrapper">
-            <div class="viewData-threeColumn--wrapper">
-              <div class="row">
-                <div class="col-md-12">
-                  <div class="row">
-                    <div class="col-sm-6">
-                      <div class="input-text form-group">
-                        <label>Activity Number</label>
-                         <span id="ticket_no" style="font-size: 18px;">{{$ctrl.activity_form_data.activity_number}}</span>
-                      </div><!-- Field -->
-                    </div><!-- Column -->
-
-                    <div class="col-sm-6">
-                    </div><!-- Column -->
-                  </div>
-                  <div class="row">
-                    <div class="col-sm-6">
-                      <div class="input-text form-group">
-                         <div class="approvalModal-btns">
-                            Click Here
-                            <button type="button" class="differed-btn blue approve-btn" ng-click="asp_data_entry_submit()" id="asp_data_entry_submit">ASP Rejected CC Details - Waiting for ASP Data Entry</button>
-                         </div>
-                      </div><!-- Field -->
-                    </div><!-- Column -->
-                    <div class="col-sm-6">
-                      <div class="input-text form-group">
-                         <div class="approvalModal-btns">
-                            Click Here
-                            <button type="button" ng-click="asp_bo_deffered_submit()" class="differed-btn blue approve-btn" id="asp_bo_deffered_submit">BO Rejected - Waiting for ASP Data Re-Entry</button>
-                         </div>
-                      </div><!-- Field -->
-                    </div><!-- Column -->
-                  </div>
-
-                  </div><!-- row -->
-                </div><!-- Column -->
-              </div><!-- Row -->
-            </div>
-          </div>
+                <input type="hidden" name="activty_id" id="activty_id" value="{{$ctrl.activity_form_data.id}}" ng-model="$ctrl.activity_form_data.id">
+                <input type="hidden" name="ticket_status_id" id="ticket_status_id" ng-model="$ctrl.activity_form_data.status_id">
+                <div class="alert alert-danger" style="display: none;"></div>
+                <div class="modal-body">
+                    <div class="approvalModal-wrapper">
+                        <div class="viewData-threeColumn--wrapper">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                <label>Activity Number</label>
+                                                <span id="ticket_no" style="font-size: 18px;">{{$ctrl.activity_form_data.activity_number}}</span>
+                                            </div><!-- Field -->
+                                        </div><!-- Column -->
+                                        <div class="col-sm-6">
+                                        </div><!-- Column -->
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                <div class="approvalModal-btns">
+                                                    Click Here
+                                                    <button type="button" class="differed-btn blue approve-btn" ng-click="asp_data_entry_submit()" id="asp_data_entry_submit">ASP Rejected CC Details - Waiting for ASP Data Entry</button>
+                                                </div>
+                                            </div><!-- Field -->
+                                        </div><!-- Column -->
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                <div class="approvalModal-btns">
+                                                    Click Here
+                                                    <button type="button" ng-click="asp_bo_deffered_submit()" class="differed-btn blue approve-btn" id="asp_bo_deffered_submit">BO Rejected - Waiting for ASP Data Re-Entry</button>
+                                                </div>
+                                            </div><!-- Field -->
+                                        </div><!-- Column -->
+                                    </div>
+                                </div><!-- row -->
+                            </div><!-- Column -->
+                        </div><!-- Row -->
+                    </div>
+                </div>
         </div>
-       </form>
-      </div>
-
+        </form>
     </div>
-  </div>
+</div>
+</div>
 <!-- Modal -->
 <div class="modal fade asp_for_find" id="asp_excel_export" role="dialog">
     <div class="modal-dialog modal-lg">
@@ -249,47 +246,53 @@
                                             </div>
                                         </div>
                                         <div class="col-sm-6">
-                                          <div class="input-text form-group">
-                                            <label>Ticket Number</label>
-                                            <input type="text" value="" name="ticket" id="ticket_export" class="form-control valid" placeholder="Enter Ticket Number" autocomplete="off">
-                                          </div>
+                                            <div class="input-text form-group">
+                                                <label>Ticket Number</label>
+                                                <input type="text" value="" name="ticket" id="ticket_export" class="form-control valid" placeholder="Enter Ticket Number" autocomplete="off">
+                                            </div>
                                         </div>
                                         <div class="col-sm-6">
                                             <div class="input-text form-group">
                                                 <label>ASP</label>
-                                                <md-select ng-model="$ctrl.asp_id" md-on-close="clearSearchTerm()" name="asp_id" data-md-container-class="selectdemoSelectHeader" md-no-asterisk class="error_messages" placeholder="Select ASP">
-                                                    <md-select-header class="demo-select-header mdselect-header">
-                                                        <input ng-model="searchTermAsp" type="search" placeholder="Search for a ASP" class="demo-header-searchbox md-text" onkeydown="mdSelectOnKeyDownOverride(event)">
-                                                    </md-select-header>
-                                                    <md-optgroup label="asp">
-                                                        <md-option ng-value="asp.id" ng-repeat="asp in $ctrl.asp_list |filter:searchTermAsp">{{asp.name}}</md-option>
-                                                    </md-optgroup>
-                                                </md-select>
-                                                <input type="hidden" name="asp_id" value="{{$ctrl.asp_id}}" />
+                                                <md-autocomplete class="type-sm" md-items="option in $ctrl.searchAsps($ctrl.aspSearchText)" md-input-id="autoFocusId" md-selected-item="$ctrl.asp" md-search-text="$ctrl.aspSearchText" md-item-text="option.name" md-min-length="3" placeholder="Search ASP Code" md-clear-button="true" md-no-cache="true">
+                                                    <md-item-template>
+                                                        <span>
+                                                            {{option.name}}
+                                                        </span>
+                                                    </md-item-template>
+                                                    <md-not-found>
+                                                        No matching "{{$ctrl.aspSearchText}}" were found.
+                                                    </md-not-found>
+                                                </md-autocomplete>
+                                                <input type="hidden" name="asp_id" value="{{$ctrl.asp.id}}" />
                                             </div>
                                         </div>
                                         <div class="col-sm-6">
                                             <div class="input-text form-group">
                                                 <label>Client</label>
-                                                <md-select ng-model="$ctrl.client" md-on-close="clearSearchTerm()" name="client_id" data-md-container-class="selectdemoSelectHeader"md-no-asterisk class="error_messages" placeholder="Select Client">
-                                                    <md-select-header class="demo-select-header mdselect-header">
-                                                        <input ng-model="searchTermClient" type="search" placeholder="Search for a Client" class="demo-header-searchbox md-text" onkeydown="mdSelectOnKeyDownOverride(event)">
-                                                    </md-select-header>
-                                                    <md-optgroup label="client">
-                                                        <md-option ng-value="client.id" ng-repeat="client in $ctrl.client_list |filter:searchTermClient">{{client.name}}</md-option>
-                                                    </md-optgroup>
-                                                </md-select>
-                                                <input type="hidden" name="client_id" value="{{$ctrl.client_id}}" />
+                                                 <md-autocomplete class="type-sm" md-items="option in $ctrl.searchClients($ctrl.clientSearchText)" md-input-id="autoFocusId" md-selected-item="$ctrl.client" md-search-text="$ctrl.clientSearchText" md-item-text="option.name" md-min-length="3" placeholder="Search Client" md-clear-button="true" md-no-cache="true">
+                                                    <md-item-template>
+                                                        <span>
+                                                            {{option.name}}
+                                                        </span>
+                                                    </md-item-template>
+                                                    <md-not-found>
+                                                        No matching "{{$ctrl.clientSearchText}}" were found.
+                                                    </md-not-found>
+                                                </md-autocomplete>
+                                                <input type="hidden" name="client_id" value="{{$ctrl.client.id}}" />
                                             </div>
                                         </div>
                                     </div>
-
                                     <div class="alert alert-danger">Sometimes Export may take few minutes to export large amount of data. So please be patient.</div>
-
                                     <div class="approvalModal-btns">
                                         <button type="submit" class="differed-btn blue approve-btn">Export</button>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </form>
         </div>
     </div>

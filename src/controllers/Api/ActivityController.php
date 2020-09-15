@@ -87,10 +87,10 @@ class ActivityController extends Controller {
 					'nullable',
 					'string',
 					'max:191',
-					Rule::exists('asp_activity_rejected_reasons', 'name')
-						->where(function ($query) {
-							$query->whereNull('deleted_at');
-						}),
+					// Rule::exists('asp_activity_rejected_reasons', 'name')
+					// 	->where(function ($query) {
+					// 		$query->whereNull('deleted_at');
+					// 	}),
 				],
 				'activity_status' => [
 					'nullable',
@@ -141,7 +141,7 @@ class ActivityController extends Controller {
 			if ($validator->fails()) {
 				//SAVE ACTIVITY API LOG
 				$errors = $validator->errors()->all();
-				saveApiLog(103, $request->all(), $errors, NULL, 121);
+				saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -166,7 +166,7 @@ class ActivityController extends Controller {
 			if (!preg_match("/^[a-zA-Z0-9]+$/", $request->case_number)) {
 				//SAVE ACTIVITY API LOG
 				$errors[] = 'Invalid Case Number';
-				saveApiLog(103, $request->all(), $errors, NULL, 121);
+				saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -185,7 +185,7 @@ class ActivityController extends Controller {
 			if (!$data_src) {
 				//SAVE ACTIVITY API LOG
 				$errors[] = 'Invalid Data Source';
-				saveApiLog(103, $request->all(), $errors, NULL, 121);
+				saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -203,7 +203,7 @@ class ActivityController extends Controller {
 			if (!$asp->is_active) {
 				//SAVE ACTIVITY API LOG
 				$errors[] = 'ASP is inactive';
-				saveApiLog(103, $request->all(), $errors, NULL, 121);
+				saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -220,7 +220,7 @@ class ActivityController extends Controller {
 				if (!$request->reason_for_asp_rejected_cc_details) {
 					//SAVE ACTIVITY API LOG
 					$errors[] = 'Reason for ASP rejected cc details is required';
-					saveApiLog(103, $request->all(), $errors, NULL, 121);
+					saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
 					DB::commit();
 
 					return response()->json([
@@ -234,7 +234,7 @@ class ActivityController extends Controller {
 			}
 
 			if ($request->sla_achieved_delayed && strtolower($request->sla_achieved_delayed) != 'sla not met' && strtolower($request->sla_achieved_delayed) != 'sla met') {
-				saveApiLog(103, $request->all(), $errors, NULL, 121);
+				saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -249,7 +249,7 @@ class ActivityController extends Controller {
 			if ($request->drop_location_type && strtolower($request->drop_location_type) != 'garage' && strtolower($request->drop_location_type) != 'dealer' && strtolower($request->drop_location_type) != 'customer preferred') {
 				//SAVE ACTIVITY API LOG
 				$errors[] = 'Invalid drop_location_type';
-				saveApiLog(103, $request->all(), $errors, NULL, 121);
+				saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -264,7 +264,7 @@ class ActivityController extends Controller {
 			if ($request->paid_to && strtolower($request->paid_to) != 'asp' && strtolower($request->paid_to) != 'online') {
 				//SAVE ACTIVITY API LOG
 				$errors[] = 'Invalid paid_to';
-				saveApiLog(103, $request->all(), $errors, NULL, 121);
+				saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -279,7 +279,7 @@ class ActivityController extends Controller {
 			if ($request->payment_mode && strtolower($request->payment_mode) != 'cash' && strtolower($request->payment_mode) != 'paytm' && strtolower($request->payment_mode) != 'online') {
 				//SAVE ACTIVITY API LOG
 				$errors[] = 'Invalid payment_mode';
-				saveApiLog(103, $request->all(), $errors, NULL, 121);
+				saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -407,9 +407,10 @@ class ActivityController extends Controller {
 				if (!$response['success']) {
 
 					//SAVE ACTIVITY API LOG
+					DB::rollBack();
 					$errors[] = $response['error'];
-					saveApiLog(103, $request->all(), $errors, NULL, 121);
-					DB::commit();
+					saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+					// DB::commit();
 
 					return response()->json([
 						'success' => false,
@@ -454,7 +455,7 @@ class ActivityController extends Controller {
 			$activity_log->save();
 
 			//SAVE ACTIVITY API LOG
-			saveApiLog(103, $request->all(), $errors, NULL, 120);
+			saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 120);
 
 			DB::commit();
 			return response()->json([
@@ -466,7 +467,7 @@ class ActivityController extends Controller {
 			DB::rollBack();
 			//SAVE ACTIVITY API LOG
 			$errors[] = $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile();
-			saveApiLog(103, $request->all(), $errors, NULL, 121);
+			saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
 
 			return response()->json([
 				'success' => false,
@@ -491,7 +492,7 @@ class ActivityController extends Controller {
 			if ($validator->fails()) {
 				//SAVE INVOICEABLE ACTIVITIES API LOG
 				$errors = $validator->errors()->all();
-				saveApiLog(105, $request->all(), $errors, NULL, 121);
+				saveApiLog(105, NULL, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -543,7 +544,7 @@ class ActivityController extends Controller {
 				->get();
 
 			//SAVE INVOICEABLE ACTIVITIES API LOG
-			saveApiLog(105, $request->all(), $errors, NULL, 120);
+			saveApiLog(105, NULL, $request->all(), $errors, NULL, 120);
 
 			DB::commit();
 			return response()->json([
@@ -555,7 +556,7 @@ class ActivityController extends Controller {
 			DB::rollBack();
 			//SAVE INVOICEABLE ACTIVITIES API LOG
 			$errors[] = $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile();
-			saveApiLog(105, $request->all(), $errors, NULL, 121);
+			saveApiLog(105, NULL, $request->all(), $errors, NULL, 121);
 
 			return response()->json([
 				'success' => false,
@@ -581,7 +582,7 @@ class ActivityController extends Controller {
 			if ($validator->fails()) {
 				//SAVE REJECT ACTIVITY API LOG
 				$errors = $validator->errors()->all();
-				saveApiLog(104, $request->all(), $errors, NULL, 121);
+				saveApiLog(104, NULL, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -599,7 +600,7 @@ class ActivityController extends Controller {
 			if ($activity->status_id != 1 && $activity->status_id != 11) {
 				//SAVE REJECT ACTIVITY API LOG
 				$errors[] = 'Rejection not allowed';
-				saveApiLog(104, $request->all(), $errors, NULL, 121);
+				saveApiLog(104, NULL, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -614,7 +615,7 @@ class ActivityController extends Controller {
 			$activity->save();
 
 			//SAVE REJECT ACTIVITY API LOG
-			saveApiLog(104, $request->all(), $errors, NULL, 120);
+			saveApiLog(104, NULL, $request->all(), $errors, NULL, 120);
 
 			DB::commit();
 			return response()->json([
@@ -625,7 +626,7 @@ class ActivityController extends Controller {
 			DB::rollBack();
 			//SAVE REJECT ACTIVITY API LOG
 			$errors[] = $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile();
-			saveApiLog(104, $request->all(), $errors, NULL, 121);
+			saveApiLog(104, NULL, $request->all(), $errors, NULL, 121);
 
 			return response()->json([
 				'success' => false,

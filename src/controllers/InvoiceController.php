@@ -346,12 +346,15 @@ class InvoiceController extends Controller {
 				'asps.tax_calculation_method as tax_calculation_method',
 				'asps.bank_name as bank_name',
 				'asps.has_gst',
+				'asps.tax_calculation_method',
 				'asps.bank_account_number as bank_account_number',
 				'asps.bank_ifsc_code as bank_ifsc_code',
 				'asps.pan_number as pan_number',
 				'asps.check_in_favour as check_in_favour',
 				'clients.financial_dimension',
 				'bo_invoice_amount.value as invoice_amount',
+				'bo_net_amount.value as net_amount',
+				'bo_tax_total.value as tax',
 				'bo_km_travelled.value as bo_km',
 				'bo_payout_amount.value as payout_amount',
 				'bo_collected.value as bo_collected_charges',
@@ -386,6 +389,14 @@ class InvoiceController extends Controller {
 				->leftJoin('activity_details as bo_invoice_amount', function ($join) {
 					$join->on('bo_invoice_amount.activity_id', 'activities.id')
 						->where('bo_invoice_amount.key_id', 182); //BO INVOICE AMOUNT
+				})
+				->leftJoin('activity_details as bo_net_amount', function ($join) {
+					$join->on('bo_net_amount.activity_id', 'activities.id')
+						->where('bo_net_amount.key_id', 176); //BO NET AMOUNT
+				})
+				->leftJoin('activity_details as bo_tax_total', function ($join) {
+					$join->on('bo_tax_total.activity_id', 'activities.id')
+						->where('bo_tax_total.key_id', 179); //BO TAX AMOUNT
 				})
 				->whereIn('Invoices.id', $invoice_ids)
 				->orderBy('activities.asp_id')

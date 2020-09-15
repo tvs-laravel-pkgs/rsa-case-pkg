@@ -16,7 +16,7 @@ app.component('activityStatusList', {
             self.extras = response.data.extras;
             // response.data.extras.status_list.splice(0, 1);
             self.status_list = response.data.extras.portal_status_list;
-            self.client_list= response.data.extras.export_client_list;  
+            self.client_list = response.data.extras.export_client_list;
             self.asp_list = response.data.extras.asp_list;
             // self.status_list.splice(0, 1);
             self.modal_close = modal_close;
@@ -154,6 +154,42 @@ app.component('activityStatusList', {
                 endDate: moment().endOf('month'),
             });
 
+            self.searchAsps = function(query) {
+                if (query) {
+                    return new Promise(function(resolve, reject) {
+                        $http
+                            .post(
+                                laravel_routes['activityStatusSearchAsps'], {
+                                    key: query,
+                                }
+                            )
+                            .then(function(response) {
+                                resolve(response.data);
+                            });
+                    });
+                } else {
+                    return [];
+                }
+            }
+
+            self.searchClients = function(query) {
+                if (query) {
+                    return new Promise(function(resolve, reject) {
+                        $http
+                            .post(
+                                laravel_routes['activityStatusSearchClients'], {
+                                    key: query,
+                                }
+                            )
+                            .then(function(response) {
+                                resolve(response.data);
+                            });
+                    });
+                } else {
+                    return [];
+                }
+            }
+
             self.pc_all = false;
             $rootScope.loading = false;
             window.mdSelectOnKeyDownOverride = function(event) {
@@ -210,26 +246,26 @@ app.component('activityStatusList', {
             });
 
         });
-         $scope.backConfirm = function(activity) {
+        $scope.backConfirm = function(activity) {
             $scope.$apply();
             $("#ticket_back_asp_Modal").modal('toggle');
-            setTimeout(function(){
-             self.activity_form_data = activity;
-            console.log(self.activity_form_data);
-              }, 1000);
+            setTimeout(function() {
+                self.activity_form_data = activity;
+                console.log(self.activity_form_data);
+            }, 1000);
         }
-        $scope.asp_data_entry_submit=function(){
+        $scope.asp_data_entry_submit = function() {
             var ticket_status_id = $('#ticket_status_id').val(1);
-            setTimeout(function(){
+            setTimeout(function() {
                 $('#tickect-back-asp-form').submit();
-              }, 1000);
+            }, 1000);
         };
 
-        $scope.asp_bo_deffered_submit=function(){
+        $scope.asp_bo_deffered_submit = function() {
             var ticket_status_id = $('#ticket_status_id').val(2);
-            setTimeout(function(){
+            setTimeout(function() {
                 $('#tickect-back-asp-form').submit();
-              }, 1000);
+            }, 1000);
         };
 
     }
@@ -277,7 +313,7 @@ app.component('activityStatusView', {
                 for (var i in response.data.errors) {
                     errors += '<li>' + response.data.errors[i] + '</li>';
                 }
-                custom_noty('error', errors);                
+                custom_noty('error', errors);
                 $location.path('/rsa-case-pkg/activity-status/list');
                 $scope.$apply();
                 return;

@@ -40,7 +40,7 @@ class ActivityController extends Controller {
 			'activity_status_list' => collect(ActivityStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Activity Status']),
 			'client_list' => collect(Client::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Client']),
 			'export_client_list' => collect(Client::select('name', 'id')->get()),
-			'asp_list' => collect(Asp::select('name', 'id')->get()),
+			'asp_list' => collect(Asp::select('name', 'asp_code', 'id')->get()),
 		];
 
 		return response()->json($this->data);
@@ -2170,5 +2170,13 @@ class ActivityController extends Controller {
 		$diff_date = date_diff($date1, $date2);
 		$duration = ($diff_date->format("%d") > 1) ? $diff_date->format("%d") : $diff_date->format("%d");
 		return $duration;
+	}
+
+	public function searchAsps(Request $request) {
+		return Asp::searchAsps($request);
+	}
+
+	public function searchClients(Request $request) {
+		return Client::searchClient($request);
 	}
 }

@@ -583,30 +583,50 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Export',
 			],
 
-			//DEALER INVOICE
+			//DEALER MEMBERSHIP INVOICE
 			[
 				'display_order' => 99,
 				'parent' => null,
-				'name' => 'dealer-invoice',
-				'display_name' => 'Dealer Invoices',
+				'name' => 'dealer-membership-invoice',
+				'display_name' => 'Dealer Membership Invoices',
 			],
 			[
 				'display_order' => 1,
-				'parent' => 'dealer-invoice',
-				'name' => 'create-dealer-invoice',
-				'display_name' => 'Create',
-			],
-			[
-				'display_order' => 2,
-				'parent' => 'dealer-invoice',
-				'name' => 'view-dealer-invoice',
+				'parent' => 'dealer-membership-invoice',
+				'name' => 'view-dealer-membership-invoice',
 				'display_name' => 'View',
 			],
 			[
-				'display_order' => 4,
-				'parent' => 'dealer-invoice',
-				'name' => 'all-dealer-invoice',
+				'display_order' => 2,
+				'parent' => 'dealer-membership-invoice',
+				'name' => 'own-dealer-membership-invoice',
+				'display_name' => 'Own Only',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'dealer-membership-invoice',
+				'name' => 'all-dealer-membership-invoice',
 				'display_name' => 'All',
+			],
+
+			//UNBILLED MEMBERSHIP INVOICE
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'unbilled-invoice',
+				'display_name' => 'Unbilled Invoices',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'unbilled-invoice',
+				'name' => 'create-billed-invoice',
+				'display_name' => 'Create Invoice',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'unbilled-invoice',
+				'name' => 'preview-unbilled-invoice',
+				'display_name' => 'Preview',
 			],
 		];
 		Permission::createFromArrays($permissions);

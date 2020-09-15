@@ -492,7 +492,7 @@ class ActivityController extends Controller {
 			if ($validator->fails()) {
 				//SAVE INVOICEABLE ACTIVITIES API LOG
 				$errors = $validator->errors()->all();
-				saveApiLog(105, $request->all(), $errors, NULL, 121);
+				saveApiLog(105, NULL, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -544,7 +544,7 @@ class ActivityController extends Controller {
 				->get();
 
 			//SAVE INVOICEABLE ACTIVITIES API LOG
-			saveApiLog(105, $request->all(), $errors, NULL, 120);
+			saveApiLog(105, NULL, $request->all(), $errors, NULL, 120);
 
 			DB::commit();
 			return response()->json([
@@ -556,7 +556,7 @@ class ActivityController extends Controller {
 			DB::rollBack();
 			//SAVE INVOICEABLE ACTIVITIES API LOG
 			$errors[] = $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile();
-			saveApiLog(105, $request->all(), $errors, NULL, 121);
+			saveApiLog(105, NULL, $request->all(), $errors, NULL, 121);
 
 			return response()->json([
 				'success' => false,
@@ -582,7 +582,7 @@ class ActivityController extends Controller {
 			if ($validator->fails()) {
 				//SAVE REJECT ACTIVITY API LOG
 				$errors = $validator->errors()->all();
-				saveApiLog(104, $request->all(), $errors, NULL, 121);
+				saveApiLog(104, NULL, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -600,7 +600,7 @@ class ActivityController extends Controller {
 			if ($activity->status_id != 1 && $activity->status_id != 11) {
 				//SAVE REJECT ACTIVITY API LOG
 				$errors[] = 'Rejection not allowed';
-				saveApiLog(104, $request->all(), $errors, NULL, 121);
+				saveApiLog(104, NULL, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -615,7 +615,7 @@ class ActivityController extends Controller {
 			$activity->save();
 
 			//SAVE REJECT ACTIVITY API LOG
-			saveApiLog(104, $request->all(), $errors, NULL, 120);
+			saveApiLog(104, NULL, $request->all(), $errors, NULL, 120);
 
 			DB::commit();
 			return response()->json([
@@ -626,7 +626,7 @@ class ActivityController extends Controller {
 			DB::rollBack();
 			//SAVE REJECT ACTIVITY API LOG
 			$errors[] = $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile();
-			saveApiLog(104, $request->all(), $errors, NULL, 121);
+			saveApiLog(104, NULL, $request->all(), $errors, NULL, 121);
 
 			return response()->json([
 				'success' => false,

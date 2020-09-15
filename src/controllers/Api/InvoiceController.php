@@ -32,7 +32,7 @@ class InvoiceController extends Controller {
 			if ($validator->fails()) {
 				//CREATE INVOICE API LOG
 				$errors = $validator->errors()->all();
-				saveApiLog(106, $request->all(), $errors, NULL, 121);
+				saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -45,7 +45,7 @@ class InvoiceController extends Controller {
 			if (!isset($request->activity_id)) {
 				//CREATE INVOICE API LOG
 				$errors[] = 'Activity ID is required';
-				saveApiLog(106, $request->all(), $errors, NULL, 121);
+				saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -74,7 +74,7 @@ class InvoiceController extends Controller {
 					if ($activity->asp_id != $asp->id) {
 						//CREATE INVOICE API LOG
 						$errors[] = 'ASP not matched for activity ID ' . $activity->crm_activity_id;
-						saveApiLog(106, $request->all(), $errors, NULL, 121);
+						saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
 						DB::commit();
 
 						return response()->json([
@@ -89,7 +89,7 @@ class InvoiceController extends Controller {
 					if (!empty($activity->invoice_id)) {
 						//CREATE INVOICE API LOG
 						$errors[] = 'Invoice already created for activity ID ' . $activity->crm_activity_id;
-						saveApiLog(106, $request->all(), $errors, NULL, 121);
+						saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
 						DB::commit();
 
 						return response()->json([
@@ -111,7 +111,7 @@ class InvoiceController extends Controller {
 					if ($activity_accepted->status_id != 1 && $activity_accepted->status_id != 11) {
 						//CREATE INVOICE API LOG
 						$errors[] = 'ASP not accepted for activity ID ' . $activity_accepted->crm_activity_id;
-						saveApiLog(106, $request->all(), $errors, NULL, 121);
+						saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
 						DB::commit();
 
 						return response()->json([
@@ -130,7 +130,7 @@ class InvoiceController extends Controller {
 				if (!$request->invoice_number) {
 					//CREATE INVOICE API LOG
 					$errors[] = 'Invoice number is required';
-					saveApiLog(106, $request->all(), $errors, NULL, 121);
+					saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
 					DB::commit();
 
 					return response()->json([
@@ -144,7 +144,7 @@ class InvoiceController extends Controller {
 				if (!$request->invoice_date) {
 					//CREATE INVOICE API LOG
 					$errors[] = 'Invoice date is required';
-					saveApiLog(106, $request->all(), $errors, NULL, 121);
+					saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
 					DB::commit();
 
 					return response()->json([
@@ -169,7 +169,7 @@ class InvoiceController extends Controller {
 					if ($invoiceNumberfirstLetter == 0) {
 						//CREATE INVOICE API LOG
 						$errors[] = 'Invoice number should not start with zero';
-						saveApiLog(106, $request->all(), $errors, NULL, 121);
+						saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
 						DB::commit();
 						return response()->json([
 							'success' => false,
@@ -186,7 +186,7 @@ class InvoiceController extends Controller {
 				if ($is_invoice_no_exist) {
 					//CREATE INVOICE API LOG
 					$errors[] = 'Invoice number already exist';
-					saveApiLog(106, $request->all(), $errors, NULL, 121);
+					saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
 					DB::commit();
 
 					return response()->json([
@@ -233,7 +233,7 @@ class InvoiceController extends Controller {
 				//CREATE INVOICE API LOG
 				DB::rollBack();
 				$errors[] = $invoice_c['message'];
-				saveApiLog(106, $request->all(), $errors, NULL, 121);
+				saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
 				// DB::commit();
 
 				return response()->json([
@@ -246,7 +246,7 @@ class InvoiceController extends Controller {
 			}
 
 			//CREATE INVOICE API LOG
-			saveApiLog(106, $request->all(), $errors, NULL, 120);
+			saveApiLog(106, NULL, $request->all(), $errors, NULL, 120);
 
 			DB::commit();
 			if ($invoice_c['success']) {
@@ -261,7 +261,7 @@ class InvoiceController extends Controller {
 			DB::rollBack();
 			//CREATE INVOICE API LOG
 			$errors[] = $e->getMessage();
-			saveApiLog(106, $request->all(), $errors, NULL, 121);
+			saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
 
 			return response()->json([
 				'success' => false,
@@ -287,7 +287,7 @@ class InvoiceController extends Controller {
 			if ($validator->fails()) {
 				//GET INVOICE LIST API LOG
 				$errors = $validator->errors()->all();
-				saveApiLog(107, $request->all(), $errors, NULL, 121);
+				saveApiLog(107, NULL, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -337,7 +337,7 @@ class InvoiceController extends Controller {
 			}
 
 			//GET INVOICE LIST API LOG
-			saveApiLog(107, $request->all(), $errors, NULL, 120);
+			saveApiLog(107, NULL, $request->all(), $errors, NULL, 120);
 
 			DB::commit();
 			return response()->json([
@@ -348,7 +348,7 @@ class InvoiceController extends Controller {
 			DB::rollBack();
 			//GET INVOICE LIST API LOG
 			$errors[] = $e->getMessage() . ' Line:' . $e->getLine();
-			saveApiLog(107, $request->all(), $errors, NULL, 121);
+			saveApiLog(107, NULL, $request->all(), $errors, NULL, 121);
 
 			return response()->json([
 				'success' => false,
@@ -374,7 +374,7 @@ class InvoiceController extends Controller {
 			if ($validator->fails()) {
 				//GET INVOICE DETAIL API LOG
 				$errors = $validator->errors()->all();
-				saveApiLog(108, $request->all(), $errors, NULL, 121);
+				saveApiLog(108, NULL, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -389,7 +389,7 @@ class InvoiceController extends Controller {
 			if (!$invoice) {
 				//GET INVOICE DETAIL API LOG
 				$errors[] = 'Selected invoice no is invalid';
-				saveApiLog(108, $request->all(), $errors, NULL, 121);
+				saveApiLog(108, NULL, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -418,7 +418,7 @@ class InvoiceController extends Controller {
 			$invoices->asp = $asp;
 
 			//GET INVOICE DETAIL API LOG
-			saveApiLog(108, $request->all(), $errors, NULL, 120);
+			saveApiLog(108, NULL, $request->all(), $errors, NULL, 120);
 
 			DB::commit();
 			return response()->json([
@@ -429,7 +429,7 @@ class InvoiceController extends Controller {
 			DB::rollBack();
 			//GET INVOICE DETAIL API LOG
 			$errors[] = $e->getMessage() . ' Line:' . $e->getLine();
-			saveApiLog(108, $request->all(), $errors, NULL, 121);
+			saveApiLog(108, NULL, $request->all(), $errors, NULL, 121);
 
 			return response()->json([
 				'success' => false,

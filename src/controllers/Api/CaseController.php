@@ -34,7 +34,7 @@ class CaseController extends Controller {
 			if ($case && ($case->status_id == 3 || $case->status_id == 4)) {
 				//SAVE CASE API LOG
 				$errors[] = 'Update not allowed - Case already ' . $case->status->name;
-				saveApiLog(102, $request->all(), $errors, NULL, 121);
+				saveApiLog(102, $case->number, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -160,7 +160,7 @@ class CaseController extends Controller {
 			if ($validator->fails()) {
 				//SAVE CASE API LOG
 				$errors = $validator->errors()->all();
-				saveApiLog(102, $request->all(), $errors, NULL, 121);
+				saveApiLog(102, $request->number, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -176,7 +176,7 @@ class CaseController extends Controller {
 			if ($case_date <= $case_restriction_date) {
 				//SAVE CASE API LOG
 				$errors[] = "Till May'20 Cases not allowed";
-				saveApiLog(102, $request->all(), $errors, NULL, 121);
+				saveApiLog(102, $request->number, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -192,7 +192,7 @@ class CaseController extends Controller {
 			if (!preg_match("/^[a-zA-Z0-9]+$/", $request->number)) {
 				//SAVE CASE API LOG
 				$errors[] = 'Invalid Case Number';
-				saveApiLog(102, $request->all(), $errors, NULL, 121);
+				saveApiLog(102, $request->number, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -231,7 +231,7 @@ class CaseController extends Controller {
 			if (!$vehicle_model_by_make) {
 				//SAVE CASE API LOG
 				$errors[] = "Selected vehicle make doesn't matches with vehicle model";
-				saveApiLog(102, $request->all(), $errors, NULL, 121);
+				saveApiLog(102, $request->number, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -247,7 +247,7 @@ class CaseController extends Controller {
 			if (!$request->vehicle_registration_number && !$request->vin_no) {
 				//SAVE CASE API LOG
 				$errors[] = 'VIN or Vehicle Registration Number is required';
-				saveApiLog(102, $request->all(), $errors, NULL, 121);
+				saveApiLog(102, $request->number, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -279,7 +279,7 @@ class CaseController extends Controller {
 				if ($status->id == 3 || $status->id == 4) {
 					//SAVE CASE API LOG
 					$errors[] = 'Case should not start with cancelled or closed status';
-					saveApiLog(102, $request->all(), $errors, NULL, 121);
+					saveApiLog(102, $request->number, $request->all(), $errors, NULL, 121);
 					DB::commit();
 
 					return response()->json([
@@ -345,7 +345,7 @@ class CaseController extends Controller {
 			}
 
 			//SAVE CASE API LOG
-			saveApiLog(102, $request->all(), $errors, NULL, 120);
+			saveApiLog(102, $request->number, $request->all(), $errors, NULL, 120);
 
 			DB::commit();
 			return response()->json([
@@ -357,7 +357,7 @@ class CaseController extends Controller {
 			DB::rollBack();
 			//SAVE CASE API LOG
 			$errors[] = $e->getMessage() . ' Line:' . $e->getLine();
-			saveApiLog(102, $request->all(), $errors, NULL, 121);
+			saveApiLog(102, $request->number, $request->all(), $errors, NULL, 121);
 
 			return response()->json([
 				'success' => false,

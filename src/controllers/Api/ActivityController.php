@@ -87,10 +87,10 @@ class ActivityController extends Controller {
 					'nullable',
 					'string',
 					'max:191',
-					Rule::exists('asp_activity_rejected_reasons', 'name')
-						->where(function ($query) {
-							$query->whereNull('deleted_at');
-						}),
+					// Rule::exists('asp_activity_rejected_reasons', 'name')
+					// 	->where(function ($query) {
+					// 		$query->whereNull('deleted_at');
+					// 	}),
 				],
 				'activity_status' => [
 					'nullable',

@@ -366,11 +366,13 @@ class ActivityController extends Controller {
 			$activity->save();
 
 			if ($case->status_id == 3) {
-				//CANCELLED
-				$activity->update([
-					// Not Eligible for Payout
-					'status_id' => 15,
-				]);
+				if ($activity->financeStatus->po_eligibility_type_id == 342) {
+					//CANCELLED
+					$activity->update([
+						// Not Eligible for Payout
+						'status_id' => 15,
+					]);
+				}
 			}
 
 			// CHECK CASE IS CLOSED

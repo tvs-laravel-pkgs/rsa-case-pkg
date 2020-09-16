@@ -323,12 +323,22 @@ class CaseController extends Controller {
 
 			if ($case->status_id == 3) {
 				//CANCELLED
-				$case
-					->activities()
-					->update([
-						// Not Eligible for Payout
-						'status_id' => 15,
-					]);
+				if ($case->activities->isNotEmpty()) {
+					foreach ($case->activities as $key => $activity) {
+						//If Finance Status is Not Matured
+						if ($activity->financeStatus->po_eligibility_type_id == 342) {
+							//If ASP Workshop Type is Own Patrol Activity
+							if ($activity->asp->workshop_type == 1) {
+								$status_id = 16;
+							} else {
+								$status_id = 15;
+							}
+							$activity->update([
+								'status_id' => $status_id, // Not Eligible for Payout
+							]);
+						}
+					}
+				}
 			}
 			if ($case->status_id == 4) {
 				//CLOSED

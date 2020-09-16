@@ -498,10 +498,10 @@ class Activity extends Model {
 							'nullable',
 							'string',
 							'max:100',
-							Rule::exists('case_cancelled_reasons', 'name')
-								->where(function ($query) {
-									$query->whereNull('deleted_at');
-								}),
+							// Rule::exists('case_cancelled_reasons', 'name')
+							// 	->where(function ($query) {
+							// 		$query->whereNull('deleted_at');
+							// 	}),
 						],
 						'call_center' => [
 							'required',
@@ -634,10 +634,10 @@ class Activity extends Model {
 							'nullable',
 							'string',
 							'max:191',
-							Rule::exists('asp_activity_rejected_reasons', 'name')
-								->where(function ($query) {
-									$query->whereNull('deleted_at');
-								}),
+							// Rule::exists('asp_activity_rejected_reasons', 'name')
+							// 	->where(function ($query) {
+							// 		$query->whereNull('deleted_at');
+							// 	}),
 						],
 						'activity_status' => [
 							'nullable',
@@ -1050,6 +1050,7 @@ class Activity extends Model {
 							$job->new_count++;
 						} else {
 							$job->updated_count++;
+							$status['errors'][] = 'The crm activity id has already been taken';
 						}
 
 					}

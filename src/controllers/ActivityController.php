@@ -650,7 +650,109 @@ class ActivityController extends Controller {
 				//AMOUNT
 				$this->data['activities']['bo_deduction'] = $this->data['activities']['asp_service_type_data']->adjustment;
 		*/
-		//dd( $this->data);
+
+		//FOR DIFFERENCE HIGHLIGHT
+		$is_service_type_eligible = true;
+		$is_km_travelled_eligible = true;
+		$is_not_collected_eligible = true;
+		$is_collected_eligible = true;
+		$cc_service_type = ActivityDetail::where('activity_id', $activity_status_id)
+			->where('key_id', 153)
+			->first();
+		$asp_service_type = ActivityDetail::where('activity_id', $activity_status_id)
+			->where('key_id', 157)
+			->first();
+		if ($cc_service_type && $asp_service_type) {
+			//Service Type
+			if ($cc_service_type->value != $asp_service_type->value) {
+				$is_service_type_eligible = false;
+			}
+			//KM Travelled
+			$service_type = ServiceType::where('name', $cc_service_type->value)->first();
+			if ($service_type) {
+				$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
+					->where('service_type_id', $service_type->id)
+					->first();
+				if ($aspServiceType) {
+					$range_limit = $aspServiceType->range_limit;
+				} else {
+					$range_limit = 0;
+				}
+				$cc_km_travelled = ActivityDetail::where('activity_id', $activity_status_id)
+					->where('key_id', 280)
+					->first();
+				$asp_km_travelled = ActivityDetail::where('activity_id', $activity_status_id)
+					->where('key_id', 154)
+					->first();
+				if ($cc_km_travelled && $asp_km_travelled) {
+					$mis_km = floatval($cc_km_travelled->value);
+					$asp_km = floatval($asp_km_travelled->value);
+
+					$allowed_variation = 0.5;
+					$five_percentage_difference = $mis_km * $allowed_variation / 100;
+					if ($asp_km > $range_limit || $range_limit == 0) {
+						if ($asp_km > $mis_km) {
+							$km_difference = $asp_km - $mis_km;
+							if ($km_difference > $five_percentage_difference) {
+								$is_km_travelled_eligible = false;
+							}
+						}
+					}
+					if ($asp_km > $range_limit) {
+						$is_km_travelled_eligible = false;
+					}
+				} else {
+					$is_km_travelled_eligible = false;
+				}
+			} else {
+				$is_km_travelled_eligible = false;
+			}
+
+		} else {
+			$is_service_type_eligible = false;
+			$is_km_travelled_eligible = false;
+		}
+
+		$cc_collected = ActivityDetail::where('activity_id', $activity_status_id)
+			->where('key_id', 281)
+			->first();
+		$cc_not_collected = ActivityDetail::where('activity_id', $activity_status_id)
+			->where('key_id', 282)
+			->first();
+		$asp_collected = ActivityDetail::where('activity_id', $activity_status_id)
+			->where('key_id', 155)
+			->first();
+		$asp_not_collected = ActivityDetail::where('activity_id', $activity_status_id)
+			->where('key_id', 156)
+			->first();
+
+		//Not Collected Amount
+		if ($cc_not_collected && $asp_not_collected) {
+			$cc_not_collected_amt = floatval($cc_not_collected->value);
+			$asp_not_collected_amt = floatval($asp_not_collected->value);
+			if ($asp_not_collected_amt > $cc_not_collected_amt) {
+				$is_not_collected_eligible = false;
+			}
+		} else {
+			$is_not_collected_eligible = false;
+		}
+
+		//Collected Amount
+		if ($cc_collected && $asp_collected) {
+			$cc_collected_amt = floatval($cc_collected->value);
+			$asp_collected_amt = floatval($asp_collected->value);
+			if ($asp_collected_amt < $cc_collected_amt) {
+				$is_collected_eligible = false;
+			}
+		} else {
+			$is_collected_eligible = false;
+		}
+
+		$this->data['activities']['is_service_type_eligible'] = $is_service_type_eligible;
+		$this->data['activities']['is_km_travelled_eligible'] = $is_km_travelled_eligible;
+		$this->data['activities']['is_not_collected_eligible'] = $is_not_collected_eligible;
+		$this->data['activities']['is_collected_eligible'] = $is_collected_eligible;
+
 		return response()->json(['success' => true, 'data' => $this->data]);
 
 	}

@@ -628,6 +628,32 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'preview-unbilled-invoice',
 				'display_name' => 'Preview',
 			],
+
+			//ASP INVOICES - OLD PROCESS
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'asp_invoices',
+				'display_name' => 'ASP Invoices',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'asp_invoices',
+				'name' => 'all_asp_invoices',
+				'display_name' => 'All',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'asp_invoices',
+				'name' => 'state_mapped_asp_invoices',
+				'display_name' => 'Only State Mapped',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'asp_invoices',
+				'name' => 'own_asp_invoices',
+				'display_name' => 'Only Own',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

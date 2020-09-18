@@ -16,7 +16,6 @@ class InvoiceController extends Controller {
 	private $successStatus = 200;
 
 	public function createInvoice(Request $request) {
-		dd($request->all());
 		ini_set('memory_limit', '-1');
 		ini_set('max_execution_time', 0);
 
@@ -28,7 +27,7 @@ class InvoiceController extends Controller {
 				'asp_code' => 'required|string|exists:asps,asp_code',
 				'invoice_number' => 'nullable|string',
 				'invoice_date' => 'nullable|string|date_format:"Y-m-d"',
-				'invoice_copy' => 'nullable|image',
+				'invoice_copy' => 'nullable',
 			]);
 			if ($validator->fails()) {
 				//CREATE INVOICE API LOG
@@ -211,20 +210,20 @@ class InvoiceController extends Controller {
 
 			//STORE ATTACHMENT
 			$value = "";
-			if ($request->hasFile("invoice_copy")) {
-				$destination = aspInvoiceAttachmentPath();
-				$status = Storage::makeDirectory($destination, 0777);
-				$extension = $request->file("invoice_copy")->getClientOriginalExtension();
+			if (!empty($request->invoice_copy)) {
+				$image = $request->invoice_copy; // base64 encoded
+				$image = str_replace('data:image/png;base64,', '', $image);
+				$image = str_replace(' ', '+', $image);
 				$max_id = Invoices::selectRaw("Max(id) as id")->first();
 
 				if (!empty($max_id)) {
 					$ids = $max_id->id + 1;
-					$filename = "Invoice" . $ids . "." . $extension;
+					$imageName = "Invoice" . $ids . ".png";
 				} else {
-					$filename = "Invoice1" . "." . $extension;
+					$imageName = "Invoice1" . ".png";
 				}
-				$status = $request->file("invoice_copy")->storeAs($destination, $filename);
-				$value = $filename;
+				Storage::disk('asp-invoice-attachment-folder')->put($imageName, base64_decode($image));
+				$value = $imageName;
 			}
 
 			//CREATE INVOICE

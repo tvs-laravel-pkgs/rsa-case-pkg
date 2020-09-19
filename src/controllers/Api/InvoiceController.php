@@ -214,18 +214,41 @@ class InvoiceController extends Controller {
 				$image = $request->invoice_copy; // base64 encoded
 				$image = str_replace('data:image/png;base64,', '', $image);
 				$image = str_replace(' ', '+', $image);
+				$f = finfo_open();
+				$mime_type = finfo_buffer($f, base64_decode($image), FILEINFO_MIME_TYPE);
+				$extension = '';
+				if ($mime_type == "image/jpeg") {
+					$extension = 'jpg';
+				} elseif ($mime_type == "image/png") {
+					$extension = 'png';
+				} elseif ($mime_type == "application/pdf") {
+					$extension = 'pdf';
+				} else {
+					//CREATE INVOICE API LOG
+					$errors[] = 'Invoice copy must be following file type: jpeg, png or pdf.';
+					saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
+					DB::commit();
+
+					return response()->json([
+						'success' => false,
+						'error' => 'Validation Error',
+						'errors' => [
+							'Invoice copy must be following file type: jpeg, png or pdf.',
+						],
+					], $this->successStatus);
+
+				}
 				$max_id = Invoices::selectRaw("Max(id) as id")->first();
 
 				if (!empty($max_id)) {
 					$ids = $max_id->id + 1;
-					$imageName = "Invoice" . $ids . ".png";
+					$imageName = "Invoice" . $ids . "." . $extension;
 				} else {
-					$imageName = "Invoice1" . ".png";
+					$imageName = "Invoice1" . "." . $extension;
 				}
 				Storage::disk('asp-invoice-attachment-folder')->put($imageName, base64_decode($image));
 				$value = $imageName;
 			}
-
 			//CREATE INVOICE
 			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $invoice_date, $value);
 

@@ -920,13 +920,24 @@ class Activity extends Model {
 
 						if ($case->status_id == 3) {
 							//CANCELLED
-							$case
-								->activities()
-								->update([
-									// Not Eligible for Payout
-									'status_id' => 15,
-								]);
+							if ($case->activities->isNotEmpty()) {
+								foreach ($case->activities as $key => $activity) {
+									//If Finance Status is Not Matured
+									if ($activity->financeStatus->po_eligibility_type_id == 342) {
+										//If ASP Workshop Type is Own Patrol Activity
+										if ($activity->asp->workshop_type == 1) {
+											$status_id = 16; //Own Patrol Activity - Not Eligible for Payout
+										} else {
+											$status_id = 15; // Not Eligible for Payout
+										}
+										$activity->update([
+											'status_id' => $status_id,
+										]);
+									}
+								}
+							}
 						}
+
 						if ($case->status_id == 4) {
 							//CLOSED
 							$case
@@ -940,6 +951,7 @@ class Activity extends Model {
 									'status_id' => 1,
 								]);
 						}
+
 						$crm_activity_id = trim($record['crm_activity_id']);
 						$activity_exist = Activity::where('crm_activity_id', $crm_activity_id)->first();
 						if (!$activity_exist) {
@@ -976,11 +988,13 @@ class Activity extends Model {
 							$activity->save();
 
 							if ($case->status_id == 3) {
-								//CANCELLED
-								$activity->update([
-									// Not Eligible for Payout
-									'status_id' => 15,
-								]);
+								if ($activity->financeStatus->po_eligibility_type_id == 342) {
+									//CANCELLED
+									$activity->update([
+										// Not Eligible for Payout
+										'status_id' => 15,
+									]);
+								}
 							}
 
 							// CHECK CASE IS CLOSED
@@ -1019,13 +1033,12 @@ class Activity extends Model {
 								if (!$response['success']) {
 									$status['errors'][] = $response['error'];
 								}
-							}
-
-							//IF DATA SRC IS CRM WEB APP
-							if ($activity->data_src_id == 261) {
-								//ON HOLD
-								$activity->status_id = 17;
-								$activity->save();
+								//IF DATA SRC IS CRM WEB APP
+								if ($activity->data_src_id == 261) {
+									//ON HOLD
+									$activity->status_id = 17;
+									$activity->save();
+								}
 							}
 
 							//MARKING AS OWN PATROL ACTIVITY

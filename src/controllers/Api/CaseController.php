@@ -329,12 +329,12 @@ class CaseController extends Controller {
 						if ($activity->financeStatus->po_eligibility_type_id == 342) {
 							//If ASP Workshop Type is Own Patrol Activity
 							if ($activity->asp->workshop_type == 1) {
-								$status_id = 16;
+								$status_id = 16; //Own Patrol Activity - Not Eligible for Payout
 							} else {
-								$status_id = 15;
+								$status_id = 15; // Not Eligible for Payout
 							}
 							$activity->update([
-								'status_id' => $status_id, // Not Eligible for Payout
+								'status_id' => $status_id,
 							]);
 						}
 					}

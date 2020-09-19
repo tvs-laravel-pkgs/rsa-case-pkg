@@ -504,11 +504,11 @@ class ActivityController extends Controller {
 				], $this->successStatus);
 			}
 
-			$asp = Asp::select(
+			$asp = Asp::select([
 				'id',
 				'asp_code',
-				'is_auto_invoice'
-			)
+				DB::raw('IF(has_gst && !is_auto_invoice, false, true) as is_auto_invoice'),
+			])
 				->where([
 					'asp_code' => $request->asp_code,
 				])->first();

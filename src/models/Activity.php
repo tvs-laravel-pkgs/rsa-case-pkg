@@ -953,7 +953,7 @@ class Activity extends Model {
 						}
 
 						$crm_activity_id = trim($record['crm_activity_id']);
-						$activity_exist = Activity::where('crm_activity_id', $crm_activity_id)->first();
+						$activity_exist = Activity::withTrashed()->where('crm_activity_id', $crm_activity_id)->first();
 						if (!$activity_exist) {
 							$activity = new Activity([
 								'crm_activity_id' => $crm_activity_id,

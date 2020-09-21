@@ -536,17 +536,17 @@ class Activity extends Model {
 						],
 						'vehicle_model' => [
 							'nullable',
-							'string',
+							'regex:/^[\s\w-]*$/', //alpha_num with spaces
 							'max:191',
 							Rule::exists('vehicle_models', 'name')
 								->where(function ($query) {
 									$query->whereNull('deleted_at');
 								}),
 						],
-						'vehicle_registration_number' => 'nullable|string|max:11',
-						'vin_no' => 'nullable|string|max:20',
+						'vehicle_registration_number' => 'nullable|string|max:20',
+						'vin_no' => 'nullable|alpha_num|max:20',
 						'membership_type' => 'required|string|max:191',
-						'membership_number' => 'nullable|string|max:50',
+						'membership_number' => 'nullable|alpha_num|max:50',
 						'subject' => [
 							'required',
 							'string',

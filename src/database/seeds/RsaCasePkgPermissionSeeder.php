@@ -608,6 +608,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'all-dealer-membership-invoice',
 				'display_name' => 'All',
 			],
+			[
+				'display_order' => 4,
+				'parent' => 'dealer-membership-invoice',
+				'name' => 'finance-export-dealer-membership-invoice',
+				'display_name' => 'Finance Export',
+			],
 
 			//UNBILLED MEMBERSHIP INVOICE
 			[

@@ -464,6 +464,7 @@ class Activity extends Model {
 
 			if (!empty($rows)) {
 				foreach ($rows as $k => $row) {
+					DB::beginTransaction();
 					$record = [];
 					foreach ($header as $key => $column) {
 						if (!$column) {
@@ -952,12 +953,28 @@ class Activity extends Model {
 								]);
 						}
 
+						$activity_save_eligible = true;
 						$crm_activity_id = trim($record['crm_activity_id']);
 						$activity_exist = Activity::where('crm_activity_id', $crm_activity_id)->first();
 						if (!$activity_exist) {
 							$activity = new Activity([
 								'crm_activity_id' => $crm_activity_id,
 							]);
+							$count_variable = 'new_count';
+						} else {
+							$activity_belongsto_case = Activity::withTrashed()->where('crm_activity_id', $crm_activity_id)
+								->where('case_id', $case->id)
+								->first();
+							if ($activity_belongsto_case) {
+								$activity = Activity::withTrashed()->where('crm_activity_id', $crm_activity_id)->first();
+								$count_variable = 'updated_count';
+							} else {
+								$status['errors'][] = 'The crm activity id has already been taken';
+								$activity_save_eligible = false;
+							}
+						}
+
+						if ($activity_save_eligible) {
 							$activity->fill($record);
 
 							$activity->finance_status_id = $finance_status->id;
@@ -1012,7 +1029,6 @@ class Activity extends Model {
 							//SAVING ACTIVITY DETAILS
 							$activity_fields = Config::where('entity_type_id', 23)->get();
 							foreach ($activity_fields as $key => $activity_field) {
-								// if (isset($record[$activity_field->name])) {
 								$detail = ActivityDetail::firstOrNew([
 									'company_id' => 1,
 									'activity_id' => $activity->id,
@@ -1020,18 +1036,19 @@ class Activity extends Model {
 								]);
 								$detail->value = isset($record[$activity_field->name]) ? $record[$activity_field->name] : NULL;
 								$detail->save();
-								// }
 							}
-
 							//CALCULATE PAYOUT ONLY IF FINANCE STATUS OF ACTIVITY IS ELIBLE FOR PO
 							if ($activity->financeStatus->po_eligibility_type_id == 342) {
 								//No Payout status
 								$activity->status_id = 15;
 								$activity->save();
+								$job->{$count_variable}++;
 							} else {
 								$response = $activity->calculatePayoutAmount('CC');
 								if (!$response['success']) {
 									$status['errors'][] = $response['error'];
+								} else {
+									$job->{$count_variable}++;
 								}
 								//IF DATA SRC IS CRM WEB APP
 								if ($activity->data_src_id == 261) {
@@ -1060,15 +1077,11 @@ class Activity extends Model {
 							$activity_log->imported_at = date('Y-m-d H:i:s');
 							$activity_log->created_by_id = 72;
 							$activity_log->save();
-							$job->new_count++;
-						} else {
-							$job->updated_count++;
-							$status['errors'][] = 'The crm activity id has already been taken';
 						}
-
 					}
 
 					if (count($status['errors']) > 0) {
+						DB::rollBack();
 						// dump($status['errors']);
 						$original_record['Record No'] = $k + 1;
 						$original_record['Error Details'] = implode(',', $status['errors']);
@@ -1087,6 +1100,7 @@ class Activity extends Model {
 					$job->save();
 					// }
 
+					DB::commit();
 				} //COMPLETED or completed with errors
 			}
 

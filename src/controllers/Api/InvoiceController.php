@@ -181,23 +181,6 @@ class InvoiceController extends Controller {
 					}
 				}
 
-				//CHECK INVOICE NUMBER EXIST
-				// $is_invoice_no_exist = Invoices::where('invoice_no', $request->invoice_number)->first();
-				// if ($is_invoice_no_exist) {
-				// 	//CREATE INVOICE API LOG
-				// 	$errors[] = 'Invoice number already exist';
-				// 	saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
-				// 	DB::commit();
-
-				// 	return response()->json([
-				// 		'success' => false,
-				// 		'error' => 'Validation Error',
-				// 		'errors' => [
-				// 			'Invoice number already exist',
-				// 		],
-				// 	], $this->successStatus);
-				// }
-
 				$invoice_no = $request->invoice_number;
 				$invoice_date = date('Y-m-d H:i:s', strtotime($request->invoice_date));
 			} else {

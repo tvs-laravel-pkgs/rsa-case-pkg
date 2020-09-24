@@ -966,8 +966,14 @@ class Activity extends Model {
 								->where('case_id', $case->id)
 								->first();
 							if ($activity_belongsto_case) {
-								$activity = Activity::withTrashed()->where('crm_activity_id', $crm_activity_id)->first();
-								$count_variable = 'updated_count';
+								//Allow case with intial staus and not payment processed statuses
+								if ($activity_belongsto_case->status_id == 2 || $activity_belongsto_case->status_id == 4 || $activity_belongsto_case->status_id == 15 || $activity_belongsto_case->status_id == 16 || $activity_belongsto_case->status_id == 17) {
+									$activity = Activity::withTrashed()->where('crm_activity_id', $crm_activity_id)->first();
+									$count_variable = 'updated_count';
+								} else {
+									$status['errors'][] = 'Unable to update data. Case is under payment process';
+									$activity_save_eligible = false;
+								}
 							} else {
 								$status['errors'][] = 'The crm activity id has already been taken';
 								$activity_save_eligible = false;

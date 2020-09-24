@@ -1875,13 +1875,13 @@ class ActivityController extends Controller {
 				}
 
 				//CHECK INVOICE NUMBER EXIST
-				$is_invoice_no_exist = Invoices::where('invoice_no', $request->invoice_no)->first();
-				if ($is_invoice_no_exist) {
-					return response()->json([
-						'success' => false,
-						'error' => 'Invoice number already exist',
-					]);
-				}
+				// $is_invoice_no_exist = Invoices::where('invoice_no', $request->invoice_no)->first();
+				// if ($is_invoice_no_exist) {
+				// 	return response()->json([
+				// 		'success' => false,
+				// 		'error' => 'Invoice number already exist',
+				// 	]);
+				// }
 
 				$invoice_no = $request->invoice_no;
 				$invoice_date = date('Y-m-d H:i:s', strtotime($request->inv_date));

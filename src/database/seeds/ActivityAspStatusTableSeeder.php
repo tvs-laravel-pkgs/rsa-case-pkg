@@ -60,6 +60,10 @@ class ActivityAspStatusTableSeeder extends Seeder {
 				'name' => 'Returned Empty',
 				'company_id' => 1,
 			],
+			13 => [
+				'name' => 'End trip',
+				'company_id' => 1,
+			],
 		];
 
 		foreach ($activity_asp_statuses as $key => $activity_asp_status_val) {

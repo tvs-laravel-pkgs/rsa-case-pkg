@@ -491,6 +491,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'own-general-report-membership',
 				'display_name' => 'General Report - Own Only',
 			],
+			[
+				'display_order' => 13,
+				'parent' => 'membership',
+				'name' => 'create-on-behalf-of-dealer-employee',
+				'display_name' => 'Create on behalf of a Dealer Employee',
+			],
 
 			//Dealer Invoice Menu
 			[

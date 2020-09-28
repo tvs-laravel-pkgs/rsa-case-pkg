@@ -54,6 +54,7 @@ class Activity extends Model {
 		'activity_status_id',
 		'description',
 		'remarks',
+		'manual_uploading_remarks',
 		'asp_resolve_comments',
 		'deduction_reason',
 		'bo_comments',
@@ -655,6 +656,7 @@ class Activity extends Model {
 						'cc_total_km' => 'nullable|numeric',
 						'activity_description' => 'nullable|string|max:191',
 						'activity_remarks' => 'nullable|string|max:255',
+						'manual_uploading_remarks' => 'nullable|string',
 						'asp_reached_date' => 'nullable',
 						'asp_start_location' => 'nullable|string',
 						'asp_end_location' => 'nullable|string',
@@ -969,6 +971,7 @@ class Activity extends Model {
 							$activity->asp_activity_rejected_reason_id = $asp_activity_rejected_reason_id;
 							$activity->description = $record['activity_description'];
 							$activity->remarks = $record['activity_remarks'];
+							$activity->manual_uploading_remarks = $record['manual_uploading_remarks'];
 
 							//ASP ACCEPTED CC DETAILS == 1 AND ACTIVITY STATUS SUCCESSFUL OLD
 							// if ($request->asp_accepted_cc_details && $activity_status_id == 7) {

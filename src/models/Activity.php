@@ -457,7 +457,7 @@ class Activity extends Model {
 	public static function importFromExcel($job) {
 		DB::beginTransaction();
 		try {
-			$response = ImportCronJob::getRecordsFromExcel($job, 'BQ');
+			$response = ImportCronJob::getRecordsFromExcel($job, 'BR');
 			$rows = $response['rows'];
 			$header = $response['header'];
 			$all_error_records = [];

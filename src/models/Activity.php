@@ -657,7 +657,6 @@ class Activity extends Model {
 						'cc_total_km' => 'nullable|numeric',
 						'activity_description' => 'nullable|string|max:191',
 						'activity_remarks' => 'nullable|string|max:255',
-						'manual_uploading_remarks' => 'nullable|string',
 						'asp_reached_date' => 'nullable',
 						'asp_start_location' => 'nullable|string',
 						'asp_end_location' => 'nullable|string',
@@ -684,6 +683,7 @@ class Activity extends Model {
 						'border_charges' => 'nullable|numeric',
 						'octroi_charges' => 'nullable|numeric',
 						'excess_charges' => 'nullable|numeric',
+						'manual_uploading_remarks' => 'required|string',
 					]);
 
 					if ($validator->fails()) {

@@ -15,6 +15,8 @@ Route::group(['namespace' => 'Abs\RsaCasePkg\Api', 'middleware' => ['api']], fun
 		Route::post('get-invoice-details', 'InvoiceController@getDetails');
 
 		Route::post('policy/save', 'PolicyController@save');
+		Route::post('policy-entitlement/update', 'PolicyController@updatePolicyEntitlement');
+
 		Route::group(['middleware' => ['auth:api']], function () {
 		});
 	});

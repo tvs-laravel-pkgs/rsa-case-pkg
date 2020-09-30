@@ -27,4 +27,23 @@ class PolicyController extends Controller {
 		}
 	}
 
+	public function updatePolicyEntitlement(Request $request) {
+		ini_set('memory_limit', '-1');
+		ini_set('max_execution_time', 0);
+		dd($request->all());
+		DB::beginTransaction();
+		try {
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json([
+				'success' => false,
+				'error' => 'Exception Error',
+				'errors' => [
+					$e->getMessage() . ' Line:' . $e->getLine(),
+				],
+			], $this->successStatus);
+		}
+	}
+
 }

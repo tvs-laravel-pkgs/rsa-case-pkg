@@ -641,6 +641,20 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Preview',
 			],
 
+			//MEMBERSHIP EXPIRY
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'expiry-membership',
+				'display_name' => 'Expiry Memberships',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'expiry-membership',
+				'name' => 'renewal-membership',
+				'display_name' => 'Renewal Membership',
+			],
+
 			//ASP INVOICES - OLD PROCESS
 			[
 				'display_order' => 99,

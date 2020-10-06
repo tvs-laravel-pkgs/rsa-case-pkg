@@ -970,7 +970,7 @@ class ActivityController extends Controller {
 		}
 	}
 	public function verifyActivity(Request $request) {
-		//dd($request->all());
+		// dd($request->all());
 		$number = $request->number;
 		$validator = Validator::make($request->all(), [
 			'number' => 'required',
@@ -994,7 +994,7 @@ class ActivityController extends Controller {
 		// $threeMonthsBefore = "2019-04-01";
 
 		//CHECK TICKET EXIST WITH DATA ENTRY STATUS & DATE FOR ASP
-		$query = Activity::select('activities.id as id')
+		$query = Activity::select('activities.id as id', 'cases.created_at as case_created_at')
 			->join('cases', 'cases.id', 'activities.case_id')
 			->where(function ($q) use ($number) {
 				$q->where('cases.number', $number)
@@ -1009,6 +1009,18 @@ class ActivityController extends Controller {
 			->first();
 
 		if ($ticket) {
+			//IF CASE CREATED AT DATE BETWEEN AUGEST MONTH MEANS THROW ERROR
+			$case_created_at = date('Y-m-d', strtotime($ticket->case_created_at));
+			$augest_from_date = date('Y-m-d', strtotime("01-08-2020"));
+			$augest_to_date = date('Y-m-d', strtotime("31-08-2020"));
+			if (($case_created_at >= $augest_from_date) && ($case_created_at <= $augest_to_date)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						"System is under maintenance we will let you know once it is resume",
+					],
+				]);
+			}
 			return response()->json([
 				'success' => true,
 				'activity_id' => $ticket->id,
@@ -1723,6 +1735,7 @@ class ActivityController extends Controller {
 				$join->on('total_amount.activity_id', 'activities.id')
 					->where('total_amount.key_id', 182); //BO INVOICE AMOUNT
 			})
+			->leftjoin('configs as data_sources', 'data_sources.id', 'activities.data_src_id')
 			->select(
 				'cases.number',
 				'activities.id',
@@ -1740,7 +1753,8 @@ class ActivityController extends Controller {
 				'collect_amount.value as collect_value',
 				'total_amount.value as total_value',
 				'total_tax_perc.value as total_tax_perc_value',
-				'total_tax_amount.value as total_tax_amount_value'
+				'total_tax_amount.value as total_tax_amount_value',
+				'data_sources.name as data_source'
 			)
 			->whereIn('activities.id', $activity_ids)
 			->groupBy('activities.id')

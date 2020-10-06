@@ -147,6 +147,10 @@ class Activity extends Model {
 		return $this->belongsToMany('App\Tax', 'activity_tax')->withPivot('amount');
 	}
 
+	public function dataSource() {
+		return $this->belongsTo('App\Config', 'data_src_id');
+	}
+
 	public static function getFormData($id = NULL, $for_deffer_activity) {
 		$data = [];
 

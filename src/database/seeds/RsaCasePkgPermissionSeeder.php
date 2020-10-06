@@ -497,6 +497,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'create-on-behalf-of-dealer-employee',
 				'display_name' => 'Create on behalf of a Dealer Employee',
 			],
+			[
+				'display_order' => 14,
+				'parent' => 'membership',
+				'name' => 'import-membership',
+				'display_name' => 'Import',
+			],
 
 			//Dealer Invoice Menu
 			[

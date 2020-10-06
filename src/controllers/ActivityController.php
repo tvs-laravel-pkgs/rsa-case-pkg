@@ -1723,6 +1723,7 @@ class ActivityController extends Controller {
 				$join->on('total_amount.activity_id', 'activities.id')
 					->where('total_amount.key_id', 182); //BO INVOICE AMOUNT
 			})
+			->leftjoin('configs as data_sources', 'data_sources.id', 'activities.data_src_id')
 			->select(
 				'cases.number',
 				'activities.id',
@@ -1740,7 +1741,8 @@ class ActivityController extends Controller {
 				'collect_amount.value as collect_value',
 				'total_amount.value as total_value',
 				'total_tax_perc.value as total_tax_perc_value',
-				'total_tax_amount.value as total_tax_amount_value'
+				'total_tax_amount.value as total_tax_amount_value',
+				'data_sources.name as data_source'
 			)
 			->whereIn('activities.id', $activity_ids)
 			->groupBy('activities.id')

@@ -158,6 +158,7 @@
                                                     <tr>
                                                         <th>Case Number</th>
                                                         <th>Case Date</th>
+                                                        <th>Source</th>
                                                         <!-- <th>Vehicle Registration Number</th> -->
                                                         <th>Service Type</th>
                                                         <th>KM</th>
@@ -177,6 +178,9 @@
                                                         </td>
                                                         <td>
                                                             {{activity.date}}
+                                                        </td>
+                                                        <td>
+                                                            {{activity.data_source ? activity.data_source:''}}
                                                         </td>
                                                         <!-- <td>
                                                             {{activity.vehicle_registration_number}}

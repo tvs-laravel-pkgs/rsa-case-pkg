@@ -33,10 +33,11 @@ class PolicyController extends Controller {
 	public function updatePolicyEntitlement(Request $request) {
 		ini_set('memory_limit', '-1');
 		ini_set('max_execution_time', 0);
+		$errors = [];
 		DB::beginTransaction();
 		try {
 			$validator = Validator::make($request->all(), [
-				'membership_no' => [
+				'membership_number' => [
 					'required:true',
 					Rule::exists('memberships', 'order_number'),
 				],
@@ -45,20 +46,35 @@ class PolicyController extends Controller {
 				],
 			]);
 			if ($validator->fails()) {
+				//SAVE CASE API LOG
+				$errors = $validator->errors()->all();
+				saveApiLog(109, $request->membership_number, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
 				return response()->json([
 					'success' => false,
 					'error' => 'Validation Error',
 					'errors' => $validator->errors()->all(),
 				], $this->successStatus);
 			}
-			Membership::where('order_number', $request->membership_no)->update(['expiry_reason' => $request->expiry_reason]);
+
+			Membership::where('order_number', $request->membership_number)->update(['expiry_reason' => $request->expiry_reason]);
+
+			//SAVE CASE API LOG
+			saveApiLog(109, $request->membership_number, $request->all(), $errors, NULL, 120);
+
+			DB::commit();
 			return response()->json([
 				'success' => true,
-				'message' => 'Updated successfully',
+				'message' => 'Policy entitlement updated successfully',
 			], $this->successStatus);
-			DB::commit();
+
 		} catch (\Exception $e) {
 			DB::rollBack();
+			//SAVE CASE API LOG
+			$errors[] = $e->getMessage() . ' Line:' . $e->getLine();
+			saveApiLog(109, $request->membership_number, $request->all(), $errors, NULL, 121);
+
 			return response()->json([
 				'success' => false,
 				'error' => 'Exception Error',

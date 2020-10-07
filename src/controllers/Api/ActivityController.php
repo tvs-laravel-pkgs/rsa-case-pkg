@@ -424,8 +424,8 @@ class ActivityController extends Controller {
 
 				}
 
-				//IF DATA SRC IS CRM WEB APP
-				if ($activity->data_src_id == 261) {
+				//IF DATA SRC IS CRM WEB APP AND ASP IS NOT ROS ASP MEANS
+				if ($activity->data_src_id == 261 && $asp->is_ros_asp == 0) {
 					//ON HOLD
 					$activity->status_id = 17;
 					$activity->save();

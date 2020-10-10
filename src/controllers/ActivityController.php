@@ -171,10 +171,10 @@ class ActivityController extends Controller {
 				//log message
 				$log_status = config('rsa.LOG_STATUES_TEMPLATES.ADMIN_TICKET_BACK_ASP');
 				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ADMIN_TICKET_BACK_ASP');
-				logActivity2(config('constants.entity_types.ticket'), $activity->id, [
+				logActivity3(config('constants.entity_types.ticket'), $activity->id, [
 					'Status' => $log_status,
 					'Waiting for' => $log_waiting,
-				]);
+				], 361);
 
 				$noty_message_template = 'WAITING_FOR_ASP_DATA_ENTRY';
 				$user_id = $activity->asp->user->id;
@@ -196,10 +196,10 @@ class ActivityController extends Controller {
 				//log message
 				$log_status = config('rsa.LOG_STATUES_TEMPLATES.ADMIN_TICKET_BACK_BO_DEFERRED');
 				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ADMIN_TICKET_BACK_BO_DEFERRED');
-				logActivity2(config('constants.entity_types.ticket'), $activity->id, [
+				logActivity3(config('constants.entity_types.ticket'), $activity->id, [
 					'Status' => $log_status,
 					'Waiting for' => $log_waiting,
-				]);
+				], 361);
 
 				$noty_message_template = 'BO_DEFERRED';
 				$user_id = $activity->asp->user->id;
@@ -808,6 +808,7 @@ class ActivityController extends Controller {
 			$activity->bo_comments = isset($request->bo_comments) ? $request->bo_comments : NULL;
 			$activity->deduction_reason = isset($request->deduction_reason) ? $request->deduction_reason : NULL;
 			$activity->status_id = 11;
+			$activity->updated_by_id = Auth::user()->id;
 			$activity->save();
 			$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_DEFERRED');
 			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_APPROVED');
@@ -873,6 +874,7 @@ class ActivityController extends Controller {
 			foreach ($activities as $key => $activity) {
 
 				$activity->status_id = 11;
+				$activity->updated_by_id = Auth::user()->id;
 				$activity->save();
 
 				$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_BULK');
@@ -922,6 +924,7 @@ class ActivityController extends Controller {
 			$activity->bo_comments = isset($request->bo_comments) ? $request->bo_comments : NULL;
 			$activity->deduction_reason = isset($request->deduction_reason) ? $request->deduction_reason : NULL;
 			//$activity->comments = $request->reason;
+			$activity->updated_by_id = Auth::user()->id;
 			$activity->save();
 
 			//Saving log record
@@ -1307,7 +1310,7 @@ class ActivityController extends Controller {
 				$is_bulk = false;
 
 			}
-			//ASP DATA ENTRY - NEW
+			//ASP DATA RE-ENTRY - DEFERRED
 			if ($request->data_reentry == '1') {
 				if ($is_bulk) {
 					$activity->status_id = 8;
@@ -1315,7 +1318,7 @@ class ActivityController extends Controller {
 					$activity->status_id = 9;
 				}
 			} else {
-				//ASP DATA RE-ENTRY - DEFERRED
+				//ASP DATA ENTRY - NEW
 				if ($is_bulk) {
 					$activity->status_id = 5;
 				} else {
@@ -1334,6 +1337,7 @@ class ActivityController extends Controller {
 				$activity->remarks = $request->remarks_not_collected;
 			}
 
+			$activity->updated_by_id = Auth::user()->id;
 			$activity->save();
 
 			//UPDATE ASP ACTIVITY DETAILS & CALCULATE INVOICE AMOUNT FOR ASP & BO BASED ON ASP ENTERTED DETAILS

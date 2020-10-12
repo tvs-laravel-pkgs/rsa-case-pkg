@@ -997,7 +997,11 @@ class ActivityController extends Controller {
 		// $threeMonthsBefore = "2019-04-01";
 
 		//CHECK TICKET EXIST WITH DATA ENTRY STATUS & DATE FOR ASP
-		$query = Activity::select('activities.id as id', 'cases.created_at as case_created_at')
+		$query = Activity::select([
+			'activities.id as id',
+			'cases.created_at as case_created_at',
+			'cases.date as case_date',
+		])
 			->join('cases', 'cases.id', 'activities.case_id')
 			->where(function ($q) use ($number) {
 				$q->where('cases.number', $number)
@@ -1013,10 +1017,10 @@ class ActivityController extends Controller {
 
 		if ($ticket) {
 			//IF CASE CREATED AT DATE BETWEEN AUGEST MONTH MEANS THROW ERROR
-			$case_created_at = date('Y-m-d', strtotime($ticket->case_created_at));
+			$case_date = date('Y-m-d', strtotime($ticket->case_date));
 			$augest_from_date = date('Y-m-d', strtotime("01-08-2020"));
 			$augest_to_date = date('Y-m-d', strtotime("31-08-2020"));
-			if (($case_created_at >= $augest_from_date) && ($case_created_at <= $augest_to_date)) {
+			if (($case_date >= $augest_from_date) && ($case_date <= $augest_to_date)) {
 				return response()->json([
 					'success' => false,
 					'errors' => [

@@ -1181,7 +1181,7 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$range_limit = "";
+			$range_limit = 0;
 
 			if (!empty($request->update_attach_map_id)) {
 				$update_attach_km_map_ids = json_decode($request->update_attach_km_map_id, true);
@@ -1191,8 +1191,14 @@ class ActivityController extends Controller {
 				$update_attach_other_ids = json_decode($request->update_attach_other_id, true);
 				Attachment::whereIn('id', $update_attach_other_ids)->delete();
 			}
+			$cc_service_type_exist = ActivityDetail::where('activity_id', $activity->id)
+				->where('key_id', 153)
+				->first();
+			$cc_service_type = ServiceType::where('name', $cc_service_type_exist->value)->first();
 
-			$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();
+			$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
+				->where('service_type_id', $cc_service_type->id)
+				->first();
 			if ($aspServiceType) {
 				$range_limit = $aspServiceType->range_limit;
 			}
@@ -1256,15 +1262,14 @@ class ActivityController extends Controller {
 			$is_bulk = true;
 
 			//1. checking MIS and ASP Service
-			if ($request->asp_service_type_id && $activity->service_type_id != $request->asp_service_type_id) {
+			if ($request->asp_service_type_id && ($cc_service_type->id != $request->asp_service_type_id)) {
 				$is_bulk = false;
-
 			}
 
 			//2. checking MIS and ASP KMs
 			$allowed_variation = 0.5;
 			$five_percentage_difference = $mis_km * $allowed_variation / 100;
-			if ($asp_km > $range_limit || $range_limit == "") {
+			if ($asp_km > $range_limit || $range_limit == 0) {
 				if ($asp_km > $mis_km) {
 					$km_difference = $asp_km - $mis_km;
 					if ($km_difference > $five_percentage_difference) {

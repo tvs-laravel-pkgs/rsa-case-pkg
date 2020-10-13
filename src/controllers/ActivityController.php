@@ -527,11 +527,19 @@ class ActivityController extends Controller {
 		$this->data['activities']['km_travelled_attachments'] = $km_travelled_attachments = Attachment::where([['entity_id', '=', $activity_status_id], ['entity_type', '=', 16]])->get();
 		$this->data['activities']['other_charges_attachments'] = $other_charges_attachments = Attachment::where([['entity_id', '=', $activity_status_id], ['entity_type', '=', 17]])->get();
 		$other_charges_attachment_url = $km_travelled_attachment_url = [];
-		foreach ($km_travelled_attachments as $key => $km_travelled_attachment) {
-			$km_travelled_attachment_url[$key] = aspTicketAttachmentImage($km_travelled_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $activity->serviceType->id);
+		if ($km_travelled_attachments->isNotEmpty()) {
+			foreach ($km_travelled_attachments as $key => $km_travelled_attachment) {
+				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $activity->serviceType->id . '/' . $km_travelled_attachment->attachment_file_name)) {
+					$km_travelled_attachment_url[$key] = aspTicketAttachmentImage($km_travelled_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $activity->serviceType->id);
+				}
+			}
 		}
-		foreach ($other_charges_attachments as $key => $other_charges_attachment) {
-			$other_charges_attachment_url[$key] = aspTicketAttachmentImage($other_charges_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $activity->serviceType->id);
+		if ($other_charges_attachments->isNotEmpty()) {
+			foreach ($other_charges_attachments as $key => $other_charges_attachment) {
+				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $activity->serviceType->id . '/' . $other_charges_attachment->attachment_file_name)) {
+					$other_charges_attachment_url[$key] = aspTicketAttachmentImage($other_charges_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $activity->serviceType->id);
+				}
+			}
 		}
 		$this->data['activities']['km_travelled_attachment_url'] = $km_travelled_attachment_url;
 		$this->data['activities']['other_charges_attachment_url'] = $other_charges_attachment_url;

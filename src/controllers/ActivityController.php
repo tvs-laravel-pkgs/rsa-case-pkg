@@ -171,10 +171,10 @@ class ActivityController extends Controller {
 				//log message
 				$log_status = config('rsa.LOG_STATUES_TEMPLATES.ADMIN_TICKET_BACK_ASP');
 				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ADMIN_TICKET_BACK_ASP');
-				logActivity2(config('constants.entity_types.ticket'), $activity->id, [
+				logActivity3(config('constants.entity_types.ticket'), $activity->id, [
 					'Status' => $log_status,
 					'Waiting for' => $log_waiting,
-				]);
+				], 361);
 
 				$noty_message_template = 'WAITING_FOR_ASP_DATA_ENTRY';
 				$user_id = $activity->asp->user->id;
@@ -196,10 +196,10 @@ class ActivityController extends Controller {
 				//log message
 				$log_status = config('rsa.LOG_STATUES_TEMPLATES.ADMIN_TICKET_BACK_BO_DEFERRED');
 				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ADMIN_TICKET_BACK_BO_DEFERRED');
-				logActivity2(config('constants.entity_types.ticket'), $activity->id, [
+				logActivity3(config('constants.entity_types.ticket'), $activity->id, [
 					'Status' => $log_status,
 					'Waiting for' => $log_waiting,
-				]);
+				], 361);
 
 				$noty_message_template = 'BO_DEFERRED';
 				$user_id = $activity->asp->user->id;
@@ -527,11 +527,19 @@ class ActivityController extends Controller {
 		$this->data['activities']['km_travelled_attachments'] = $km_travelled_attachments = Attachment::where([['entity_id', '=', $activity_status_id], ['entity_type', '=', 16]])->get();
 		$this->data['activities']['other_charges_attachments'] = $other_charges_attachments = Attachment::where([['entity_id', '=', $activity_status_id], ['entity_type', '=', 17]])->get();
 		$other_charges_attachment_url = $km_travelled_attachment_url = [];
-		foreach ($km_travelled_attachments as $key => $km_travelled_attachment) {
-			$km_travelled_attachment_url[$key] = aspTicketAttachmentImage($km_travelled_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $activity->serviceType->id);
+		if ($km_travelled_attachments->isNotEmpty()) {
+			foreach ($km_travelled_attachments as $key => $km_travelled_attachment) {
+				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $activity->serviceType->id . '/' . $km_travelled_attachment->attachment_file_name)) {
+					$km_travelled_attachment_url[$key] = aspTicketAttachmentImage($km_travelled_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $activity->serviceType->id);
+				}
+			}
 		}
-		foreach ($other_charges_attachments as $key => $other_charges_attachment) {
-			$other_charges_attachment_url[$key] = aspTicketAttachmentImage($other_charges_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $activity->serviceType->id);
+		if ($other_charges_attachments->isNotEmpty()) {
+			foreach ($other_charges_attachments as $key => $other_charges_attachment) {
+				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $activity->serviceType->id . '/' . $other_charges_attachment->attachment_file_name)) {
+					$other_charges_attachment_url[$key] = aspTicketAttachmentImage($other_charges_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $activity->serviceType->id);
+				}
+			}
 		}
 		$this->data['activities']['km_travelled_attachment_url'] = $km_travelled_attachment_url;
 		$this->data['activities']['other_charges_attachment_url'] = $other_charges_attachment_url;
@@ -808,6 +816,7 @@ class ActivityController extends Controller {
 			$activity->bo_comments = isset($request->bo_comments) ? $request->bo_comments : NULL;
 			$activity->deduction_reason = isset($request->deduction_reason) ? $request->deduction_reason : NULL;
 			$activity->status_id = 11;
+			$activity->updated_by_id = Auth::user()->id;
 			$activity->save();
 			$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_DEFERRED');
 			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_APPROVED');
@@ -873,6 +882,7 @@ class ActivityController extends Controller {
 			foreach ($activities as $key => $activity) {
 
 				$activity->status_id = 11;
+				$activity->updated_by_id = Auth::user()->id;
 				$activity->save();
 
 				$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_BULK');
@@ -922,6 +932,7 @@ class ActivityController extends Controller {
 			$activity->bo_comments = isset($request->bo_comments) ? $request->bo_comments : NULL;
 			$activity->deduction_reason = isset($request->deduction_reason) ? $request->deduction_reason : NULL;
 			//$activity->comments = $request->reason;
+			$activity->updated_by_id = Auth::user()->id;
 			$activity->save();
 
 			//Saving log record
@@ -994,7 +1005,11 @@ class ActivityController extends Controller {
 		// $threeMonthsBefore = "2019-04-01";
 
 		//CHECK TICKET EXIST WITH DATA ENTRY STATUS & DATE FOR ASP
-		$query = Activity::select('activities.id as id', 'cases.created_at as case_created_at')
+		$query = Activity::select([
+			'activities.id as id',
+			'cases.created_at as case_created_at',
+			'cases.date as case_date',
+		])
 			->join('cases', 'cases.id', 'activities.case_id')
 			->where(function ($q) use ($number) {
 				$q->where('cases.number', $number)
@@ -1010,10 +1025,10 @@ class ActivityController extends Controller {
 
 		if ($ticket) {
 			//IF CASE CREATED AT DATE BETWEEN AUGEST MONTH MEANS THROW ERROR
-			$case_created_at = date('Y-m-d', strtotime($ticket->case_created_at));
+			$case_date = date('Y-m-d', strtotime($ticket->case_date));
 			$augest_from_date = date('Y-m-d', strtotime("01-08-2020"));
 			$augest_to_date = date('Y-m-d', strtotime("31-08-2020"));
-			if (($case_created_at >= $augest_from_date) && ($case_created_at <= $augest_to_date)) {
+			if (($case_date >= $augest_from_date) && ($case_date <= $augest_to_date)) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -1174,7 +1189,7 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$range_limit = "";
+			$range_limit = 0;
 
 			if (!empty($request->update_attach_map_id)) {
 				$update_attach_km_map_ids = json_decode($request->update_attach_km_map_id, true);
@@ -1184,8 +1199,14 @@ class ActivityController extends Controller {
 				$update_attach_other_ids = json_decode($request->update_attach_other_id, true);
 				Attachment::whereIn('id', $update_attach_other_ids)->delete();
 			}
+			$cc_service_type_exist = ActivityDetail::where('activity_id', $activity->id)
+				->where('key_id', 153)
+				->first();
+			$cc_service_type = ServiceType::where('name', $cc_service_type_exist->value)->first();
 
-			$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)->where('service_type_id', $activity->service_type_id)->first();
+			$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
+				->where('service_type_id', $cc_service_type->id)
+				->first();
 			if ($aspServiceType) {
 				$range_limit = $aspServiceType->range_limit;
 			}
@@ -1249,15 +1270,14 @@ class ActivityController extends Controller {
 			$is_bulk = true;
 
 			//1. checking MIS and ASP Service
-			if ($request->asp_service_type_id && $activity->service_type_id != $request->asp_service_type_id) {
+			if ($request->asp_service_type_id && ($cc_service_type->id != $request->asp_service_type_id)) {
 				$is_bulk = false;
-
 			}
 
 			//2. checking MIS and ASP KMs
 			$allowed_variation = 0.5;
 			$five_percentage_difference = $mis_km * $allowed_variation / 100;
-			if ($asp_km > $range_limit || $range_limit == "") {
+			if ($asp_km > $range_limit || $range_limit == 0) {
 				if ($asp_km > $mis_km) {
 					$km_difference = $asp_km - $mis_km;
 					if ($km_difference > $five_percentage_difference) {
@@ -1307,7 +1327,7 @@ class ActivityController extends Controller {
 				$is_bulk = false;
 
 			}
-			//ASP DATA ENTRY - NEW
+			//ASP DATA RE-ENTRY - DEFERRED
 			if ($request->data_reentry == '1') {
 				if ($is_bulk) {
 					$activity->status_id = 8;
@@ -1315,7 +1335,7 @@ class ActivityController extends Controller {
 					$activity->status_id = 9;
 				}
 			} else {
-				//ASP DATA RE-ENTRY - DEFERRED
+				//ASP DATA ENTRY - NEW
 				if ($is_bulk) {
 					$activity->status_id = 5;
 				} else {
@@ -1334,6 +1354,7 @@ class ActivityController extends Controller {
 				$activity->remarks = $request->remarks_not_collected;
 			}
 
+			$activity->updated_by_id = Auth::user()->id;
 			$activity->save();
 
 			//UPDATE ASP ACTIVITY DETAILS & CALCULATE INVOICE AMOUNT FOR ASP & BO BASED ON ASP ENTERTED DETAILS

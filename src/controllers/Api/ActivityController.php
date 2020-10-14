@@ -426,9 +426,16 @@ class ActivityController extends Controller {
 
 				//IF DATA SRC IS CRM WEB APP
 				if ($activity->data_src_id == 261) {
-					//ON HOLD
-					$activity->status_id = 17;
-					$activity->save();
+					//IF ROS ASP then changes status as Waitin for ASP data entry. If not change status as on hold
+					if ($asp->is_ros_asp == 1) {
+						//ASP Rejected CC Details - Waiting for ASP Data Entry
+						$activity->status_id = 2;
+						$activity->save();
+					} else {
+						//ON HOLD
+						$activity->status_id = 17;
+						$activity->save();
+					}
 				}
 			}
 

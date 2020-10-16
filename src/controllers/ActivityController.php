@@ -1024,18 +1024,6 @@ class ActivityController extends Controller {
 			->first();
 
 		if ($ticket) {
-			//IF CASE CREATED AT DATE BETWEEN AUGEST MONTH MEANS THROW ERROR
-			$case_date = date('Y-m-d', strtotime($ticket->case_date));
-			$augest_from_date = date('Y-m-d', strtotime("01-08-2020"));
-			$augest_to_date = date('Y-m-d', strtotime("31-08-2020"));
-			if (($case_date >= $augest_from_date) && ($case_date <= $augest_to_date)) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						"System is under maintenance we will let you know once it is resume",
-					],
-				]);
-			}
 			return response()->json([
 				'success' => true,
 				'activity_id' => $ticket->id,

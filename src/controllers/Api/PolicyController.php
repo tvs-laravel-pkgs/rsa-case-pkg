@@ -58,7 +58,10 @@ class PolicyController extends Controller {
 				], $this->successStatus);
 			}
 
-			Membership::where('order_number', $request->membership_number)->update(['expiry_reason' => $request->expiry_reason]);
+			Membership::where('order_number', $request->membership_number)->update([
+				'expiry_reason' => $request->expiry_reason,
+				'expiry_date' => date('Y-m-d'),
+			]);
 
 			//SAVE CASE API LOG
 			saveApiLog(109, $request->membership_number, $request->all(), $errors, NULL, 120);

@@ -2019,6 +2019,7 @@ class ActivityController extends Controller {
 			'CRM Activity ID',
 			'Activity Number',
 			'Activity Date',
+			'Client Name',
 			'Customer Name',
 			'Customer Contact Number',
 			'ASP Name',
@@ -2040,7 +2041,7 @@ class ActivityController extends Controller {
 			'Vehicle Make',
 			'Case Status',
 			'Finance Status',
-			'ASP Service Type',
+			'Final Approved BO Service Type',
 			'ASP Activity Rejected Reason',
 			'ASP PO Accepted',
 			'ASP PO Rejected Reason',
@@ -2109,6 +2110,7 @@ class ActivityController extends Controller {
 				$activity->crm_activity_id,
 				$activity->number,
 				date('d-m-Y H:i:s', strtotime($activity->created_at)),
+				$activity->case->client->name,
 				$activity->case->customer_name,
 				$activity->case->customer_contact_number,
 				$activity->asp->name ? $activity->asp->name : '',
@@ -2271,7 +2273,7 @@ class ActivityController extends Controller {
 			$excel->sheet('Activity Informations', function ($sheet) use ($activity_details_header, $activity_details_data) {
 				$sheet->fromArray($activity_details_data, NULL, 'A1');
 				$sheet->row(1, $activity_details_header);
-				$sheet->cells('A1:DM1', function ($cells) {
+				$sheet->cells('A1:DO1', function ($cells) {
 					$cells->setFont(array(
 						'size' => '10',
 						'bold' => true,

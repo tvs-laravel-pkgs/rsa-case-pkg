@@ -654,6 +654,24 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'renewal-membership',
 				'display_name' => 'Renewal Memberships',
 			],
+			[
+				'display_order' => 1,
+				'parent' => 'renewal-membership',
+				'name' => 'own-renewal-membership',
+				'display_name' => 'Own Only',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'renewal-membership',
+				'name' => 'own-dealer-renewal-membership',
+				'display_name' => 'Own Dealer',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'renewal-membership',
+				'name' => 'all-renewal-membership',
+				'display_name' => 'All',
+			],
 
 			//VEHICLE SEARCH
 			[

@@ -503,6 +503,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'import-membership',
 				'display_name' => 'Import',
 			],
+			[
+				'display_order' => 15,
+				'parent' => 'membership',
+				'name' => 'initiate-cancel-membership',
+				'display_name' => 'Initiate Cancellation',
+			],
 
 			//Dealer Invoice Menu
 			[
@@ -706,6 +712,21 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'own_asp_invoices',
 				'display_name' => 'Only Own',
 			],
+
+			//MEMBERSHIP CANCELLATION
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'membership-cancellation',
+				'display_name' => 'Membership Cancellation',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'membership-cancellation',
+				'name' => 'approve-membership-cancellation',
+				'display_name' => 'Approve',
+			],
+
 		];
 		Permission::createFromArrays($permissions);
 	}

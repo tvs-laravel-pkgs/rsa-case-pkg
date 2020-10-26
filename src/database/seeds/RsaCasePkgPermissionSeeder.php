@@ -723,8 +723,40 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 			[
 				'display_order' => 1,
 				'parent' => 'membership-cancellation',
+				'name' => 'view-membership-cancellation',
+				'display_name' => 'View',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'membership-cancellation',
 				'name' => 'approve-membership-cancellation',
 				'display_name' => 'Approve',
+			],
+
+			//MEMBERSHIP CANCELLATION INVOICE
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'membership-cancellation-invoice',
+				'display_name' => 'Membership Cancellation Invoice',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'membership-cancellation-invoice',
+				'name' => 'view-membership-cancellation-invoice',
+				'display_name' => 'View',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'membership-cancellation-invoice',
+				'name' => 'own-membership-cancellation-invoice',
+				'display_name' => 'Own Only',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'membership-cancellation-invoice',
+				'name' => 'all-membership-cancellation-invoice',
+				'display_name' => 'All',
 			],
 
 		];

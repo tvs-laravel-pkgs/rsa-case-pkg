@@ -759,6 +759,13 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'All',
 			],
 
+			//MEMBERSHIP MENU
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'membership-menu',
+				'display_name' => 'Membership Menu',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

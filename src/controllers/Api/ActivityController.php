@@ -321,6 +321,24 @@ class ActivityController extends Controller {
 			}
 
 			$case = RsaCase::where('number', $request->case_number)->first();
+
+			$case_date = date('Y-m-d', strtotime($case->date));
+			//August month 2020 cases should not be allowed due to cases were already closed - temporarily
+			if ($case_date >= "2020-08-01" && $case_date <= "2020-08-31") {
+				//SAVE CASE API LOG
+				$errors[] = "Rejected as August month case closed";
+				saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						"Rejected as August month case closed",
+					],
+				], $this->successStatus);
+			}
+
 			//CHECK CASE IS CLOSED
 			// if ($case->status_id == 4) {
 			// 	return response()->json([

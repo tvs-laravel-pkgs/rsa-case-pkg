@@ -465,4 +465,21 @@ class InvoiceController extends Controller {
 		return InvoiceVoucher::getASPInvoicePaymentViewInfo($invoice_id);
 	}
 
+	public function getVoucherDetails() {
+		try
+		{
+			$invoices = Invoices::where('flow_current_status', 'Payment Inprogress')->limit(100)->get();
+			if ($invoices->isNotEmpty()) {
+				foreach ($invoices as $key => $invoice) {
+					$invoice_no = $invoice->invoice_no;
+					dump(' == before === ' . $invoice_no);
+					$this->getSoap->GetPaymentInfoByInvoice($invoice->id, $invoice_no);
+					dump(' invoice no' . $invoice_no . ' === success ==');
+				}
+			}
+		} catch (\Exception $e) {
+			dd($e);
+		}
+	}
+
 }

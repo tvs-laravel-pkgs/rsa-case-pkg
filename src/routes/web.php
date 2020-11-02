@@ -56,6 +56,8 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	Route::post('/invoice/export', 'InvoiceController@export')->name('exportInvoice');
 	Route::get('/invoice/get/payment-info/{id}', 'InvoiceController@getPaymentInfo')->name('getPaymentInfo');
 
+	Route::get('/invoice/get-voucher-details', 'InvoiceController@getVoucherDetails')->name('getVoucherDetails');
+
 	//BATCH GENERATION
 	Route::get('/batch-generation/get-list', 'BatchController@getList')->name('getListData');
 	Route::post('/batch-generation/generate-batch', 'BatchController@generateBatch')->name('generateBatch');

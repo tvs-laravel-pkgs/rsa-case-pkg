@@ -766,6 +766,32 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'membership-menu',
 				'display_name' => 'Membership Menu',
 			],
+
+			//MEMBERSHIP CUSTOMER INVOICE
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'membership-customer-invoice',
+				'display_name' => 'Membership Customer Invoice',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'membership-customer-invoice',
+				'name' => 'view-membership-customer-invoice',
+				'display_name' => 'View',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'membership-customer-invoice',
+				'name' => 'own-membership-customer-invoice',
+				'display_name' => 'Own Only',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'membership-customer-invoice',
+				'name' => 'all-membership-customer-invoice',
+				'display_name' => 'All',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

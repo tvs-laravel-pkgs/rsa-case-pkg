@@ -704,6 +704,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'all-vehicle-search',
 				'display_name' => 'All',
 			],
+			[
+				'display_order' => 4,
+				'parent' => 'vehicle-search',
+				'name' => 'own-client-vehicle-search',
+				'display_name' => 'Own Client',
+			],
 
 			//ASP INVOICES - OLD PROCESS
 			[

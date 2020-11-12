@@ -645,7 +645,7 @@ class ActivityController extends Controller {
 				$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '-') : '-';
 				$raw_key_name = 'raw_' . $config->name;
 				$this->data['activities'][$raw_key_name] = $detail ? (!empty($detail->value) ? $detail->value : '-') : '-';
-			} else if (strpos($config->name, 'date')) {
+			} elseif (strpos($config->name, 'date')) {
 				$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? date("d-m-Y H:i:s", strtotime($detail->value)) : '-') : '-';
 			} else {
 				$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? $detail->value : '-') : '-';
@@ -654,7 +654,7 @@ class ActivityController extends Controller {
 		}
 		/*if ($this->data['activities']['asp_service_type_data']->adjustment_type == 1) {
 				$this->data['activities']['bo_deduction'] = ($this->data['activities']['raw_bo_po_amount'] * $this->data['activities']['asp_service_type_data']->adjustment) / 100;
-			} else if ($this->data['activities']['asp_service_type_data']->adjustment_type == 2) {
+			} elseif ($this->data['activities']['asp_service_type_data']->adjustment_type == 2) {
 				//AMOUNT
 				$this->data['activities']['bo_deduction'] = $this->data['activities']['asp_service_type_data']->adjustment;
 		*/
@@ -1064,7 +1064,7 @@ class ActivityController extends Controller {
 							//If the ticket is June, then closing date is 27 Sep 2020
 							if ($ticket_creation_date >= "2020-06-01" && $ticket_creation_date <= "2020-06-31") {
 								$ticket_closing_date = "2020-09-27";
-							} else if ($ticket_creation_date >= "2020-07-01" && $ticket_creation_date <= "2020-07-31") {
+							} elseif ($ticket_creation_date >= "2020-07-01" && $ticket_creation_date <= "2020-07-31") {
 								//If the ticket is July, then closing date is 11 Oct 2020
 								$ticket_closing_date = "2020-10-11";
 							} else {

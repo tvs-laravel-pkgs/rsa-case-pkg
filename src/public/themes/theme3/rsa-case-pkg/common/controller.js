@@ -267,6 +267,7 @@ app.component('caseDetails', {
         this.$onInit = function() {
             setTimeout(function(){
                 self.hasPermission = HelperService.hasPermission;
+                
                 var form_id = '#case_submission_closing_date_form';
                 var v = jQuery(form_id).validate({
                     rules: {
@@ -298,6 +299,7 @@ app.component('caseDetails', {
                                     custom_noty('error', errors);
                                 } else {
                                     custom_noty('success', res.message);
+                                    $('#case-submission-closing-date').modal('hide');
                                     setTimeout(function() {
                                         $location.path('/rsa-case-pkg/activity-status/list');
                                         $scope.$apply();

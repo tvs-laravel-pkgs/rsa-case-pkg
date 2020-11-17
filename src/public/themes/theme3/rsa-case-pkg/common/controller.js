@@ -62,10 +62,6 @@ app.component('serviceDetails', {
                 $(".km_value").keyup(function() {
                     var entry = parseInt($(this).val());
                     var asp = parseInt($(".asp_value").text());
-                    console.log('entry');
-                    console.log(entry);
-                    console.log('asp');
-                    console.log(asp);
                     if (entry > asp) {
                         $(this).val("");
                         $(".alert-danger").show();
@@ -272,7 +268,7 @@ app.component('caseDetails', {
                 $(".date-picker").datepicker({
                     format: 'dd-mm-yyyy',
                     autoclose: true,
-                    startDate: new Date(),
+                    // startDate: new Date(),
                 });
 
                 var form_id = '#case_submission_closing_date_form';
@@ -310,7 +306,7 @@ app.component('caseDetails', {
                                     setTimeout(function() {
                                         $location.path('/rsa-case-pkg/activity-status/list');
                                         $scope.$apply();
-                                    }, 1500);
+                                    }, 500);
                                 }
                             })
                             .fail(function(xhr) {
@@ -319,7 +315,7 @@ app.component('caseDetails', {
                             });
                     }
                 });
-            }, 1500);
+            }, 1000);
         };
     }
 });

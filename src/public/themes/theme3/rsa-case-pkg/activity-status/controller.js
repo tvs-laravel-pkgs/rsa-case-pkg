@@ -6,6 +6,7 @@ app.component('activityStatusList', {
         self.hasPermission = HelperService.hasPermission;
         self.filter_img_url = filter_img_url;
         self.export_activities = export_activities;
+        self.releaseOnHold = releaseOnHold;
         self.canExportActivity = canExportActivity;
         self.canImportActivity = canImportActivity;
         self.activity_back_asp_update_route = activity_back_asp_update;
@@ -115,6 +116,12 @@ app.component('activityStatusList', {
             $scope.refresh = function() {
                 $('#activities_status_table').DataTable().ajax.reload();
             };
+
+            $(".date-picker").datepicker({
+                format: 'dd-mm-yyyy',
+                autoclose: true,
+                endDate: new Date(),
+            });
 
             $scope.deleteConfirm = function($id) {
                 bootbox.confirm({
@@ -242,6 +249,49 @@ app.component('activityStatusList', {
 
                 submitHandler: function(form) {
                     form.submit();
+                }
+            });
+
+            var form_id = '#release_onhold_case_form';
+            var v = jQuery(form_id).validate({
+                rules: {
+                    case_date: {
+                        required: true,
+                    },
+                },
+                messages: {
+                    case_date: "Please Select Case Date",
+                },
+
+                submitHandler: function(form) {
+                    let formData = new FormData($(form_id)[0]);
+                    $('#submit_id').button('loading');
+                    $.ajax({
+                            url: laravel_routes['releaseOnHold'],
+                            method: "POST",
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                        })
+                        .done(function(res) {
+                            if (!res.success) {
+                                $('#submit_id').button('reset');
+                                var errors = '';
+                                for (var i in res.errors) {
+                                    errors += '<li>' + res.errors[i] + '</li>';
+                                }
+                                custom_noty('error', errors);
+                            } else {
+                                custom_noty('success', res.message);
+                                $('#submit_id').button('reset');
+                                $('#release-onhold-case').modal('hide');
+                                $('#activities_status_table').DataTable().ajax.reload();
+                            }
+                        })
+                        .fail(function(xhr) {
+                            $('#submit_id').button('reset');
+                            custom_noty('error', 'Something went wrong at server');
+                        });
                 }
             });
 

@@ -831,6 +831,14 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Add',
 			],
 
+			//RELEASE ONHOLD CASES
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'release-onhold-case',
+				'display_name' => 'Release OnHold Case',
+			],
+
 		];
 		Permission::createFromArrays($permissions);
 	}

@@ -2284,6 +2284,58 @@ class ActivityController extends Controller {
 
 		return redirect()->back()->with(['success' => 'exported!']);
 	}
+
+	public function releaseOnHold(Request $r) {
+		// dd($r->all());
+		DB::beginTransaction();
+		try {
+			if (empty($r->case_date)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Please Select Case Date',
+					],
+				]);
+			}
+			$case_date = date('Y-m-d', strtotime($r->case_date));
+			$activity_ids = Activity::select([
+				'activities.id',
+			])
+				->join('cases', 'cases.id', 'activities.case_id')
+				->where('activities.status_id', 17) //ONHOLD
+				->whereDate('cases.date', '<=', $case_date)
+				->pluck('id')
+				->toArray();
+
+			if (empty($activity_ids)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'No activities in the selected case date',
+					],
+				]);
+			}
+
+			Activity::whereIn('id', $activity_ids)->update([
+				'status_id' => 2,
+				'updated_by_id' => Auth::id(),
+			]);
+			DB::commit();
+			return response()->json([
+				'success' => true,
+				'message' => 'OnHold Cases have been released for the selected case date',
+			]);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Exception Error' => $e->getMessage(),
+				],
+			]);
+		}
+	}
 	public static function findDifference($date1, $date2) {
 		$date1 = date_create(date('Y-m-d', strtotime($date1)));
 		$date2 = date_create(date('Y-m-d', strtotime($date2)));

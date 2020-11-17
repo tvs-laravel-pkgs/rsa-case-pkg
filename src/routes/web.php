@@ -19,6 +19,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	Route::post('activity-status/activity-status-change', 'ActivityController@activityBackAsp')->name('activityBackAspUpdate');
 	Route::post('activity-status/search-asps', 'ActivityController@searchAsps')->name('activityStatusSearchAsps');
 	Route::post('activity-status/search-clients', 'ActivityController@searchClients')->name('activityStatusSearchClients');
+	Route::post('activity/onhold/release', 'ActivityController@releaseOnHold')->name('releaseOnHold');
 
 	//ASP NEW ACTIVITY
 	Route::get('/new-activity/get-form-data/{id?}', 'ActivityController@activityNewGetFormData')->name('activityNewGetFormData');

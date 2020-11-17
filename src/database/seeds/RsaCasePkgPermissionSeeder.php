@@ -74,6 +74,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'backstep-activity',
 				'display_name' => 'Backstep Activity',
 			],
+			[
+				'display_order' => 9,
+				'parent' => 'activity-status',
+				'name' => 'select-case-submission-closing-date-activity',
+				'display_name' => 'Select Case Submission Closing Date',
+			],
 
 			//ACTIVITIES VERIFICATION
 			[

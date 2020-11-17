@@ -816,6 +816,21 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'all-membership-customer-invoice',
 				'display_name' => 'All',
 			],
+
+			//CREDIT DEBIT NOTE
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'credit-debit-note',
+				'display_name' => 'Credit Debit Note',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'credit-debit-note',
+				'name' => 'add-credit-debit-note',
+				'display_name' => 'Add',
+			],
+
 		];
 		Permission::createFromArrays($permissions);
 	}

@@ -1,10 +1,15 @@
+<div class="row">
+    <div class="col-xs-12 col-sm-3 col-md-3">
+        <button class="btn btn-md" data-toggle="modal" data-target="#case-submission-closing-date">Update Case Submission</button>
+    </div>
+</div>
 <div class="viewData-wrapper bordered mt-20">
     <div class="viewData-threeColumn--wrapper">
         <div class="row">
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
                     <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
-                        <p>Case Number</p>
+                        <p>Case Number ddd</p>
                         <h3>{{$ctrl.data.number}}</h3>
                     </li>
                 </ul>
@@ -144,3 +149,41 @@
         </div>
     </div>
 </div>
+<!-- Modal -->
+<div class="modal fade" id="case-submission-closing-date" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <img class="close_btn" src="{{ $ctrl.modal_close }}">
+                </a>
+                <h4 class="modal-title">Case Submission Closing Date</h4>
+            </div>
+            <form id="case_submission_closing_date_form" method="post">
+                <input type="hidden" name="_token" value="{{$ctrl.csrf}}" />
+                <input type="hidden" name="activity_id" value="{{$ctrl.data.id}}" />
+                <div class="modal-body">
+                    <div class="approvalModal-wrapper">
+                        <div class="viewData-threeColumn--wrapper">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                <label>Closing Date<sup class="req" style="color:red">*</sup></label>
+                                                <input name="closing_date" id="closing_date" class="form-control filter-input date-picker customForm-input" type="text" placeholder="Closing Date" autocomplete="off">
+                                            </div><!-- Field -->
+                                        </div><!-- Column -->
+                                    </div>
+                                    <div class="approvalModal-btns">
+                                        <button type="submit" class="differed-btn blue approve-btn">Submit</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div><!-- Modal -->

@@ -1928,6 +1928,44 @@ class ActivityController extends Controller {
 		}
 	}
 
+	public function updateCaseClosingDate(Request $r) {
+		DB::beginTransaction();
+		try {
+			if (empty($r->closing_date)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Please select closing date',
+					],
+				]);
+			}
+			$activity = Activity::find($r->activity_id);
+			if (!$activity) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Activity not found',
+					],
+				]);
+			}
+			$activity->case()->update(['submission_closing_date' => date('Y-m-d H:i:s', strtotime($r->closing_date))])
+			DB::commit();
+			return response()->json([
+				'success' => true,
+				'message' => 'Closing date updated successfully',
+			]);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Exception Error' => $e->getMessage(),
+				],
+			]);
+		}
+	}
+
 	public function exportActivities(Request $request) {
 		$error_messages = [
 			'status_ids.required' => "Please Select Activity Status",

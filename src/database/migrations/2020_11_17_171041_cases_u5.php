@@ -12,7 +12,7 @@ class CasesU5 extends Migration {
 	 */
 	public function up() {
 		Schema::table('cases', function (Blueprint $table) {
-			$table->datetime('submission_closing_date')->nullable()->after('bd_location_category_id');
+			$table->date('submission_closing_date')->nullable()->after('bd_location_category_id');
 		});
 	}
 

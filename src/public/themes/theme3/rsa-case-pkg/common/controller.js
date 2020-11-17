@@ -267,7 +267,14 @@ app.component('caseDetails', {
         this.$onInit = function() {
             setTimeout(function(){
                 self.hasPermission = HelperService.hasPermission;
+                self.style_modal_close_image_url = style_modal_close_image_url;
                 
+                $(".date-picker").datepicker({
+                    format: 'dd-mm-yyyy',
+                    autoclose: true,
+                    startDate: new Date(),
+                });
+
                 var form_id = '#case_submission_closing_date_form';
                 var v = jQuery(form_id).validate({
                     rules: {

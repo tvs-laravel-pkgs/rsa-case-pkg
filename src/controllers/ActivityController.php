@@ -1928,7 +1928,7 @@ class ActivityController extends Controller {
 		}
 	}
 
-	public function updateCaseClosingDate(Request $r) {
+	public function updateCaseSubmissionClosingDate(Request $r) {
 		DB::beginTransaction();
 		try {
 			if (empty($r->closing_date)) {
@@ -1948,7 +1948,10 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
-			$activity->case()->update(['submission_closing_date' => date('Y-m-d H:i:s', strtotime($r->closing_date))]);
+			$activity->case()->update([
+				'submission_closing_date' => date('Y-m-d', strtotime($r->closing_date)),
+			]);
+
 			DB::commit();
 			return response()->json([
 				'success' => true,

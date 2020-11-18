@@ -7,6 +7,7 @@ use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityPortalStatus;
 use Abs\RsaCasePkg\ActivityStatus;
+use Abs\RsaCasePkg\RsaCase;
 use App\Asp;
 use App\AspServiceType;
 use App\Attachment;
@@ -501,6 +502,7 @@ class ActivityController extends Controller {
 			'activity_finance_statuses.po_eligibility_type_id',
 			'activities.finance_status_id',
 			'activities.invoice_id',
+			'activities.status_id as activity_portal_status_id',
 			'bd_location_type.name as loction_type',
 			'bd_location_category.name as location_category'
 
@@ -1001,6 +1003,14 @@ class ActivityController extends Controller {
 		//THIS IS THE ORIGINAL CONDITION
 		$threeMonthsBefore = date('Y-m-d', strtotime("-3 months", strtotime($today))); //three months before
 
+		$submission_closing_extended = false;
+		$case = RsaCase::where('number', $number)
+			->orWhere('vehicle_registration_number', $number)
+			->first();
+		if ($case && !empty($case->submission_closing_date)) {
+			$submission_closing_extended = true;
+		}
+
 		//FOR CHANGE REQUEST BY TVS TEAM DATE GIVEN IN STATIC
 		// $threeMonthsBefore = "2019-04-01";
 
@@ -1018,7 +1028,13 @@ class ActivityController extends Controller {
 
 		$query1 = clone $query;
 
-		$ticket = $query1->whereDate('cases.created_at', '>=', $threeMonthsBefore)
+		$ticket = $query1->where(function ($q) use ($submission_closing_extended) {
+			if ($submission_closing_extended) {
+				$q->whereDate('cases.submission_closing_date', '>=', date('Y-m-d'));
+			} else {
+				$q->whereDate('cases.created_at', '>=', $threeMonthsBefore);
+			}
+		})
 			->whereIn('activities.status_id', [2, 4])
 			->where('activities.asp_id', Auth::user()->asp->id)
 			->first();
@@ -1082,7 +1098,13 @@ class ActivityController extends Controller {
 
 					//CHECK IF TICKET DATE IS GREATER THAN 3 MONTHS OLDER
 					$query4 = clone $query;
-					$check_ticket_date = $query4->whereDate('cases.created_at', '<', $threeMonthsBefore)
+					$check_ticket_date = $query4->where(function ($q) use ($submission_closing_extended) {
+						if ($submission_closing_extended) {
+							$q->whereDate('cases.submission_closing_date', '<', date('Y-m-d'));
+						} else {
+							$q->whereDate('cases.created_at', '<', $threeMonthsBefore);
+						}
+					})
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
 					if ($check_ticket_date) {
@@ -1094,7 +1116,13 @@ class ActivityController extends Controller {
 						]);
 					}
 					$query5 = clone $query;
-					$activity_on_hold = $query5->whereDate('cases.created_at', '>=', $threeMonthsBefore)
+					$activity_on_hold = $query5->where(function ($q) use ($submission_closing_extended) {
+						if ($submission_closing_extended) {
+							$q->whereDate('cases.submission_closing_date', '>=', date('Y-m-d'));
+						} else {
+							$q->whereDate('cases.created_at', '>=', $threeMonthsBefore);
+						}
+					})
 						->where('activities.status_id', 17) //ON HOLD
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
@@ -1107,7 +1135,13 @@ class ActivityController extends Controller {
 						]);
 					}
 					$query6 = clone $query;
-					$activity_already_completed = $query6->whereDate('cases.created_at', '>=', $threeMonthsBefore)
+					$activity_already_completed = $query6->where(function ($q) use ($submission_closing_extended) {
+						if ($submission_closing_extended) {
+							$q->whereDate('cases.submission_closing_date', '>=', date('Y-m-d'));
+						} else {
+							$q->whereDate('cases.created_at', '>=', $threeMonthsBefore);
+						}
+					})
 						->whereIn('activities.status_id', [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
@@ -1122,7 +1156,13 @@ class ActivityController extends Controller {
 
 					$query7 = clone $query;
 					$case_with_cancelled_status = $query7->where('cases.status_id', 3) //CANCELLED
-						->whereDate('cases.created_at', '>=', $threeMonthsBefore)
+						->where(function ($q) use ($submission_closing_extended) {
+							if ($submission_closing_extended) {
+								$q->whereDate('cases.submission_closing_date', '>=', date('Y-m-d'));
+							} else {
+								$q->whereDate('cases.created_at', '>=', $threeMonthsBefore);
+							}
+						})
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
 					if ($case_with_cancelled_status) {
@@ -1135,7 +1175,13 @@ class ActivityController extends Controller {
 					}
 					$query8 = clone $query;
 					$case_with_closed_status = $query8->where('cases.status_id', 4) //CLOSED
-						->whereDate('cases.created_at', '>=', $threeMonthsBefore)
+						->where(function ($q) use ($submission_closing_extended) {
+							if ($submission_closing_extended) {
+								$q->whereDate('cases.submission_closing_date', '>=', date('Y-m-d'));
+							} else {
+								$q->whereDate('cases.created_at', '>=', $threeMonthsBefore);
+							}
+						})
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
 					if (!$case_with_closed_status) {
@@ -1928,6 +1974,47 @@ class ActivityController extends Controller {
 		}
 	}
 
+	public function updateCaseSubmissionClosingDate(Request $r) {
+		DB::beginTransaction();
+		try {
+			if (empty($r->closing_date)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Please select closing date',
+					],
+				]);
+			}
+			$activity = Activity::find($r->activity_id);
+			if (!$activity) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Activity not found',
+					],
+				]);
+			}
+			$activity->case()->update([
+				'submission_closing_date' => date('Y-m-d', strtotime($r->closing_date)),
+			]);
+
+			DB::commit();
+			return response()->json([
+				'success' => true,
+				'message' => 'Closing date updated successfully',
+			]);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Exception Error' => $e->getMessage(),
+				],
+			]);
+		}
+	}
+
 	public function exportActivities(Request $request) {
 		$error_messages = [
 			'status_ids.required' => "Please Select Activity Status",
@@ -2016,6 +2103,7 @@ class ActivityController extends Controller {
 			'ID',
 			'Case Number',
 			'Case Date',
+			'Case Submission Closing Date',
 			'CRM Activity ID',
 			'Activity Number',
 			'Activity Date',
@@ -2103,10 +2191,16 @@ class ActivityController extends Controller {
 		$constants = config('constants');
 
 		foreach ($activities->get() as $activity_key => $activity) {
+			if (!empty($activity->case->submission_closing_date)) {
+				$submission_closing_date = date('d-m-Y', strtotime($activity->case->submission_closing_date));
+			} else {
+				$submission_closing_date = date('d-m-Y', strtotime("+3 months", strtotime($activity->case->created_at)));
+			}
 			$activity_details_data[] = [
 				$activity->id,
 				$activity->case->number,
 				date('d-m-Y H:i:s', strtotime($activity->case->date)),
+				$submission_closing_date,
 				$activity->crm_activity_id,
 				$activity->number,
 				date('d-m-Y H:i:s', strtotime($activity->created_at)),

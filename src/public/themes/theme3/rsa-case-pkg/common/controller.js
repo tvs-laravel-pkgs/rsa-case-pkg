@@ -62,10 +62,6 @@ app.component('serviceDetails', {
                 $(".km_value").keyup(function() {
                     var entry = parseInt($(this).val());
                     var asp = parseInt($(".asp_value").text());
-                    console.log('entry');
-                    console.log(entry);
-                    console.log('asp');
-                    console.log(asp);
                     if (entry > asp) {
                         $(this).val("");
                         $(".alert-danger").show();
@@ -264,6 +260,63 @@ app.component('caseDetails', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
+        this.$onInit = function() {
+            setTimeout(function(){
+                self.hasPermission = HelperService.hasPermission;
+                self.style_modal_close_image_url = style_modal_close_image_url;
+                
+                $(".date-picker").datepicker({
+                    format: 'dd-mm-yyyy',
+                    autoclose: true,
+                    // startDate: new Date(),
+                });
+
+                var form_id = '#case_submission_closing_date_form';
+                var v = jQuery(form_id).validate({
+                    rules: {
+                        closing_date: {
+                            required: true,
+                        },
+                    },
+                    messages: {
+                        period: "Please Select Closing Date",
+                    },
+
+                    submitHandler: function(form) {
+                        let formData = new FormData($(form_id)[0]);
+                        $('#submit_id').button('loading');
+                        $.ajax({
+                                url: laravel_routes['updateCaseSubmissionClosingDate'],
+                                method: "POST",
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                            })
+                            .done(function(res) {
+                                if (!res.success) {
+                                    $('#submit_id').button('reset');
+                                    var errors = '';
+                                    for (var i in res.errors) {
+                                        errors += '<li>' + res.errors[i] + '</li>';
+                                    }
+                                    custom_noty('error', errors);
+                                } else {
+                                    custom_noty('success', res.message);
+                                    $('#case-submission-closing-date').modal('hide');
+                                    setTimeout(function() {
+                                        $location.path('/rsa-case-pkg/activity-status/list');
+                                        $scope.$apply();
+                                    }, 500);
+                                }
+                            })
+                            .fail(function(xhr) {
+                                $('#submit_id').button('reset');
+                                custom_noty('error', 'Something went wrong at server');
+                            });
+                    }
+                });
+            }, 1000);
+        };
     }
 });
 

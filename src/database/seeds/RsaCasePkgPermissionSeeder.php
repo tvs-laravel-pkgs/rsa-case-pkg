@@ -762,6 +762,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'approve-membership-cancellation',
 				'display_name' => 'Approve',
 			],
+			[
+				'display_order' => 3,
+				'parent' => 'membership-cancellation',
+				'name' => 'reject-membership-cancellation',
+				'display_name' => 'Reject',
+			],
 
 			//MEMBERSHIP CANCELLATION INVOICE
 			[

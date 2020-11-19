@@ -765,10 +765,17 @@ class ActivityController extends Controller {
 			$submission_closing_date = date('d-m-Y H:i:s', strtotime("+3 months", strtotime($activityInfo->case->created_at)));
 		}
 
+		$is_case_lapsed = false;
+		$case_lapsed_date = date('Y-m-d H:i:s', strtotime("+3 months", strtotime($activityInfo->case->created_at)));
+		if (date('Y-m-d H:i:s') > $case_lapsed_date) {
+			$is_case_lapsed = true;
+		}
+
 		$this->data['activities']['is_service_type_eligible'] = $is_service_type_eligible;
 		$this->data['activities']['is_km_travelled_eligible'] = $is_km_travelled_eligible;
 		$this->data['activities']['is_not_collected_eligible'] = $is_not_collected_eligible;
 		$this->data['activities']['is_collected_eligible'] = $is_collected_eligible;
+		$this->data['activities']['is_case_lapsed'] = $is_case_lapsed;
 		$this->data['activities']['submission_closing_date'] = $submission_closing_date;
 
 		return response()->json(['success' => true, 'data' => $this->data]);

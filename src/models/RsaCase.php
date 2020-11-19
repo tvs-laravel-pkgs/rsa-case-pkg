@@ -41,6 +41,7 @@ class RsaCase extends Model {
 		'bd_location_type_id',
 		'bd_location_category_id',
 		'submission_closing_date',
+		'submission_closing_date_remarks',
 	];
 
 	public function getDateAttribute($date) {

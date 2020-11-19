@@ -344,6 +344,65 @@ app.component('activityStatusView', {
                 $(this).toggleClass('viewData-toggle--btn_reverse');
                 $('#viewData-threeColumn--wrapperasp').slideToggle();
             });
+
+            self.style_modal_close_image_url = style_modal_close_image_url;
+            self.closingMinDate = moment();
+                
+            $(".date-picker").datepicker({
+                format: 'dd-mm-yyyy',
+                autoclose: true,
+                // startDate: new Date(),
+            });
+
+            var form_id = '#case_submission_closing_date_form';
+            var v = jQuery(form_id).validate({
+                rules: {
+                    closing_date: {
+                        required: true,
+                    },
+                    remarks: {
+                        required: true,
+                    },
+                },
+                messages: {
+                    period: "Please Select Closing Date",
+                    remarks: "Please Enter Remarks",
+                },
+
+                submitHandler: function(form) {
+                    let formData = new FormData($(form_id)[0]);
+                    $('#submit_id').button('loading');
+                    $.ajax({
+                            url: laravel_routes['updateCaseSubmissionClosingDate'],
+                            method: "POST",
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                        })
+                        .done(function(res) {
+                            if (!res.success) {
+                                $('#submit_id').button('reset');
+                                var errors = '';
+                                for (var i in res.errors) {
+                                    errors += '<li>' + res.errors[i] + '</li>';
+                                }
+                                custom_noty('error', errors);
+                            } else {
+                                custom_noty('success', res.message);
+                                $('#case-submission-closing-date').modal('hide');
+                                setTimeout(function() {
+                                    $location.path('/rsa-case-pkg/activity-status/list');
+                                    $scope.$apply();
+                                }, 500);
+                            }
+                        })
+                        .fail(function(xhr) {
+                            $('#submit_id').button('reset');
+                            custom_noty('error', 'Something went wrong at server');
+                        });
+                }
+            });
+
             $rootScope.loading = false;
         });
 

@@ -596,7 +596,7 @@ class Activity extends Model {
 						// 		}),
 						// ],
 						//ACTIVITY
-						'crm_activity_id' => 'required|numeric',
+						'crm_activity_id' => 'required|string',
 						'asp_code' => [
 							'required',
 							'string',

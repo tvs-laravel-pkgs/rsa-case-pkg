@@ -851,11 +851,11 @@ class ActivityController extends Controller {
 
 			//sending confirmation SMS to ASP
 			// $mobile_number = $activity->asp->contact_number1;
-			// $sms_message = 'BO_APPROVED';
+			// $sms_message = 'Tkt waiting for Invoice';
 			// sendSMS2($sms_message,$mobile_number,$activity->number);
 
 			$mobile_number = $activity->asp->contact_number1;
-			$sms_message = 'BO_APPROVED';
+			$sms_message = 'Tkt waiting for Invoice';
 			$array = [$request->case_number];
 			sendSMS2($sms_message, $mobile_number, $array);
 
@@ -917,7 +917,7 @@ class ActivityController extends Controller {
 				$activity_log->save();
 
 				$mobile_number = $activity->asp->contact_number1;
-				$sms_message = 'BO_APPROVED';
+				$sms_message = 'Tkt waiting for Invoice';
 				$array = [$activity->case->number];
 				sendSMS2($sms_message, $mobile_number, $array);
 
@@ -970,7 +970,7 @@ class ActivityController extends Controller {
 
 			//SMS record
 			$mobile_number = $activity->asp->contact_number1;
-			$sms_message = 'BO_DEFERRED';
+			$sms_message = 'Deferred Tkt re-entry';
 			$array = [$request->case_number];
 			sendSMS2($sms_message, $mobile_number, $array);
 
@@ -1528,7 +1528,7 @@ class ActivityController extends Controller {
 
 			//sending confirmation SMS to ASP
 			$mobile_number = $activity->asp->contact_number1;
-			$sms_message = 'ASP_DATA_ENTRY_DONE';
+			$sms_message = 'Tkt uptd successfully';
 			$array = [$activity->case->number];
 			// sendSMS2($sms_message, $mobile_number, $array);
 

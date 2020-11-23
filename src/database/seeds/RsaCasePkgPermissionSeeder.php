@@ -856,6 +856,14 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'release-onhold-case',
 				'display_name' => 'Release OnHold Case',
 			],
+
+			//STATEMENT OF ACCOUNT EXPORT
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'statement-of-account',
+				'display_name' => 'Statement of Account',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

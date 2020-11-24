@@ -2273,7 +2273,7 @@ class ActivityController extends Controller {
 				$activity->exceptional_reason != NULL ? $activity->exceptional_reason : '',
 				// $activity->invoice ? ($activity->asp->has_gst == 1 && $activity->asp->is_auto_invoice == 0 ? ($activity->invoice->invoice_no) : ($activity->invoice->invoice_no . '-' . $activity->invoice->id)) : '',
 				$activity->invoice ? $activity->invoice->invoice_no : '',
-				$activity->invoice ? date('d-m-Y', strtotime($activity->invoice->created_at)) : '',
+				$activity->invoice ? (!empty($activity->invoice->created_at) ? date('d-m-Y', strtotime($activity->invoice->created_at)) : '') : '',
 				$activity->invoice ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice->invoice_amount, 2))) : '',
 				$activity->invoice ? ($activity->invoice->invoiceStatus ? $activity->invoice->invoiceStatus->name : '') : '',
 				// '',

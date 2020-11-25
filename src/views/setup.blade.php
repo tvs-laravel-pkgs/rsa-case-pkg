@@ -10,20 +10,6 @@
 	app.config(['$routeProvider', function($routeProvider) {
 
 	    $routeProvider.
-	    //case
-	    when('/case-pkg/case/list', {
-	        template: '<case-list></case-list>',
-	        title: 'RSA Cases',
-	    }).
-	    when('/case-pkg/case/add', {
-	        template: '<case-form></case-form>',
-	        title: 'Add RSA Case',
-	    }).
-	    when('/case-pkg/case/edit/:id', {
-	        template: '<case-form></case-form>',
-	        title: 'Edit RSA Case',
-	    }).
-
 	    //DASHBOARD
 	     when('/rsa-case-pkg/dashboard', {
 	        template: '<dashboard></dashboard>',

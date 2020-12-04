@@ -560,6 +560,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'finance-export-dealer-commission-invoice',
 				'display_name' => 'Finance Export',
 			],
+			[
+				'display_order' => 7,
+				'parent' => 'dealer-commission-invoice',
+				'name' => 'own-dealer-commission-invoice',
+				'display_name' => 'Own Only',
+			],
 
 			//TAX CODES
 			[

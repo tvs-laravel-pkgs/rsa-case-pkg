@@ -464,8 +464,8 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 			[
 				'display_order' => 7,
 				'parent' => 'membership',
-				'name' => 'mapped-dealer-membership',
-				'display_name' => 'Mapped Dealers',
+				'name' => 'own-client-dealers-membership',
+				'display_name' => 'Own Client Dealers',
 			],
 			[
 				'display_order' => 8,
@@ -477,7 +477,7 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_order' => 9,
 				'parent' => 'membership',
 				'name' => 'dealer-report-membership',
-				'display_name' => 'Dealer Report',
+				'display_name' => 'Own Dealer Report',
 			],
 			[
 				'display_order' => 10,
@@ -514,6 +514,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'parent' => 'membership',
 				'name' => 'initiate-cancel-membership',
 				'display_name' => 'Initiate Cancellation',
+			],
+			[
+				'display_order' => 16,
+				'parent' => 'membership',
+				'name' => 'own-client-dealers-report-membership',
+				'display_name' => 'Own Client Dealers Report',
 			],
 
 			//Dealer Invoice Menu

@@ -1555,10 +1555,15 @@ class ActivityController extends Controller {
 			$array = [$activity->case->number];
 			// sendSMS2($sms_message, $mobile_number, $array);
 
-			//sending notification to all BO users
+			//sending notification to all ASP STATE MAPPED BO users
 			//$bo_users = User::where('users.role_id', 6)->pluck('users.id'); //6 - Bo User role ID
 			$state_id = Auth::user()->asp->state_id;
-			$bo_users = StateUser::where('state_id', $state_id)->pluck('user_id');
+			// $bo_users = StateUser::where('state_id', $state_id)->pluck('user_id');
+			$bo_users = DB::table('state_user')
+				->join('users', 'users.id', 'state_user.user_id')
+				->where('state_user.state_id', $state_id)
+				->where('users.role_id', 6) //BO
+				->pluck('state_user.user_id');
 
 			if ($activity->status_id == 5) {
 				$noty_message_template = 'ASP_DATA_ENTRY_DONE_BULK';

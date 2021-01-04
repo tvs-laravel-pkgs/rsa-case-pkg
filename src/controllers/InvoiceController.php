@@ -253,11 +253,20 @@ class InvoiceController extends Controller {
 
 		//CHECK NEW/OLD COMPANY ADDRESS BY INVOICE CREATION DATE
 		$inv_created = date('Y-m-d', strtotime(str_replace('/', '-', $invoice->created_at)));
+		$automobile_company_effect_date = config('rsa.AUTOMOBILE_COMPANY_EFFECT_DATE');
+		$ki_company_effect_date = config('rsa.KI_COMPANY_EFFECT_DATE');
 		$label_effect_date = config('rsa.NEW_COMPANY_EFFECT_DATE');
 
-		$this->data['new_company_address'] = true;
-		if ($inv_created < $label_effect_date) {
-			$this->data['new_company_address'] = false;
+		$this->data['auto_assist_company_address'] = false;
+		$this->data['automobile_company_address'] = false;
+		$this->data['ki_company_address'] = false;
+
+		if ($inv_created < $automobile_company_effect_date) {
+			$this->data['auto_assist_company_address'] = true;
+		} elseif ($inv_created >= $automobile_company_effect_date && $inv_created < $ki_company_effect_date) {
+			$this->data['automobile_company_address'] = true;
+		} else {
+			$this->data['ki_company_address'] = true;
 		}
 
 		$this->data['signature_attachment'] = Attachment::where('entity_id', $asp->id)->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))->first();

@@ -55,6 +55,7 @@ class ActivityController extends Controller {
 			'activities.number as activity_number',
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			'cases.number',
+			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
 			'asps.asp_code',
 			'service_types.name as sub_service',
 			// 'activity_asp_statuses.name as asp_status',

@@ -255,7 +255,6 @@ class InvoiceController extends Controller {
 		$inv_created = date('Y-m-d', strtotime(str_replace('/', '-', $invoice->created_at)));
 		$automobile_company_effect_date = config('rsa.AUTOMOBILE_COMPANY_EFFECT_DATE');
 		$ki_company_effect_date = config('rsa.KI_COMPANY_EFFECT_DATE');
-		$label_effect_date = config('rsa.NEW_COMPANY_EFFECT_DATE');
 
 		$this->data['auto_assist_company_address'] = false;
 		$this->data['automobile_company_address'] = false;

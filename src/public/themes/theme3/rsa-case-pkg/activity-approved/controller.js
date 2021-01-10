@@ -15,6 +15,7 @@ app.component('approvedActivityList', {
                 { data: 'action', searchable: false },
                 { data: 'case_date', searchable: false },
                 { data: 'number', name: 'cases.number', searchable: true },
+                { data: 'vehicle_registration_number', name: 'cases.vehicle_registration_number', searchable: true },
                 { data: 'crm_activity_id', searchable: false },
                 { data: 'client', name: 'clients.name', searchable: true },
                 { data: 'call_center', name: 'call_centers.name', searchable: true },

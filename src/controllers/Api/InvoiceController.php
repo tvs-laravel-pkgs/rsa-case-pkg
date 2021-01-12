@@ -110,7 +110,7 @@ class InvoiceController extends Controller {
 					//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND BO Approved - Waiting for Invoice Generation by ASP)
 					if ($activity_accepted->status_id != 1 && $activity_accepted->status_id != 11) {
 						//CREATE INVOICE API LOG
-						$errors[] = 'ASP not accepted for activity ID ' . $activity_accepted->crm_activity_id;
+						$errors[] = 'Kindly close the case of the activity ID ' . $activity_accepted->crm_activity_id;
 						saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
 						DB::commit();
 
@@ -118,7 +118,7 @@ class InvoiceController extends Controller {
 							'success' => false,
 							'error' => 'Validation Error',
 							'errors' => [
-								'ASP not accepted for activity ID ' . $activity_accepted->crm_activity_id,
+								'Kindly close the case of the activity ID ' . $activity_accepted->crm_activity_id,
 							],
 						], $this->successStatus);
 					}

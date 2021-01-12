@@ -646,6 +646,24 @@ class ActivityController extends Controller {
 				->groupBy('activities.id')
 				->get();
 
+			//CHECK NEW/OLD COMPANY ADDRESS BY INVOICE CREATION DATE
+			$invoice = Invoices::find($activity->invoice_id);
+			$inv_created = date('Y-m-d', strtotime(str_replace('/', '-', $invoice->created_at)));
+			$automobile_company_effect_date = config('rsa.AUTOMOBILE_COMPANY_EFFECT_DATE');
+			$ki_company_effect_date = config('rsa.KI_COMPANY_EFFECT_DATE');
+
+			$this->data['activities']['auto_assist_company_address'] = false;
+			$this->data['activities']['automobile_company_address'] = false;
+			$this->data['activities']['ki_company_address'] = false;
+
+			if ($inv_created < $automobile_company_effect_date) {
+				$this->data['activities']['auto_assist_company_address'] = true;
+			} elseif ($inv_created >= $automobile_company_effect_date && $inv_created < $ki_company_effect_date) {
+				$this->data['activities']['automobile_company_address'] = true;
+			} else {
+				$this->data['activities']['ki_company_address'] = true;
+			}
+
 			$this->data['activities']['invoice_amount_in_word'] = getIndianCurrency($activity->inv_amount);
 			if (count($invoice_activities) > 0) {
 				foreach ($invoice_activities as $key => $invoice_activity) {

@@ -132,9 +132,9 @@
                                 <h4 class="amountinwords-title">Bank Details:</h4>  
                                 <p>Name : {{$ctrl.data.asp.workshop_name ? $ctrl.data.asp.workshop_name : 'N/A'}} | Account Number : {{$ctrl.data.asp.bank_account_number ? $ctrl.data.asp.bank_account_number : 'N/A'}} | Bank : {{$ctrl.data.asp.bank_name ? $ctrl.data.asp.bank_name : 'N/A'}} | Branch : {{$ctrl.data.asp.bank_branch_name ? $ctrl.data.asp.bank_branch_name : 'N/A'}} | IFSC : {{$ctrl.data.asp.bank_ifsc_code ? $ctrl.data.asp.bank_ifsc_code : 'N/A'}}</p>   
                             </div>  
-                            <div ng-show="$ctrl.signature_attachment != ''" class="pull-right"> 
-                                <img src="{{$ctrl.signature_attachment_path}}/{{$ctrl.data.asp.id}}/{{$ctrl.signature_attachment.attachment_file_name}}" weight="80px" height="50px" alt="Authorised Signature" />  
-                            </div>  
+                            <div ng-show="$ctrl.data.signature_attachment != ''" class="pull-right"> 
+                                <img src="{{$ctrl.data.signature_attachment_path}}/{{$ctrl.data.asp.id}}/{{$ctrl.data.signature_attachment.attachment_file_name}}" weight="80px" height="50px" alt="Authorised Signature" />  
+                            </div>
                             <div class="clearfix"></div>    
                         </div>  
                     </div>  

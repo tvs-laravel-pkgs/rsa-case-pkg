@@ -535,21 +535,37 @@ class ActivityController extends Controller {
 		$ccServiceTypeValue = ActivityDetail::where('activity_id', $activity_status_id)
 			->where('key_id', 153)
 			->first();
-		$ccServiceType = ServiceType::where('name', $ccServiceTypeValue->value)->first();
+		$hasccServiceType = false;
+		if ($ccServiceTypeValue) {
+			$ccServiceType = ServiceType::where('name', $ccServiceTypeValue->value)->first();
+			if ($ccServiceType) {
+				$hasccServiceType = true;
+			}
+		}
 
 		$aspServiceTypeValue = ActivityDetail::where('activity_id', $activity_status_id)
 			->where('key_id', 157)
 			->first();
-		$aspServiceType = ServiceType::where('name', $aspServiceTypeValue->value)->first();
+		$hasaspServiceType = false;
+		if ($aspServiceTypeValue) {
+			$aspServiceType = ServiceType::where('name', $aspServiceTypeValue->value)->first();
+			if ($aspServiceType) {
+				$hasaspServiceType = true;
+			}
+		}
 
 		$other_charges_attachment_url = $km_travelled_attachment_url = [];
 		if ($km_travelled_attachments->isNotEmpty()) {
 			foreach ($km_travelled_attachments as $key => $km_travelled_attachment) {
-				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $ccServiceType->id . '/' . $km_travelled_attachment->attachment_file_name)) {
-					$km_travelled_attachment_url[$key] = aspTicketAttachmentImage($km_travelled_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $ccServiceType->id);
+				if ($hasccServiceType) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $ccServiceType->id . '/' . $km_travelled_attachment->attachment_file_name)) {
+						$km_travelled_attachment_url[$key] = aspTicketAttachmentImage($km_travelled_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $ccServiceType->id);
+					}
 				}
-				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $aspServiceType->id . '/' . $km_travelled_attachment->attachment_file_name)) {
-					$km_travelled_attachment_url[$key] = aspTicketAttachmentImage($km_travelled_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $aspServiceType->id);
+				if ($hasaspServiceType) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $aspServiceType->id . '/' . $km_travelled_attachment->attachment_file_name)) {
+						$km_travelled_attachment_url[$key] = aspTicketAttachmentImage($km_travelled_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $aspServiceType->id);
+					}
 				}
 				// if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $activity->serviceType->id . '/' . $km_travelled_attachment->attachment_file_name)) {
 				// 	$km_travelled_attachment_url[$key] = aspTicketAttachmentImage($km_travelled_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $activity->serviceType->id);
@@ -558,11 +574,15 @@ class ActivityController extends Controller {
 		}
 		if ($other_charges_attachments->isNotEmpty()) {
 			foreach ($other_charges_attachments as $key => $other_charges_attachment) {
-				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $ccServiceType->id . '/' . $other_charges_attachment->attachment_file_name)) {
-					$other_charges_attachment_url[$key] = aspTicketAttachmentImage($other_charges_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $ccServiceType->id);
+				if ($hasccServiceType) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $ccServiceType->id . '/' . $other_charges_attachment->attachment_file_name)) {
+						$other_charges_attachment_url[$key] = aspTicketAttachmentImage($other_charges_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $ccServiceType->id);
+					}
 				}
-				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $aspServiceType->id . '/' . $other_charges_attachment->attachment_file_name)) {
-					$other_charges_attachment_url[$key] = aspTicketAttachmentImage($other_charges_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $aspServiceType->id);
+				if ($hasaspServiceType) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $aspServiceType->id . '/' . $other_charges_attachment->attachment_file_name)) {
+						$other_charges_attachment_url[$key] = aspTicketAttachmentImage($other_charges_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $aspServiceType->id);
+					}
 				}
 				// if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $activity->serviceType->id . '/' . $other_charges_attachment->attachment_file_name)) {
 				// 	$other_charges_attachment_url[$key] = aspTicketAttachmentImage($other_charges_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $activity->serviceType->id);

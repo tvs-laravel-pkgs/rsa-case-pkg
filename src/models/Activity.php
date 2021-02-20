@@ -1158,14 +1158,15 @@ class Activity extends Model {
 		$above_range_price = ($km > $price->range_limit) ? ($km - $price->range_limit) * $price->above_range_price : 0;
 		$km_charge = $below_range_price + $above_range_price;
 
-		if ($price->adjustment_type == 1) {
-			//'Percentage'
-			$adjustment = ($km_charge * $price->adjustment) / 100;
-			$km_charge = $km_charge + $adjustment;
-		} else {
-			$adjustment = $price->adjustment;
-			$km_charge = $km_charge + $adjustment;
-		}
+		//FORMULAE DISABLED AS PER CLIENT REQUEST
+		// if ($price->adjustment_type == 1) {
+		// 	//'Percentage'
+		// 	$adjustment = ($km_charge * $price->adjustment) / 100;
+		// 	$km_charge = $km_charge + $adjustment;
+		// } else {
+		// 	$adjustment = $price->adjustment;
+		// 	$km_charge = $km_charge + $adjustment;
+		// }
 		return $km_charge;
 	}
 

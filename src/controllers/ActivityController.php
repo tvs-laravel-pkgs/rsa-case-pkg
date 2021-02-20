@@ -1512,14 +1512,15 @@ class ActivityController extends Controller {
 			$above_range_price = ($total_km > $price->range_limit) ? ($total_km - $price->range_limit) * $price->above_range_price : 0;
 			$km_charge = $below_range_price + $above_range_price;
 
-			if ($price->adjustment_type == 1) {
-				//'Percentage'
-				$adjustment = ($km_charge * $price->adjustment) / 100;
-				$km_charge = $km_charge + $adjustment;
-			} else {
-				$adjustment = $price->adjustment;
-				$km_charge = $km_charge + $adjustment;
-			}
+			//FORMULAE DISABLED AS PER CLIENT REQUEST
+			// if ($price->adjustment_type == 1) {
+			// 	//'Percentage'
+			// 	$adjustment = ($km_charge * $price->adjustment) / 100;
+			// 	$km_charge = $km_charge + $adjustment;
+			// } else {
+			// 	$adjustment = $price->adjustment;
+			// 	$km_charge = $km_charge + $adjustment;
+			// }
 
 			$payout_amount = $km_charge;
 			$net_amount = $payout_amount + $not_collected - $collected;

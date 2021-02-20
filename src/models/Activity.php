@@ -1007,8 +1007,20 @@ class Activity extends Model {
 								//Invoice Amount Calculated - Waiting for Case Closure
 								$activity->status_id = 10;
 							} else {
-								//ASP Rejected CC Details - Waiting for ASP Data Entry
-								$activity->status_id = 2;
+								//IF MECHANICAL
+								if ($service_type->service_group_id == 2) {
+									$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km']);
+									if ($is_bulk) {
+										//ASP Completed Data Entry - Waiting for BO Bulk Verification
+										$activity->status_id = 5;
+									} else {
+										//ASP Completed Data Entry - Waiting for BO Individual Verification
+										$activity->status_id = 6;
+									}
+								} else {
+									//ASP Rejected CC Details - Waiting for ASP Data Entry
+									$activity->status_id = 2;
+								}
 							}
 							$activity->reason_for_asp_rejected_cc_details = $record['asp_rejected_cc_details_reason'];
 							$activity->activity_status_id = $activity_status_id;
@@ -1067,14 +1079,25 @@ class Activity extends Model {
 								if ($activity->data_src_id == 261) {
 									//IF ROS ASP then changes status as Waitin for ASP data entry. If not change status as on hold
 									if ($asp->is_ros_asp == 1) {
-										//ASP Rejected CC Details - Waiting for ASP Data Entry
-										$activity->status_id = 2;
-										$activity->save();
+										//IF MECHANICAL
+										if ($service_type->service_group_id == 2) {
+											$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km']);
+											if ($is_bulk) {
+												//ASP Completed Data Entry - Waiting for BO Bulk Verification
+												$activity->status_id = 5;
+											} else {
+												//ASP Completed Data Entry - Waiting for BO Individual Verification
+												$activity->status_id = 6;
+											}
+										} else {
+											//ASP Rejected CC Details - Waiting for ASP Data Entry
+											$activity->status_id = 2;
+										}
 									} else {
 										//ON HOLD
 										$activity->status_id = 17;
-										$activity->save();
 									}
+									$activity->save();
 								}
 							}
 
@@ -1167,6 +1190,29 @@ class Activity extends Model {
 			$km_charge = $km_charge + $adjustment;
 		}
 		return $km_charge;
+	}
+
+	public static function checkTicketIsBulk($asp_id, $service_type_id, $asp_km) {
+		$is_bulk = true;
+		$range_limit = 0;
+		$aspServiceType = AspServiceType::where('asp_id', $asp_id)
+			->where('service_type_id', $service_type_id)
+			->first();
+		if ($aspServiceType) {
+			$range_limit = $aspServiceType->range_limit;
+		}
+		if (!empty($asp_km)) {
+			if (floatval($asp_km) == 0) {
+				$is_bulk = false;
+			}
+			//checking ASP KMs exceed ASP service type range limit
+			if (floatval($asp_km) > floatval($range_limit)) {
+				$is_bulk = false;
+			}
+		} else {
+			$is_bulk = false;
+		}
+		return $is_bulk;
 	}
 
 }

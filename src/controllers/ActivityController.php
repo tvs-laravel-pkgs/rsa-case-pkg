@@ -1408,7 +1408,6 @@ class ActivityController extends Controller {
 			//checking ASP KMs exceed ASP service type range limit
 			if ($asp_km > $range_limit) {
 				$is_bulk = false;
-
 			}
 
 			//checking MIS and ASP not collected
@@ -1435,10 +1434,11 @@ class ActivityController extends Controller {
 			if ($asp_collected_charges < $this->data['activities']['cc_colleced_amount']) {
 				$is_bulk = false;
 			}
-			if ($mis_km == 0) {
-				$is_bulk = false;
 
+			if (floatval($mis_km == 0)) {
+				$is_bulk = false;
 			}
+
 			//ASP DATA RE-ENTRY - DEFERRED
 			if ($request->data_reentry == '1') {
 				if ($is_bulk) {

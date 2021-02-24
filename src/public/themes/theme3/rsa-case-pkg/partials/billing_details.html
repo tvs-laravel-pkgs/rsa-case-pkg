@@ -182,7 +182,8 @@
                                         <div>{{$ctrl.data.raw_bo_collected | currency:"₹"}}</div>
                                     </td>
                                 </tr>
-                                <tr ng-show="$ctrl.data.asp.app_user==1" style="text-align: right;">
+                                <!-- <tr ng-show="$ctrl.data.asp.app_user==1" style="text-align: right;"> -->
+                                <tr style="text-align: right;">
                                     <td>Discount (-)</td>
                                     <td ng-show="$ctrl.data.verification==1">
                                         <div><input style="text-align:right" type="text" ng-model="$ctrl.data.bo_deduction" class="deduction" value="{{$ctrl.data.bo_deduction}}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-keyup="calculatePO()"></div>

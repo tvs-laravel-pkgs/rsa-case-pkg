@@ -2473,9 +2473,10 @@ class ActivityController extends Controller {
 			});
 
 			$excel->sheet('Activity Informations', function ($sheet) use ($activity_details_header, $activity_details_data) {
+				$sheet->setAutoSize(false);
 				$sheet->fromArray($activity_details_data, NULL, 'A1');
 				$sheet->row(1, $activity_details_header);
-				$sheet->cells('A1:DO1', function ($cells) {
+				$sheet->cells('A1:DQ1', function ($cells) {
 					$cells->setFont(array(
 						'size' => '10',
 						'bold' => true,

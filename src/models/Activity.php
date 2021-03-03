@@ -1079,24 +1079,25 @@ class Activity extends Model {
 								if ($activity->data_src_id == 261) {
 									//IF ROS ASP then changes status as Waitin for ASP data entry. If not change status as on hold
 									if ($asp->is_ros_asp == 1) {
-										//IF MECHANICAL
-										if ($service_type->service_group_id == 2) {
-											$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km']);
-											if ($is_bulk) {
-												//ASP Completed Data Entry - Waiting for BO Bulk Verification
-												$activity->status_id = 5;
-											} else {
-												//ASP Completed Data Entry - Waiting for BO Individual Verification
-												$activity->status_id = 6;
-											}
-										} else {
-											//ASP Rejected CC Details - Waiting for ASP Data Entry
-											$activity->status_id = 2;
-										}
+										//ASP Rejected CC Details - Waiting for ASP Data Entry
+										$activity->status_id = 2;
 									} else {
 										//ON HOLD
 										$activity->status_id = 17;
 									}
+
+									//IF MECHANICAL
+									if ($service_type->service_group_id == 2) {
+										$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km']);
+										if ($is_bulk) {
+											//ASP Completed Data Entry - Waiting for BO Bulk Verification
+											$activity->status_id = 5;
+										} else {
+											//ASP Completed Data Entry - Waiting for BO Individual Verification
+											$activity->status_id = 6;
+										}
+									}
+
 									$activity->save();
 								}
 							}

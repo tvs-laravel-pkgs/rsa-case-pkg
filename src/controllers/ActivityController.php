@@ -2116,6 +2116,7 @@ class ActivityController extends Controller {
 	}
 
 	public function exportActivities(Request $request) {
+		// dd($request->all());
 		$error_messages = [
 			'status_ids.required' => "Please Select Activity Status",
 		];
@@ -2144,21 +2145,38 @@ class ActivityController extends Controller {
 			->join('asps', 'activities.asp_id', '=', 'asps.id')
 			->leftjoin('configs as bd_location_type', 'bd_location_type.id', '=', 'cases.bd_location_type_id')
 			->leftjoin('configs as bd_location_category', 'bd_location_category.id', '=', 'cases.bd_location_category_id')
-			->whereIn('activities.status_id', $status_ids)
-			->whereDate('cases.date', '>=', $range1)
-			->whereDate('cases.date', '<=', $range2)
-			->select(
-				'asps.*',
-				'activities.*',
-				'activities.id as id',
-				'cases.bd_lat',
-				'cases.bd_long',
-				'cases.bd_location',
-				'cases.bd_city',
-				'cases.bd_state',
-				DB::raw('COALESCE(bd_location_type.name, "--") as location_type'),
-				DB::raw('COALESCE(bd_location_category.name, "--") as location_category')
-			);
+			->whereIn('activities.status_id', $status_ids);
+		if ($request->filter_by == 'general') {
+			$activities->where(function ($q) use ($range1, $range2) {
+				$q->whereDate('cases.date', '>=', $range1)
+					->whereDate('cases.date', '<=', $range2);
+			});
+		}
+		if ($request->filter_by == 'activity') {
+			$activities->where(function ($q) use ($request, $range1, $range2) {
+				$q->where(function ($query) use ($range1, $range2) {
+					$query->whereDate('activities.created_at', '>=', $range1)
+						->whereDate('activities.created_at', '<=', $range2)
+						->whereNull('activities.updated_at');
+				})
+					->orWhere(function ($query) use ($range1, $range2) {
+						$query->whereDate('activities.updated_at', '>=', $range1)
+							->whereDate('activities.updated_at', '<=', $range2);
+					});
+			});
+		}
+		$activities->select(
+			'asps.*',
+			'activities.*',
+			'activities.id as id',
+			'cases.bd_lat',
+			'cases.bd_long',
+			'cases.bd_location',
+			'cases.bd_city',
+			'cases.bd_state',
+			DB::raw('COALESCE(bd_location_type.name, "--") as location_type'),
+			DB::raw('COALESCE(bd_location_category.name, "--") as location_category')
+		);
 		if (!empty($request->get('asp_id'))) {
 			$activities = $activities->where('activities.asp_id', $request->get('asp_id'));
 		}

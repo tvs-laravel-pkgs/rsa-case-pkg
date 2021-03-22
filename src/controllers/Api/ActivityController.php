@@ -562,8 +562,8 @@ class ActivityController extends Controller {
 				])->first();
 
 			$invoiceable_activities = Activity::select(
-				// DB::raw('CAST(activities.crm_activity_id as UNSIGNED) as crm_activity_id'),
-				'activities.crm_activity_id',
+				DB::raw('CAST(activities.crm_activity_id as UNSIGNED) as crm_activity_id'),
+				// 'activities.crm_activity_id',
 				'cases.vehicle_registration_number',
 				'bo_km_charge.value as km_charge',
 				'bo_not_collected_amount.value as cc_not_collected_amount',

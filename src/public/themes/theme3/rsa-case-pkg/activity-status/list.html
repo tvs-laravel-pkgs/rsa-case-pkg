@@ -50,11 +50,16 @@
                                         </div>
                                         <div class="filter-body">
                                             <div class="row">
-                                                <div class="col-sm-6">
+                                                <!-- <div class="col-sm-6">
                                                     <div class="form-group">
                                                         <input ng-model="$ctrl.ticket_filter.ticket_date" id="ticket_date" class="form-control filter-input date-picker" type="text" placeholder="Date" autocomplete="off">
                                                     </div>
-                                                </div>
+                                                </div> -->
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <input class="form-control filter-input daterange" autocomplete="off" name="date_range_period" type="text" value='' id="date_range_period" placeholder="Select Period" ng-model="$ctrl.ticket_filter.date_range_period">
+                                                    </div><!-- Field -->
+                                                </div><!-- Column -->
                                                 <div class="col-sm-6">
                                                     <div class="form-group">
                                                         <md-select ng-model="$ctrl.ticket_filter.call_center_id" ng-change="changeCommonFilter($ctrl.ticket_filter.call_center_id, 'call_center_id')" placeholder="Select Call Center">

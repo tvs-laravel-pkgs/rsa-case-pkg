@@ -62,7 +62,8 @@ app.component('activityStatusList', {
                     ajax: {
                         url: activity_status_get_list_url,
                         data: function(d) {
-                            d.ticket_date = $('#ticket_date').val();
+                            // d.ticket_date = $('#ticket_date').val();
+                            d.date_range_period = $('#date_range_period').val();
                             d.call_center_id = $('#call_center_id').val();
                             d.case_number = $('#case_number').val();
                             d.asp_code = $('#asp_code').val();
@@ -82,13 +83,33 @@ app.component('activityStatusList', {
 
             var dataTable = $('#activities_status_table').dataTable();
 
+             $('input[name="date_range_period"]').daterangepicker({
+                autoUpdateInput: false,
+                locale: {
+                    cancelLabel: 'Clear',
+                    format: "DD-MM-YYYY"
+                }
+             });
+
+            $('.daterange').on('apply.daterangepicker', function (ev, picker) {
+                $(this).val(picker.startDate.format('DD-MM-YYYY') + ' to ' + picker.endDate.format('DD-MM-YYYY'));
+                $('#date_range_period').val(picker.startDate.format('DD-MM-YYYY') + ' to ' + picker.endDate.format('DD-MM-YYYY'));
+                dataTable.fnFilter();
+            });
+
+            $('.daterange').on('cancel.daterangepicker', function (ev, picker) {
+                $(this).val('');
+                $('#date_range_period').val('');
+                dataTable.fnFilter();
+            });
+
             $(".filterTable").keyup(function() {
                 dataTable.fnFilter(this.value);
             });
 
-            $('#ticket_date').on('change', function() {
-                dataTable.fnFilter();
-            });
+            // $('#ticket_date').on('change', function() {
+            //     dataTable.fnFilter();
+            // });
 
             $('#case_number,#asp_code').on('keyup', function() {
                 dataTable.fnFilter();
@@ -101,6 +122,8 @@ app.component('activityStatusList', {
 
             $scope.resetFilter = function() {
                 self.ticket_filter = [];
+                $('#date_range_period').val('');
+
                 $('#call_center_id').val('');
                 $('#service_type_id').val('');
                 $('#finance_status_id').val('');
@@ -157,6 +180,7 @@ app.component('activityStatusList', {
                 format: 'dd-mm-yyyy',
                 autoclose: true,
             });
+            
             $('input[name="period"]').daterangepicker({
                 startDate: moment().startOf('month'),
                 endDate: moment().endOf('month'),

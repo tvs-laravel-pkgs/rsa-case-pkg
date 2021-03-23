@@ -48,6 +48,17 @@ class ActivityController extends Controller {
 	}
 
 	public function getList(Request $request) {
+		// dd($request->all());
+		$from_date = null;
+        $end_date = null;
+        if (isset($request->date_range_period) && !empty($request->date_range_period)) {
+            $period = explode(' to ', $request->date_range_period);
+            $from = $period[0];
+            $to = $period[1];
+            $from_date = date('Y-m-d', strtotime($from));
+            $end_date = date('Y-m-d', strtotime($to));
+        }
+
 		$activities = Activity::select(
 			'activities.id',
 			'activities.crm_activity_id',
@@ -66,6 +77,12 @@ class ActivityController extends Controller {
 			'configs.name as source',
 			'call_centers.name as call_center'
 		)
+
+			->where(function ($query) use ($from_date, $end_date) {
+                if (!empty($from_date) && !empty($end_date)) {
+                    $query->whereRaw('DATE(cases.date) between "' . $from_date . '" and "' . $end_date . '"');
+                }
+            })
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('users', 'users.id', 'asps.user_id')
 			->leftjoin('cases', 'cases.id', 'activities.case_id')
@@ -81,9 +98,10 @@ class ActivityController extends Controller {
 			->groupBy('activities.id')
 		;
 
-		if ($request->get('ticket_date')) {
-			$activities->whereRaw('DATE_FORMAT(cases.date,"%d-%m-%Y") =  "' . $request->get('ticket_date') . '"');
-		}
+		// if ($request->get('ticket_date')) {
+		// 	$activities->whereRaw('DATE_FORMAT(cases.date,"%d-%m-%Y") =  "' . $request->get('ticket_date') . '"');
+		// }
+
 		if ($request->get('call_center_id')) {
 			$activities->where('cases.call_center_id', $request->get('call_center_id'));
 		}

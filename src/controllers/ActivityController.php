@@ -1096,7 +1096,9 @@ class ActivityController extends Controller {
 		$query = Activity::select([
 			'activities.id as id',
 			'cases.created_at as case_created_at',
-			'cases.date as case_date',
+			// 'cases.date as case_date',
+			DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y") as case_date'),
+			'cases.number as case_number',
 		])
 			->join('cases', 'cases.id', 'activities.case_id')
 			->where(function ($q) use ($number) {
@@ -1212,28 +1214,49 @@ class ActivityController extends Controller {
 							],
 						]);
 					}
+
 					$query6 = clone $query;
-					$activity_already_completed = $query6->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
+					$activity_not_eligible_for_payment = $query6->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
 						if ($submission_closing_extended) {
 							$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
 						} else {
 							$q->where('cases.created_at', '>=', $threeMonthsBefore);
 						}
 					})
-						->whereIn('activities.status_id', [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+						->whereIn('activities.status_id', [15, 16]) // NOT ELIGIBLE FOR PAYOUT
+						->where('activities.asp_id', Auth::user()->asp->id)
+						->first();
+					if ($activity_not_eligible_for_payment) {
+						return response()->json([
+							'success' => false,
+							'errors' => [
+								'Ticket not found',
+							],
+						]);
+					}
+
+					$query7 = clone $query;
+					$activity_already_completed = $query7->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
+						if ($submission_closing_extended) {
+							$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
+						} else {
+							$q->where('cases.created_at', '>=', $threeMonthsBefore);
+						}
+					})
+						->whereIn('activities.status_id', [5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
 					if ($activity_already_completed) {
 						return response()->json([
 							'success' => false,
 							'errors' => [
-								"Ticket already submitted",
+								"Ticket already submitted. Case : " . $activity_already_completed->case_number . "(" . $activity_already_completed->case_date . ")",
 							],
 						]);
 					}
 
-					$query7 = clone $query;
-					$case_with_cancelled_status = $query7->where('cases.status_id', 3) //CANCELLED
+					$query8 = clone $query;
+					$case_with_cancelled_status = $query8->where('cases.status_id', 3) //CANCELLED
 						->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
 							if ($submission_closing_extended) {
 								$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
@@ -1251,8 +1274,8 @@ class ActivityController extends Controller {
 							],
 						]);
 					}
-					$query8 = clone $query;
-					$case_with_closed_status = $query8->where('cases.status_id', 4) //CLOSED
+					$query9 = clone $query;
+					$case_with_closed_status = $query9->where('cases.status_id', 4) //CLOSED
 						->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
 							if ($submission_closing_extended) {
 								$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));

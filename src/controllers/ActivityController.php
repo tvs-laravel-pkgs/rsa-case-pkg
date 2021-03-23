@@ -1290,7 +1290,7 @@ class ActivityController extends Controller {
 	}
 
 	public function updateActivity(Request $request) {
-		//dd($request->all());
+		// dd($request->all());
 		DB::beginTransaction();
 		try {
 			$activity = Activity::findOrFail($request->activity_id);
@@ -1466,6 +1466,9 @@ class ActivityController extends Controller {
 				$activity->remarks = $request->remarks_not_collected;
 			}
 
+			if (!empty($request->general_remarks)) {
+				$activity->general_remarks = $request->general_remarks;
+			}
 			$activity->updated_by_id = Auth::user()->id;
 			$activity->save();
 
@@ -2257,6 +2260,7 @@ class ActivityController extends Controller {
 			'Activity Description',
 			'Remarks',
 			'Manual Uploading Remarks',
+			'General Remarks',
 			'Comments',
 			'Deduction Reason',
 			'Deferred Reason',
@@ -2361,6 +2365,7 @@ class ActivityController extends Controller {
 				$activity->description != NULL ? $activity->description : '',
 				$activity->remarks != NULL ? $activity->remarks : '',
 				$activity->manual_uploading_remarks != NULL ? $activity->manual_uploading_remarks : '',
+				$activity->general_remarks != NULL ? $activity->general_remarks : '',
 				$activity->bo_comments != NULL ? $activity->bo_comments : '',
 				$activity->deduction_reason != NULL ? $activity->deduction_reason : '',
 				$activity->defer_reason != NULL ? $activity->defer_reason : '',
@@ -2494,7 +2499,7 @@ class ActivityController extends Controller {
 				$sheet->setAutoSize(false);
 				$sheet->fromArray($activity_details_data, NULL, 'A1');
 				$sheet->row(1, $activity_details_header);
-				$sheet->cells('A1:DQ1', function ($cells) {
+				$sheet->cells('A1:DR1', function ($cells) {
 					$cells->setFont(array(
 						'size' => '10',
 						'bold' => true,

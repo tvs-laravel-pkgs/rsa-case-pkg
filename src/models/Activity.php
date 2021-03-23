@@ -61,6 +61,7 @@ class Activity extends Model {
 		'defer_reason',
 		'is_exceptional_check',
 		'exceptional_reason',
+		'general_remarks',
 	];
 
 	public function financeStatus() {

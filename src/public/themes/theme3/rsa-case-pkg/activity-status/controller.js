@@ -15,6 +15,7 @@ app.component('activityStatusList', {
             activity_status_filter_url
         ).then(function(response) {
             self.extras = response.data.extras;
+            self.auth_user_details = response.data.auth_user_details;
             // response.data.extras.status_list.splice(0, 1);
             self.status_list = response.data.extras.portal_status_list;
             self.client_list = response.data.extras.export_client_list;

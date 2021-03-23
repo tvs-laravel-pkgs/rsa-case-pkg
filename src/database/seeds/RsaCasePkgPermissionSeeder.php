@@ -80,6 +80,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'select-case-submission-closing-date-activity',
 				'display_name' => 'Select Case Submission Closing Date',
 			],
+			[
+				'display_order' => 10,
+				'parent' => 'activity-status',
+				'name' => 'export-own-activities',
+				'display_name' => 'Export Own',
+			],
 
 			//ACTIVITIES VERIFICATION
 			[

@@ -43,7 +43,7 @@ class ActivityController extends Controller {
 			'export_client_list' => collect(Client::select('name', 'id')->get()),
 			'asp_list' => collect(Asp::select('name', 'asp_code', 'id')->get()),
 		];
-
+		$this->data['auth_user_details'] = Auth::user();
 		return response()->json($this->data);
 	}
 

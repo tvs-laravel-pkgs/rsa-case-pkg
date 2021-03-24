@@ -2176,7 +2176,7 @@ class ActivityController extends Controller {
 			'cases.bd_state',
 			DB::raw('COALESCE(bd_location_type.name, "--") as location_type'),
 			DB::raw('COALESCE(bd_location_category.name, "--") as location_category'),
-			DB::raw('DATE_FORMAT(activities.updated_at, "%d-%m-%Y %H:%i:%s") as latest_updation_date'),
+			DB::raw('DATE_FORMAT(activities.updated_at, "%d-%m-%Y %H:%i:%s") as latest_updation_date')
 		);
 		if (!empty($request->get('asp_id'))) {
 			$activities = $activities->where('activities.asp_id', $request->get('asp_id'));

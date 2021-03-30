@@ -2153,18 +2153,46 @@ class ActivityController extends Controller {
 			});
 		}
 		if ($request->filter_by == 'activity') {
-			$activities->where(function ($q) use ($request, $range1, $range2) {
-				$q->where(function ($query) use ($range1, $range2) {
-					$query->whereDate('activities.created_at', '>=', $range1)
-						->whereDate('activities.created_at', '<=', $range2)
-						->whereNull('activities.updated_at');
-				})
-					->orWhere(function ($query) use ($range1, $range2) {
-						$query->whereDate('activities.updated_at', '>=', $range1)
-							->whereDate('activities.updated_at', '<=', $range2);
+			//OLD CODE
+			// $activities->where(function ($q) use ($request, $range1, $range2) {
+			// 	$q->where(function ($query) use ($range1, $range2) {
+			// 		$query->whereDate('activities.created_at', '>=', $range1)
+			// 			->whereDate('activities.created_at', '<=', $range2)
+			// 			->whereNull('activities.updated_at');
+			// 	})
+			// 		->orWhere(function ($query) use ($range1, $range2) {
+			// 			$query->whereDate('activities.updated_at', '>=', $range1)
+			// 				->whereDate('activities.updated_at', '<=', $range2);
+			// 		});
+			// });
+
+			//NEW CODE
+			$activities->join('activity_logs', 'activities.id', '=', 'activity_logs.activity_id')
+					->where(function ($q) use ($request, $range1, $range2) {
+						$q->where(function ($query) use ($range1, $range2) {
+								$query->whereRaw('DATE(activity_logs.imported_at) between "' . $range1 . '" and "' . $range2 . '"');
+							})
+							->orwhere(function ($query) use ($range1, $range2) {
+								$query->whereRaw('DATE(activity_logs.asp_data_filled_at) between "' . $range1 . '" and "' . $range2 . '"');
+							})
+							->orwhere(function ($query) use ($range1, $range2) {
+								$query->whereRaw('DATE(activity_logs.bo_deffered_at) between "' . $range1 . '" and "' . $range2 . '"');
+							})
+							->orwhere(function ($query) use ($range1, $range2) {
+								$query->whereRaw('DATE(activity_logs.bo_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
+							})
+							->orwhere(function ($query) use ($range1, $range2) {
+								$query->whereRaw('DATE(activity_logs.invoice_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
+							})
+							->orwhere(function ($query) use ($range1, $range2) {
+								$query->whereRaw('DATE(activity_logs.axapta_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
+							})
+							->orwhere(function ($query) use ($range1, $range2) {
+								$query->whereRaw('DATE(activity_logs.payment_completed_at) between "' . $range1 . '" and "' . $range2 . '"');
+							});
 					});
-			});
 		}
+
 		$activities->select(
 			'asps.*',
 			'activities.*',
@@ -2303,15 +2331,17 @@ class ActivityController extends Controller {
 			'Duration Between Axapta Generated and Payment Completed',
 			'Payment Completed',
 			'Total No. Of Days',
-			'Latest Updation Date',
+			// 'Latest Updation Date',
 		];
 		$activity_details_data = [];
 		//dd($activities);
 		$activity_details_header = array_merge($activity_details_header, $status_headers);
 		//dd($activity_details_header );
 		$constants = config('constants');
-
-		foreach ($activities->get() as $activity_key => $activity) {
+		$activities = $activities
+						->groupBy('activities.id')
+						->get();
+		foreach ($activities as $activity_key => $activity) {
 			if (!empty($activity->case->submission_closing_date)) {
 				$submission_closing_date = date('d-m-Y H:i:s', strtotime($activity->case->submission_closing_date));
 			} else {
@@ -2462,7 +2492,7 @@ class ActivityController extends Controller {
 				$activity_details_data[$activity_key][] = '';
 			}
 
-			$activity_details_data[$activity_key][] = !empty($activity->latest_updation_date) ? $activity->latest_updation_date : '';
+			// $activity_details_data[$activity_key][] = !empty($activity->latest_updation_date) ? $activity->latest_updation_date : '';
 		}
 		//dd('s');
 		//$activity_details_data = array_merge($activity_details_header, $activity_details_data);
@@ -2497,7 +2527,7 @@ class ActivityController extends Controller {
 				$sheet->setAutoSize(false);
 				$sheet->fromArray($activity_details_data, NULL, 'A1');
 				$sheet->row(1, $activity_details_header);
-				$sheet->cells('A1:DR1', function ($cells) {
+				$sheet->cells('A1:DQ1', function ($cells) {
 					$cells->setFont(array(
 						'size' => '10',
 						'bold' => true,

@@ -2176,6 +2176,7 @@ class ActivityController extends Controller {
 		$status_ids = explode(',', $status_ids);
 		$activities = Activity::join('cases', 'activities.case_id', '=', 'cases.id')
 			->join('asps', 'activities.asp_id', '=', 'asps.id')
+			->join('configs as data_source', 'data_source.id', '=', 'activities.data_src_id')
 			->leftjoin('configs as bd_location_type', 'bd_location_type.id', '=', 'cases.bd_location_type_id')
 			->leftjoin('configs as bd_location_category', 'bd_location_category.id', '=', 'cases.bd_location_category_id')
 			->whereIn('activities.status_id', $status_ids);
@@ -2236,6 +2237,7 @@ class ActivityController extends Controller {
 			'cases.bd_city',
 			'cases.bd_state',
 			DB::raw('COALESCE(bd_location_type.name, "--") as location_type'),
+			DB::raw('COALESCE(data_source.name, "--") as data_source'),
 			DB::raw('COALESCE(bd_location_category.name, "--") as location_category'),
 			DB::raw('DATE_FORMAT(activities.updated_at, "%d-%m-%Y %H:%i:%s") as latest_updation_date')
 		);
@@ -2364,6 +2366,7 @@ class ActivityController extends Controller {
 			'Duration Between Axapta Generated and Payment Completed',
 			'Payment Completed',
 			'Total No. Of Days',
+			'Source',
 			// 'Latest Updation Date',
 		];
 		$activity_details_data = [];
@@ -2526,6 +2529,7 @@ class ActivityController extends Controller {
 			}
 
 			// $activity_details_data[$activity_key][] = !empty($activity->latest_updation_date) ? $activity->latest_updation_date : '';
+			$activity_details_data[$activity_key][] = $activity->data_source;
 		}
 		//dd('s');
 		//$activity_details_data = array_merge($activity_details_header, $activity_details_data);

@@ -2168,29 +2168,29 @@ class ActivityController extends Controller {
 
 			//NEW CODE
 			$activities->join('activity_logs', 'activities.id', '=', 'activity_logs.activity_id')
-					->where(function ($q) use ($request, $range1, $range2) {
-						$q->where(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.imported_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.asp_data_filled_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.bo_deffered_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.bo_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.invoice_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.axapta_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.payment_completed_at) between "' . $range1 . '" and "' . $range2 . '"');
-							});
-					});
+				->where(function ($q) use ($range1, $range2) {
+					$q->where(function ($query) use ($range1, $range2) {
+						$query->whereRaw('DATE(activity_logs.imported_at) between "' . $range1 . '" and "' . $range2 . '"');
+					})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_logs.asp_data_filled_at) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_logs.bo_deffered_at) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_logs.bo_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_logs.invoice_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_logs.axapta_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_logs.payment_completed_at) between "' . $range1 . '" and "' . $range2 . '"');
+						});
+				});
 		}
 
 		$activities->select(
@@ -2339,8 +2339,8 @@ class ActivityController extends Controller {
 		//dd($activity_details_header );
 		$constants = config('constants');
 		$activities = $activities
-						->groupBy('activities.id')
-						->get();
+			->groupBy('activities.id')
+			->get();
 		foreach ($activities as $activity_key => $activity) {
 			if (!empty($activity->case->submission_closing_date)) {
 				$submission_closing_date = date('d-m-Y H:i:s', strtotime($activity->case->submission_closing_date));

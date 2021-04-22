@@ -9,7 +9,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg\Api', 'middleware' => ['api']], fun
 
 		Route::post('activity/reject-po', 'ActivityController@rejectActivityPo');
 
-		Route::post('create-invoice', 'InvoiceController@createInvoice');
+		// Route::post('create-invoice', 'InvoiceController@createInvoice');
 
 		Route::post('get-invoice-list', 'InvoiceController@getList');
 		Route::post('get-invoice-details', 'InvoiceController@getDetails');

@@ -22,6 +22,13 @@ class InvoiceController extends Controller {
 		$errors = [];
 		DB::beginTransaction();
 		try {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Due to technical issue invoicing on Hold, we will resume shortly.',
+				],
+			], $this->successStatus);
+
 			$validator = Validator::make($request->all(), [
 				'activity_id.*' => 'required|numeric|exists:activities,crm_activity_id',
 				'asp_code' => 'required|string|exists:asps,asp_code',

@@ -1952,12 +1952,6 @@ class ActivityController extends Controller {
 	}
 
 	public function generateInvoice(Request $request) {
-
-		return response()->json([
-			'success' => false,
-			'error' => 'Due to technical issue invoicing on Hold, we will resume shortly.',
-		]);
-
 		// dd($request->all());
 		DB::beginTransaction();
 		try {

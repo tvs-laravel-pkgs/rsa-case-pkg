@@ -56,7 +56,8 @@ class ActivityController extends Controller {
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			'cases.number',
 			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
-			'asps.asp_code',
+			// 'asps.asp_code',
+			DB::raw('CONCAT(asps.asp_code," / ",asps.name) as asp'),
 			'service_types.name as sub_service',
 			// 'activity_asp_statuses.name as asp_status',
 			'activity_finance_statuses.name as finance_status',
@@ -123,6 +124,10 @@ class ActivityController extends Controller {
 			}
 		}
 		return Datatables::of($activities)
+			->filterColumn('asp', function ($query, $keyword) {
+				$sql = "CONCAT(asps.asp_code,' / ',asps.name)  like ?";
+				$query->whereRaw($sql, ["%{$keyword}%"]);
+			})
 			->addColumn('action', function ($activity) {
 				$status_id = 1;
 				$return_status_ids = [5, 6, 8, 9, 11, 1, 7];

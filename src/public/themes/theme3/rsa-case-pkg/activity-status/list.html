@@ -31,7 +31,7 @@
                                     Import
                                 </a>
                             </li>
-                            <li ng-if="$ctrl.canExportActivity"> <button class="btn btn-md preview-batch export" data-toggle="modal" data-target="#asp_excel_export">Export</button></li>
+                            <li ng-if="$ctrl.hasPermission('export-activities') || $ctrl.hasPermission('export-own-activities')"> <button class="btn btn-md preview-batch export" data-toggle="modal" data-target="#asp_excel_export">Export</button></li>
                             <li ng-if="$ctrl.hasPermission('release-onhold-case')">
                                 <button class="btn btn-md preview-batch export" data-toggle="modal" data-target="#release-onhold-case">
                                     Release OnHold
@@ -50,11 +50,16 @@
                                         </div>
                                         <div class="filter-body">
                                             <div class="row">
-                                                <div class="col-sm-6">
+                                                <!-- <div class="col-sm-6">
                                                     <div class="form-group">
                                                         <input ng-model="$ctrl.ticket_filter.ticket_date" id="ticket_date" class="form-control filter-input date-picker" type="text" placeholder="Date" autocomplete="off">
                                                     </div>
-                                                </div>
+                                                </div> -->
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <input class="form-control filter-input daterange" autocomplete="off" name="date_range_period" type="text" value='' id="date_range_period" placeholder="Select Period" ng-model="$ctrl.ticket_filter.date_range_period">
+                                                    </div><!-- Field -->
+                                                </div><!-- Column -->
                                                 <div class="col-sm-6">
                                                     <div class="form-group">
                                                         <md-select ng-model="$ctrl.ticket_filter.call_center_id" ng-change="changeCommonFilter($ctrl.ticket_filter.call_center_id, 'call_center_id')" placeholder="Select Call Center">
@@ -224,6 +229,11 @@
             </div>
             <form id="export_excel_form" name="export_excel_form" action="{{$ctrl.export_activities}}" method="post">
                 <input type="hidden" name="_token" value="{{$ctrl.csrf}}" />
+                <div ng-if="$ctrl.hasPermission('export-own-activities')">
+                    <input type="hidden" name="asp_id" value="{{$ctrl.auth_user_details.entity_id}}" />
+                    <input type="hidden" name="filter_by" value="general"/>
+                </div>
+
                 <div class="modal-body">
                     <div class="approvalModal-wrapper">
                         <div class="viewData-threeColumn--wrapper">
@@ -257,7 +267,7 @@
                                                 <input type="text" value="" name="ticket" id="ticket_export" class="form-control valid" placeholder="Enter Ticket Number" autocomplete="off">
                                             </div>
                                         </div>
-                                        <div class="col-sm-6">
+                                        <div class="col-sm-6" ng-if= "!$ctrl.hasPermission('export-own-activities')">
                                             <div class="input-text form-group">
                                                 <label>ASP</label>
                                                 <md-autocomplete class="type-sm" md-items="option in $ctrl.searchAsps($ctrl.aspSearchText)" md-input-id="autoFocusId" md-selected-item="$ctrl.asp" md-search-text="$ctrl.aspSearchText" md-item-text="option.workshop" md-min-length="3" placeholder="Search ASP Code / Name" md-clear-button="true" md-no-cache="true">
@@ -289,7 +299,7 @@
                                                 <input type="hidden" name="client_id" value="{{$ctrl.client.id}}" />
                                             </div>
                                         </div>
-                                        <div class="col-sm-6">
+                                        <div class="col-sm-6" ng-if= "!$ctrl.hasPermission('export-own-activities')">
                                             <div class="input-text form-group">
                                                 <label>Filter By </label>
                                                 <div class="radio-button">

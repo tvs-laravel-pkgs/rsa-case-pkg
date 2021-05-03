@@ -2178,7 +2178,8 @@ class ActivityController extends Controller {
 			'cases.bd_city',
 			'cases.bd_state',
 			DB::raw('COALESCE(bd_location_type.name, "--") as location_type'),
-			DB::raw('COALESCE(bd_location_category.name, "--") as location_category')
+			DB::raw('COALESCE(bd_location_category.name, "--") as location_category'),
+			DB::raw('DATE_FORMAT(activities.updated_at, "%d-%m-%Y %H:%i:%s") as latest_updation_date')
 		);
 		if (!empty($request->get('asp_id'))) {
 			$activities = $activities->where('activities.asp_id', $request->get('asp_id'));
@@ -2306,6 +2307,7 @@ class ActivityController extends Controller {
 			'Duration Between Axapta Generated and Payment Completed',
 			'Payment Completed',
 			'Total No. Of Days',
+			'Latest Updation Date',
 		];
 		$activity_details_data = [];
 		//dd($activities);
@@ -2465,6 +2467,7 @@ class ActivityController extends Controller {
 				$activity_details_data[$activity_key][] = '';
 			}
 
+			$activity_details_data[$activity_key][] = !empty($activity->latest_updation_date) ? $activity->latest_updation_date : '';
 		}
 		//dd('s');
 		//$activity_details_data = array_merge($activity_details_header, $activity_details_data);

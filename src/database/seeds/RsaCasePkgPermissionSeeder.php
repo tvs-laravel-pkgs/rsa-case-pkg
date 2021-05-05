@@ -917,8 +917,8 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 			[
 				'display_order' => 2,
 				'parent' => 'cash-sale',
-				'name' => 'cancel-cash-sale-invoice',
-				'display_name' => 'Cancel Invoice',
+				'name' => 'cancel-cash-sale-einvoice',
+				'display_name' => 'Cancel E-Invoice',
 			],
 		];
 		Permission::createFromArrays($permissions);

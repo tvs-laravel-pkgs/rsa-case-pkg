@@ -2307,103 +2307,154 @@ class ActivityController extends Controller {
 			$summary[] = [$status_data['name'], $status_data['activity_count']];
 		}
 		$summary[] = ['Total', $total_count];
-		$activity_details_header = [
-			'ID',
-			'Case Number',
-			'Case Date',
-			'Case Submission Closing Date',
-			'Case Submission Closing Date Remarks',
-			'CRM Activity ID',
-			'Activity Number',
-			'Activity Date',
-			'Client Name',
-			'Customer Name',
-			'Customer Contact Number',
-			'ASP Name',
-			'Axapta Code',
-			'ASP Code',
-			'ASP Contact Number',
-			'ASP EMail',
-			'ASP has GST',
-			'ASP Type',
-			'Auto Invoice',
-			'Workshop Name',
-			'Workshop Type',
-			'RM Name',
-			'Location',
-			'District',
-			'State',
-			'Vehicle Registration Number',
-			'Vehicle Model',
-			'Vehicle Make',
-			'Case Status',
-			'Finance Status',
-			'Final Approved BO Service Type',
-			'ASP Activity Rejected Reason',
-			'ASP PO Accepted',
-			'ASP PO Rejected Reason',
-			'Portal Status',
-			'Activity Status',
-			'Activity Description',
-			'Remarks',
-			'Manual Uploading Remarks',
-			'General Remarks',
-			'Comments',
-			'Deduction Reason',
-			'Deferred Reason',
-			'ASP Resolve Comments',
-			'Is Exceptional',
-			'Exceptional Reason',
-			'Invoice Number',
-			'Invoice Date',
-			'Invoice Amount',
-			'Invoice Status',
-			// 'Payment Date',
-			// 'Payment Mode',
-			// 'Paid Amount',
-			'BD Latitude',
-			'BD Longitude',
-			'BD Location',
-			'BD City',
-			'BD State',
-			'Location Type',
-			'Location Category',
-		];
-		$configs = Config::where('entity_type_id', 23)->pluck('id')->toArray();
-		$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 179, 176, 172, 173, 182, 171, 175, 181];
-		$config_ids = array_merge($configs, $key_list);
-		//dd($config_ids);
+		if (Entrust::can('export-own-activities')) {
+			$activity_details_header = [
+				'ID',
+				'Case Number',
+				'Case Date',
+				'CRM Activity ID',
+				'Activity Number',
+				'Activity Date',
+				'Client Name',
+				'ASP Name',
+				'Axapta Code',
+				'ASP Code',
+				'ASP Contact Number',
+				'ASP EMail',
+				'ASP has GST',
+				'Workshop Name',
+				'RM Name',
+				'Location',
+				'District',
+				'State',
+				'Vehicle Registration Number',
+				'Vehicle Model',
+				'Vehicle Make',
+				'Case Status',
+				'Finance Status',
+				'Final Approved BO Service Type',
+				'Portal Status',
+				'Activity Status',
+				'Remarks',
+				'General Remarks',
+				'Comments',
+				'Deduction Reason',
+				'Deferred Reason',
+				'ASP Resolve Comments',
+				'Invoice Number',
+				'Invoice Date',
+				'Invoice Amount',
+				'Invoice Status',
+				'BD Latitude',
+				'BD Longitude',
+				'BD Location',
+				'BD City',
+				'BD State',
+			];
+			$config_ids = [294, 295, 296, 297, 158, 159, 160, 176, 173, 182];
+
+		} else {
+			$activity_details_header = [
+				'ID',
+				'Case Number',
+				'Case Date',
+				'Case Submission Closing Date',
+				'Case Submission Closing Date Remarks',
+				'CRM Activity ID',
+				'Activity Number',
+				'Activity Date',
+				'Client Name',
+				'Customer Name',
+				'Customer Contact Number',
+				'ASP Name',
+				'Axapta Code',
+				'ASP Code',
+				'ASP Contact Number',
+				'ASP EMail',
+				'ASP has GST',
+				'ASP Type',
+				'Auto Invoice',
+				'Workshop Name',
+				'Workshop Type',
+				'RM Name',
+				'Location',
+				'District',
+				'State',
+				'Vehicle Registration Number',
+				'Vehicle Model',
+				'Vehicle Make',
+				'Case Status',
+				'Finance Status',
+				'Final Approved BO Service Type',
+				'ASP Activity Rejected Reason',
+				'ASP PO Accepted',
+				'ASP PO Rejected Reason',
+				'Portal Status',
+				'Activity Status',
+				'Activity Description',
+				'Remarks',
+				'Manual Uploading Remarks',
+				'General Remarks',
+				'Comments',
+				'Deduction Reason',
+				'Deferred Reason',
+				'ASP Resolve Comments',
+				'Is Exceptional',
+				'Exceptional Reason',
+				'Invoice Number',
+				'Invoice Date',
+				'Invoice Amount',
+				'Invoice Status',
+				// 'Payment Date',
+				// 'Payment Mode',
+				// 'Paid Amount',
+				'BD Latitude',
+				'BD Longitude',
+				'BD Location',
+				'BD City',
+				'BD State',
+				'Location Type',
+				'Location Category',
+			];
+
+			$configs = Config::where('entity_type_id', 23)->pluck('id')->toArray();
+			$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 179, 176, 172, 173, 182, 171, 175, 181];
+			$config_ids = array_merge($configs, $key_list);
+		}
+
 		foreach ($config_ids as $key => $config_id) {
 			$config = Config::where('id', $config_id)->first();
 			$activity_details_header[] = str_replace("_", " ", strtolower($config->name));
 		}
 
-		$status_headers = [
-			'Imported through MIS Import',
-			'Duration Between Import and ASP Data Filled',
-			'ASP Data Filled',
-			'Duration Between ASP Data Filled and BO deffered',
-			'BO Deferred',
-			'Duration Between ASP Data Filled and BO approved',
-			'BO Approved',
-			'Duration Between BO approved and Invoice generated',
-			'Invoice Generated',
-			'Duration Between Invoice generated and Axapta Generated',
-			'Axapta Generated',
-			'Duration Between Axapta Generated and Payment Completed',
-			'Payment Completed',
-			'Total No. Of Days',
-			'Source',
-			// 'Latest Updation Date',
-		];
-		$activity_details_data = [];
-		//dd($activities);
-		$activity_details_header = array_merge($activity_details_header, $status_headers);
+		if (!Entrust::can('export-own-activities')) {
+			$status_headers = [
+				'Imported through MIS Import',
+				'Duration Between Import and ASP Data Filled',
+				'ASP Data Filled',
+				'Duration Between ASP Data Filled and BO deffered',
+				'BO Deferred',
+				'Duration Between ASP Data Filled and BO approved',
+				'BO Approved',
+				'Duration Between BO approved and Invoice generated',
+				'Invoice Generated',
+				'Duration Between Invoice generated and Axapta Generated',
+				'Axapta Generated',
+				'Duration Between Axapta Generated and Payment Completed',
+				'Payment Completed',
+				'Total No. Of Days',
+				'Source',
+				// 'Latest Updation Date',
+			];
+			$activity_details_header = array_merge($activity_details_header, $status_headers);
+		}
 		//dd($activity_details_header );
 		$constants = config('constants');
 		$activities = $activities
 			->groupBy('activities.id')
 			->get();
+		//dd($activities);
+		$activity_details_data = [];
 		foreach ($activities as $activity_key => $activity) {
 			if (!empty($activity->case->submission_closing_date)) {
 				$submission_closing_date = date('d-m-Y H:i:s', strtotime($activity->case->submission_closing_date));
@@ -2416,148 +2467,193 @@ class ActivityController extends Controller {
 				$inv_created_at = '';
 			}
 
-			$activity_details_data[] = [
-				$activity->id,
-				$activity->case->number,
-				date('d-m-Y H:i:s', strtotime($activity->case->date)),
-				$submission_closing_date,
-				!empty($activity->case->submission_closing_date_remarks) ? $activity->case->submission_closing_date_remarks : '',
-				$activity->crm_activity_id,
-				$activity->number,
-				date('d-m-Y H:i:s', strtotime($activity->created_at)),
-				$activity->case->client->name,
-				$activity->case->customer_name,
-				$activity->case->customer_contact_number,
-				$activity->asp->name ? $activity->asp->name : '',
-				$activity->asp->axpta_code ? $activity->asp->axpta_code : '',
-				$activity->asp->asp_code ? $activity->asp->asp_code : '',
-				$activity->asp->contact_number1 ? $activity->asp->contact_number1 : '',
-				$activity->asp->email ? $activity->asp->email : '',
-				$activity->asp->has_gst ? 'Yes' : 'No',
-				$activity->asp->is_self == 1 ? 'Self' : 'Non Self',
-				$activity->asp->is_auto_invoice == 1 ? 'Yes' : 'No',
-				$activity->asp->workshop_name ? $activity->asp->workshop_name : '',
-				$activity->asp->workshop_type ? array_flip($constants['workshop_types'])[$activity->asp->workshop_type] : '',
-				$activity->asp->rm ? ($activity->asp->rm->name ? $activity->asp->rm->name : '') : '',
-				$activity->asp->location ? ($activity->asp->location->name ? $activity->asp->location->name : '') : '',
-				$activity->asp->district ? ($activity->asp->district->name ? $activity->asp->district->name : '') : '',
-				$activity->asp->state ? ($activity->asp->state->name ? $activity->asp->state->name : '') : '',
-				$activity->case->vehicle_registration_number,
-				$activity->case->vehicleModel ? ($activity->case->vehicleModel->name ? $activity->case->vehicleModel->name : '') : '',
-				$activity->case->vehicleModel ? ($activity->case->vehicleModel->vehiclemake ? $activity->case->vehicleModel->vehiclemake->name : '') : '',
-				$activity->case->status ? $activity->case->status->name : '',
-				$activity->financeStatus ? $activity->financeStatus->name : '',
-				$activity->serviceType ? $activity->serviceType->name : '',
-				$activity->aspActivityRejectedReason ? $activity->aspActivityRejectedReason->name : '',
-				$activity->asp_po_accepted != NULL ? ($activity->asp_po_accepted == 1 ? 'Yes' : 'No') : '',
-				$activity->aspPoRejectedReason ? $activity->aspPoRejectedReason->name : '',
-				$activity->status ? $activity->status->name : '',
-				$activity->activityStatus ? $activity->activityStatus->name : '',
-				$activity->description != NULL ? $activity->description : '',
-				$activity->remarks != NULL ? $activity->remarks : '',
-				$activity->manual_uploading_remarks != NULL ? $activity->manual_uploading_remarks : '',
-				$activity->general_remarks != NULL ? $activity->general_remarks : '',
-				$activity->bo_comments != NULL ? $activity->bo_comments : '',
-				$activity->deduction_reason != NULL ? $activity->deduction_reason : '',
-				$activity->defer_reason != NULL ? $activity->defer_reason : '',
-				$activity->asp_resolve_comments != NULL ? $activity->asp_resolve_comments : '',
-				$activity->is_exceptional_check == 1 ? 'Yes' : 'No',
-				$activity->exceptional_reason != NULL ? $activity->exceptional_reason : '',
-				// $activity->invoice ? ($activity->asp->has_gst == 1 && $activity->asp->is_auto_invoice == 0 ? ($activity->invoice->invoice_no) : ($activity->invoice->invoice_no . '-' . $activity->invoice->id)) : '',
-				$activity->invoice ? $activity->invoice->invoice_no : '',
-				$inv_created_at,
-				$activity->invoice ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice->invoice_amount, 2))) : '',
-				$activity->invoice ? ($activity->invoice->invoiceStatus ? $activity->invoice->invoiceStatus->name : '') : '',
-				// '',
-				// '',
-				// '',
-				!empty($activity->bd_lat) ? $activity->bd_lat : '',
-				!empty($activity->bd_long) ? $activity->bd_long : '',
-				!empty($activity->bd_location) ? $activity->bd_location : '',
-				!empty($activity->bd_city) ? $activity->bd_city : '',
-				!empty($activity->bd_state) ? $activity->bd_state : '',
-				$activity->location_type,
-				$activity->location_category,
-			];
+			if (Entrust::can('export-own-activities')) {
+				$activity_details_data[] = [
+					$activity->id,
+					$activity->case->number,
+					date('d-m-Y H:i:s', strtotime($activity->case->date)),
+					$activity->crm_activity_id,
+					$activity->number,
+					date('d-m-Y H:i:s', strtotime($activity->created_at)),
+					$activity->case->client->name,
+					$activity->asp->name ? $activity->asp->name : '',
+					$activity->asp->axpta_code ? $activity->asp->axpta_code : '',
+					$activity->asp->asp_code ? $activity->asp->asp_code : '',
+					$activity->asp->contact_number1 ? $activity->asp->contact_number1 : '',
+					$activity->asp->email ? $activity->asp->email : '',
+					$activity->asp->has_gst ? 'Yes' : 'No',
+					$activity->asp->workshop_name ? $activity->asp->workshop_name : '',
+					$activity->asp->rm ? ($activity->asp->rm->name ? $activity->asp->rm->name : '') : '',
+					$activity->asp->location ? ($activity->asp->location->name ? $activity->asp->location->name : '') : '',
+					$activity->asp->district ? ($activity->asp->district->name ? $activity->asp->district->name : '') : '',
+					$activity->asp->state ? ($activity->asp->state->name ? $activity->asp->state->name : '') : '',
+					$activity->case->vehicle_registration_number,
+					$activity->case->vehicleModel ? ($activity->case->vehicleModel->name ? $activity->case->vehicleModel->name : '') : '',
+					$activity->case->vehicleModel ? ($activity->case->vehicleModel->vehiclemake ? $activity->case->vehicleModel->vehiclemake->name : '') : '',
+					$activity->case->status ? $activity->case->status->name : '',
+					$activity->financeStatus ? $activity->financeStatus->name : '',
+					$activity->serviceType ? $activity->serviceType->name : '',
+					$activity->status ? $activity->status->name : '',
+					$activity->activityStatus ? $activity->activityStatus->name : '',
+					$activity->remarks != NULL ? $activity->remarks : '',
+					$activity->general_remarks != NULL ? $activity->general_remarks : '',
+					$activity->bo_comments != NULL ? $activity->bo_comments : '',
+					$activity->deduction_reason != NULL ? $activity->deduction_reason : '',
+					$activity->defer_reason != NULL ? $activity->defer_reason : '',
+					$activity->asp_resolve_comments != NULL ? $activity->asp_resolve_comments : '',
+					$activity->invoice ? $activity->invoice->invoice_no : '',
+					$inv_created_at,
+					$activity->invoice ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice->invoice_amount, 2))) : '',
+					$activity->invoice ? ($activity->invoice->invoiceStatus ? $activity->invoice->invoiceStatus->name : '') : '',
+					!empty($activity->bd_lat) ? $activity->bd_lat : '',
+					!empty($activity->bd_long) ? $activity->bd_long : '',
+					!empty($activity->bd_location) ? $activity->bd_location : '',
+					!empty($activity->bd_city) ? $activity->bd_city : '',
+					!empty($activity->bd_state) ? $activity->bd_state : '',
+				];
+			} else {
+				$activity_details_data[] = [
+					$activity->id,
+					$activity->case->number,
+					date('d-m-Y H:i:s', strtotime($activity->case->date)),
+					$submission_closing_date,
+					!empty($activity->case->submission_closing_date_remarks) ? $activity->case->submission_closing_date_remarks : '',
+					$activity->crm_activity_id,
+					$activity->number,
+					date('d-m-Y H:i:s', strtotime($activity->created_at)),
+					$activity->case->client->name,
+					$activity->case->customer_name,
+					$activity->case->customer_contact_number,
+					$activity->asp->name ? $activity->asp->name : '',
+					$activity->asp->axpta_code ? $activity->asp->axpta_code : '',
+					$activity->asp->asp_code ? $activity->asp->asp_code : '',
+					$activity->asp->contact_number1 ? $activity->asp->contact_number1 : '',
+					$activity->asp->email ? $activity->asp->email : '',
+					$activity->asp->has_gst ? 'Yes' : 'No',
+					$activity->asp->is_self == 1 ? 'Self' : 'Non Self',
+					$activity->asp->is_auto_invoice == 1 ? 'Yes' : 'No',
+					$activity->asp->workshop_name ? $activity->asp->workshop_name : '',
+					$activity->asp->workshop_type ? array_flip($constants['workshop_types'])[$activity->asp->workshop_type] : '',
+					$activity->asp->rm ? ($activity->asp->rm->name ? $activity->asp->rm->name : '') : '',
+					$activity->asp->location ? ($activity->asp->location->name ? $activity->asp->location->name : '') : '',
+					$activity->asp->district ? ($activity->asp->district->name ? $activity->asp->district->name : '') : '',
+					$activity->asp->state ? ($activity->asp->state->name ? $activity->asp->state->name : '') : '',
+					$activity->case->vehicle_registration_number,
+					$activity->case->vehicleModel ? ($activity->case->vehicleModel->name ? $activity->case->vehicleModel->name : '') : '',
+					$activity->case->vehicleModel ? ($activity->case->vehicleModel->vehiclemake ? $activity->case->vehicleModel->vehiclemake->name : '') : '',
+					$activity->case->status ? $activity->case->status->name : '',
+					$activity->financeStatus ? $activity->financeStatus->name : '',
+					$activity->serviceType ? $activity->serviceType->name : '',
+					$activity->aspActivityRejectedReason ? $activity->aspActivityRejectedReason->name : '',
+					$activity->asp_po_accepted != NULL ? ($activity->asp_po_accepted == 1 ? 'Yes' : 'No') : '',
+					$activity->aspPoRejectedReason ? $activity->aspPoRejectedReason->name : '',
+					$activity->status ? $activity->status->name : '',
+					$activity->activityStatus ? $activity->activityStatus->name : '',
+					$activity->description != NULL ? $activity->description : '',
+					$activity->remarks != NULL ? $activity->remarks : '',
+					$activity->manual_uploading_remarks != NULL ? $activity->manual_uploading_remarks : '',
+					$activity->general_remarks != NULL ? $activity->general_remarks : '',
+					$activity->bo_comments != NULL ? $activity->bo_comments : '',
+					$activity->deduction_reason != NULL ? $activity->deduction_reason : '',
+					$activity->defer_reason != NULL ? $activity->defer_reason : '',
+					$activity->asp_resolve_comments != NULL ? $activity->asp_resolve_comments : '',
+					$activity->is_exceptional_check == 1 ? 'Yes' : 'No',
+					$activity->exceptional_reason != NULL ? $activity->exceptional_reason : '',
+					// $activity->invoice ? ($activity->asp->has_gst == 1 && $activity->asp->is_auto_invoice == 0 ? ($activity->invoice->invoice_no) : ($activity->invoice->invoice_no . '-' . $activity->invoice->id)) : '',
+					$activity->invoice ? $activity->invoice->invoice_no : '',
+					$inv_created_at,
+					$activity->invoice ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice->invoice_amount, 2))) : '',
+					$activity->invoice ? ($activity->invoice->invoiceStatus ? $activity->invoice->invoiceStatus->name : '') : '',
+					// '',
+					// '',
+					// '',
+					!empty($activity->bd_lat) ? $activity->bd_lat : '',
+					!empty($activity->bd_long) ? $activity->bd_long : '',
+					!empty($activity->bd_location) ? $activity->bd_location : '',
+					!empty($activity->bd_city) ? $activity->bd_city : '',
+					!empty($activity->bd_state) ? $activity->bd_state : '',
+					$activity->location_type,
+					$activity->location_category,
+				];
+			}
+
 			foreach ($config_ids as $config_id) {
 				$config = Config::where('id', $config_id)->first();
 				$detail = ActivityDetail::where('activity_id', $activity->id)->where('key_id', $config_id)->first();
 				if (strcmp('amount', $config->name) == 0 || strpos($config->name, '_charges') || strpos($config->name, 'Amount') || strpos($config->name, 'Collected') || strpos($config->name, 'date')) {
-
 					if ($detail) {
 						if (strpos($config->name, 'date')) {
 							$activity_details_data[$activity_key][] = ($detail->value != "") ? date('d-m-Y H:i:s', strtotime($detail->value)) : '';
 						} else {
 							$activity_details_data[$activity_key][] = ($detail->value != "") ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '';
 						}
-
 					} else {
 						$activity_details_data[$activity_key][] = '';
 					}
-
 				} else {
-
 					$activity_details_data[$activity_key][] = $detail ? $detail->value : '';
-
 				}
 			}
-			$total_days = 0;
-			//dump($activity);
-			$activity_log = ActivityLog::where('activity_id', $activity->id)->first();
-			if ($activity_log) {
 
-				$activity_details_data[$activity_key][] = $activity_log->imported_at ? date('d-m-Y H:i:s', strtotime($activity_log->imported_at)) : '';
-				$tot = ($activity_log->imported_at && $activity_log->asp_data_filled_at) ? $this->findDifference($activity_log->imported_at, $activity_log->asp_data_filled_at) : '';
-				$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-				$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+			if (!Entrust::can('export-own-activities')) {
+				$total_days = 0;
+				//dump($activity);
+				$activity_log = ActivityLog::where('activity_id', $activity->id)->first();
+				if ($activity_log) {
 
-				$activity_details_data[$activity_key][] = $activity_log->asp_data_filled_at ? date('d-m-Y H:i:s', strtotime($activity_log->asp_data_filled_at)) : '';
-				$tot = ($activity_log->asp_data_filled_at && $activity_log->bo_deffered_at) ? $this->findDifference($activity_log->asp_data_filled_at, $activity_log->bo_deffered_at) : '';
-				$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-				$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+					$activity_details_data[$activity_key][] = $activity_log->imported_at ? date('d-m-Y H:i:s', strtotime($activity_log->imported_at)) : '';
+					$tot = ($activity_log->imported_at && $activity_log->asp_data_filled_at) ? $this->findDifference($activity_log->imported_at, $activity_log->asp_data_filled_at) : '';
+					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-				$activity_details_data[$activity_key][] = $activity_log->bo_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_deffered_at)) : '';
-				$tot = ($activity_log->asp_data_filled_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->asp_data_filled_at, $activity_log->bo_approved_at) : '';
-				$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-				$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+					$activity_details_data[$activity_key][] = $activity_log->asp_data_filled_at ? date('d-m-Y H:i:s', strtotime($activity_log->asp_data_filled_at)) : '';
+					$tot = ($activity_log->asp_data_filled_at && $activity_log->bo_deffered_at) ? $this->findDifference($activity_log->asp_data_filled_at, $activity_log->bo_deffered_at) : '';
+					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-				$activity_details_data[$activity_key][] = $activity_log->bo_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_approved_at)) : '';
-				$tot = ($activity_log->invoice_generated_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->bo_approved_at) : '';
-				$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-				$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+					$activity_details_data[$activity_key][] = $activity_log->bo_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_deffered_at)) : '';
+					$tot = ($activity_log->asp_data_filled_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->asp_data_filled_at, $activity_log->bo_approved_at) : '';
+					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-				$activity_details_data[$activity_key][] = $activity_log->invoice_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->invoice_generated_at)) : '';
-				$tot = ($activity_log->invoice_generated_at && $activity_log->axapta_generated_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->axapta_generated_at) : '';
-				$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-				$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+					$activity_details_data[$activity_key][] = $activity_log->bo_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_approved_at)) : '';
+					$tot = ($activity_log->invoice_generated_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->bo_approved_at) : '';
+					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-				$activity_details_data[$activity_key][] = $activity_log->axapta_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->axapta_generated_at)) : '';
-				$tot = ($activity_log->axapta_generated_at && $activity_log->payment_completed_at) ? $this->findDifference($activity_log->axapta_generated_at, $activity_log->payment_completed_at) : '';
-				$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-				$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+					$activity_details_data[$activity_key][] = $activity_log->invoice_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->invoice_generated_at)) : '';
+					$tot = ($activity_log->invoice_generated_at && $activity_log->axapta_generated_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->axapta_generated_at) : '';
+					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-				$activity_details_data[$activity_key][] = $activity_log->payment_completed_at ? date('d-m-Y H:i:s', strtotime($activity_log->payment_completed_at)) : '';
-				$activity_details_data[$activity_key][] = $total_days > 1 ? ($total_days . ' Days') : ($total_days . ' Day');
+					$activity_details_data[$activity_key][] = $activity_log->axapta_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->axapta_generated_at)) : '';
+					$tot = ($activity_log->axapta_generated_at && $activity_log->payment_completed_at) ? $this->findDifference($activity_log->axapta_generated_at, $activity_log->payment_completed_at) : '';
+					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-			} else {
-				$activity_details_data[$activity_key][] = '';
-				$activity_details_data[$activity_key][] = '';
-				$activity_details_data[$activity_key][] = '';
-				$activity_details_data[$activity_key][] = '';
-				$activity_details_data[$activity_key][] = '';
-				$activity_details_data[$activity_key][] = '';
-				$activity_details_data[$activity_key][] = '';
-				$activity_details_data[$activity_key][] = '';
-				$activity_details_data[$activity_key][] = '';
-				$activity_details_data[$activity_key][] = '';
-				$activity_details_data[$activity_key][] = '';
-				$activity_details_data[$activity_key][] = '';
-				$activity_details_data[$activity_key][] = '';
-				$activity_details_data[$activity_key][] = '';
+					$activity_details_data[$activity_key][] = $activity_log->payment_completed_at ? date('d-m-Y H:i:s', strtotime($activity_log->payment_completed_at)) : '';
+					$activity_details_data[$activity_key][] = $total_days > 1 ? ($total_days . ' Days') : ($total_days . ' Day');
+
+				} else {
+					$activity_details_data[$activity_key][] = '';
+					$activity_details_data[$activity_key][] = '';
+					$activity_details_data[$activity_key][] = '';
+					$activity_details_data[$activity_key][] = '';
+					$activity_details_data[$activity_key][] = '';
+					$activity_details_data[$activity_key][] = '';
+					$activity_details_data[$activity_key][] = '';
+					$activity_details_data[$activity_key][] = '';
+					$activity_details_data[$activity_key][] = '';
+					$activity_details_data[$activity_key][] = '';
+					$activity_details_data[$activity_key][] = '';
+					$activity_details_data[$activity_key][] = '';
+					$activity_details_data[$activity_key][] = '';
+					$activity_details_data[$activity_key][] = '';
+				}
+
+				// $activity_details_data[$activity_key][] = !empty($activity->latest_updation_date) ? $activity->latest_updation_date : '';
+				$activity_details_data[$activity_key][] = $activity->data_source;
 			}
-
-			// $activity_details_data[$activity_key][] = !empty($activity->latest_updation_date) ? $activity->latest_updation_date : '';
-			$activity_details_data[$activity_key][] = $activity->data_source;
 		}
 		//dd('s');
 		//$activity_details_data = array_merge($activity_details_header, $activity_details_data);

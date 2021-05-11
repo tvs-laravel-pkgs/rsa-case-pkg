@@ -276,6 +276,8 @@ app.component('billingDetails', {
         //self.data = activity;
         this.$onInit = function() {
             setTimeout(function(){
+                self.hasPermission = HelperService.hasPermission;
+                
                 self.show_km = 0;
                 if (self.data.verification == 1) {
                     self.data.bo_comments = "";

@@ -50,14 +50,14 @@ class ActivityController extends Controller {
 	public function getList(Request $request) {
 		// dd($request->all());
 		$from_date = null;
-        $end_date = null;
-        if (isset($request->date_range_period) && !empty($request->date_range_period)) {
-            $period = explode(' to ', $request->date_range_period);
-            $from = $period[0];
-            $to = $period[1];
-            $from_date = date('Y-m-d', strtotime($from));
-            $end_date = date('Y-m-d', strtotime($to));
-        }
+		$end_date = null;
+		if (isset($request->date_range_period) && !empty($request->date_range_period)) {
+			$period = explode(' to ', $request->date_range_period);
+			$from = $period[0];
+			$to = $period[1];
+			$from_date = date('Y-m-d', strtotime($from));
+			$end_date = date('Y-m-d', strtotime($to));
+		}
 
 		$activities = Activity::select(
 			'activities.id',
@@ -68,7 +68,7 @@ class ActivityController extends Controller {
 			'cases.number',
 			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
 			// 'asps.asp_code',
-			DB::raw('CONCAT(asps.asp_code," / ",asps.name) as asp'),
+			DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
 			'service_types.name as sub_service',
 			// 'activity_asp_statuses.name as asp_status',
 			'activity_finance_statuses.name as finance_status',
@@ -80,10 +80,10 @@ class ActivityController extends Controller {
 		)
 
 			->where(function ($query) use ($from_date, $end_date) {
-                if (!empty($from_date) && !empty($end_date)) {
-                    $query->whereRaw('DATE(cases.date) between "' . $from_date . '" and "' . $end_date . '"');
-                }
-            })
+				if (!empty($from_date) && !empty($end_date)) {
+					$query->whereRaw('DATE(cases.date) between "' . $from_date . '" and "' . $end_date . '"');
+				}
+			})
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('users', 'users.id', 'asps.user_id')
 			->leftjoin('cases', 'cases.id', 'activities.case_id')
@@ -143,7 +143,7 @@ class ActivityController extends Controller {
 		}
 		return Datatables::of($activities)
 			->filterColumn('asp', function ($query, $keyword) {
-				$sql = "CONCAT(asps.asp_code,' / ',asps.name)  like ?";
+				$sql = "CONCAT(asps.asp_code,' / ',asps.workshop_name)  like ?";
 				$query->whereRaw($sql, ["%{$keyword}%"]);
 			})
 			->addColumn('action', function ($activity) {
@@ -251,7 +251,7 @@ class ActivityController extends Controller {
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			'cases.number',
 			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
-			DB::raw('CONCAT(asps.asp_code," / ",asps.name) as asp'),
+			DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
 			// 'asps.asp_code',
 			'service_types.name as sub_service',
 			// 'activity_asp_statuses.name as asp_status',
@@ -315,7 +315,7 @@ class ActivityController extends Controller {
 		}
 		return Datatables::of($activities)
 			->filterColumn('asp', function ($query, $keyword) {
-				$sql = "CONCAT(asps.asp_code,' / ',asps.name)  like ?";
+				$sql = "CONCAT(asps.asp_code,' / ',asps.workshop_name)  like ?";
 				$query->whereRaw($sql, ["%{$keyword}%"]);
 			})
 			->setRowAttr([
@@ -337,7 +337,7 @@ class ActivityController extends Controller {
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			'cases.number',
 			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
-			DB::raw('CONCAT(asps.asp_code," / ",asps.name) as asp'),
+			DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
 			// 'asps.asp_code',
 			'service_types.name as sub_service',
 			// 'activity_asp_statuses.name as asp_status',
@@ -401,7 +401,7 @@ class ActivityController extends Controller {
 		}
 		return Datatables::of($activities)
 			->filterColumn('asp', function ($query, $keyword) {
-				$sql = "CONCAT(asps.asp_code,' / ',asps.name)  like ?";
+				$sql = "CONCAT(asps.asp_code,' / ',asps.workshop_name)  like ?";
 				$query->whereRaw($sql, ["%{$keyword}%"]);
 			})
 			->setRowAttr([

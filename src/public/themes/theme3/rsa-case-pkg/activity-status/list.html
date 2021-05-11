@@ -143,7 +143,7 @@
                             <th>Date</th>
                             <th>Case Number</th>
                             <th>Vehicle Number</th>
-                            <th>ASP Code / Name</th>
+                            <th>ASP Code</th>
                             <th>CRM Activity ID</th>
                             <th>Source</th>
                             <!-- <th>Activity Number</th> -->
@@ -270,7 +270,7 @@
                                         <div class="col-sm-6" ng-if= "!$ctrl.hasPermission('export-own-activities')">
                                             <div class="input-text form-group">
                                                 <label>ASP</label>
-                                                <md-autocomplete class="type-sm" md-items="option in $ctrl.searchAsps($ctrl.aspSearchText)" md-input-id="autoFocusId" md-selected-item="$ctrl.asp" md-search-text="$ctrl.aspSearchText" md-item-text="option.workshop" md-min-length="3" placeholder="Search ASP Code / Name" md-clear-button="true" md-no-cache="true">
+                                                <md-autocomplete class="type-sm" md-items="option in $ctrl.searchAsps($ctrl.aspSearchText)" md-input-id="autoFocusId" md-selected-item="$ctrl.asp" md-search-text="$ctrl.aspSearchText" md-item-text="option.workshop" md-min-length="3" placeholder="Search ASP Code" md-clear-button="true" md-no-cache="true">
                                                     <md-item-template>
                                                         <span>
                                                             {{option.name}} / {{option.workshop}}

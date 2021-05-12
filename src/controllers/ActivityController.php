@@ -2282,6 +2282,9 @@ class ActivityController extends Controller {
 				$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
 				$activities = $activities->whereIn('asps.state_id', $states);
 			}
+			if (Entrust::can('view-own-activities')) {
+				$activities = $activities->whereNotIn('activities.status_id', [2, 4, 15, 16, 17]);
+			}
 		}
 		$total_count = $activities->count('activities.id');
 		if ($total_count == 0) {

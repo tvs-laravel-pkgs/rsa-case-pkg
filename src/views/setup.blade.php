@@ -122,7 +122,7 @@
   var activity_status_view_invoice_details_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/invoice_details.html')}}";
   var activity_status_view_financial_details_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/financial_details.html')}}";
   var activity_status_view_case_details_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/case_details.html')}}";
-  var style_dot_image_url = "{{URL::asset('resources/assets/images/Oval.svg')}}";
+  var style_dot_image_url = "{{URL::asset('resources/assets/images/oval.svg')}}";
   var style_car_image_url = "{{URL::asset('resources/assets/images/ic-car.svg')}}";
   var style_service_type_image_url = "{{URL::asset('resources/assets/images/ic-servicetype.svg')}}";
   var style_location_image_url = "{{URL::asset('resources/assets/images/ic-location.svg')}}";

@@ -884,6 +884,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'download-credit-debit-note-invoice',
 				'display_name' => 'Download Normal Invoice',
 			],
+			[
+				'display_order' => 4,
+				'parent' => 'credit-debit-note',
+				'name' => 'cancel-credit-debit-note-einvoice',
+				'display_name' => 'Cancel E-Invoice',
+			],
 
 			//RELEASE ONHOLD CASES
 			[
@@ -920,7 +926,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'download-cash-sale-invoice',
 				'display_name' => 'Download Normal Invoice',
 			],
-
+			[
+				'display_order' => 2,
+				'parent' => 'cash-sale',
+				'name' => 'cancel-cash-sale-einvoice',
+				'display_name' => 'Cancel E-Invoice',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

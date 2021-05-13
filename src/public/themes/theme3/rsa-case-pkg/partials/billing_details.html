@@ -214,7 +214,7 @@
                                         Comments : {{$ctrl.data.bo_comments ? $ctrl.data.bo_comments : 'N/A'}}
                                     </td>
                                 </tr>
-                                <tr ng-show="$ctrl.data.is_exceptional_check==1">
+                                <tr ng-show="$ctrl.data.is_exceptional_check == 1 && !$ctrl.hasPermission('export-own-activities')">
                                     <td colspan="2" class="text-left">
                                         Exceptional Reason : {{$ctrl.data.exceptional_reason ? $ctrl.data.exceptional_reason : 'N/A'}}
                                         <!-- <textarea name="exceptional_reason" ng-disabled="true" ng-model="$ctrl.data.exceptional_reason" class="form-control" value="{{$ctrl.data.exceptional_reason}}" rows="3"></textarea> -->
@@ -312,7 +312,7 @@
                         <span style="color:red" ng-show="myForm.exceptional_reason.$error.required">Exceptional reason is required.</span>
                     </div>
                     <div class="clearfix"></div>
-                    <div class="row">
+                    <div class="custom-row">
                         <button class="btn btn-primary yellow approve_btn mt-20" type="btn" ng-click="saveApproval()">Confirm</button>
                     </div>
                 </div>

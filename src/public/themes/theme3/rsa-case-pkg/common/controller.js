@@ -276,6 +276,8 @@ app.component('billingDetails', {
         //self.data = activity;
         this.$onInit = function() {
             setTimeout(function(){
+                self.hasPermission = HelperService.hasPermission;
+                
                 self.show_km = 0;
                 if (self.data.verification == 1) {
                     self.data.bo_comments = "";
@@ -392,43 +394,50 @@ app.component('billingDetails', {
                 $scope.calculate = function() {
                     // console.log(' == calculate data==  ');
                     // console.log(self.data);
-                    if (self.data.finance_status.po_eligibility_type_id == 341) {
-                        var below_amount = parseInt(self.data.raw_bo_km_travelled) == 0 ? 0 : parseFloat(self.data.asp_service_type_data.empty_return_range_price);
-                    } else {
-                        var below_amount = parseInt(self.data.raw_bo_km_travelled) == 0 ? 0 : parseFloat(self.data.asp_service_type_data.below_range_price);
-                    }
-                    if (parseFloat(self.data.raw_bo_km_travelled) > parseFloat(self.data.asp_km_travelled)) {
-                        self.show_km = 1;
-                    }else{
+                    if(self.data.verification == 0 && (self.data.activity_portal_status_id == 1 || self.data.activity_portal_status_id == 10 || self.data.activity_portal_status_id == 11 || self.data.activity_portal_status_id == 12 || self.data.activity_portal_status_id == 13 || self.data.activity_portal_status_id == 14)){
                         self.show_km = 0;
-                    }
-                    
-                    if (parseFloat(self.data.asp_service_type_data.range_limit) > parseFloat(self.data.raw_bo_km_travelled)) {
-                        var above_amount = 0;
+                        self.data.bo_po_amount = self.data.raw_bo_po_amount;
+                        self.data.bo_deduction = self.data.raw_bo_deduction;
+                        self.data.bo_net_amount = self.data.raw_bo_net_amount;
                     } else {
-                        var excess = parseFloat(self.data.raw_bo_km_travelled) - parseFloat(self.data.asp_service_type_data.range_limit);
-                        var above_amount = (parseFloat(excess) * parseFloat(self.data.asp_service_type_data.above_range_price));
-                    }
-                    var amount_wo_deduction = parseFloat(below_amount) + parseFloat(above_amount);
-                    var adjustment = 0;
-                    if (parseFloat(self.data.asp_service_type_data.adjustment_type) == 2) {
-                        adjustment = parseFloat(self.data.asp_service_type_data.adjustment);
-                    } else if (self.data.asp_service_type_data.adjustment_type == 1) {
-                        adjustment = parseFloat(parseFloat(amount_wo_deduction) * (parseFloat(self.data.asp_service_type_data.adjustment) / 100));
-                    }
-            
-                    //FORMULAE DISABLED AS PER CLIENT REQUEST
-                    // var amount = parseFloat(amount_wo_deduction) + parseFloat(adjustment);
-                    var amount = parseFloat(amount_wo_deduction);
+                        if (self.data.finance_status.po_eligibility_type_id == 341) {
+                            var below_amount = parseInt(self.data.raw_bo_km_travelled) == 0 ? 0 : parseFloat(self.data.asp_service_type_data.empty_return_range_price);
+                        } else {
+                            var below_amount = parseInt(self.data.raw_bo_km_travelled) == 0 ? 0 : parseFloat(self.data.asp_service_type_data.below_range_price);
+                        }
+                        if (parseFloat(self.data.raw_bo_km_travelled) > parseFloat(self.data.asp_km_travelled)) {
+                            self.show_km = 1;
+                        }else{
+                            self.show_km = 0;
+                        }
+                        
+                        if (parseFloat(self.data.asp_service_type_data.range_limit) > parseFloat(self.data.raw_bo_km_travelled)) {
+                            var above_amount = 0;
+                        } else {
+                            var excess = parseFloat(self.data.raw_bo_km_travelled) - parseFloat(self.data.asp_service_type_data.range_limit);
+                            var above_amount = (parseFloat(excess) * parseFloat(self.data.asp_service_type_data.above_range_price));
+                        }
+                        var amount_wo_deduction = parseFloat(below_amount) + parseFloat(above_amount);
+                        var adjustment = 0;
+                        if (parseFloat(self.data.asp_service_type_data.adjustment_type) == 2) {
+                            adjustment = parseFloat(self.data.asp_service_type_data.adjustment);
+                        } else if (self.data.asp_service_type_data.adjustment_type == 1) {
+                            adjustment = parseFloat(parseFloat(amount_wo_deduction) * (parseFloat(self.data.asp_service_type_data.adjustment) / 100));
+                        }
+                
+                        //FORMULAE DISABLED AS PER CLIENT REQUEST
+                        // var amount = parseFloat(amount_wo_deduction) + parseFloat(adjustment);
+                        var amount = parseFloat(amount_wo_deduction);
 
-                    self.data.bo_po_amount = amount;
-                    if (self.data.asp.app_user == 0) {
-                        adjustment = 0;
-                    }
-                    self.data.bo_deduction = parseFloat(adjustment);
-                    var total = (parseFloat(amount) + parseFloat(self.data.raw_bo_not_collected)) - parseFloat(self.data.raw_bo_collected) - parseFloat(self.data.bo_deduction);
+                        self.data.bo_po_amount = amount;
+                        if (self.data.asp.app_user == 0) {
+                            adjustment = 0;
+                        }
+                        self.data.bo_deduction = parseFloat(adjustment);
+                        var total = (parseFloat(amount) + parseFloat(self.data.raw_bo_not_collected)) - parseFloat(self.data.raw_bo_collected) - parseFloat(self.data.bo_deduction);
 
-                    self.data.bo_net_amount = self.data.bo_amount = total;
+                        self.data.bo_net_amount = self.data.bo_amount = total;
+                    }
                     // console.log(self.data.bo_po_amount);
                 }
                 $scope.calculate();

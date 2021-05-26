@@ -932,6 +932,38 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'cancel-cash-sale-einvoice',
 				'display_name' => 'Cancel E-Invoice',
 			],
+
+			//DIRECT SALE FTP
+			[
+				'display_order' => 999,
+				'parent' => null,
+				'name' => 'sales_data_upload',
+				'display_name' => 'Sales Data Upload',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'sales_data_upload',
+				'name' => 'direct_sale_ftp_file_log',
+				'display_name' => 'Direct sale FTP log',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'sales_data_upload',
+				'name' => 'direct_sale_ftp_file_transaction',
+				'display_name' => 'Direct sale FTP file transaction',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'sales_data_upload',
+				'name' => 'direct_sale_ftp_folders',
+				'display_name' => 'Direct sale FTP folders',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'sales_data_upload',
+				'name' => 'failed-direct-sale-transactions-crm-repush',
+				'display_name' => 'Failed Direct sale transactions CRM Re-push',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

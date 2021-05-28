@@ -2291,15 +2291,55 @@ class ActivityController extends Controller {
 			return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['errors' => ['No activities found for given period & statuses']]);
 		}
 		foreach ($status_ids as $key => $status_id) {
-			$count_splitup[] = Activity::rightJoin('activity_portal_statuses', 'activities.status_id', 'activity_portal_statuses.id')
+			$count_splitup_query = Activity::rightJoin('activity_portal_statuses', 'activities.status_id', 'activity_portal_statuses.id')
 				->join('cases', 'cases.id', 'activities.case_id')
 				->select(DB::raw('COUNT(activities.id) as activity_count'), 'activity_portal_statuses.id', 'activity_portal_statuses.name')
 
-				->where('activity_portal_statuses.id', $status_id)
-				->whereDate('cases.date', '>=', $range1)
-				->whereDate('cases.date', '<=', $range2)
-			//->groupBy('activity_portal_statuses.id')
-				->first();
+				->where('activity_portal_statuses.id', $status_id);
+
+			if ($request->filter_by == 'general') {
+				$count_splitup_query->where(function ($q) use ($range1, $range2) {
+					$q->whereDate('cases.date', '>=', $range1)
+						->whereDate('cases.date', '<=', $range2);
+				});
+			}
+			if ($request->filter_by == 'activity') {
+				$count_splitup_query->join('activity_logs', 'activities.id', '=', 'activity_logs.activity_id')
+					->where(function ($q) use ($range1, $range2) {
+						$q->where(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_logs.imported_at) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+							->orwhere(function ($query) use ($range1, $range2) {
+								$query->whereRaw('DATE(activity_logs.asp_data_filled_at) between "' . $range1 . '" and "' . $range2 . '"');
+							})
+							->orwhere(function ($query) use ($range1, $range2) {
+								$query->whereRaw('DATE(activity_logs.bo_deffered_at) between "' . $range1 . '" and "' . $range2 . '"');
+							})
+							->orwhere(function ($query) use ($range1, $range2) {
+								$query->whereRaw('DATE(activity_logs.bo_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
+							})
+							->orwhere(function ($query) use ($range1, $range2) {
+								$query->whereRaw('DATE(activity_logs.invoice_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
+							})
+							->orwhere(function ($query) use ($range1, $range2) {
+								$query->whereRaw('DATE(activity_logs.axapta_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
+							})
+							->orwhere(function ($query) use ($range1, $range2) {
+								$query->whereRaw('DATE(activity_logs.payment_completed_at) between "' . $range1 . '" and "' . $range2 . '"');
+							});
+					});
+			}
+			if (!empty($request->get('asp_id'))) {
+				$count_splitup_query->where('activities.asp_id', $request->get('asp_id'));
+			}
+			if (!empty($request->get('client_id'))) {
+				$count_splitup_query->where('cases.client_id', $request->get('client_id'));
+			}
+			if (!empty($request->get('ticket'))) {
+				$count_splitup_query->where('cases.number', $request->get('ticket'));
+			}
+
+			$count_splitup[] = $count_splitup_query->first();
 		}
 
 		$selected_statuses = $status_ids;

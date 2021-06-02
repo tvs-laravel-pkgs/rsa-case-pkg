@@ -466,8 +466,11 @@ class InvoiceController extends Controller {
 		$invoice_no = $invoice->invoice_no;
 
 		$storeInvoicePaymentInfo = $this->getSoap->GetPaymentInfoByInvoice($invoice->id, $invoice_no);
-		if (!$storeInvoicePaymentInfo) {
-			return response()->json(['success' => false, 'error' => 'Payment details not found']);
+		if (!$storeInvoicePaymentInfo['success']) {
+			return response()->json([
+				'success' => false,
+				'error' => $storeInvoicePaymentInfo['error'],
+			]);
 		}
 
 		return InvoiceVoucher::getASPInvoicePaymentViewInfo($invoice_id);
@@ -481,8 +484,12 @@ class InvoiceController extends Controller {
 				foreach ($invoices as $key => $invoice) {
 					$invoice_no = $invoice->invoice_no;
 					dump(' == before === ' . $invoice_no);
-					$this->getSoap->GetPaymentInfoByInvoice($invoice->id, $invoice_no);
-					dump(' invoice no' . $invoice_no . ' === success ==');
+					$soapResponse = $this->getSoap->GetPaymentInfoByInvoice($invoice->id, $invoice_no);
+					if (!$soapResponse['success']) {
+						dump(' invoice no' . $invoice_no . ' === failure ==');
+					} else {
+						dump(' invoice no' . $invoice_no . ' === success ==');
+					}
 				}
 			}
 		} catch (\Exception $e) {

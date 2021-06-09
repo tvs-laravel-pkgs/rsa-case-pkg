@@ -460,6 +460,8 @@ class Activity extends Model {
 	}
 
 	public static function importFromExcel($job) {
+		$job->status_id = 7201; //Inprogress
+		$job->save();
 		DB::beginTransaction();
 		try {
 			$response = ImportCronJob::getRecordsFromExcel($job, 'BR');

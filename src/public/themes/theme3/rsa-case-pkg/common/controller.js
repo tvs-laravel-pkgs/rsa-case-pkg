@@ -392,8 +392,6 @@ app.component('billingDetails', {
                 }
 
                 $scope.calculate = function() {
-                    // console.log(' == calculate data==  ');
-                    // console.log(self.data);
                     if(self.data.verification == 0 && (self.data.activity_portal_status_id == 1 || self.data.activity_portal_status_id == 10 || self.data.activity_portal_status_id == 11 || self.data.activity_portal_status_id == 12 || self.data.activity_portal_status_id == 13 || self.data.activity_portal_status_id == 14)){
                         self.show_km = 0;
                         self.data.bo_po_amount = self.data.raw_bo_po_amount;
@@ -430,15 +428,16 @@ app.component('billingDetails', {
                         var amount = parseFloat(amount_wo_deduction);
 
                         self.data.bo_po_amount = amount;
-                        if (self.data.asp.app_user == 0) {
-                            adjustment = 0;
-                        }
+
+                        //FORMULAE DISABLED AS PER CLIENT REQUEST
+                        // if (self.data.asp.app_user == 0) {
+                        //     adjustment = 0;
+                        // }
                         self.data.bo_deduction = parseFloat(adjustment);
                         var total = (parseFloat(amount) + parseFloat(self.data.raw_bo_not_collected)) - parseFloat(self.data.raw_bo_collected) - parseFloat(self.data.bo_deduction);
 
                         self.data.bo_net_amount = self.data.bo_amount = total;
                     }
-                    // console.log(self.data.bo_po_amount);
                 }
                 $scope.calculate();
                 $scope.$apply()

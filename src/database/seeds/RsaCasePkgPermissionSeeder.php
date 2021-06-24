@@ -662,6 +662,18 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'finance-export-dealer-membership-invoice',
 				'display_name' => 'Finance Export',
 			],
+			[
+				'display_order' => 5,
+				'parent' => 'dealer-membership-invoice',
+				'name' => 'download-dealer-membership-einvoice',
+				'display_name' => 'Download E-Invoice',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'dealer-membership-invoice',
+				'name' => 'cancel-dealer-membership-einvoice',
+				'display_name' => 'Cancel E-Invoice',
+			],
 
 			//UNBILLED MEMBERSHIP INVOICE
 			[

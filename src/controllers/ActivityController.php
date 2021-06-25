@@ -2216,7 +2216,7 @@ class ActivityController extends Controller {
 			->leftjoin('locations', 'locations.id', '=', 'asps.location_id')
 			->leftjoin('districts', 'districts.id', '=', 'asps.district_id')
 			->leftjoin('states', 'states.id', '=', 'asps.state_id')
-			->leftjoin('vehicle_models', 'vehicle_models.id', '=', 'asps.vehicle_model_id')
+			->leftjoin('vehicle_models', 'vehicle_models.id', '=', 'cases.vehicle_model_id')
 			->leftjoin('vehicle_makes', 'vehicle_makes.id', '=', 'vehicle_models.vehicle_make_id')
 			->leftjoin('configs as bd_location_type', 'bd_location_type.id', '=', 'cases.bd_location_type_id')
 			->leftjoin('configs as bd_location_category', 'bd_location_category.id', '=', 'cases.bd_location_category_id')

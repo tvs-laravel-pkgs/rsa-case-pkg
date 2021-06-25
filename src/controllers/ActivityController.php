@@ -2202,7 +2202,22 @@ class ActivityController extends Controller {
 		$status_ids = explode(',', $status_ids);
 		$activities = Activity::join('cases', 'activities.case_id', '=', 'cases.id')
 			->join('asps', 'activities.asp_id', '=', 'asps.id')
+			->join('users as regionalManager', 'regionalManager.id', '=', 'asps.regional_manager_id')
+			->join('clients', 'cases.client_id', '=', 'clients.id')
+			->join('activity_finance_statuses', 'activity_finance_statuses.id', '=', 'activities.finance_status_id')
+			->join('service_types', 'service_types.id', '=', 'activities.service_type_id')
 			->join('configs as data_source', 'data_source.id', '=', 'activities.data_src_id')
+			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', '=', 'activities.status_id')
+			->leftjoin('asp_activity_rejected_reasons', 'asp_activity_rejected_reasons.id', '=', 'activities.asp_activity_rejected_reason_id')
+			->leftjoin('activity_statuses', 'activity_statuses.id', '=', 'activities.activity_status_id')
+			->leftjoin('invoices', 'invoices.id', '=', 'activities.invoice_id')
+			->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'invoices.status_id')
+			->leftjoin('case_statuses', 'case_statuses.id', '=', 'cases.status_id')
+			->leftjoin('locations', 'locations.id', '=', 'asps.location_id')
+			->leftjoin('districts', 'districts.id', '=', 'asps.district_id')
+			->leftjoin('states', 'states.id', '=', 'asps.state_id')
+			->leftjoin('vehicle_models', 'vehicle_models.id', '=', 'asps.vehicle_model_id')
+			->leftjoin('vehicle_makes', 'vehicle_makes.id', '=', 'vehicle_models.vehicle_make_id')
 			->leftjoin('configs as bd_location_type', 'bd_location_type.id', '=', 'cases.bd_location_type_id')
 			->leftjoin('configs as bd_location_category', 'bd_location_category.id', '=', 'cases.bd_location_category_id')
 			->whereIn('activities.status_id', $status_ids);
@@ -2255,14 +2270,10 @@ class ActivityController extends Controller {
 
 		$activities->select([
 			'activities.id as id',
-			'activities.case_id',
-			'activities.invoice_id',
 			'activities.crm_activity_id',
 			'activities.number',
+			DB::raw('DATE_FORMAT(activities.created_at, "%d-%m-%Y %H:%i:%s") as activity_created_at'),
 			'activities.created_at',
-			'activities.asp_id',
-			'activities.finance_status_id',
-			'activities.service_type_id',
 			'activities.asp_activity_rejected_reason_id',
 			'activities.asp_po_accepted',
 			'activities.asp_po_rejected_reason',
@@ -2276,8 +2287,44 @@ class ActivityController extends Controller {
 			'activities.deduction_reason',
 			'activities.defer_reason',
 			'activities.asp_resolve_comments',
-			'activities.is_exceptional_check',
+			DB::raw('IF(activities.is_exceptional_check = 1, "Yes", "No") as is_exceptional_check'),
 			'activities.exceptional_reason',
+			'activity_finance_statuses.name as activity_finance_status',
+			'service_types.name as service_type',
+			'activity_portal_statuses.name as activity_portal_status',
+			'activity_statuses.name as activity_status',
+			'asp_activity_rejected_reasons.name as asp_activity_rejected_reason',
+			'asps.name as asp_name',
+			'asps.axpta_code as asp_axpta_code',
+			'asps.asp_code as asp_code',
+			'asps.contact_number1 as asp_contact_number1',
+			'asps.email as asp_email',
+			DB::raw('IF(asps.has_gst = 1, "Yes", "No") as asp_has_gst'),
+			DB::raw('IF(asps.is_self = 1, "Self", "Non Self") as asp_is_self'),
+			DB::raw('IF(asps.is_auto_invoice = 1, "Yes", "No") as asp_is_auto_invoice'),
+			'asps.workshop_name as asp_workshop_name',
+			'asps.workshop_type as asp_workshop_type',
+			'regionalManager.name as asp_rm_name',
+			'locations.name as asp_location_name',
+			'districts.name as asp_district_name',
+			'states.name as asp_state_name',
+			'vehicle_models.name as vehicle_model',
+			'vehicle_makes.name as vehicle_make',
+			'case_statuses.name as case_status',
+			'clients.name as client_name',
+			'invoices.created_at as invoice_created_at',
+			'invoices.invoice_no',
+			'invoices.invoice_amount',
+			'invoice_statuses.name as invoice_status',
+			'cases.number as case_number',
+			DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y %H:%i:%s") as case_date'),
+			DB::raw('DATE_FORMAT(cases.submission_closing_date, "%d-%m-%Y %H:%i:%s") as case_submission_closing_date'),
+			'cases.created_at as case_created_at',
+			'cases.vehicle_registration_number as case_vehicle_registration_number',
+			'cases.membership_type as case_membership_type',
+			'cases.customer_name as case_customer_name',
+			'cases.customer_contact_number as case_customer_contact_number',
+			'cases.submission_closing_date_remarks as case_submission_closing_date_remarks',
 			'cases.bd_lat',
 			'cases.bd_long',
 			'cases.bd_location',
@@ -2288,6 +2335,7 @@ class ActivityController extends Controller {
 			DB::raw('COALESCE(bd_location_category.name, "--") as location_category'),
 			DB::raw('DATE_FORMAT(activities.updated_at, "%d-%m-%Y %H:%i:%s") as latest_updation_date'),
 		]);
+
 		if (!empty($request->get('asp_id'))) {
 			$activities = $activities->where('activities.asp_id', $request->get('asp_id'));
 		}
@@ -2309,8 +2357,17 @@ class ActivityController extends Controller {
 		}
 		$total_count = $activities->count('activities.id');
 		if ($total_count == 0) {
-			return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['errors' => ['No activities found for given period & statuses']]);
+			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+				'errors' => [
+					'No activities found for given period & statuses',
+				],
+			]);
 		}
+
+		$selected_statuses = $status_ids;
+		$summary_period = ['Period', date('d/M/Y', strtotime($range1)) . ' to ' . date('d/M/Y', strtotime($range2))];
+		$summary[] = ['Status', 'Count'];
+
 		foreach ($status_ids as $key => $status_id) {
 			$count_splitup_query = Activity::rightJoin('activity_portal_statuses', 'activities.status_id', 'activity_portal_statuses.id')
 				->join('cases', 'cases.id', 'activities.case_id')
@@ -2364,16 +2421,16 @@ class ActivityController extends Controller {
 			}
 
 			$count_splitup[] = $count_splitup_query->first();
+			if ($count_splitup_query) {
+				$summary[] = [
+					$count_splitup_query->name,
+					$count_splitup_query->activity_count,
+				];
+			}
 		}
 
-		$selected_statuses = $status_ids;
-		$summary_period = ['Period', date('d/M/Y', strtotime($range1)) . ' to ' . date('d/M/Y', strtotime($range2))];
-		$summary[] = ['Status', 'Count'];
-
-		foreach ($count_splitup as $status_data) {
-			$summary[] = [$status_data['name'], $status_data['activity_count']];
-		}
 		$summary[] = ['Total', $total_count];
+
 		if (Entrust::can('export-own-activities')) {
 			$activity_details_header = [
 				'ID',
@@ -2524,13 +2581,13 @@ class ActivityController extends Controller {
 		//dd($activities);
 		$activity_details_data = [];
 		foreach ($activities as $activity_key => $activity) {
-			if (!empty($activity->case->submission_closing_date)) {
-				$submission_closing_date = date('d-m-Y H:i:s', strtotime($activity->case->submission_closing_date));
+			if (!empty($activity->case_submission_closing_date)) {
+				$submission_closing_date = $activity->case_submission_closing_date;
 			} else {
-				$submission_closing_date = date('d-m-Y H:i:s', strtotime("+3 months", strtotime($activity->case->created_at)));
+				$submission_closing_date = date('d-m-Y H:i:s', strtotime("+3 months", strtotime($activity->case_created_at)));
 			}
-			if (!empty($activity->invoice) && !empty($activity->invoice->created_at)) {
-				$inv_created_at = date('d-m-Y', strtotime(str_replace('/', '-', $activity->invoice->created_at)));
+			if (!empty($activity->invoice_created_at)) {
+				$inv_created_at = date('d-m-Y', strtotime(str_replace('/', '-', $activity->invoice_created_at)));
 			} else {
 				$inv_created_at = '';
 			}
@@ -2538,41 +2595,41 @@ class ActivityController extends Controller {
 			if (Entrust::can('export-own-activities')) {
 				$activity_details_data[] = [
 					$activity->id,
-					$activity->case->number,
-					date('d-m-Y H:i:s', strtotime($activity->case->date)),
+					$activity->case_number,
+					$activity->case_date,
 					$activity->crm_activity_id,
 					$activity->number,
-					date('d-m-Y H:i:s', strtotime($activity->created_at)),
-					$activity->case->client->name,
-					$activity->asp->name ? $activity->asp->name : '',
-					$activity->asp->axpta_code ? $activity->asp->axpta_code : '',
-					$activity->asp->asp_code ? $activity->asp->asp_code : '',
-					$activity->asp->contact_number1 ? $activity->asp->contact_number1 : '',
-					$activity->asp->email ? $activity->asp->email : '',
-					$activity->asp->has_gst ? 'Yes' : 'No',
-					$activity->asp->workshop_name ? $activity->asp->workshop_name : '',
-					$activity->asp->rm ? ($activity->asp->rm->name ? $activity->asp->rm->name : '') : '',
-					$activity->asp->location ? ($activity->asp->location->name ? $activity->asp->location->name : '') : '',
-					$activity->asp->district ? ($activity->asp->district->name ? $activity->asp->district->name : '') : '',
-					$activity->asp->state ? ($activity->asp->state->name ? $activity->asp->state->name : '') : '',
-					$activity->case->vehicle_registration_number,
-					$activity->case->membership_type,
-					$activity->case->vehicleModel ? ($activity->case->vehicleModel->name ? $activity->case->vehicleModel->name : '') : '',
-					$activity->case->vehicleModel ? ($activity->case->vehicleModel->vehiclemake ? $activity->case->vehicleModel->vehiclemake->name : '') : '',
-					$activity->case->status ? $activity->case->status->name : '',
-					$activity->financeStatus ? $activity->financeStatus->name : '',
-					$activity->serviceType ? $activity->serviceType->name : '',
-					$activity->status ? $activity->status->name : '',
-					$activity->activityStatus ? $activity->activityStatus->name : '',
+					$activity->activity_created_at,
+					$activity->client_name,
+					$activity->asp_name,
+					$activity->asp_axpta_code,
+					$activity->asp_code,
+					$activity->asp_contact_number1,
+					$activity->asp_email,
+					$activity->asp_has_gst,
+					$activity->asp_workshop_name,
+					$activity->asp_rm_name,
+					$activity->asp_location_name,
+					$activity->asp_district_name,
+					$activity->asp_state_name,
+					$activity->case_vehicle_registration_number,
+					$activity->case_membership_type,
+					$activity->vehicle_model,
+					$activity->vehicle_make,
+					$activity->case_status,
+					$activity->activity_finance_status,
+					$activity->service_type,
+					$activity->activity_portal_status,
+					$activity->activity_status,
 					$activity->remarks != NULL ? $activity->remarks : '',
 					$activity->general_remarks != NULL ? $activity->general_remarks : '',
 					$activity->bo_comments != NULL ? $activity->bo_comments : '',
 					$activity->deduction_reason != NULL ? $activity->deduction_reason : '',
 					$activity->defer_reason != NULL ? $activity->defer_reason : '',
 					$activity->asp_resolve_comments != NULL ? $activity->asp_resolve_comments : '',
-					$activity->invoice ? $activity->invoice->invoice_no : '',
+					$activity->invoice_no,
 					$inv_created_at,
-					$activity->invoice ? ($activity->invoice->invoiceStatus ? $activity->invoice->invoiceStatus->name : '') : '',
+					$activity->invoice_status,
 					!empty($activity->bd_lat) ? $activity->bd_lat : '',
 					!empty($activity->bd_long) ? $activity->bd_long : '',
 					!empty($activity->bd_location) ? $activity->bd_location : '',
@@ -2582,42 +2639,42 @@ class ActivityController extends Controller {
 			} else {
 				$activity_details_data[] = [
 					$activity->id,
-					$activity->case->number,
-					date('d-m-Y H:i:s', strtotime($activity->case->date)),
+					$activity->case_number,
+					$activity->case_date,
 					$submission_closing_date,
-					!empty($activity->case->submission_closing_date_remarks) ? $activity->case->submission_closing_date_remarks : '',
+					$activity->case_submission_closing_date_remarks,
 					$activity->crm_activity_id,
 					$activity->number,
-					date('d-m-Y H:i:s', strtotime($activity->created_at)),
-					$activity->case->client->name,
-					$activity->case->customer_name,
-					$activity->case->customer_contact_number,
-					$activity->asp->name ? $activity->asp->name : '',
-					$activity->asp->axpta_code ? $activity->asp->axpta_code : '',
-					$activity->asp->asp_code ? $activity->asp->asp_code : '',
-					$activity->asp->contact_number1 ? $activity->asp->contact_number1 : '',
-					$activity->asp->email ? $activity->asp->email : '',
-					$activity->asp->has_gst ? 'Yes' : 'No',
-					$activity->asp->is_self == 1 ? 'Self' : 'Non Self',
-					$activity->asp->is_auto_invoice == 1 ? 'Yes' : 'No',
-					$activity->asp->workshop_name ? $activity->asp->workshop_name : '',
-					$activity->asp->workshop_type ? array_flip($constants['workshop_types'])[$activity->asp->workshop_type] : '',
-					$activity->asp->rm ? ($activity->asp->rm->name ? $activity->asp->rm->name : '') : '',
-					$activity->asp->location ? ($activity->asp->location->name ? $activity->asp->location->name : '') : '',
-					$activity->asp->district ? ($activity->asp->district->name ? $activity->asp->district->name : '') : '',
-					$activity->asp->state ? ($activity->asp->state->name ? $activity->asp->state->name : '') : '',
-					$activity->case->vehicle_registration_number,
-					$activity->case->membership_type,
-					$activity->case->vehicleModel ? ($activity->case->vehicleModel->name ? $activity->case->vehicleModel->name : '') : '',
-					$activity->case->vehicleModel ? ($activity->case->vehicleModel->vehiclemake ? $activity->case->vehicleModel->vehiclemake->name : '') : '',
-					$activity->case->status ? $activity->case->status->name : '',
-					$activity->financeStatus ? $activity->financeStatus->name : '',
-					$activity->serviceType ? $activity->serviceType->name : '',
-					$activity->aspActivityRejectedReason ? $activity->aspActivityRejectedReason->name : '',
+					$activity->activity_created_at,
+					$activity->client_name,
+					$activity->case_customer_name,
+					$activity->case_customer_contact_number,
+					$activity->asp_name,
+					$activity->asp_axpta_code,
+					$activity->asp_code,
+					$activity->asp_contact_number1,
+					$activity->asp_email,
+					$activity->asp_has_gst,
+					$activity->asp_is_self,
+					$activity->asp_is_auto_invoice,
+					$activity->asp_workshop_name,
+					!empty($activity->asp_workshop_type) ? array_flip($constants['workshop_types'])[$activity->asp_workshop_type] : '',
+					$activity->asp_rm_name,
+					$activity->asp_location_name,
+					$activity->asp_district_name,
+					$activity->asp_state_name,
+					$activity->case_vehicle_registration_number,
+					$activity->case_membership_type,
+					$activity->vehicle_model,
+					$activity->vehicle_make,
+					$activity->case_status,
+					$activity->activity_finance_status,
+					$activity->service_type,
+					$activity->asp_activity_rejected_reason,
 					$activity->asp_po_accepted != NULL ? ($activity->asp_po_accepted == 1 ? 'Yes' : 'No') : '',
 					!empty($activity->asp_po_rejected_reason) ? $activity->asp_po_rejected_reason : '',
-					$activity->status ? $activity->status->name : '',
-					$activity->activityStatus ? $activity->activityStatus->name : '',
+					$activity->activity_portal_status,
+					$activity->activity_status,
 					$activity->description != NULL ? $activity->description : '',
 					$activity->remarks != NULL ? $activity->remarks : '',
 					$activity->manual_uploading_remarks != NULL ? $activity->manual_uploading_remarks : '',
@@ -2629,10 +2686,10 @@ class ActivityController extends Controller {
 					$activity->is_exceptional_check == 1 ? 'Yes' : 'No',
 					$activity->exceptional_reason != NULL ? $activity->exceptional_reason : '',
 					// $activity->invoice ? ($activity->asp->has_gst == 1 && $activity->asp->is_auto_invoice == 0 ? ($activity->invoice->invoice_no) : ($activity->invoice->invoice_no . '-' . $activity->invoice->id)) : '',
-					$activity->invoice ? $activity->invoice->invoice_no : '',
+					$activity->invoice_no,
 					$inv_created_at,
-					$activity->invoice ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice->invoice_amount, 2))) : '',
-					$activity->invoice ? ($activity->invoice->invoiceStatus ? $activity->invoice->invoiceStatus->name : '') : '',
+					!empty($activity->invoice_amount) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice_amount, 2))) : '',
+					$activity->invoice_status,
 					// '',
 					// '',
 					// '',

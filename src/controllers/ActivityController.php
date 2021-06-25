@@ -2757,7 +2757,7 @@ class ActivityController extends Controller {
 				$sheet->setAutoSize(false);
 				$sheet->fromArray($activity_details_data, NULL, 'A1');
 				$sheet->row(1, $activity_details_header);
-				$sheet->cells('A1:DS1', function ($cells) {
+				$sheet->cells('A1:DT1', function ($cells) {
 					$cells->setFont(array(
 						'size' => '10',
 						'bold' => true,

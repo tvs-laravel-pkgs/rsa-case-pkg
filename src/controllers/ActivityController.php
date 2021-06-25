@@ -2253,10 +2253,31 @@ class ActivityController extends Controller {
 				});
 		}
 
-		$activities->select(
-			'asps.*',
-			'activities.*',
+		$activities->select([
 			'activities.id as id',
+			'activities.case_id',
+			'activities.invoice_id',
+			'activities.crm_activity_id',
+			'activities.number',
+			'activities.created_at',
+			'activities.asp_id',
+			'activities.finance_status_id',
+			'activities.service_type_id',
+			'activities.asp_activity_rejected_reason_id',
+			'activities.asp_po_accepted',
+			'activities.asp_po_rejected_reason_id',
+			'activities.status_id',
+			'activities.activity_status_id',
+			'activities.description',
+			'activities.remarks',
+			'activities.manual_uploading_remarks',
+			'activities.general_remarks',
+			'activities.bo_comments',
+			'activities.deduction_reason',
+			'activities.defer_reason',
+			'activities.asp_resolve_comments',
+			'activities.is_exceptional_check',
+			'activities.exceptional_reason',
 			'cases.bd_lat',
 			'cases.bd_long',
 			'cases.bd_location',
@@ -2265,8 +2286,8 @@ class ActivityController extends Controller {
 			DB::raw('COALESCE(bd_location_type.name, "--") as location_type'),
 			DB::raw('COALESCE(data_source.name, "--") as data_source'),
 			DB::raw('COALESCE(bd_location_category.name, "--") as location_category'),
-			DB::raw('DATE_FORMAT(activities.updated_at, "%d-%m-%Y %H:%i:%s") as latest_updation_date')
-		);
+			DB::raw('DATE_FORMAT(activities.updated_at, "%d-%m-%Y %H:%i:%s") as latest_updation_date'),
+		]);
 		if (!empty($request->get('asp_id'))) {
 			$activities = $activities->where('activities.asp_id', $request->get('asp_id'));
 		}
@@ -2293,8 +2314,11 @@ class ActivityController extends Controller {
 		foreach ($status_ids as $key => $status_id) {
 			$count_splitup_query = Activity::rightJoin('activity_portal_statuses', 'activities.status_id', 'activity_portal_statuses.id')
 				->join('cases', 'cases.id', 'activities.case_id')
-				->select(DB::raw('COUNT(activities.id) as activity_count'), 'activity_portal_statuses.id', 'activity_portal_statuses.name')
-
+				->select([
+					DB::raw('COUNT(activities.id) as activity_count'),
+					'activity_portal_statuses.id',
+					'activity_portal_statuses.name',
+				])
 				->where('activity_portal_statuses.id', $status_id);
 
 			if ($request->filter_by == 'general') {

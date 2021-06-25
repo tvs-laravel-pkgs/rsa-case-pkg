@@ -2210,8 +2210,8 @@ class ActivityController extends Controller {
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', '=', 'activities.status_id')
 			->leftjoin('asp_activity_rejected_reasons', 'asp_activity_rejected_reasons.id', '=', 'activities.asp_activity_rejected_reason_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', '=', 'activities.activity_status_id')
-			->leftjoin('invoices', 'invoices.id', '=', 'activities.invoice_id')
-			->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'invoices.status_id')
+			->leftjoin('Invoices', 'Invoices.id', '=', 'activities.invoice_id')
+			->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
 			->leftjoin('case_statuses', 'case_statuses.id', '=', 'cases.status_id')
 			->leftjoin('locations', 'locations.id', '=', 'asps.location_id')
 			->leftjoin('districts', 'districts.id', '=', 'asps.district_id')
@@ -2312,9 +2312,9 @@ class ActivityController extends Controller {
 			'vehicle_makes.name as vehicle_make',
 			'case_statuses.name as case_status',
 			'clients.name as client_name',
-			'invoices.created_at as invoice_created_at',
-			'invoices.invoice_no',
-			'invoices.invoice_amount',
+			'Invoices.created_at as invoice_created_at',
+			'Invoices.invoice_no',
+			'Invoices.invoice_amount',
 			'invoice_statuses.name as invoice_status',
 			'cases.number as case_number',
 			DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y %H:%i:%s") as case_date'),

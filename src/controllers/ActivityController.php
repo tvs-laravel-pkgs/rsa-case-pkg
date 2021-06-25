@@ -2420,7 +2420,7 @@ class ActivityController extends Controller {
 				$count_splitup_query->where('cases.number', $request->get('ticket'));
 			}
 
-			$count_splitup[] = $count_splitup_query->first();
+			$count_splitup_query = $count_splitup_query->first();
 			if ($count_splitup_query) {
 				$summary[] = [
 					$count_splitup_query->name,

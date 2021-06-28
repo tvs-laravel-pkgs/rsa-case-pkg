@@ -396,7 +396,7 @@ app.component('billingDetails', {
                         self.show_km = 0;
                         self.data.bo_po_amount = self.data.raw_bo_po_amount;
                         self.data.bo_deduction = self.data.raw_bo_deduction;
-                        self.data.bo_net_amount = self.data.raw_bo_net_amount;
+                        self.data.bo_net_amount = self.data.raw_bo_amount;
                     } else {
                         if (self.data.finance_status.po_eligibility_type_id == 341) {
                             var below_amount = parseInt(self.data.raw_bo_km_travelled) == 0 ? 0 : parseFloat(self.data.asp_service_type_data.empty_return_range_price);

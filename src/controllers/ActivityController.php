@@ -911,15 +911,24 @@ class ActivityController extends Controller {
 				$var_key = Config::where('id', $keyw)->first();
 				$key_name = str_replace(" ", "_", strtolower($var_key->name));
 				$value = $request->$key_name ? str_replace(",", "", $request->$key_name) : 0;
-				$var_key_val = DB::table('activity_details')->updateOrInsert(
-					[
-						'activity_id' => $request->activity_id,
-						'key_id' => $keyw, 'company_id' => 1,
-					],
-					[
-						'value' => $value,
-					]
-				);
+				//NEW
+				$activityDetail = ActivityDetail::firstOrNew([
+					'company_id' => 1,
+					'activity_id' => $request->activity_id,
+					'key_id' => $keyw,
+				]);
+				$activityDetail->value = $value;
+				$activityDetail->save();
+				//OLD
+				// $var_key_val = DB::table('activity_details')->updateOrInsert(
+				// 	[
+				// 		'activity_id' => $request->activity_id,
+				// 		'key_id' => $keyw, 'company_id' => 1,
+				// 	],
+				// 	[
+				// 		'value' => $value,
+				// 	]
+				// );
 			}
 			if (isset($request->is_exceptional_check)) {
 				$activity->is_exceptional_check = $request->is_exceptional_check;

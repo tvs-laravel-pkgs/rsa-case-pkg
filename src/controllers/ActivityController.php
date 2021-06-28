@@ -1008,6 +1008,60 @@ class ActivityController extends Controller {
 				$activity->updated_by_id = Auth::user()->id;
 				$activity->save();
 
+				$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
+					->where('service_type_id', $activity->service_type_id)
+					->first();
+
+				if ($aspServiceType) {
+					// $bo_km_charge = $activity->detail(172) ? $activity->detail(172)->value : 0;
+					$bo_km_travelled = $activity->detail(158) ? $activity->detail(158)->value : 0;
+					$bo_km_collected = $activity->detail(159) ? $activity->detail(159)->value : 0;
+					$bo_km_not_collected = $activity->detail(160) ? $activity->detail(160)->value : 0;
+
+					$response = getKMPrices($activity->serviceType, $activity->asp);
+					$bo_km_charge = $activity->calculateKMCharge($response['asp_service_price'], $bo_km_travelled);
+
+					if ($aspServiceType->adjustment_type == 2) {
+						$boDeduction = floatval($aspServiceType->adjustment);
+					} else if ($aspServiceType->adjustment_type == 1) {
+						$boDeduction = floatval($bo_km_charge) * floatval($aspServiceType->adjustment / 100);
+					}
+
+					$invoiceAmount = floatval($bo_km_charge) + floatval($bo_km_not_collected) - floatval($boDeduction) - floatval($bo_km_collected);
+
+					$bo_km_charge = ActivityDetail::firstOrNew([
+						'company_id' => 1,
+						'activity_id' => $activity->id,
+						'key_id' => 172,
+					]);
+					$bo_km_charge->value = $bo_km_charge;
+					$bo_km_charge->save();
+
+					$bo_deduction = ActivityDetail::firstOrNew([
+						'company_id' => 1,
+						'activity_id' => $activity->id,
+						'key_id' => 173,
+					]);
+					$bo_deduction->value = $boDeduction;
+					$bo_deduction->save();
+
+					$bo_net_amount = ActivityDetail::firstOrNew([
+						'company_id' => 1,
+						'activity_id' => $activity->id,
+						'key_id' => 176,
+					]);
+					$bo_net_amount->value = $invoiceAmount;
+					$bo_net_amount->save();
+
+					$bo_invoice_amount = ActivityDetail::firstOrNew([
+						'company_id' => 1,
+						'activity_id' => $activity->id,
+						'key_id' => 182,
+					]);
+					$bo_invoice_amount->value = $invoiceAmount;
+					$bo_invoice_amount->save();
+				}
+
 				$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_BULK');
 				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_APPROVED');
 				logActivity3(config('constants.entity_types.ticket'), $activity->id, [

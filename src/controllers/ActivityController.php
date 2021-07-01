@@ -1019,22 +1019,32 @@ class ActivityController extends Controller {
 					$bo_km_not_collected = $activity->detail(160) ? $activity->detail(160)->value : 0;
 
 					$response = getKMPrices($activity->serviceType, $activity->asp);
-					$bo_km_charge = $activity->calculateKMCharge($response['asp_service_price'], $bo_km_travelled);
+					$price = $response['asp_service_price'];
+
+					if ($activity->financeStatus->po_eligibility_type_id == 341) {
+						// Empty Return Payout
+						$below_range_price = $bo_km_travelled == 0 ? 0 : $price->empty_return_range_price;
+					} else {
+						$below_range_price = $bo_km_travelled == 0 ? 0 : $price->below_range_price;
+					}
+
+					$above_range_price = ($bo_km_travelled > $price->range_limit) ? ($bo_km_travelled - $price->range_limit) * $price->above_range_price : 0;
+					$km_charge = $below_range_price + $above_range_price;
 
 					if ($aspServiceType->adjustment_type == 2) {
 						$boDeduction = floatval($aspServiceType->adjustment);
 					} else if ($aspServiceType->adjustment_type == 1) {
-						$boDeduction = floatval($bo_km_charge) * floatval($aspServiceType->adjustment / 100);
+						$boDeduction = floatval($km_charge) * floatval($aspServiceType->adjustment / 100);
 					}
 
-					$invoiceAmount = floatval($bo_km_charge) + floatval($bo_km_not_collected) - floatval($boDeduction) - floatval($bo_km_collected);
+					$invoiceAmount = (floatval($km_charge) + floatval($bo_km_not_collected)) - floatval($boDeduction) - floatval($bo_km_collected);
 
 					$bo_km_charge = ActivityDetail::firstOrNew([
 						'company_id' => 1,
 						'activity_id' => $activity->id,
 						'key_id' => 172,
 					]);
-					$bo_km_charge->value = $bo_km_charge;
+					$bo_km_charge->value = $km_charge;
 					$bo_km_charge->save();
 
 					$bo_deduction = ActivityDetail::firstOrNew([

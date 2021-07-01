@@ -14,6 +14,7 @@ use App\Asp;
 use App\Config;
 use App\Http\Controllers\Controller;
 use App\ServiceType;
+use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -31,7 +32,8 @@ class ActivityController extends Controller {
 		try {
 
 			$validator = Validator::make($request->all(), [
-				'crm_activity_id' => 'required|numeric|unique:activities',
+				// 'crm_activity_id' => 'required|numeric|unique:activities',
+				'crm_activity_id' => 'required|numeric',
 				'data_src' => 'required|string',
 				'asp_code' => [
 					'required',
@@ -350,9 +352,67 @@ class ActivityController extends Controller {
 			// 	], $this->successStatus);
 			// }
 
-			$activity = new Activity([
-				'crm_activity_id' => $request->crm_activity_id,
-			]);
+			$activityExist = Activity::withTrashed()->where('crm_activity_id', $request->crm_activity_id)
+				->first();
+			if (!$activityExist) {
+				$activity = new Activity([
+					'crm_activity_id' => $request->crm_activity_id,
+				]);
+			} else {
+				//ACTIVITY BELONGS TO SAME CASE
+				if ($activityExist->case_id === $case->id) {
+					//Allow case with intial staus and not payment processed statuses
+					if ($activityExist->status_id == 2 || $activityExist->status_id == 4 || $activityExist->status_id == 1 || $activityExist->status_id == 15 || $activityExist->status_id == 16 || $activityExist->status_id == 17) {
+
+						//ALLOW ACTIVITY UPDATION ONLY BEFORE ONE MONTH OF CASE DATE
+						$caseDate = Carbon::parse($case_date);
+						$caseDateAfterOneMonth = date('Y-m-d', strtotime($caseDate->addMonth()));
+						if (date('Y-m-d') <= $caseDateAfterOneMonth) {
+							$activity = $activityExist;
+						} else {
+							//SAVE ACTIVITY API LOG
+							$errors[] = 'Activity update will not be allowed after one month of the case date';
+							saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+							DB::commit();
+
+							return response()->json([
+								'success' => false,
+								'error' => 'Validation Error',
+								'errors' => [
+									'Activity update will not be allowed after one month of the case date',
+								],
+							], $this->successStatus);
+						}
+					} else {
+						//SAVE ACTIVITY API LOG
+						$errors[] = 'Activity update will not be allowed. Case is under payment process';
+						saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+						DB::commit();
+
+						return response()->json([
+							'success' => false,
+							'error' => 'Validation Error',
+							'errors' => [
+								'Activity update will not be allowed. Case is under payment process',
+							],
+						], $this->successStatus);
+					}
+				} else {
+					//SAVE ACTIVITY API LOG
+					$errors[] = 'The crm activity id has already been taken for another case';
+					saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+					DB::commit();
+
+					return response()->json([
+						'success' => false,
+						'error' => 'Validation Error',
+						'errors' => [
+							'The crm activity id has already been taken for another case',
+						],
+					], $this->successStatus);
+				}
+			}
+
 			$activity->fill($request->all());
 
 			$finance_status = ActivityFinanceStatus::where([

@@ -650,7 +650,7 @@ class ActivityController extends Controller {
 				})
 				->whereIn('activities.status_id', [11, 1]) //BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
 				->where('cases.status_id', 4) //case closed
-				->where('activities.data_src_id', '!=', 262) //NOT BO MANUAL
+			// ->where('activities.data_src_id', '!=', 262) //NOT BO MANUAL
 				->where('activities.asp_id', $asp->id)
 				->orderBy('activities.created_at', 'desc')
 				->get();

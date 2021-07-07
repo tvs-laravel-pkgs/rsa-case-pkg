@@ -861,11 +861,17 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 			[
 				'display_order' => 3,
 				'parent' => 'membership-customer-invoice',
+				'name' => 'own-dealer-membership-customer-invoice',
+				'display_name' => 'Own Dealer',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'membership-customer-invoice',
 				'name' => 'all-membership-customer-invoice',
 				'display_name' => 'All',
 			],
 			[
-				'display_order' => 4,
+				'display_order' => 5,
 				'parent' => 'membership-customer-invoice',
 				'name' => 'finance-export-membership-customer-invoice',
 				'display_name' => 'Finance Export',

@@ -27,24 +27,24 @@ class CaseController extends Controller {
 		DB::beginTransaction();
 		try {
 			//Dont allow updations if current status is Cancelled or Closed
-			$case = RsaCase::where([
-				'company_id' => 1,
-				'number' => $request->number,
-			])->first();
-			if ($case && ($case->status_id == 3 || $case->status_id == 4)) {
-				//SAVE CASE API LOG
-				$errors[] = 'Update not allowed - Case already ' . $case->status->name;
-				saveApiLog(102, $case->number, $request->all(), $errors, NULL, 121);
-				DB::commit();
+			// $case = RsaCase::where([
+			// 	'company_id' => 1,
+			// 	'number' => $request->number,
+			// ])->first();
+			// if ($case && ($case->status_id == 3 || $case->status_id == 4)) {
+			// 	//SAVE CASE API LOG
+			// 	$errors[] = 'Update not allowed - Case already ' . $case->status->name;
+			// 	saveApiLog(102, $case->number, $request->all(), $errors, NULL, 121);
+			// 	DB::commit();
 
-				return response()->json([
-					'success' => false,
-					'error' => 'Validation Error',
-					'errors' => [
-						'Update not allowed - Case already ' . $case->status->name,
-					],
-				], $this->successStatus);
-			}
+			// 	return response()->json([
+			// 		'success' => false,
+			// 		'error' => 'Validation Error',
+			// 		'errors' => [
+			// 			'Update not allowed - Case already ' . $case->status->name,
+			// 		],
+			// 	], $this->successStatus);
+			// }
 
 			$validator = Validator::make($request->all(), [
 				'number' => 'required|string|max:32',
@@ -88,9 +88,11 @@ class CaseController extends Controller {
 						}),
 				],
 				'customer_name' => 'required|string|max:255',
-				'customer_contact_number' => 'required|string|min:10|max:10',
+				// 'customer_contact_number' => 'required|string|min:10|max:10',
+				'customer_contact_number' => 'required|string',
 				'contact_name' => 'nullable|string|max:50',
-				'contact_number' => 'nullable|string|min:10|max:10',
+				// 'contact_number' => 'nullable|string|min:10|max:10',
+				'contact_number' => 'nullable|string',
 				'vehicle_make' => [
 					'required',
 					'string',

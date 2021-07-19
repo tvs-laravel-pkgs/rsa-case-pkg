@@ -446,6 +446,7 @@ class ActivityController extends Controller {
 			'cases.customer_name as customer_name',
 			'cases.vin_no',
 			'cases.km_during_breakdown',
+			'cases.customer_contact_number',
 			'cases.bd_lat',
 			'cases.bd_long',
 			'cases.bd_location',

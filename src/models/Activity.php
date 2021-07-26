@@ -1011,7 +1011,7 @@ class Activity extends Model {
 								$activity->status_id = 10;
 							} else {
 								//IF MECHANICAL
-								if ($service_type->service_group_id == 2) {
+								if ($case->status_id == 4 && $service_type->service_group_id == 2) {
 									$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km']);
 									if ($is_bulk) {
 										//ASP Completed Data Entry - Waiting for BO Bulk Verification

@@ -2920,7 +2920,7 @@ class ActivityController extends Controller {
 			])
 				->join('cases', 'cases.id', 'activities.case_id')
 				->where('activities.status_id', 17) //ONHOLD
-				->where('cases.status_id', 4) //CLOSED
+				->whereIn('cases.status_id', [3, 4]) //CANCELLED/CLOSED
 				->whereDate('cases.date', '<=', $case_date)
 				->get();
 
@@ -2945,17 +2945,13 @@ class ActivityController extends Controller {
 						//ASP Completed Data Entry - Waiting for BO Individual Verification
 						$status_id = 6;
 					}
-
-					$activity->update([
-						'status_id' => $status_id,
-						'updated_by_id' => Auth::id(),
-					]);
 				} else {
-					$activity->update([
-						'status_id' => 2, //ASP Rejected CC Details - Waiting for ASP Data Entry
-						'updated_by_id' => Auth::id(),
-					]);
+					$status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 				}
+				$activity->update([
+					'status_id' => $status_id,
+					'updated_by_id' => Auth::id(),
+				]);
 			}
 			DB::commit();
 			return response()->json([

@@ -2913,16 +2913,16 @@ class ActivityController extends Controller {
 				]);
 			}
 			$case_date = date('Y-m-d', strtotime($r->case_date));
-			$activity_ids = Activity::select([
+			$activities = Activity::select([
 				'activities.id',
+				'activities.service_type_id',
 			])
 				->join('cases', 'cases.id', 'activities.case_id')
 				->where('activities.status_id', 17) //ONHOLD
 				->whereDate('cases.date', '<=', $case_date)
-				->pluck('id')
-				->toArray();
+				->get();
 
-			if (empty($activity_ids)) {
+			if (empty($activities)) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -2931,10 +2931,20 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			Activity::whereIn('id', $activity_ids)->update([
-				'status_id' => 2,
-				'updated_by_id' => Auth::id(),
-			]);
+			foreach ($activities as $key => $activity) {
+				//MECHANICAL SERVICE GROUP
+				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
+					$activity->update([
+						'status_id' => 6, //ASP Completed Data Entry - Waiting for BO Individual Verification
+						'updated_by_id' => Auth::id(),
+					]);
+				} else {
+					$activity->update([
+						'status_id' => 2, //ASP Rejected CC Details - Waiting for ASP Data Entry
+						'updated_by_id' => Auth::id(),
+					]);
+				}
+			}
 			DB::commit();
 			return response()->json([
 				'success' => true,

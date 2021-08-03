@@ -2922,7 +2922,7 @@ class ActivityController extends Controller {
 				->whereDate('cases.date', '<=', $case_date)
 				->get();
 
-			if (empty($activities)) {
+			if ($activities->isEmpty()) {
 				return response()->json([
 					'success' => false,
 					'errors' => [

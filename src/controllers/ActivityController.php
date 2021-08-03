@@ -2920,6 +2920,7 @@ class ActivityController extends Controller {
 			])
 				->join('cases', 'cases.id', 'activities.case_id')
 				->where('activities.status_id', 17) //ONHOLD
+				->where('cases.status_id', 4) //CLOSED
 				->whereDate('cases.date', '<=', $case_date)
 				->get();
 

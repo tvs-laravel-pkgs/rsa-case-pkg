@@ -982,6 +982,20 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'failed-direct-sale-transactions-crm-repush',
 				'display_name' => 'Failed Direct sale transactions CRM Re-push',
 			],
+
+			//QUERY LOG
+			[
+				'display_order' => 999,
+				'parent' => null,
+				'name' => 'query-log',
+				'display_name' => 'Query Log',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'query-log',
+				'name' => 'query-log-export',
+				'display_name' => 'Export',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

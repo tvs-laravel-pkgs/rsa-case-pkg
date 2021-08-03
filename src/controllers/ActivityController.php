@@ -2916,6 +2916,7 @@ class ActivityController extends Controller {
 			$activities = Activity::select([
 				'activities.id',
 				'activities.service_type_id',
+				'activities.asp_id',
 			])
 				->join('cases', 'cases.id', 'activities.case_id')
 				->where('activities.status_id', 17) //ONHOLD
@@ -2934,8 +2935,18 @@ class ActivityController extends Controller {
 			foreach ($activities as $key => $activity) {
 				//MECHANICAL SERVICE GROUP
 				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
+					$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
+					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km);
+					if ($is_bulk) {
+						//ASP Completed Data Entry - Waiting for BO Bulk Verification
+						$status_id = 5;
+					} else {
+						//ASP Completed Data Entry - Waiting for BO Individual Verification
+						$status_id = 6;
+					}
+
 					$activity->update([
-						'status_id' => 6, //ASP Completed Data Entry - Waiting for BO Individual Verification
+						'status_id' => $status_id,
 						'updated_by_id' => Auth::id(),
 					]);
 				} else {
@@ -2948,7 +2959,7 @@ class ActivityController extends Controller {
 			DB::commit();
 			return response()->json([
 				'success' => true,
-				'message' => 'OnHold Cases have been released for the selected case date',
+				'message' => 'On Hold Cases have been released for the selected case date',
 			]);
 
 		} catch (\Exception $e) {

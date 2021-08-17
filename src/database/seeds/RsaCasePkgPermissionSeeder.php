@@ -415,6 +415,18 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'all-dealer-wallet',
 				'display_name' => 'All',
 			],
+			[
+				'display_order' => 5,
+				'parent' => 'dealer-wallet',
+				'name' => 'export-own-dealer-wallet',
+				'display_name' => 'Export Own',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'dealer-wallet',
+				'name' => 'export-all-dealer-wallet',
+				'display_name' => 'Export All',
+			],
 
 			// //TOPUP DEALER WALLET
 			// [
@@ -555,34 +567,46 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'View',
 			],
 			[
-				'display_order' => 4,
-				'parent' => 'dealer-commission-invoice',
-				'name' => 'all-dealer-commission-invoice',
-				'display_name' => 'All',
-			],
-			[
-				'display_order' => 5,
-				'parent' => 'dealer-commission-invoice',
-				'name' => 'approve-dealer-commission-invoice',
-				'display_name' => 'Approve',
-			],
-			[
-				'display_order' => 6,
-				'parent' => 'dealer-commission-invoice',
-				'name' => 'finance-export-dealer-commission-invoice',
-				'display_name' => 'Finance Export',
-			],
-			[
-				'display_order' => 7,
+				'display_order' => 3,
 				'parent' => 'dealer-commission-invoice',
 				'name' => 'own-dealer-commission-invoice',
 				'display_name' => 'Own Dealer',
 			],
 			[
-				'display_order' => 8,
+				'display_order' => 4,
 				'parent' => 'dealer-commission-invoice',
 				'name' => 'own-only-dealer-commission-invoice',
 				'display_name' => 'Own Only',
+			],
+			[
+				'display_order' => 5,
+				'parent' => 'dealer-commission-invoice',
+				'name' => 'all-dealer-commission-invoice',
+				'display_name' => 'All',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'dealer-commission-invoice',
+				'name' => 'approve-dealer-commission-invoice',
+				'display_name' => 'Approve',
+			],
+			[
+				'display_order' => 7,
+				'parent' => 'dealer-commission-invoice',
+				'name' => 'finance-export-dealer-commission-invoice',
+				'display_name' => 'Finance Export All',
+			],
+			[
+				'display_order' => 8,
+				'parent' => 'dealer-commission-invoice',
+				'name' => 'finance-export-own-only-dealer-commission-invoice',
+				'display_name' => 'Finance Export Own Only',
+			],
+			[
+				'display_order' => 9,
+				'parent' => 'dealer-commission-invoice',
+				'name' => 'finance-export-own-dealer-commission-invoice',
+				'display_name' => 'Finance Export Own Dealer',
 			],
 
 			//TAX CODES

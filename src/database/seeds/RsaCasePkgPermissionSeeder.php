@@ -427,6 +427,18 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'export-all-dealer-wallet',
 				'display_name' => 'Export All',
 			],
+			[
+				'display_order' => 7,
+				'parent' => 'dealer-wallet',
+				'name' => 'own-dealers-dealer-wallet',
+				'display_name' => 'Own Dealers',
+			],
+			[
+				'display_order' => 8,
+				'parent' => 'dealer-wallet',
+				'name' => 'export-own-dealers-dealer-wallet',
+				'display_name' => 'Export Own Dealers',
+			],
 
 			// //TOPUP DEALER WALLET
 			// [

@@ -1602,6 +1602,16 @@ class ActivityController extends Controller {
 			$activity->updated_by_id = Auth::user()->id;
 			$activity->save();
 
+			$saveActivityRatecardResponse = $activity->saveActivityRatecard();
+			if (!$saveActivityRatecardResponse['success']) {
+				return [
+					'success' => false,
+					'errors' => [
+						$saveActivityRatecardResponse['error'],
+					],
+				];
+			}
+
 			//UPDATE ASP ACTIVITY DETAILS & CALCULATE INVOICE AMOUNT FOR ASP & BO BASED ON ASP ENTERTED DETAILS
 			$asp_key_ids = [
 				//ASP

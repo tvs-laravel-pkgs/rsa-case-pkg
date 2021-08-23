@@ -306,10 +306,14 @@ class Activity extends Model {
 		$activityRateCard->below_range_price = $aspServiceTypeRateCard->below_range_price;
 		$activityRateCard->above_range_price = $aspServiceTypeRateCard->above_range_price;
 		$activityRateCard->waiting_charge_per_hour = $aspServiceTypeRateCard->waiting_charge_per_hour;
-		$activityRateCard->empty_return_range_price = $aspServiceTypeRateCard->range_limit;
+		$activityRateCard->empty_return_range_price = $aspServiceTypeRateCard->empty_return_range_price;
 		$activityRateCard->adjustment_type = $aspServiceTypeRateCard->adjustment_type;
 		$activityRateCard->adjustment = $aspServiceTypeRateCard->adjustment;
 		$activityRateCard->save();
+
+		return [
+			'success' => true,
+		];
 	}
 
 	public function calculatePayoutAmount($data_src) {

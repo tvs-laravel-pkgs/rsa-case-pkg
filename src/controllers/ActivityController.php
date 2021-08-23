@@ -942,6 +942,17 @@ class ActivityController extends Controller {
 			$activity->status_id = 11;
 			$activity->updated_by_id = Auth::user()->id;
 			$activity->save();
+
+			$saveActivityRatecardResponse = $activity->saveActivityRatecard();
+			if (!$saveActivityRatecardResponse['success']) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						$saveActivityRatecardResponse['error'],
+					],
+				]);
+			}
+
 			$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_DEFERRED');
 			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_APPROVED');
 			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
@@ -1008,6 +1019,14 @@ class ActivityController extends Controller {
 				$activity->status_id = 11;
 				$activity->updated_by_id = Auth::user()->id;
 				$activity->save();
+
+				$saveActivityRatecardResponse = $activity->saveActivityRatecard();
+				if (!$saveActivityRatecardResponse['success']) {
+					return response()->json([
+						'success' => false,
+						'error' => $saveActivityRatecardResponse['error'],
+					]);
+				}
 
 				$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 					->where('service_type_id', $activity->service_type_id)

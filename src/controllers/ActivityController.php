@@ -6,6 +6,7 @@ use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityPortalStatus;
+use Abs\RsaCasePkg\ActivityRatecard;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\RsaCase;
 use App\Asp;
@@ -434,29 +435,30 @@ class ActivityController extends Controller {
 			'case',
 			'case.callcenter',
 			'financeStatus',
-		])->select(
-			// 'activities.id as activity_id',
-			'activities.id',
-			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
-			DB::raw('DATE_FORMAT(activities.created_at,"%d-%m-%Y %H:%i:%s") as activity_date'),
-			DB::raw('IF(activities.deduction_reason IS NULL,"-",deduction_reason) as deduction_reason'),
-			DB::raw('IF(activities.bo_comments IS NULL,"-",bo_comments) as bo_comments'),
-			DB::raw('IF(activities.defer_reason IS NULL,"-",defer_reason) as defer_reason'),
-			'cases.number',
-			'cases.customer_name as customer_name',
-			'cases.vin_no',
-			'cases.km_during_breakdown',
-			'cases.customer_contact_number',
-			'cases.bd_lat',
-			'cases.bd_long',
-			'cases.bd_location',
-			'cases.bd_city',
-			'cases.bd_state',
-			'activities.number as activity_number',
-			'activities.asp_po_accepted as asp_po_accepted',
-			'activities.defer_reason as defer_reason',
-			'activities.is_exceptional_check as is_exceptional_check',
-			DB::raw('CASE
+		])
+			->select([
+				// 'activities.id as activity_id',
+				'activities.id',
+				DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+				DB::raw('DATE_FORMAT(activities.created_at,"%d-%m-%Y %H:%i:%s") as activity_date'),
+				DB::raw('IF(activities.deduction_reason IS NULL,"-",deduction_reason) as deduction_reason'),
+				DB::raw('IF(activities.bo_comments IS NULL,"-",bo_comments) as bo_comments'),
+				DB::raw('IF(activities.defer_reason IS NULL,"-",defer_reason) as defer_reason'),
+				'cases.number',
+				'cases.customer_name as customer_name',
+				'cases.vin_no',
+				'cases.km_during_breakdown',
+				'cases.customer_contact_number',
+				'cases.bd_lat',
+				'cases.bd_long',
+				'cases.bd_location',
+				'cases.bd_city',
+				'cases.bd_state',
+				'activities.number as activity_number',
+				'activities.asp_po_accepted as asp_po_accepted',
+				'activities.defer_reason as defer_reason',
+				'activities.is_exceptional_check as is_exceptional_check',
+				DB::raw('CASE
 				    	WHEN (activities.is_exceptional_check = 1)
 			    		THEN
 			    			CASE
@@ -469,43 +471,43 @@ class ActivityController extends Controller {
 			    		ELSE
 			    			"-"
 					END as exceptional_reason'),
-			//'activities.bo_comments as bo_comments',
-			'cases.vehicle_registration_number',
-			'case_statuses.name as case_status',
-			'vehicle_models.name as vehicle_model',
-			'vehicle_makes.name as vehicle_make',
-			'asps.asp_code',
-			'activities.asp_id as asp_id',
-			'activities.service_type_id as service_type_id',
-			//'asps.name',
-			'service_types.name as service',
-			'activity_finance_statuses.name as asp_status',
-			DB::raw('IF(activities.asp_activity_rejected_reason_id IS NULL,"-",asp_activity_rejected_reasons.name) as asp_activity_rejected_reason'),
-			//'activity_asp_statuses.name as asp_status',
-			'activity_portal_statuses.name as activity_portal_status',
-			'activity_statuses.name as activity_status',
-			'clients.name as client',
-			'call_centers.name as call_center',
-			'asp_po_rejected_reason',
-			'activities.description as description',
-			DB::raw('IF(activities.remarks IS NULL OR activities.remarks="","-",activities.remarks) as remarks'),
-			//'activities.remarks as remarks',
-			// 'cases.*',
-			// DB::raw('CASE
-			// 	    	WHEN (Invoices.invoice_no IS NOT NULL)
-			//     		THEN
-			//     			CASE
-			//     				WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0)
-			//    					THEN
-			//     					Invoices.invoice_no
-			//     				ELSE
-			//     					CONCAT(Invoices.invoice_no,"-",Invoices.id)
-			//     			END
-			//     		ELSE
-			//     			"NA"
-			// 		END as invoice_no'),
-			'Invoices.invoice_no',
-			DB::raw('CASE
+				//'activities.bo_comments as bo_comments',
+				'cases.vehicle_registration_number',
+				'case_statuses.name as case_status',
+				'vehicle_models.name as vehicle_model',
+				'vehicle_makes.name as vehicle_make',
+				'asps.asp_code',
+				'activities.asp_id as asp_id',
+				'activities.service_type_id as service_type_id',
+				//'asps.name',
+				'service_types.name as service',
+				'activity_finance_statuses.name as asp_status',
+				DB::raw('IF(activities.asp_activity_rejected_reason_id IS NULL,"-",asp_activity_rejected_reasons.name) as asp_activity_rejected_reason'),
+				//'activity_asp_statuses.name as asp_status',
+				'activity_portal_statuses.name as activity_portal_status',
+				'activity_statuses.name as activity_status',
+				'clients.name as client',
+				'call_centers.name as call_center',
+				'asp_po_rejected_reason',
+				'activities.description as description',
+				DB::raw('IF(activities.remarks IS NULL OR activities.remarks="","-",activities.remarks) as remarks'),
+				//'activities.remarks as remarks',
+				// 'cases.*',
+				// DB::raw('CASE
+				// 	    	WHEN (Invoices.invoice_no IS NOT NULL)
+				//     		THEN
+				//     			CASE
+				//     				WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0)
+				//    					THEN
+				//     					Invoices.invoice_no
+				//     				ELSE
+				//     					CONCAT(Invoices.invoice_no,"-",Invoices.id)
+				//     			END
+				//     		ELSE
+				//     			"NA"
+				// 		END as invoice_no'),
+				'Invoices.invoice_no',
+				DB::raw('CASE
 				    	WHEN (Invoices.asp_gst_registration_number IS NULL || Invoices.asp_gst_registration_number = "")
 			    		THEN
 			    			CASE
@@ -518,7 +520,7 @@ class ActivityController extends Controller {
 			    		ELSE
 			    			Invoices.asp_gst_registration_number
 					END as gst_registration_number'),
-			DB::raw('CASE
+				DB::raw('CASE
 				    	WHEN (Invoices.asp_pan_number IS NULL || Invoices.asp_pan_number = "")
 			    		THEN
 			    			CASE
@@ -531,19 +533,18 @@ class ActivityController extends Controller {
 			    		ELSE
 			    			Invoices.asp_pan_number
 					END as pan_number'),
-			DB::raw('IF(Invoices.invoice_amount IS NULL,"NA",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
-			DB::raw('IF(Invoices.invoice_amount IS NULL,"NA",Invoices.invoice_amount) as inv_amount'),
-			DB::raw('IF((asps.has_gst =1 && asps.is_auto_invoice=0),"NO","Yes") as auto_invoice'),
-			DB::raw('IF(Invoices.flow_current_status IS NULL,"NA",Invoices.flow_current_status) as flow_current_status'),
-			DB::raw('IF(Invoices.created_at IS NULL,"NA",DATE_FORMAT(Invoices.created_at,"%d-%m-%Y")) as invoice_date'),
-			'activity_finance_statuses.po_eligibility_type_id',
-			'activities.finance_status_id',
-			'activities.invoice_id',
-			'activities.status_id as activity_portal_status_id',
-			'bd_location_type.name as loction_type',
-			'bd_location_category.name as location_category'
-
-		)
+				DB::raw('IF(Invoices.invoice_amount IS NULL,"NA",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
+				DB::raw('IF(Invoices.invoice_amount IS NULL,"NA",Invoices.invoice_amount) as inv_amount'),
+				DB::raw('IF((asps.has_gst =1 && asps.is_auto_invoice=0),"NO","Yes") as auto_invoice'),
+				DB::raw('IF(Invoices.flow_current_status IS NULL,"NA",Invoices.flow_current_status) as flow_current_status'),
+				DB::raw('IF(Invoices.created_at IS NULL,"NA",DATE_FORMAT(Invoices.created_at,"%d-%m-%Y")) as invoice_date'),
+				'activity_finance_statuses.po_eligibility_type_id',
+				'activities.finance_status_id',
+				'activities.invoice_id',
+				'activities.status_id as activity_portal_status_id',
+				'bd_location_type.name as loction_type',
+				'bd_location_category.name as location_category',
+			])
 			->leftJoin('asps', 'asps.id', 'activities.asp_id')
 			->leftJoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftJoin('Invoices', 'activities.invoice_id', 'Invoices.id')
@@ -734,9 +735,34 @@ class ActivityController extends Controller {
 			$this->data['activities']['signature_attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
 
 		}
-		$this->data['activities']['asp_service_type_data'] = AspServiceType::where('asp_id', $activity->asp_id)
+
+		$asp_service_type_data = AspServiceType::where('asp_id', $activity->asp_id)
 			->where('service_type_id', $activity->service_type_id)
 			->first();
+		$casewiseRatecardEffectDatetime = config('rsa.CASEWISE_RATECARD_EFFECT_DATETIME');
+		//Activity creation datetime greater than effective datetime
+		if (date('Y-m-d H:i:s', strtotime($activity->activity_date)) > $casewiseRatecardEffectDatetime) {
+			//Activity that is initiated for payment process & not eligible
+			if ($activity->activity_portal_status_id == 1 || $activity->activity_portal_status_id == 10 || $activity->activity_portal_status_id == 11 || $activity->activity_portal_status_id == 12 || $activity->activity_portal_status_id == 13 || $activity->activity_portal_status_id == 14 || $activity->activity_portal_status_id == 15 || $activity->activity_portal_status_id == 16) {
+				$activityRatecard = ActivityRatecard::select([
+					'range_limit',
+					'below_range_price',
+					'above_range_price',
+					'waiting_charge_per_hour',
+					'empty_return_range_price',
+					'adjustment_type',
+					'adjustment',
+				])
+					->where('activity_id', $activity_status_id)
+					->first();
+				if ($activityRatecard) {
+					$asp_service_type_data = $activityRatecard;
+				}
+			}
+		}
+
+		$this->data['activities']['asp_service_type_data'] = $asp_service_type_data;
+
 		$configs = Config::where('entity_type_id', 23)->get();
 		foreach ($configs as $config) {
 			$detail = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $config->id)->first();

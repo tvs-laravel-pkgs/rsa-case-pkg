@@ -1997,146 +1997,159 @@ class ActivityController extends Controller {
 	}
 
 	public function getActivityApprovedDetails($encryption_key = '') {
-		if (empty($encryption_key)) {
-			return response()->json([
-				'success' => false,
-				'errors' => [
-					'Activities not found',
-				],
-			]);
-		}
-		$decrypt = Crypt::decryptString($encryption_key);
-		// $decrypt = decryptStringInv($encryption_key);
-		$activity_ids = explode('-', $decrypt);
-		if (empty($activity_ids)) {
-			return response()->json([
-				'success' => false,
-				'errors' => [
-					'Activities not found',
-				],
-			]);
-		}
-		$asp = Asp::with('rm')->find(Auth::user()->asp->id);
-		if (!$asp) {
-			return response()->json([
-				'success' => false,
-				'errors' => [
-					'ASP not found',
-				],
-			]);
-		}
+		DB::beginTransaction();
+		try {
+			if (empty($encryption_key)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Activities not found',
+					],
+				]);
+			}
+			$decrypt = Crypt::decryptString($encryption_key);
+			// $decrypt = decryptStringInv($encryption_key);
+			$activity_ids = explode('-', $decrypt);
+			if (empty($activity_ids)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Activities not found',
+					],
+				]);
+			}
+			$asp = Asp::with('rm')->find(Auth::user()->asp->id);
+			if (!$asp) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'ASP not found',
+					],
+				]);
+			}
 
-		//CALCULATE TAX FOR INVOICE
-		Invoices::calculateTax($asp, $activity_ids);
-		$activities = Activity::join('cases', 'cases.id', 'activities.case_id')
-			->join('call_centers', 'call_centers.id', 'cases.call_center_id')
-			->join('service_types', 'service_types.id', 'activities.service_type_id')
-			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
-			->leftJoin('activity_details as km_charge', function ($join) {
-				$join->on('km_charge.activity_id', 'activities.id')
-					->where('km_charge.key_id', 172); //BO PO AMOUNT OR KM CHARGE
-			})
-			->leftJoin('activity_details as km_travelled', function ($join) {
-				$join->on('km_travelled.activity_id', 'activities.id')
-					->where('km_travelled.key_id', 158); //BO KM TRAVELLED
-			})
-			->leftJoin('activity_details as net_amount', function ($join) {
-				$join->on('net_amount.activity_id', 'activities.id')
-					->where('net_amount.key_id', 176); //BO NET AMOUNT
-			})
-			->leftJoin('activity_details as collect_amount', function ($join) {
-				$join->on('collect_amount.activity_id', 'activities.id')
-					->where('collect_amount.key_id', 159); //BO COLLECT AMOUNT
-			})
-			->leftJoin('activity_details as not_collected_amount', function ($join) {
-				$join->on('not_collected_amount.activity_id', 'activities.id')
-					->where('not_collected_amount.key_id', 160); //BO NOT COLLECT AMOUNT
-			})
-			->leftJoin('activity_details as total_tax_perc', function ($join) {
-				$join->on('total_tax_perc.activity_id', 'activities.id')
-					->where('total_tax_perc.key_id', 185); //BO TOTAL TAX PERC
-			})
-			->leftJoin('activity_details as total_tax_amount', function ($join) {
-				$join->on('total_tax_amount.activity_id', 'activities.id')
-					->where('total_tax_amount.key_id', 179); //BO TOTAL TAX AMOUNT
-			})
-			->leftJoin('activity_details as total_amount', function ($join) {
-				$join->on('total_amount.activity_id', 'activities.id')
-					->where('total_amount.key_id', 182); //BO INVOICE AMOUNT
-			})
-			->leftjoin('configs as data_sources', 'data_sources.id', 'activities.data_src_id')
-			->select(
-				'cases.number',
-				'activities.id',
-				'activities.asp_id as asp_id',
-				'activities.crm_activity_id',
-				DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
-				'activity_portal_statuses.name as status',
-				'call_centers.name as callcenter',
-				'cases.vehicle_registration_number',
-				'service_types.name as service_type',
-				'km_charge.value as km_charge_value',
-				'km_travelled.value as km_value',
-				'not_collected_amount.value as not_collect_value',
-				'net_amount.value as net_value',
-				'collect_amount.value as collect_value',
-				'total_amount.value as total_value',
-				'total_tax_perc.value as total_tax_perc_value',
-				'total_tax_amount.value as total_tax_amount_value',
-				'data_sources.name as data_source'
+			//CALCULATE TAX FOR INVOICE
+			Invoices::calculateTax($asp, $activity_ids);
+			$activities = Activity::join('cases', 'cases.id', 'activities.case_id')
+				->join('call_centers', 'call_centers.id', 'cases.call_center_id')
+				->join('service_types', 'service_types.id', 'activities.service_type_id')
+				->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+				->leftJoin('activity_details as km_charge', function ($join) {
+					$join->on('km_charge.activity_id', 'activities.id')
+						->where('km_charge.key_id', 172); //BO PO AMOUNT OR KM CHARGE
+				})
+				->leftJoin('activity_details as km_travelled', function ($join) {
+					$join->on('km_travelled.activity_id', 'activities.id')
+						->where('km_travelled.key_id', 158); //BO KM TRAVELLED
+				})
+				->leftJoin('activity_details as net_amount', function ($join) {
+					$join->on('net_amount.activity_id', 'activities.id')
+						->where('net_amount.key_id', 176); //BO NET AMOUNT
+				})
+				->leftJoin('activity_details as collect_amount', function ($join) {
+					$join->on('collect_amount.activity_id', 'activities.id')
+						->where('collect_amount.key_id', 159); //BO COLLECT AMOUNT
+				})
+				->leftJoin('activity_details as not_collected_amount', function ($join) {
+					$join->on('not_collected_amount.activity_id', 'activities.id')
+						->where('not_collected_amount.key_id', 160); //BO NOT COLLECT AMOUNT
+				})
+				->leftJoin('activity_details as total_tax_perc', function ($join) {
+					$join->on('total_tax_perc.activity_id', 'activities.id')
+						->where('total_tax_perc.key_id', 185); //BO TOTAL TAX PERC
+				})
+				->leftJoin('activity_details as total_tax_amount', function ($join) {
+					$join->on('total_tax_amount.activity_id', 'activities.id')
+						->where('total_tax_amount.key_id', 179); //BO TOTAL TAX AMOUNT
+				})
+				->leftJoin('activity_details as total_amount', function ($join) {
+					$join->on('total_amount.activity_id', 'activities.id')
+						->where('total_amount.key_id', 182); //BO INVOICE AMOUNT
+				})
+				->leftjoin('configs as data_sources', 'data_sources.id', 'activities.data_src_id')
+				->select(
+					'cases.number',
+					'activities.id',
+					'activities.asp_id as asp_id',
+					'activities.crm_activity_id',
+					DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
+					'activity_portal_statuses.name as status',
+					'call_centers.name as callcenter',
+					'cases.vehicle_registration_number',
+					'service_types.name as service_type',
+					'km_charge.value as km_charge_value',
+					'km_travelled.value as km_value',
+					'not_collected_amount.value as not_collect_value',
+					'net_amount.value as net_value',
+					'collect_amount.value as collect_value',
+					'total_amount.value as total_value',
+					'total_tax_perc.value as total_tax_perc_value',
+					'total_tax_amount.value as total_tax_amount_value',
+					'data_sources.name as data_source'
+				)
+				->whereIn('activities.id', $activity_ids)
+				->groupBy('activities.id')
+				->get();
+
+			if (count($activities) == 0) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Activities not found',
+					],
+				]);
+			}
+
+			foreach ($activities as $key => $activity) {
+				$taxes = DB::table('activity_tax')->leftjoin('taxes', 'activity_tax.tax_id', '=', 'taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name', 'taxes.tax_rate', 'activity_tax.*')->get();
+				$activity->taxes = $taxes;
+			}
+
+			//GET INVOICE AMOUNT FROM ACTIVITY DETAIL
+			$activity_detail = Activity::select(
+				DB::raw('SUM(bo_invoice_amount.value) as invoice_amount')
 			)
-			->whereIn('activities.id', $activity_ids)
-			->groupBy('activities.id')
-			->get();
+				->leftjoin('activity_details as bo_invoice_amount', function ($join) {
+					$join->on('bo_invoice_amount.activity_id', 'activities.id')
+						->where('bo_invoice_amount.key_id', 182); //BO INVOICE AMOUNT
+				})
+				->whereIn('activities.id', $activity_ids)
+				->first();
 
-		if (count($activities) == 0) {
+			if (!$activity_detail) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Invoice amount not found',
+					],
+				]);
+			}
+
+			$this->data['activities'] = $activities;
+			$this->data['invoice_amount'] = number_format($activity_detail->invoice_amount, 2);
+			$this->data['invoice_amount_in_word'] = getIndianCurrency($activity_detail->invoice_amount);
+			$this->data['asp'] = $asp;
+			$this->data['inv_no'] = generateInvoiceNumber();
+			$this->data['inv_date'] = date("d-m-Y");
+			$this->data['signature_attachment'] = Attachment::where('entity_id', $asp->id)
+				->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))
+				->first();
+			$this->data['signature_attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
+
+			$this->data['action'] = 'ASP Invoice Confirmation';
+			$this->data['success'] = true;
+			DB::commit();
+			return response()->json($this->data);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
 			return response()->json([
 				'success' => false,
 				'errors' => [
-					'Activities not found',
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			]);
 		}
-
-		foreach ($activities as $key => $activity) {
-			$taxes = DB::table('activity_tax')->leftjoin('taxes', 'activity_tax.tax_id', '=', 'taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name', 'taxes.tax_rate', 'activity_tax.*')->get();
-			$activity->taxes = $taxes;
-		}
-
-		//GET INVOICE AMOUNT FROM ACTIVITY DETAIL
-		$activity_detail = Activity::select(
-			DB::raw('SUM(bo_invoice_amount.value) as invoice_amount')
-		)
-			->leftjoin('activity_details as bo_invoice_amount', function ($join) {
-				$join->on('bo_invoice_amount.activity_id', 'activities.id')
-					->where('bo_invoice_amount.key_id', 182); //BO INVOICE AMOUNT
-			})
-			->whereIn('activities.id', $activity_ids)
-			->first();
-
-		if (!$activity_detail) {
-			return response()->json([
-				'success' => false,
-				'errors' => [
-					'Invoice amount not found',
-				],
-			]);
-		}
-
-		$this->data['activities'] = $activities;
-		$this->data['invoice_amount'] = number_format($activity_detail->invoice_amount, 2);
-		$this->data['invoice_amount_in_word'] = getIndianCurrency($activity_detail->invoice_amount);
-		$this->data['asp'] = $asp;
-		$this->data['inv_no'] = generateInvoiceNumber();
-		$this->data['inv_date'] = date("d-m-Y");
-		$this->data['signature_attachment'] = Attachment::where('entity_id', $asp->id)
-			->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))
-			->first();
-		$this->data['signature_attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
-
-		$this->data['action'] = 'ASP Invoice Confirmation';
-		$this->data['success'] = true;
-		return response()->json($this->data);
 	}
 
 	public function generateInvoice(Request $request) {
@@ -2244,7 +2257,10 @@ class ActivityController extends Controller {
 			}
 		} catch (\Exception $e) {
 			DB::rollBack();
-			return response()->json(['success' => false, 'errors' => ['Exception Error' => $e->getMessage()]]);
+			return response()->json([
+				'success' => false,
+				'error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+			]);
 		}
 	}
 
@@ -2297,7 +2313,7 @@ class ActivityController extends Controller {
 			return response()->json([
 				'success' => false,
 				'errors' => [
-					'Exception Error' => $e->getMessage(),
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			]);
 		}

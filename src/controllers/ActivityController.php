@@ -2365,6 +2365,7 @@ class ActivityController extends Controller {
 			->leftjoin('vehicle_makes', 'vehicle_makes.id', '=', 'vehicle_models.vehicle_make_id')
 			->leftjoin('configs as bd_location_type', 'bd_location_type.id', '=', 'cases.bd_location_type_id')
 			->leftjoin('configs as bd_location_category', 'bd_location_category.id', '=', 'cases.bd_location_category_id')
+			->leftjoin('activity_ratecards', 'activity_ratecards.activity_id', 'activities.id')
 			->whereIn('activities.status_id', $status_ids);
 		if ($request->filter_by == 'general') {
 			$activities->where(function ($q) use ($range1, $range2) {
@@ -2479,6 +2480,13 @@ class ActivityController extends Controller {
 			DB::raw('COALESCE(data_source.name, "--") as data_source'),
 			DB::raw('COALESCE(bd_location_category.name, "--") as location_category'),
 			DB::raw('DATE_FORMAT(activities.updated_at, "%d-%m-%Y %H:%i:%s") as latest_updation_date'),
+			DB::raw('COALESCE(activity_ratecards.range_limit, "--") as range_limit'),
+			DB::raw('COALESCE(activity_ratecards.below_range_price, "--") as below_range_price'),
+			DB::raw('COALESCE(activity_ratecards.above_range_price, "--") as above_range_price'),
+			DB::raw('COALESCE(activity_ratecards.waiting_charge_per_hour, "--") as waiting_charge_per_hour'),
+			DB::raw('COALESCE(activity_ratecards.empty_return_range_price, "--") as empty_return_range_price'),
+			DB::raw('COALESCE(IF(activity_ratecards.adjustment_type = 1, "Percentage", "Amount"), "--") as adjustment_type'),
+			DB::raw('COALESCE(activity_ratecards.adjustment, "--") as adjustment'),
 		]);
 
 		if (!empty($request->get('asp_id'))) {
@@ -2593,6 +2601,13 @@ class ActivityController extends Controller {
 				'ASP has GST',
 				'Workshop Name',
 				'RM Name',
+				'Range Limit',
+				'Below Range Price',
+				'Above Range Price',
+				'Waiting Charge Per Hour',
+				'Empty Return Range Price',
+				'Adjustment Type',
+				'Adjustment',
 				'Location',
 				'District',
 				'State',
@@ -2646,6 +2661,13 @@ class ActivityController extends Controller {
 				'Workshop Name',
 				'Workshop Type',
 				'RM Name',
+				'Range Limit',
+				'Below Range Price',
+				'Above Range Price',
+				'Waiting Charge Per Hour',
+				'Empty Return Range Price',
+				'Adjustment Type',
+				'Adjustment',
 				'Location',
 				'District',
 				'State',
@@ -2754,6 +2776,13 @@ class ActivityController extends Controller {
 					$activity->asp_has_gst,
 					$activity->asp_workshop_name,
 					$activity->asp_rm_name,
+					$activity->range_limit,
+					$activity->below_range_price,
+					$activity->above_range_price,
+					$activity->waiting_charge_per_hour,
+					$activity->empty_return_range_price,
+					$activity->adjustment_type,
+					$activity->adjustment,
 					$activity->asp_location_name,
 					$activity->asp_district_name,
 					$activity->asp_state_name,
@@ -2805,6 +2834,13 @@ class ActivityController extends Controller {
 					$activity->asp_workshop_name,
 					!empty($activity->asp_workshop_type) ? array_flip($constants['workshop_types'])[$activity->asp_workshop_type] : '',
 					$activity->asp_rm_name,
+					$activity->range_limit,
+					$activity->below_range_price,
+					$activity->above_range_price,
+					$activity->waiting_charge_per_hour,
+					$activity->empty_return_range_price,
+					$activity->adjustment_type,
+					$activity->adjustment,
 					$activity->asp_location_name,
 					$activity->asp_district_name,
 					$activity->asp_state_name,
@@ -2959,7 +2995,7 @@ class ActivityController extends Controller {
 				$sheet->setAutoSize(false);
 				$sheet->fromArray($activity_details_data, NULL, 'A1');
 				$sheet->row(1, $activity_details_header);
-				$sheet->cells('A1:DT1', function ($cells) {
+				$sheet->cells('A1:EA1', function ($cells) {
 					$cells->setFont(array(
 						'size' => '10',
 						'bold' => true,

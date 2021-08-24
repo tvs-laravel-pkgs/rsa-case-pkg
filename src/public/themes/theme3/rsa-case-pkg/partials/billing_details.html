@@ -110,10 +110,10 @@
                             <thead>
                                 <tr class="warning">
                                     <th>
-                                        Below {{ $ctrl.data.asp_service_type_data.range_limit }}
+                                        Below {{ $ctrl.data.asp_service_type_data.range_limit | number }}
                                     </th>
                                     <th>
-                                        Above {{ $ctrl.data.asp_service_type_data.range_limit }} <br />(for every KM)
+                                        Above {{ $ctrl.data.asp_service_type_data.range_limit | number }} <br />(for every KM)
                                     </th>
                                     <th>
                                         Empty Return Charge

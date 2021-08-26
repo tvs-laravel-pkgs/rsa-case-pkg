@@ -264,6 +264,12 @@ app.component('invoiceView', {
                 }
             }, 1500);
 
+            if(self.hasPermission('view-invoice-payment-info')){
+                setTimeout(function() {
+                    $scope.getPaymenyInfo();
+                }, 2000);
+            }
+
             $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
             $('.viewData-toggle--btn').click(function() {
                 $(this).toggleClass('viewData-toggle--btn_reverse');

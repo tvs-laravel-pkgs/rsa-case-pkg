@@ -415,6 +415,36 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'all-dealer-wallet',
 				'display_name' => 'All',
 			],
+			[
+				'display_order' => 5,
+				'parent' => 'dealer-wallet',
+				'name' => 'export-own-dealer-wallet',
+				'display_name' => 'Export Own',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'dealer-wallet',
+				'name' => 'export-all-dealer-wallet',
+				'display_name' => 'Export All',
+			],
+			[
+				'display_order' => 7,
+				'parent' => 'dealer-wallet',
+				'name' => 'own-dealers-dealer-wallet',
+				'display_name' => 'Own Dealers',
+			],
+			[
+				'display_order' => 8,
+				'parent' => 'dealer-wallet',
+				'name' => 'export-own-dealers-dealer-wallet',
+				'display_name' => 'Export Own Dealers',
+			],
+			[
+				'display_order' => 9,
+				'parent' => 'dealer-wallet',
+				'name' => 'check-staus-self-topup-dealer-wallet',
+				'display_name' => 'Topup check status',
+			],
 
 			// //TOPUP DEALER WALLET
 			// [
@@ -527,6 +557,18 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'own-client-dealers-report-membership',
 				'display_name' => 'Own Client Dealers Report',
 			],
+			[
+				'display_order' => 17,
+				'parent' => 'membership',
+				'name' => 'own-dealers-membership',
+				'display_name' => 'Own Dealers',
+			],
+			[
+				'display_order' => 18,
+				'parent' => 'membership',
+				'name' => 'dealers-report-membership',
+				'display_name' => 'Own Dealers Report',
+			],
 
 			//Dealer Invoice Menu
 			[
@@ -555,34 +597,58 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'View',
 			],
 			[
-				'display_order' => 4,
-				'parent' => 'dealer-commission-invoice',
-				'name' => 'all-dealer-commission-invoice',
-				'display_name' => 'All',
-			],
-			[
-				'display_order' => 5,
-				'parent' => 'dealer-commission-invoice',
-				'name' => 'approve-dealer-commission-invoice',
-				'display_name' => 'Approve',
-			],
-			[
-				'display_order' => 6,
-				'parent' => 'dealer-commission-invoice',
-				'name' => 'finance-export-dealer-commission-invoice',
-				'display_name' => 'Finance Export',
-			],
-			[
-				'display_order' => 7,
+				'display_order' => 3,
 				'parent' => 'dealer-commission-invoice',
 				'name' => 'own-dealer-commission-invoice',
 				'display_name' => 'Own Dealer',
 			],
 			[
-				'display_order' => 8,
+				'display_order' => 4,
 				'parent' => 'dealer-commission-invoice',
 				'name' => 'own-only-dealer-commission-invoice',
 				'display_name' => 'Own Only',
+			],
+			[
+				'display_order' => 5,
+				'parent' => 'dealer-commission-invoice',
+				'name' => 'all-dealer-commission-invoice',
+				'display_name' => 'All',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'dealer-commission-invoice',
+				'name' => 'approve-dealer-commission-invoice',
+				'display_name' => 'Approve',
+			],
+			[
+				'display_order' => 7,
+				'parent' => 'dealer-commission-invoice',
+				'name' => 'finance-export-dealer-commission-invoice',
+				'display_name' => 'Finance Export All',
+			],
+			[
+				'display_order' => 8,
+				'parent' => 'dealer-commission-invoice',
+				'name' => 'finance-export-own-only-dealer-commission-invoice',
+				'display_name' => 'Finance Export Own Only',
+			],
+			[
+				'display_order' => 9,
+				'parent' => 'dealer-commission-invoice',
+				'name' => 'finance-export-own-dealer-commission-invoice',
+				'display_name' => 'Finance Export Own Dealer',
+			],
+			[
+				'display_order' => 10,
+				'parent' => 'dealer-commission-invoice',
+				'name' => 'own-dealers-commission-invoice',
+				'display_name' => 'Own Dealers',
+			],
+			[
+				'display_order' => 11,
+				'parent' => 'dealer-commission-invoice',
+				'name' => 'finance-export-own-dealers-commission-invoice',
+				'display_name' => 'Finance Export Own Dealers',
 			],
 
 			//TAX CODES
@@ -660,7 +726,7 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_order' => 4,
 				'parent' => 'dealer-membership-invoice',
 				'name' => 'finance-export-dealer-membership-invoice',
-				'display_name' => 'Finance Export',
+				'display_name' => 'Finance Export All',
 			],
 			[
 				'display_order' => 5,
@@ -673,6 +739,24 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'parent' => 'dealer-membership-invoice',
 				'name' => 'cancel-dealer-membership-einvoice',
 				'display_name' => 'Cancel E-Invoice',
+			],
+			[
+				'display_order' => 7,
+				'parent' => 'dealer-membership-invoice',
+				'name' => 'own-dealers-membership-invoice',
+				'display_name' => 'Own Dealers',
+			],
+			[
+				'display_order' => 8,
+				'parent' => 'dealer-membership-invoice',
+				'name' => 'finance-export-own-only-dealer-membership-invoice',
+				'display_name' => 'Finance Export Own',
+			],
+			[
+				'display_order' => 9,
+				'parent' => 'dealer-membership-invoice',
+				'name' => 'finance-export-own-dealers-membership-invoice',
+				'display_name' => 'Finance Export Own Dealers',
 			],
 
 			//UNBILLED MEMBERSHIP INVOICE
@@ -830,6 +914,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'all-membership-cancellation-invoice',
 				'display_name' => 'All',
 			],
+			[
+				'display_order' => 4,
+				'parent' => 'membership-cancellation-invoice',
+				'name' => 'own-dealers-membership-cancellation-invoice',
+				'display_name' => 'Own Dealers',
+			],
 
 			//MEMBERSHIP MENU
 			[
@@ -874,7 +964,31 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_order' => 5,
 				'parent' => 'membership-customer-invoice',
 				'name' => 'finance-export-membership-customer-invoice',
-				'display_name' => 'Finance Export',
+				'display_name' => 'Finance Export All',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'membership-customer-invoice',
+				'name' => 'own-dealers-membership-customer-invoice',
+				'display_name' => 'Own Dealers',
+			],
+			[
+				'display_order' => 7,
+				'parent' => 'membership-customer-invoice',
+				'name' => 'finance-export-own-only-membership-customer-invoice',
+				'display_name' => 'Finance Export Own Only',
+			],
+			[
+				'display_order' => 8,
+				'parent' => 'membership-customer-invoice',
+				'name' => 'finance-export-own-dealer-membership-customer-invoice',
+				'display_name' => 'Finance Export Own Dealer',
+			],
+			[
+				'display_order' => 9,
+				'parent' => 'membership-customer-invoice',
+				'name' => 'finance-export-own-dealers-membership-customer-invoice',
+				'display_name' => 'Finance Export Own Dealers',
 			],
 
 			//CREDIT DEBIT NOTE
@@ -981,6 +1095,20 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'parent' => 'sales_data_upload',
 				'name' => 'failed-direct-sale-transactions-crm-repush',
 				'display_name' => 'Failed Direct sale transactions CRM Re-push',
+			],
+
+			//QUERY LOG
+			[
+				'display_order' => 999,
+				'parent' => null,
+				'name' => 'query-log',
+				'display_name' => 'Query Log',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'query-log',
+				'name' => 'query-log-export',
+				'display_name' => 'Export',
 			],
 		];
 		Permission::createFromArrays($permissions);

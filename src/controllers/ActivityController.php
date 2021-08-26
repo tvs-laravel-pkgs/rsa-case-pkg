@@ -2913,16 +2913,18 @@ class ActivityController extends Controller {
 				]);
 			}
 			$case_date = date('Y-m-d', strtotime($r->case_date));
-			$activity_ids = Activity::select([
+			$activities = Activity::select([
 				'activities.id',
+				'activities.service_type_id',
+				'activities.asp_id',
 			])
 				->join('cases', 'cases.id', 'activities.case_id')
 				->where('activities.status_id', 17) //ONHOLD
+				->whereIn('cases.status_id', [3, 4]) //CANCELLED/CLOSED
 				->whereDate('cases.date', '<=', $case_date)
-				->pluck('id')
-				->toArray();
+				->get();
 
-			if (empty($activity_ids)) {
+			if ($activities->isEmpty()) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -2931,14 +2933,30 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			Activity::whereIn('id', $activity_ids)->update([
-				'status_id' => 2,
-				'updated_by_id' => Auth::id(),
-			]);
+			foreach ($activities as $key => $activity) {
+				//MECHANICAL SERVICE GROUP
+				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
+					$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
+					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km);
+					if ($is_bulk) {
+						//ASP Completed Data Entry - Waiting for BO Bulk Verification
+						$status_id = 5;
+					} else {
+						//ASP Completed Data Entry - Waiting for BO Individual Verification
+						$status_id = 6;
+					}
+				} else {
+					$status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+				}
+				$activity->update([
+					'status_id' => $status_id,
+					'updated_by_id' => Auth::id(),
+				]);
+			}
 			DB::commit();
 			return response()->json([
 				'success' => true,
-				'message' => 'OnHold Cases have been released for the selected case date',
+				'message' => 'On Hold Cases have been released for the selected case date',
 			]);
 
 		} catch (\Exception $e) {

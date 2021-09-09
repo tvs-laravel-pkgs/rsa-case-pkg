@@ -294,6 +294,13 @@ app.component('billingDetails', {
                         $("#confirm-ticket-modal").modal();
                     }
                 }
+                $scope.approveTicket = function() {
+                    if(self.show_collected_charges == 1){
+                        custom_noty('error', 'Charges collected chould not be more than zero');
+                    }else{
+                        $("#confirm-ticket-modal").modal();
+                    }
+                }
 
                 $scope.saveApproval = function() {
                     if ($scope.myForm.$valid) {
@@ -394,6 +401,7 @@ app.component('billingDetails', {
                 $scope.calculate = function() {
                     if(self.data.verification == 0 && (self.data.activity_portal_status_id == 1 || self.data.activity_portal_status_id == 10 || self.data.activity_portal_status_id == 11 || self.data.activity_portal_status_id == 12 || self.data.activity_portal_status_id == 13 || self.data.activity_portal_status_id == 14)){
                         self.show_km = 0;
+                        self.show_collected_charges = 0;
                         self.data.bo_po_amount = self.data.raw_bo_po_amount;
                         self.data.bo_deduction = self.data.raw_bo_deduction;
                         self.data.bo_net_amount = self.data.raw_bo_amount;
@@ -408,7 +416,11 @@ app.component('billingDetails', {
                         }else{
                             self.show_km = 0;
                         }
-                        
+                        if(self.data.raw_bo_collected != 0) {
+                            self.show_collected_charges = 1;
+                        }else{
+                            self.show_collected_charges = 0;
+                        }
                         if (parseFloat(self.data.asp_service_type_data.range_limit) > parseFloat(self.data.raw_bo_km_travelled)) {
                             var above_amount = 0;
                         } else {

@@ -907,6 +907,13 @@ class ActivityController extends Controller {
 					'errors' => ['Final KM should be less than or equal to ASP KM'],
 				]);
 			}
+			//CHECK Charges collected is zero
+			if ($request->bo_collected != 0) {
+				return response()->json([
+					'success' => false,
+					'errors' => ['Charges collected should not be more than zero'],
+				]);
+			}
 			$key_list = [158, 159, 160, 176, 172, 173, 179, 182];
 			foreach ($key_list as $keyw) {
 				$var_key = Config::where('id', $keyw)->first();

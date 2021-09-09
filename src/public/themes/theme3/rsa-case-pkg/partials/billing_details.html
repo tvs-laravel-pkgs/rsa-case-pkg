@@ -72,6 +72,8 @@
                                     <td class="" ng-show="$ctrl.data.verification==1" style="text-align:right">
                                         <input style="text-align:right" type="text" name="bo_collected" ng-model="$ctrl.data.raw_bo_collected" class="collected_amount" value="{{$ctrl.data.raw_bo_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                         <input type="hidden" ng-model="$ctrl.data.raw_asp_collected" class="collected_value" value="{{$ctrl.data.raw_asp_collected}}">
+                                        <br>
+                                        <span class="color-red" ng-show="$ctrl.show_collected_charges==1">Charges collected should not be more than zero</span>
                                     </td>
                                 </tr>
                                 <tr ng-show="$ctrl.data.km_travelled_attachment_url.length>0">

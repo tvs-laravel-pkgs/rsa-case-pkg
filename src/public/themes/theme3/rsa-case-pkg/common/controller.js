@@ -288,14 +288,13 @@ app.component('billingDetails', {
                 }
 
                 $scope.approveTicket = function() {
-                    // if (self.data.raw_bo_km_travelled == '') {
-                    //     custom_noty('error', 'KM Travelled is required');
-                    // } else if (self.data.raw_bo_not_collected == '') {
-                    //     custom_noty('error', 'Charges not collected is required');
-                    // } else if (self.data.raw_bo_collected == '') {
-                    //     custom_noty('error', 'Charges collected is required');
-                    // } else
-                    if (self.show_km == 1) {
+                    if (self.data.raw_bo_km_travelled !== 0 && self.data.raw_bo_km_travelled === '') {
+                        custom_noty('error', 'KM Travelled is required');
+                    } else if (self.data.raw_bo_not_collected !== 0 && self.data.raw_bo_not_collected === '') {
+                        custom_noty('error', 'Charges not collected is required');
+                    } else if (self.data.raw_bo_collected !== 0 && self.data.raw_bo_collected === '') {
+                        custom_noty('error', 'Charges collected is required');
+                    } else if (self.show_km == 1) {
                         custom_noty('error', 'Enter BO KM less than ASP KM');
                     } else {
                         $("#confirm-ticket-modal").modal();

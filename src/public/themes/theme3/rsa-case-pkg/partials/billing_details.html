@@ -51,7 +51,7 @@
                                     <td class="" ng-show="$ctrl.data.verification==0" style="text-align:right">{{$ctrl.data.bo_km_travelled}}</td>
                                     <td class="" ng-show="$ctrl.data.verification==1" style="text-align:right">
                                         <input style="text-align:right" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" type="text" name="bo_km_travelled" ng-model="$ctrl.data.raw_bo_km_travelled" value="{{$ctrl.data.raw_bo_km_travelled}}" class="km_value" ng-keyup="calculate()"><br>
-                                        <!-- <span class="color-red" ng-show="$ctrl.data.raw_bo_km_travelled==''">KM Travelled is required</span> -->
+                                        <span class="color-red" ng-show="$ctrl.data.raw_bo_km_travelled !== 0 && $ctrl.data.raw_bo_km_travelled === ''">KM Travelled is required</span>
                                         <span class="color-red" ng-show="$ctrl.show_km==1">Enter value less than ASP value</span>
                                     </td class="">
                                 </tr>
@@ -63,7 +63,7 @@
                                     <td class="" ng-show="$ctrl.data.verification==1" style="text-align:right">
                                         <input style="text-align:right" type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_not_collected" class="non_collected_amount" value="{{$ctrl.data.raw_bo_not_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                         <input type="hidden" ng-model="$ctrl.data.raw_asp_not_collected" class="other_value" value="{{$ctrl.data.raw_asp_not_collected}}"><br>
-                                        <!-- <span class="color-red" ng-show="$ctrl.data.raw_bo_not_collected==''">Charges not collected is required</span> -->
+                                        <span class="color-red" ng-show="$ctrl.data.raw_bo_not_collected !== 0 && $ctrl.data.raw_bo_not_collected === ''">Charges not collected is required</span>
                                     </td>
                                 </tr>
                                 <tr>
@@ -74,7 +74,7 @@
                                     <td class="" ng-show="$ctrl.data.verification==1" style="text-align:right">
                                         <input style="text-align:right" type="text" name="bo_collected" ng-model="$ctrl.data.raw_bo_collected" class="collected_amount" value="{{$ctrl.data.raw_bo_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                         <input type="hidden" ng-model="$ctrl.data.raw_asp_collected" class="collected_value" value="{{$ctrl.data.raw_asp_collected}}"><br>
-                                        <!-- <span class="color-red" ng-show="$ctrl.data.raw_bo_collected==''">Charges collected is required</span> -->
+                                        <span class="color-red" ng-show="$ctrl.data.raw_bo_collected !== 0 && $ctrl.data.raw_bo_collected === ''">Charges collected is required</span>
                                     </td>
                                 </tr>
                                 <tr ng-show="$ctrl.data.km_travelled_attachment_url.length>0">

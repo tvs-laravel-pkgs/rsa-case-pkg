@@ -884,32 +884,32 @@ class ActivityController extends Controller {
 		//dd($request->all());
 		DB::beginTransaction();
 		try {
-			// if (!isset($request->bo_km_travelled)) {
-			// 	return response()->json([
-			// 		'success' => false,
-			// 		'errors' => [
-			// 			'KM Travelled is required',
-			// 		],
-			// 	]);
-			// }
+			if ($request->bo_km_travelled !== 0 && $request->bo_km_travelled === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'KM Travelled is required',
+					],
+				]);
+			}
 
-			// if (!isset($request->bo_not_collected)) {
-			// 	return response()->json([
-			// 		'success' => false,
-			// 		'errors' => [
-			// 			'Charges not collected is required',
-			// 		],
-			// 	]);
-			// }
+			if ($request->bo_not_collected !== 0 && $request->bo_not_collected === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Charges not collected is required',
+					],
+				]);
+			}
 
-			// if (!isset($request->bo_collected)) {
-			// 	return response()->json([
-			// 		'success' => false,
-			// 		'errors' => [
-			// 			'Charges collected is required',
-			// 		],
-			// 	]);
-			// }
+			if ($request->bo_collected !== 0 && $request->bo_collected === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Charges collected is required',
+					],
+				]);
+			}
 
 			$activity = Activity::findOrFail($request->activity_id);
 			if (!$activity) {

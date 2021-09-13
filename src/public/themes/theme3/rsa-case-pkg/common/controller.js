@@ -57,7 +57,7 @@ app.component('serviceDetails', {
         var self = this;
 
         this.$onInit = function() {
-            setTimeout(function(){
+            setTimeout(function() {
                 //self.data = activity;
                 $(".km_value").keyup(function() {
                     var entry = parseInt($(this).val());
@@ -215,9 +215,9 @@ app.component('invoiceDetails', {
     },
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
-        var self=this;
+        var self = this;
         this.$onInit = function() {
-            setTimeout(function(){
+            setTimeout(function() {
                 $scope.isSelf = function(asp) {
                     if (asp.has_gst && !asp.is_auto_invoice) {
                         return true;
@@ -275,9 +275,9 @@ app.component('billingDetails', {
         var self = this;
         //self.data = activity;
         this.$onInit = function() {
-            setTimeout(function(){
+            setTimeout(function() {
                 self.hasPermission = HelperService.hasPermission;
-                
+
                 self.show_km = 0;
                 if (self.data.verification == 1) {
                     self.data.bo_comments = "";
@@ -288,9 +288,15 @@ app.component('billingDetails', {
                 }
 
                 $scope.approveTicket = function() {
-                    if(self.show_km == 1){
+                    if (self.data.raw_bo_km_travelled == '') {
+                        custom_noty('error', 'KM Travelled is required');
+                    } else if (self.data.raw_bo_not_collected == '') {
+                        custom_noty('error', 'Charges not collected is required');
+                    } else if (self.data.raw_bo_collected == '') {
+                        custom_noty('error', 'Charges collected is required');
+                    } else if (self.show_km == 1) {
                         custom_noty('error', 'Enter BO KM less than ASP KM');
-                    }else{
+                    } else {
                         $("#confirm-ticket-modal").modal();
                     }
                 }
@@ -327,7 +333,7 @@ app.component('billingDetails', {
                                 for (var i in response.data.errors) {
                                     errors += '<li>' + response.data.errors[i] + '</li>';
                                 }
-                                custom_noty('error', errors);                
+                                custom_noty('error', errors);
                                 return;
                             } else {
                                 custom_noty('success', response.data.message);
@@ -369,7 +375,7 @@ app.component('billingDetails', {
                                 for (var i in response.data.errors) {
                                     errors += '<li>' + response.data.errors[i] + '</li>';
                                 }
-                                custom_noty('error', errors);                
+                                custom_noty('error', errors);
                                 return;
                             } else {
                                 custom_noty('success', response.data.message);
@@ -385,14 +391,14 @@ app.component('billingDetails', {
 
                 $scope.calculatePO = function() {
                     total = parseFloat(self.data.bo_po_amount) + parseFloat(self.data.raw_bo_not_collected) - parseFloat(self.data.raw_bo_collected);
-                    if(self.data.bo_deduction){
+                    if (self.data.bo_deduction) {
                         total -= parseFloat(self.data.bo_deduction);
                     }
                     self.data.bo_net_amount = self.data.bo_amount = total;
                 }
 
                 $scope.calculate = function() {
-                    if(self.data.verification == 0 && (self.data.activity_portal_status_id == 1 || self.data.activity_portal_status_id == 10 || self.data.activity_portal_status_id == 11 || self.data.activity_portal_status_id == 12 || self.data.activity_portal_status_id == 13 || self.data.activity_portal_status_id == 14)){
+                    if (self.data.verification == 0 && (self.data.activity_portal_status_id == 1 || self.data.activity_portal_status_id == 10 || self.data.activity_portal_status_id == 11 || self.data.activity_portal_status_id == 12 || self.data.activity_portal_status_id == 13 || self.data.activity_portal_status_id == 14)) {
                         self.show_km = 0;
                         self.data.bo_po_amount = self.data.raw_bo_po_amount;
                         self.data.bo_deduction = self.data.raw_bo_deduction;
@@ -405,10 +411,10 @@ app.component('billingDetails', {
                         }
                         if (parseFloat(self.data.raw_bo_km_travelled) > parseFloat(self.data.asp_km_travelled)) {
                             self.show_km = 1;
-                        }else{
+                        } else {
                             self.show_km = 0;
                         }
-                        
+
                         if (parseFloat(self.data.asp_service_type_data.range_limit) > parseFloat(self.data.raw_bo_km_travelled)) {
                             var above_amount = 0;
                         } else {
@@ -422,7 +428,7 @@ app.component('billingDetails', {
                         } else if (self.data.asp_service_type_data.adjustment_type == 1) {
                             adjustment = parseFloat(parseFloat(amount_wo_deduction) * (parseFloat(self.data.asp_service_type_data.adjustment) / 100));
                         }
-                
+
                         //FORMULAE DISABLED AS PER CLIENT REQUEST
                         // var amount = parseFloat(amount_wo_deduction) + parseFloat(adjustment);
                         var amount = parseFloat(amount_wo_deduction);

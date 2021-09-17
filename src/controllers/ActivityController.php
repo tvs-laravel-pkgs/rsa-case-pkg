@@ -1212,7 +1212,6 @@ class ActivityController extends Controller {
 				$q->where('cases.number', $number)
 					->orWhere('cases.vehicle_registration_number', $number)
 					->orWhere('activities.crm_activity_id', $number);
-
 			});
 
 		$query1 = clone $query;

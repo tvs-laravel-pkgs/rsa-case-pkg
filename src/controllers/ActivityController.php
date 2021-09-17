@@ -884,11 +884,40 @@ class ActivityController extends Controller {
 		//dd($request->all());
 		DB::beginTransaction();
 		try {
+			if ($request->bo_km_travelled !== 0 && $request->bo_km_travelled === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'KM Travelled is required',
+					],
+				]);
+			}
+
+			if ($request->bo_not_collected !== 0 && $request->bo_not_collected === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Charges not collected is required',
+					],
+				]);
+			}
+
+			if ($request->bo_collected !== 0 && $request->bo_collected === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Charges collected is required',
+					],
+				]);
+			}
+
 			$activity = Activity::findOrFail($request->activity_id);
 			if (!$activity) {
 				return response()->json([
 					'success' => false,
-					'errors' => ['Activity not found'],
+					'errors' => [
+						'Activity not found',
+					],
 				]);
 			}
 
@@ -896,7 +925,9 @@ class ActivityController extends Controller {
 			if (!$asp_km_travelled) {
 				return response()->json([
 					'success' => false,
-					'errors' => ['Activity ASP KM not found'],
+					'errors' => [
+						'Activity ASP KM not found',
+					],
 				]);
 			}
 
@@ -904,7 +935,9 @@ class ActivityController extends Controller {
 			if ($request->bo_km_travelled > $asp_km_travelled->value) {
 				return response()->json([
 					'success' => false,
-					'errors' => ['Final KM should be less than or equal to ASP KM'],
+					'errors' => [
+						'Final KM should be less than or equal to ASP KM',
+					],
 				]);
 			}
 			$key_list = [158, 159, 160, 176, 172, 173, 179, 182];
@@ -980,7 +1013,12 @@ class ActivityController extends Controller {
 
 		} catch (\Exception $e) {
 			DB::rollBack();
-			return response()->json(['success' => false, 'errors' => ['Exception Error' => $e->getMessage()]]);
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Exception Error' => $e->getMessage(),
+				],
+			]);
 		}
 	}
 

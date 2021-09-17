@@ -1248,7 +1248,8 @@ class ActivityController extends Controller {
 			->join('cases', 'cases.id', 'activities.case_id')
 			->where(function ($q) use ($number) {
 				$q->where('cases.number', $number)
-					->orWhere('cases.vehicle_registration_number', $number);
+					->orWhere('cases.vehicle_registration_number', $number)
+					->orWhere('activities.crm_activity_id', $number);
 			});
 
 		$query1 = clone $query;

@@ -884,7 +884,7 @@ class ActivityController extends Controller {
 		//dd($request->all());
 		DB::beginTransaction();
 		try {
-			if ($request->bo_km_travelled == '') {
+			if ($request->bo_km_travelled !== 0 && $request->bo_km_travelled === '') {
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -893,7 +893,7 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			if ($request->bo_not_collected == '') {
+			if ($request->bo_not_collected !== 0 && $request->bo_not_collected === '') {
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -902,7 +902,7 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			if ($request->bo_collected == '') {
+			if ($request->bo_collected !== 0 && $request->bo_collected === '') {
 				return response()->json([
 					'success' => false,
 					'errors' => [

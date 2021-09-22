@@ -992,12 +992,12 @@ class ActivityController extends Controller {
 			//sending confirmation SMS to ASP
 			// $mobile_number = $activity->asp->contact_number1;
 			// $sms_message = 'Tkt waiting for Invoice';
-			// sendSMS2($sms_message,$mobile_number,$activity->number);
+			// sendSMS2($sms_message,$mobile_number,$activity->number, NULL);
 
 			$mobile_number = $activity->asp->contact_number1;
 			$sms_message = 'Tkt waiting for Invoice';
 			$array = [$request->case_number];
-			sendSMS2($sms_message, $mobile_number, $array);
+			sendSMS2($sms_message, $mobile_number, $array, NULL);
 
 			//sending notification to all BO users
 			$asp_user = $activity->asp->user_id;
@@ -1128,7 +1128,7 @@ class ActivityController extends Controller {
 				$mobile_number = $activity->asp->contact_number1;
 				$sms_message = 'Tkt waiting for Invoice';
 				$array = [$activity->case->number];
-				sendSMS2($sms_message, $mobile_number, $array);
+				sendSMS2($sms_message, $mobile_number, $array, NULL);
 
 				//sending notification to all BO users
 				$asp_user = $activity->asp->user_id;
@@ -1181,7 +1181,7 @@ class ActivityController extends Controller {
 			$mobile_number = $activity->asp->contact_number1;
 			$sms_message = 'Deferred Tkt re-entry';
 			$array = [$request->case_number];
-			sendSMS2($sms_message, $mobile_number, $array);
+			sendSMS2($sms_message, $mobile_number, $array, NULL);
 
 			//sending notification to all BO users
 			$asp_user = $activity->asp->user_id;
@@ -1767,7 +1767,7 @@ class ActivityController extends Controller {
 			$mobile_number = $activity->asp->contact_number1;
 			$sms_message = 'Tkt uptd successfully';
 			$array = [$activity->case->number];
-			// sendSMS2($sms_message, $mobile_number, $array);
+			// sendSMS2($sms_message, $mobile_number, $array, NULL);
 
 			//sending notification to all ASP STATE MAPPED BO users
 			//$bo_users = User::where('users.role_id', 6)->pluck('users.id'); //6 - Bo User role ID

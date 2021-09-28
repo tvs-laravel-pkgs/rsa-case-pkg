@@ -1110,6 +1110,76 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'query-log-export',
 				'display_name' => 'Export',
 			],
+
+			//NON MEMBERSHIP MENU
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'non-membership-menu',
+				'display_name' => 'Non Membership Menu',
+			],
+
+			//NON MEMBERSHIPS
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'non-membership',
+				'display_name' => 'Non Memberships',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'non-membership',
+				'name' => 'add-non-membership',
+				'display_name' => 'Add',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'non-membership',
+				'name' => 'edit-non-membership',
+				'display_name' => 'Edit',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'non-membership',
+				'name' => 'view-non-membership',
+				'display_name' => 'View',
+			],
+			[
+				'display_order' => 5,
+				'parent' => 'non-membership',
+				'name' => 'own-non-membership',
+				'display_name' => 'Own Only',
+			],
+			[
+				'display_order' => 8,
+				'parent' => 'non-membership',
+				'name' => 'all-non-membership',
+				'display_name' => 'All',
+			],
+			[
+				'display_order' => 10,
+				'parent' => 'non-membership',
+				'name' => 'admin-report-non-membership',
+				'display_name' => 'Admin Report',
+			],
+			[
+				'display_order' => 11,
+				'parent' => 'non-membership',
+				'name' => 'general-report-non-membership',
+				'display_name' => 'General Report - All',
+			],
+			[
+				'display_order' => 12,
+				'parent' => 'non-membership',
+				'name' => 'own-general-report-non-membership',
+				'display_name' => 'General Report - Own Only',
+			],
+			[
+				'display_order' => 15,
+				'parent' => 'non-membership',
+				'name' => 'initiate-cancel-non-membership',
+				'display_name' => 'Initiate Cancellation',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

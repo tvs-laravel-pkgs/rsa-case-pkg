@@ -1180,6 +1180,15 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'initiate-cancel-non-membership',
 				'display_name' => 'Initiate Cancellation',
 			],
+
+			//NON MEMBERSHIP CALCULATOR
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'non-membership-calculator',
+				'display_name' => 'Non Membership Calculator',
+			],
+
 		];
 		Permission::createFromArrays($permissions);
 	}

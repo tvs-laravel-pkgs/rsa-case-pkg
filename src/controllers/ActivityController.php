@@ -159,8 +159,14 @@ class ActivityController extends Controller {
 						                <i class="fa fa-trash dataTable-icon--trash cl-delete" data-cl-id =' . $activity->id . ' aria-hidden="true"></i>
 						            </a>';
 				}
+
 				if (Entrust::can('backstep-activity') && in_array($activity->status_id, $return_status_ids)) {
-					$action .= "<a href='javascript:void(0)' onclick='angular.element(this).scope().backConfirm(" . $activity . ")' class='ticket_back_button'><i class='fa fa-arrow-left dataTable-icon--edit-1' data-cl-id =" . $activity->id . " aria-hidden='true'></i></a>";
+					$activityDetail = new Activity;
+					$activityDetail->id = $activity->id;
+					$activityDetail->status_id = $activity->status_id;
+					$activityDetail->activity_number = $activity->activity_number;
+
+					$action .= "<a href='javascript:void(0)' onclick='angular.element(this).scope().backConfirm(" . $activityDetail . ")' class='ticket_back_button'><i class='fa fa-arrow-left dataTable-icon--edit-1' data-cl-id =" . $activity->id . " aria-hidden='true'></i></a>";
 				}
 				$action .= '</div>';
 				return $action;

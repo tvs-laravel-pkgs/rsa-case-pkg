@@ -97,6 +97,7 @@ app.component('newActivityUpdateDetails', {
             //self.data.unpaid_amount = response.data.activity.unpaid_amount;
             self.service_type_id = response.data.activity.service_type_id;
             self.range_limit = response.data.range_limit;
+            self.bd_location = response.data.case_details.bd_location;
             $rootScope.loading = false;
             if (self.for_deffer_activity) {
                 $('.resolve_comment').show();

@@ -1186,6 +1186,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'initiate-cancel-non-membership',
 				'display_name' => 'Initiate Cancellation',
 			],
+			[
+				'display_order' => 15,
+				'parent' => 'non-membership',
+				'name' => 'send-customer-invoice-to-customer-for-non-membership',
+				'display_name' => 'Send Customer Invoice To Customer',
+			],
 
 			//NON MEMBERSHIP CALCULATOR
 			[

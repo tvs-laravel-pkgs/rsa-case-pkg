@@ -990,6 +990,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'finance-export-own-dealers-membership-customer-invoice',
 				'display_name' => 'Finance Export Own Dealers',
 			],
+			[
+				'display_order' => 10,
+				'parent' => 'membership-customer-invoice',
+				'name' => 'download-customer-einvoice',
+				'display_name' => 'Download E-Invoice',
+			],
 
 			//CREDIT DEBIT NOTE
 			[

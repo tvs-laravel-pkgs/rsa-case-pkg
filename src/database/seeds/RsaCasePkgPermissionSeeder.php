@@ -1192,15 +1192,6 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'send-customer-invoice-to-customer-for-non-membership',
 				'display_name' => 'Send Customer Invoice To Customer',
 			],
-
-			//NON MEMBERSHIP CALCULATOR
-			[
-				'display_order' => 99,
-				'parent' => null,
-				'name' => 'non-membership-calculator',
-				'display_name' => 'Non Membership Calculator',
-			],
-
 		];
 		Permission::createFromArrays($permissions);
 	}

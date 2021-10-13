@@ -171,6 +171,7 @@ class Activity extends Model {
 				$q->where('cases.number', 'like', '%' . $key . '%')
 				;
 			})
+			->where('activities.activity_status_id', 7) //SUCCESSFUL
 			->get();
 		return response()->json($list);
 	}

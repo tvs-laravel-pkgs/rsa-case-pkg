@@ -65,6 +65,8 @@ class Activity extends Model {
 		'general_remarks',
 	];
 
+	// Relationships --------------------------------------------------------------
+
 	public function financeStatus() {
 		return $this->belongsTo('Abs\RsaCasePkg\ActivityFinanceStatus', 'finance_status_id');
 	}
@@ -151,6 +153,28 @@ class Activity extends Model {
 
 	public function dataSource() {
 		return $this->belongsTo('App\Config', 'data_src_id');
+	}
+
+	// Static Funcs --------------------------------------------------------------
+
+	public static function searchMembershipTicket($r) {
+		$key = $r->key;
+		$list = self::select([
+			'activities.id',
+			'cases.number',
+			'asps.asp_code',
+			'service_types.name as service_type',
+		])
+			->join('cases', 'cases.id', 'activities.case_id')
+			->join('asps', 'asps.id', 'activities.asp_id')
+			->join('service_types', 'service_types.id', 'activities.service_type_id')
+			->where(function ($q) use ($key) {
+				$q->where('cases.number', 'like', '%' . $key . '%')
+				;
+			})
+			->where('activities.activity_status_id', '!=', 4) //OTHER THAN CANCELLED
+			->get();
+		return response()->json($list);
 	}
 
 	public static function getFormData($id = NULL, $for_deffer_activity) {
@@ -658,7 +682,7 @@ class Activity extends Model {
 							'max:24',
 							Rule::exists('asps', 'asp_code')
 								->where(function ($query) {
-									$query->whereNull('deleted_at');
+									$query->where('is_active', 1);
 								}),
 						],
 						'sub_service' => [

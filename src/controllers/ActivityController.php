@@ -160,8 +160,14 @@ class ActivityController extends Controller {
 						                <i class="fa fa-trash dataTable-icon--trash cl-delete" data-cl-id =' . $activity->id . ' aria-hidden="true"></i>
 						            </a>';
 				}
+
 				if (Entrust::can('backstep-activity') && in_array($activity->status_id, $return_status_ids)) {
-					$action .= "<a href='javascript:void(0)' onclick='angular.element(this).scope().backConfirm(" . $activity . ")' class='ticket_back_button'><i class='fa fa-arrow-left dataTable-icon--edit-1' data-cl-id =" . $activity->id . " aria-hidden='true'></i></a>";
+					$activityDetail = new Activity;
+					$activityDetail->id = $activity->id;
+					$activityDetail->status_id = $activity->status_id;
+					$activityDetail->activity_number = $activity->activity_number;
+
+					$action .= "<a href='javascript:void(0)' onclick='angular.element(this).scope().backConfirm(" . $activityDetail . ")' class='ticket_back_button'><i class='fa fa-arrow-left dataTable-icon--edit-1' data-cl-id =" . $activity->id . " aria-hidden='true'></i></a>";
 				}
 				$action .= '</div>';
 				return $action;
@@ -910,11 +916,40 @@ class ActivityController extends Controller {
 		//dd($request->all());
 		DB::beginTransaction();
 		try {
+			if ($request->bo_km_travelled !== 0 && $request->bo_km_travelled === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'KM Travelled is required',
+					],
+				]);
+			}
+
+			if ($request->bo_not_collected !== 0 && $request->bo_not_collected === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Charges not collected is required',
+					],
+				]);
+			}
+
+			if ($request->bo_collected !== 0 && $request->bo_collected === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Charges collected is required',
+					],
+				]);
+			}
+
 			$activity = Activity::findOrFail($request->activity_id);
 			if (!$activity) {
 				return response()->json([
 					'success' => false,
-					'errors' => ['Activity not found'],
+					'errors' => [
+						'Activity not found',
+					],
 				]);
 			}
 
@@ -922,7 +957,9 @@ class ActivityController extends Controller {
 			if (!$asp_km_travelled) {
 				return response()->json([
 					'success' => false,
-					'errors' => ['Activity ASP KM not found'],
+					'errors' => [
+						'Activity ASP KM not found',
+					],
 				]);
 			}
 
@@ -930,7 +967,9 @@ class ActivityController extends Controller {
 			if ($request->bo_km_travelled > $asp_km_travelled->value) {
 				return response()->json([
 					'success' => false,
-					'errors' => ['Final KM should be less than or equal to ASP KM'],
+					'errors' => [
+						'Final KM should be less than or equal to ASP KM',
+					],
 				]);
 			}
 			$key_list = [158, 159, 160, 176, 172, 173, 179, 182];
@@ -996,12 +1035,12 @@ class ActivityController extends Controller {
 			//sending confirmation SMS to ASP
 			// $mobile_number = $activity->asp->contact_number1;
 			// $sms_message = 'Tkt waiting for Invoice';
-			// sendSMS2($sms_message,$mobile_number,$activity->number);
+			// sendSMS2($sms_message,$mobile_number,$activity->number, NULL);
 
 			$mobile_number = $activity->asp->contact_number1;
 			$sms_message = 'Tkt waiting for Invoice';
 			$array = [$request->case_number];
-			sendSMS2($sms_message, $mobile_number, $array);
+			sendSMS2($sms_message, $mobile_number, $array, NULL);
 
 			//sending notification to all BO users
 			$asp_user = $activity->asp->user_id;
@@ -1017,7 +1056,12 @@ class ActivityController extends Controller {
 
 		} catch (\Exception $e) {
 			DB::rollBack();
-			return response()->json(['success' => false, 'errors' => ['Exception Error' => $e->getMessage()]]);
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Exception Error' => $e->getMessage(),
+				],
+			]);
 		}
 	}
 
@@ -1135,7 +1179,7 @@ class ActivityController extends Controller {
 				$mobile_number = $activity->asp->contact_number1;
 				$sms_message = 'Tkt waiting for Invoice';
 				$array = [$activity->case->number];
-				sendSMS2($sms_message, $mobile_number, $array);
+				sendSMS2($sms_message, $mobile_number, $array, NULL);
 
 				//sending notification to all BO users
 				$asp_user = $activity->asp->user_id;
@@ -1188,7 +1232,7 @@ class ActivityController extends Controller {
 			$mobile_number = $activity->asp->contact_number1;
 			$sms_message = 'Deferred Tkt re-entry';
 			$array = [$request->case_number];
-			sendSMS2($sms_message, $mobile_number, $array);
+			sendSMS2($sms_message, $mobile_number, $array, NULL);
 
 			//sending notification to all BO users
 			$asp_user = $activity->asp->user_id;
@@ -1255,7 +1299,8 @@ class ActivityController extends Controller {
 			->join('cases', 'cases.id', 'activities.case_id')
 			->where(function ($q) use ($number) {
 				$q->where('cases.number', $number)
-					->orWhere('cases.vehicle_registration_number', $number);
+					->orWhere('cases.vehicle_registration_number', $number)
+					->orWhere('activities.crm_activity_id', $number);
 			});
 
 		$query1 = clone $query;
@@ -1783,7 +1828,7 @@ class ActivityController extends Controller {
 			$mobile_number = $activity->asp->contact_number1;
 			$sms_message = 'Tkt uptd successfully';
 			$array = [$activity->case->number];
-			// sendSMS2($sms_message, $mobile_number, $array);
+			// sendSMS2($sms_message, $mobile_number, $array, NULL);
 
 			//sending notification to all ASP STATE MAPPED BO users
 			//$bo_users = User::where('users.role_id', 6)->pluck('users.id'); //6 - Bo User role ID

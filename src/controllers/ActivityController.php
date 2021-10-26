@@ -2646,13 +2646,6 @@ class ActivityController extends Controller {
 				'ASP has GST',
 				'Workshop Name',
 				'RM Name',
-				'Range Limit',
-				'Below Range Price',
-				'Above Range Price',
-				'Waiting Charge Per Hour',
-				'Empty Return Range Price',
-				'Adjustment Type',
-				'Adjustment',
 				'Location',
 				'District',
 				'State',
@@ -2706,13 +2699,6 @@ class ActivityController extends Controller {
 				'Workshop Name',
 				'Workshop Type',
 				'RM Name',
-				'Range Limit',
-				'Below Range Price',
-				'Above Range Price',
-				'Waiting Charge Per Hour',
-				'Empty Return Range Price',
-				'Adjustment Type',
-				'Adjustment',
 				'Location',
 				'District',
 				'State',
@@ -2785,12 +2771,23 @@ class ActivityController extends Controller {
 			];
 			$activity_details_header = array_merge($activity_details_header, $status_headers);
 		}
+
+		$rateCardHeaders = [
+			'Range Limit',
+			'Below Range Price',
+			'Above Range Price',
+			'Waiting Charge Per Hour',
+			'Empty Return Range Price',
+			'Adjustment Type',
+			'Adjustment',
+		];
+		$activity_details_header = array_merge($activity_details_header, $rateCardHeaders);
 		//dd($activity_details_header );
+
 		$constants = config('constants');
 		$activities = $activities
 			->groupBy('activities.id')
 			->get();
-		//dd($activities);
 		$activity_details_data = [];
 		foreach ($activities as $activity_key => $activity) {
 			if (!empty($activity->case_submission_closing_date)) {
@@ -2821,13 +2818,6 @@ class ActivityController extends Controller {
 					$activity->asp_has_gst,
 					$activity->asp_workshop_name,
 					$activity->asp_rm_name,
-					$activity->range_limit,
-					$activity->below_range_price,
-					$activity->above_range_price,
-					$activity->waiting_charge_per_hour,
-					$activity->empty_return_range_price,
-					$activity->adjustment_type,
-					$activity->adjustment,
 					$activity->asp_location_name,
 					$activity->asp_district_name,
 					$activity->asp_state_name,
@@ -2879,13 +2869,6 @@ class ActivityController extends Controller {
 					$activity->asp_workshop_name,
 					!empty($activity->asp_workshop_type) ? array_flip($constants['workshop_types'])[$activity->asp_workshop_type] : '',
 					$activity->asp_rm_name,
-					$activity->range_limit,
-					$activity->below_range_price,
-					$activity->above_range_price,
-					$activity->waiting_charge_per_hour,
-					$activity->empty_return_range_price,
-					$activity->adjustment_type,
-					$activity->adjustment,
 					$activity->asp_location_name,
 					$activity->asp_district_name,
 					$activity->asp_state_name,
@@ -2949,10 +2932,8 @@ class ActivityController extends Controller {
 
 			if (!Entrust::can('export-own-activities')) {
 				$total_days = 0;
-				//dump($activity);
 				$activity_log = ActivityLog::where('activity_id', $activity->id)->first();
 				if ($activity_log) {
-
 					$activity_details_data[$activity_key][] = $activity_log->imported_at ? date('d-m-Y H:i:s', strtotime($activity_log->imported_at)) : '';
 					$tot = ($activity_log->imported_at && $activity_log->asp_data_filled_at) ? $this->findDifference($activity_log->imported_at, $activity_log->asp_data_filled_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
@@ -3006,15 +2987,19 @@ class ActivityController extends Controller {
 				// $activity_details_data[$activity_key][] = !empty($activity->latest_updation_date) ? $activity->latest_updation_date : '';
 				$activity_details_data[$activity_key][] = $activity->data_source;
 			}
+			$activity_details_data[$activity_key][] = $activity->range_limit;
+			$activity_details_data[$activity_key][] = $activity->below_range_price;
+			$activity_details_data[$activity_key][] = $activity->above_range_price;
+			$activity_details_data[$activity_key][] = $activity->waiting_charge_per_hour;
+			$activity_details_data[$activity_key][] = $activity->empty_return_range_price;
+			$activity_details_data[$activity_key][] = $activity->adjustment_type;
+			$activity_details_data[$activity_key][] = $activity->adjustment;
 		}
-		//dd('s');
-		//$activity_details_data = array_merge($activity_details_header, $activity_details_data);
+
 		Excel::create('Activity Status Report', function ($excel) use ($summary, $activity_details_header, $activity_details_data, $status_ids, $summary_period) {
 			$excel->sheet('Summary', function ($sheet) use ($summary, $status_ids, $summary_period) {
-				//dd($summary);
 				$sheet->fromArray($summary, NULL, 'A1');
 				$sheet->row(1, $summary_period);
-
 				$sheet->cells('A1:B1', function ($cells) {
 					$cells->setFont(array(
 						'size' => '10',

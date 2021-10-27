@@ -2530,7 +2530,8 @@ class ActivityController extends Controller {
 			DB::raw('COALESCE(activity_ratecards.above_range_price, "--") as above_range_price'),
 			DB::raw('COALESCE(activity_ratecards.waiting_charge_per_hour, "--") as waiting_charge_per_hour'),
 			DB::raw('COALESCE(activity_ratecards.empty_return_range_price, "--") as empty_return_range_price'),
-			DB::raw('COALESCE(IF(activity_ratecards.adjustment_type = 1, "Percentage", "Amount"), "--") as adjustment_type'),
+			// DB::raw('COALESCE(IF(activity_ratecards.adjustment_type = 1, "Percentage", "Amount"), "--") as adjustment_type'),
+			'activity_ratecards.adjustment_type',
 			DB::raw('COALESCE(activity_ratecards.adjustment, "--") as adjustment'),
 		]);
 
@@ -2992,7 +2993,7 @@ class ActivityController extends Controller {
 			$activity_details_data[$activity_key][] = $activity->above_range_price;
 			$activity_details_data[$activity_key][] = $activity->waiting_charge_per_hour;
 			$activity_details_data[$activity_key][] = $activity->empty_return_range_price;
-			$activity_details_data[$activity_key][] = $activity->adjustment_type;
+			$activity_details_data[$activity_key][] = !empty($activity->adjustment_type) ? ($activity->adjustment_type == 1 ? "Percentage" : "Amount") : '--';
 			$activity_details_data[$activity_key][] = $activity->adjustment;
 		}
 

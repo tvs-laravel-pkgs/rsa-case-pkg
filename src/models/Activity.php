@@ -1063,6 +1063,13 @@ class Activity extends Model {
 							$activity->activity_status_id = $activity_status_id;
 							$activity->data_src_id = 262; //BO MANUAL
 							$activity->save();
+
+							$towingImagesMandatoryEffectiveDate = config('rsa.TOWING_IMAGES_MANDATORY_EFFECTIVE_DATE');
+							if (date('Y-m-d') >= $towingImagesMandatoryEffectiveDate) {
+								$activity->is_towing_attachments_mandatory = 1;
+							} else {
+								$activity->is_towing_attachments_mandatory = 0;
+							}
 							$activity->number = 'ACT' . $activity->id;
 							$activity->save();
 

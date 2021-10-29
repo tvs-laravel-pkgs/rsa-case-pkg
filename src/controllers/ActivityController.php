@@ -695,7 +695,7 @@ class ActivityController extends Controller {
 		}
 		$this->data['activities']['inventoryJobSheetAttachment'] = $inventoryJobSheetAttachment;
 		$this->data['activities']['inventoryJobSheetAttachmentUrl'] = $inventoryJobSheetAttachmentUrl;
-		//dd($this->data['activities']['km_travelled_attachment']->attachment_file_name,$activity_status_id,,$activity->serviceType->id);
+
 		$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 179, 182, 171, 175, 181];
 		foreach ($key_list as $keyw) {
 			$var_key = Config::where('id', $keyw)->first();

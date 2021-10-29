@@ -631,6 +631,70 @@ class ActivityController extends Controller {
 		}
 		$this->data['activities']['km_travelled_attachment_url'] = $km_travelled_attachment_url;
 		$this->data['activities']['other_charges_attachment_url'] = $other_charges_attachment_url;
+
+		$vehiclePickupAttachment = Attachment::where([
+			['entity_id', '=', $activity_status_id],
+			['entity_type', '=', 18],
+		])
+			->first();
+		$vehiclePickupAttachmentUrl = '';
+		if ($vehiclePickupAttachment) {
+			if ($hasccServiceType) {
+				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $ccServiceType->id . '/' . $vehiclePickupAttachment->attachment_file_name)) {
+					$vehiclePickupAttachmentUrl = aspTicketAttachmentImage($vehiclePickupAttachment->attachment_file_name, $activity_status_id, $activity->asp->id, $ccServiceType->id);
+				}
+
+			}
+			if ($hasaspServiceType) {
+				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $aspServiceType->id . '/' . $vehiclePickupAttachment->attachment_file_name)) {
+					$vehiclePickupAttachmentUrl = aspTicketAttachmentImage($vehiclePickupAttachment->attachment_file_name, $activity_status_id, $activity->asp->id, $aspServiceType->id);
+				}
+			}
+		}
+		$this->data['activities']['vehiclePickupAttachment'] = $vehiclePickupAttachment;
+		$this->data['activities']['vehiclePickupAttachmentUrl'] = $vehiclePickupAttachmentUrl;
+
+		$vehicleDropAttachment = Attachment::where([
+			['entity_id', '=', $activity_status_id],
+			['entity_type', '=', 19],
+		])
+			->first();
+		$vehicleDropAttachmentUrl = '';
+		if ($vehicleDropAttachment) {
+			if ($hasccServiceType) {
+				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $ccServiceType->id . '/' . $vehicleDropAttachment->attachment_file_name)) {
+					$vehicleDropAttachmentUrl = aspTicketAttachmentImage($vehicleDropAttachment->attachment_file_name, $activity_status_id, $activity->asp->id, $ccServiceType->id);
+				}
+			}
+			if ($hasaspServiceType) {
+				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $aspServiceType->id . '/' . $vehicleDropAttachment->attachment_file_name)) {
+					$vehicleDropAttachmentUrl = aspTicketAttachmentImage($vehicleDropAttachment->attachment_file_name, $activity_status_id, $activity->asp->id, $aspServiceType->id);
+				}
+			}
+		}
+		$this->data['activities']['vehicleDropAttachment'] = $vehicleDropAttachment;
+		$this->data['activities']['vehicleDropAttachmentUrl'] = $vehicleDropAttachmentUrl;
+
+		$inventoryJobSheetAttachment = Attachment::where([
+			['entity_id', '=', $activity_status_id],
+			['entity_type', '=', 20],
+		])
+			->first();
+		$inventoryJobSheetAttachmentUrl = '';
+		if ($inventoryJobSheetAttachment) {
+			if ($hasccServiceType) {
+				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $ccServiceType->id . '/' . $inventoryJobSheetAttachment->attachment_file_name)) {
+					$inventoryJobSheetAttachmentUrl = aspTicketAttachmentImage($inventoryJobSheetAttachment->attachment_file_name, $activity_status_id, $activity->asp->id, $ccServiceType->id);
+				}
+			}
+			if ($hasaspServiceType) {
+				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $aspServiceType->id . '/' . $inventoryJobSheetAttachment->attachment_file_name)) {
+					$inventoryJobSheetAttachmentUrl = aspTicketAttachmentImage($inventoryJobSheetAttachment->attachment_file_name, $activity_status_id, $activity->asp->id, $aspServiceType->id);
+				}
+			}
+		}
+		$this->data['activities']['inventoryJobSheetAttachment'] = $inventoryJobSheetAttachment;
+		$this->data['activities']['inventoryJobSheetAttachmentUrl'] = $inventoryJobSheetAttachmentUrl;
 		//dd($this->data['activities']['km_travelled_attachment']->attachment_file_name,$activity_status_id,,$activity->serviceType->id);
 		$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 179, 182, 171, 175, 181];
 		foreach ($key_list as $keyw) {

@@ -1464,6 +1464,36 @@ class ActivityController extends Controller {
 		return response()->json($this->data);
 	}
 
+	public function activityNewGetServiceTypeDetail($id) {
+		try {
+			$serviceType = ServiceType::select([
+				'id',
+				'service_group_id',
+			])
+				->where('id', $id)
+				->first();
+			if (!$serviceType) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Ticket not found',
+					],
+				]);
+			}
+			return response()->json([
+				'success' => true,
+				'serviceType' => $serviceType,
+			]);
+		} catch (\Exception $e) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
+		}
+	}
+
 	public function updateActivity(Request $request) {
 		// dd($request->all());
 		DB::beginTransaction();
@@ -1505,7 +1535,7 @@ class ActivityController extends Controller {
 			$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
 			$status = Storage::makeDirectory($destination, 0777);
 
-			if (!empty($request->other_attachment)):
+			if (!empty($request->other_attachment)) {
 				Attachment::where('entity_id', $activity->id)->where('entity_type', 17)->delete();
 				foreach ($request->other_attachment as $key => $value) {
 					if ($request->hasFile("other_attachment.$key")) {
@@ -1521,11 +1551,10 @@ class ActivityController extends Controller {
 						]);
 					}
 				}
-			endif;
+			}
 
-			if (!empty($request->map_attachment)):
+			if (!empty($request->map_attachment)) {
 				Attachment::where('entity_id', $activity->id)->where('entity_type', 16)->delete();
-
 				foreach ($request->map_attachment as $key => $value) {
 					if ($request->hasFile("map_attachment.$key")) {
 						$key1 = $key + 1;
@@ -1540,7 +1569,46 @@ class ActivityController extends Controller {
 						]);
 					}
 				}
-			endif;
+			}
+
+			//VEHICLE PICKUP ATTACHMENT
+			if ($request->hasFile("vehicle_pickup_attachment")) {
+				$filename = "vehicle_pickup_attachment";
+				$extension = $request->file("vehicle_pickup_attachment")->getClientOriginalExtension();
+				$status = $request->file("vehicle_pickup_attachment")->storeAs($destination, $filename . '.' . $extension);
+				$attachmentFileName = $filename . '.' . $extension;
+				$attachment = $Attachment = Attachment::create([
+					'entity_type' => config('constants.entity_types.VEHICLE_PICKUP_ATTACHMENT'),
+					'entity_id' => $activity->id,
+					'attachment_file_name' => $attachmentFileName,
+				]);
+			}
+
+			//VEHICLE DROP ATTACHMENT
+			if ($request->hasFile("vehicle_drop_attachment")) {
+				$filename = "vehicle_drop_attachment";
+				$extension = $request->file("vehicle_drop_attachment")->getClientOriginalExtension();
+				$status = $request->file("vehicle_drop_attachment")->storeAs($destination, $filename . '.' . $extension);
+				$attachmentFileName = $filename . '.' . $extension;
+				$attachment = $Attachment = Attachment::create([
+					'entity_type' => config('constants.entity_types.VEHICLE_DROP_ATTACHMENT'),
+					'entity_id' => $activity->id,
+					'attachment_file_name' => $attachmentFileName,
+				]);
+			}
+
+			//INVENTORY JOB SHEET ATTACHMENT
+			if ($request->hasFile("inventory_job_sheet_attachment")) {
+				$filename = "inventory_job_sheet_attachment";
+				$extension = $request->file("inventory_job_sheet_attachment")->getClientOriginalExtension();
+				$status = $request->file("inventory_job_sheet_attachment")->storeAs($destination, $filename . '.' . $extension);
+				$attachmentFileName = $filename . '.' . $extension;
+				$attachment = $Attachment = Attachment::create([
+					'entity_type' => config('constants.entity_types.INVENTORY_JOB_SHEET_ATTACHMENT'),
+					'entity_id' => $activity->id,
+					'attachment_file_name' => $attachmentFileName,
+				]);
+			}
 
 			//Updating ticket status.. Check if "Bulk Approval" OR "Deferred Approval"
 			$configs = Config::where('entity_type_id', 23)->get();

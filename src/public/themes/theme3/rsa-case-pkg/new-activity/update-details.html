@@ -55,31 +55,14 @@
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
                                         <label>Services <span class="mandatory">*</span></label>
-                                        <md-select ng-model="$ctrl.service_type_id">
+                                        <md-select ng-model="$ctrl.service_type_id" ng-change="getServiceTypeDetail()">
                                             <md-option ng-repeat="val in $ctrl.service_types_list" value="<% val.id %>">
                                                 <% val.name %>
                                             </md-option>
                                         </md-select>
-                                        <!-- <ui-select ng-model="$ctrl.service_type_id" theme="select2">
-                        <ui-select-match>
-                            {{$select.selected.name || $select.selected}}
-                        </ui-select-match>
-                        <ui-select-choices repeat="i.id as i in $ctrl.service_types_list | propsFilter: {name: $select.search}">
-                            <div ng-bind-html="i.name | highlight: $select.search"></div>
-                        </ui-select-choices>
-                    </ui-select> -->
                                         <input type="hidden" name="asp_service_type_id" value="<% $ctrl.service_type_id %>" class="required">
-                                        <!-- <?php echo Form::select("asp_service_type_id", $service_types, "", ["class" => "form-control service_type_id", "autocomplete" => "off"]); ?> -->
                                     </div><!-- Field -->
                                 </div><!-- Column -->
-                                <!-- <div class="ccdv_btn multiUpload-wrapper" style="overflow: hidden;">
-                    <a href="javascript:;" class="multiUpload" style="width: auto !important;">
-                        Other Attachment
-                    </a>
-                    <div class="popup-field">
-                      <//?php echo Form::file("other_attachment[]",['multiple'=>'multiple']); ?>
-                    </div>
-                </div> -->
                                 <div class="col-sm-3 remarks_notcollected" style="display: none;">
                                     <div class="input-text form-group">
                                         <label>Remarks for Charges Not Collected <sup class="req" style="color:red">*</sup></label>
@@ -117,14 +100,49 @@
                                     </div><!-- Field -->
                                     <div class="map_after"></div>
                                     <a href="https://www.google.com/maps" class="blue" target="_blank">GO TO GOOGLE MAP</a>
-                                    <!-- <div class="ccdv_btn multiUpload-wrapper" style="overflow: hidden;">
-                      <a href="javascript:;" class="multiUpload" style="width: auto !important;">
-                          Map Attachment
-                      </a>
-                      <//?php echo Form::file("map_attachment[]",["class"=>"form-control","autocomplete" =>"off","multiple"=>"multiple"]); ?>
-                    </div> -->
                                 </div><!-- Column -->
-                                <!-- Map Attachement -->
+                                <div class="col-sm-3" ng-show="$ctrl.showTowingAttachment">
+                                    <div class="input-text form-group">
+                                        <label>Vehicle Pickup Attachment</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" readonly placeholder="Select File">
+                                            <span class="input-group-btn">
+                                                <span class="btn btn-file">
+                                                    Browse
+                                                    <input name="vehicle_pickup_attachment" type="file" class="form-control" autocomplete='off' />
+                                                </span>
+                                            </span>
+                                        </div>
+                                    </div><!-- Field -->
+                                </div><!-- Column -->
+                                <div class="col-sm-3" ng-show="$ctrl.showTowingAttachment">
+                                    <div class="input-text form-group">
+                                        <label>Vehicle Drop Attachment</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" readonly placeholder="Select File">
+                                            <span class="input-group-btn">
+                                                <span class="btn btn-file">
+                                                    Browse
+                                                    <input name="vehicle_drop_attachment" type="file" class="form-control" autocomplete='off' />
+                                                </span>
+                                            </span>
+                                        </div>
+                                    </div><!-- Field -->
+                                </div><!-- Column -->
+                                <div class="col-sm-3" ng-show="$ctrl.showTowingAttachment">
+                                    <div class="input-text form-group">
+                                        <label>Inventory Job Sheet Attachment</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" readonly placeholder="Select File">
+                                            <span class="input-group-btn">
+                                                <span class="btn btn-file">
+                                                    Browse
+                                                    <input name="inventory_job_sheet_attachment" type="file" class="form-control" autocomplete='off' />
+                                                </span>
+                                            </span>
+                                        </div>
+                                    </div><!-- Field -->
+                                </div><!-- Column -->
                                 <div class="col-sm-3 resolve_comment" style="display:none;">
                                     <div class="input-text form-group">
                                         <label>Resolve Comments</label>

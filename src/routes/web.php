@@ -25,6 +25,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	//ASP NEW ACTIVITY
 	Route::get('/new-activity/get-form-data/{id?}', 'ActivityController@activityNewGetFormData')->name('activityNewGetFormData');
 	Route::post('asp/activity/verify', 'ActivityController@verifyActivity')->name('verifyActivity');
+	Route::get('/new-activity/get-service-type-detail/{id}', 'ActivityController@activityNewGetServiceTypeDetail')->name('activityNewGetServiceTypeDetail');
 
 	//ACTIVITY DEFERRED
 	Route::get('/activity-deferred/get-filter-data', 'ActivityController@getFilterData')->name('getActivityDeferredFilterData');

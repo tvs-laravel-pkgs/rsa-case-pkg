@@ -179,7 +179,11 @@ class Activity extends Model {
 	public static function getFormData($id = NULL, $for_deffer_activity) {
 		$data = [];
 
-		$data['activity'] = $activity = self::findOrFail($id);
+		$data['activity'] = $activity = self::with([
+			'case',
+			'serviceType',
+		])
+			->findOrFail($id);
 		$data['service_types'] = Asp::where('user_id', Auth::id())
 			->join('asp_service_types', 'asp_service_types.asp_id', '=', 'asps.id')
 			->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')

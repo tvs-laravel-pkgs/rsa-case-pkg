@@ -86,6 +86,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'export-own-activities',
 				'display_name' => 'Export Own',
 			],
+			[
+				'display_order' => 11,
+				'parent' => 'activity-status',
+				'name' => 'towing-images-required-for-activities',
+				'display_name' => 'Towing Images Required Option',
+			],
 
 			//ACTIVITIES VERIFICATION
 			[

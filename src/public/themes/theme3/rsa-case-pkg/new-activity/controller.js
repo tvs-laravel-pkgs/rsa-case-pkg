@@ -270,12 +270,21 @@ app.component('newActivityUpdateDetails', {
                     extension: "jpg|jpeg|png|gif",
                 },
                 'vehicle_pickup_attachment': {
+                    required: function(element) {
+                        return self.activity.is_towing_attachments_mandatory === 1;
+                    },
                     imageFileSize: 1048576,
                 },
                 'vehicle_drop_attachment': {
+                    required: function(element) {
+                        return self.activity.is_towing_attachments_mandatory === 1;
+                    },
                     imageFileSize: 1048576,
                 },
                 'inventory_job_sheet_attachment': {
+                    required: function(element) {
+                        return self.activity.is_towing_attachments_mandatory === 1;
+                    },
                     imageFileSize: 1048576,
                 }
             },
@@ -302,12 +311,15 @@ app.component('newActivityUpdateDetails', {
                     required: 'Please attach other Attachment',
                 },
                 'vehicle_pickup_attachment': {
+                    required: 'Please Upload Vehicle Pickup image',
                     imageFileSize: "Vehicle Pickup file size must be less than 1MB",
                 },
                 'vehicle_drop_attachment': {
+                    required: 'Please Upload Vehicle Drop image',
                     imageFileSize: "Vehicle Drop file size must be less than 1MB",
                 },
                 'inventory_job_sheet_attachment': {
+                    required: 'Please Upload Inventory Job Sheet image',
                     imageFileSize: "Inventory Job Sheet file size must be less than 1MB",
                 }
             },

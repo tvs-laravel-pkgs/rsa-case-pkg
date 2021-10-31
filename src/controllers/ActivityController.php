@@ -59,9 +59,10 @@ class ActivityController extends Controller {
 			$end_date = date('Y-m-d', strtotime($to));
 		}
 
-		$activities = Activity::select(
+		$activities = Activity::select([
 			'activities.id',
 			'activities.crm_activity_id',
+			'activities.is_towing_attachments_mandatory',
 			'activities.status_id as status_id',
 			'activities.number as activity_number',
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
@@ -70,15 +71,15 @@ class ActivityController extends Controller {
 			// 'asps.asp_code',
 			DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
 			'service_types.name as sub_service',
+			'service_types.service_group_id',
 			// 'activity_asp_statuses.name as asp_status',
 			'activity_finance_statuses.name as finance_status',
 			'activity_portal_statuses.name as status',
 			'activity_statuses.name as activity_status',
 			'clients.name as client',
 			'configs.name as source',
-			'call_centers.name as call_center'
-		)
-
+			'call_centers.name as call_center',
+		])
 			->where(function ($query) use ($from_date, $end_date) {
 				if (!empty($from_date) && !empty($end_date)) {
 					$query->whereRaw('DATE(cases.date) between "' . $from_date . '" and "' . $end_date . '"');
@@ -168,6 +169,13 @@ class ActivityController extends Controller {
 
 					$action .= "<a href='javascript:void(0)' onclick='angular.element(this).scope().backConfirm(" . $activityDetail . ")' class='ticket_back_button'><i class='fa fa-arrow-left dataTable-icon--edit-1' data-cl-id =" . $activity->id . " aria-hidden='true'></i></a>";
 				}
+
+				if ($activity->status_id == 2 && isset($activity->is_towing_attachments_mandatory) && $activity->service_group_id == 3 && Entrust::can('towing-images-required-for-activities')) {
+					$action .= '<a onclick="angular.element(this).scope().towingImageRequiredBtn(' . $activity->id . ',' . $activity->is_towing_attachments_mandatory . ')" href="javascript:void(0)">
+						                <i class="fa fa-trash dataTable-icon--trash cl-delete" data-cl-id =' . $activity->id . ' aria-hidden="true"></i>
+						            </a>';
+				}
+
 				$action .= '</div>';
 				return $action;
 			})
@@ -2414,6 +2422,48 @@ class ActivityController extends Controller {
 				'message' => 'Closing date updated successfully',
 			]);
 
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Exception Error' => $e->getMessage(),
+				],
+			]);
+		}
+	}
+
+	public function towingImagesRequiredUpdated(Request $r) {
+		// dd($r->all());
+		DB::beginTransaction();
+		try {
+			$validator = Validator::make($r->all(), [
+				'activity_id' => [
+					'required:true',
+					'integer',
+					'exists:activities,id',
+				],
+				'isTowingAttachmentsMandatory' => [
+					'required:true',
+					'integer',
+				],
+			]);
+
+			if ($validator->fails()) {
+				return response()->json([
+					'success' => false,
+					'errors' => $validator->errors()->all(),
+				]);
+			}
+
+			$activity = Activity::find($r->activity_id);
+			$activity->is_towing_attachments_mandatory = $r->isTowingAttachmentsMandatory;
+			$activity->save();
+			DB::commit();
+			return response()->json([
+				'success' => true,
+				'message' => 'Activity updated successfully',
+			]);
 		} catch (\Exception $e) {
 			DB::rollBack();
 			return response()->json([

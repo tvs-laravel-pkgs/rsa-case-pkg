@@ -96,21 +96,24 @@
                                     </td>
                                 </tr>
                                 <tr ng-show="$ctrl.data.vehiclePickupAttachmentUrl">
-                                    <th scope="row">Vehicle Pickup Attachment</th>
+                                    <th scope="row">Vehicle Pickup Image</th>
                                     <td colspan="{{$ctrl.data.span_value}}">
                                         <a target="_blank" href="{{$ctrl.data.vehiclePickupAttachmentUrl}}">{{$ctrl.data.vehiclePickupAttachment.attachment_file_name}}</a>
+                                        <img height="80px" weight="80px" src="{{$ctrl.data.vehiclePickupAttachmentUrl}}">
                                     </td>
                                 </tr>
                                 <tr ng-show="$ctrl.data.vehicleDropAttachmentUrl">
-                                    <th scope="row">Vehicle Drop Attachment</th>
+                                    <th scope="row">Vehicle Drop Image</th>
                                     <td colspan="{{$ctrl.data.span_value}}">
                                         <a target="_blank" href="{{$ctrl.data.vehicleDropAttachmentUrl}}">{{$ctrl.data.vehicleDropAttachment.attachment_file_name}}</a>
+                                        <img height="80px" weight="80px" src="{{$ctrl.data.vehicleDropAttachmentUrl}}">
                                     </td>
                                 </tr>
                                 <tr ng-show="$ctrl.data.inventoryJobSheetAttachmentUrl">
-                                    <th scope="row">Inventory Job Sheet Attachment</th>
+                                    <th scope="row">Inventory Job Sheet Image</th>
                                     <td colspan="{{$ctrl.data.span_value}}">
                                         <a target="_blank" href="{{$ctrl.data.inventoryJobSheetAttachmentUrl}}">{{$ctrl.data.inventoryJobSheetAttachment.attachment_file_name}}</a>
+                                        <img height="80px" weight="80px" src="{{$ctrl.data.inventoryJobSheetAttachmentUrl}}">
                                     </td>
                                 </tr>
                                 <tr ng-show="$ctrl.data.other_charges_attachment_url.length>0">

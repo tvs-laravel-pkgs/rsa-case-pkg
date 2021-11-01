@@ -6,6 +6,7 @@ use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityPortalStatus;
+use Abs\RsaCasePkg\ActivityRatecard;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\RsaCase;
 use App\Asp;
@@ -440,29 +441,30 @@ class ActivityController extends Controller {
 			'case',
 			'case.callcenter',
 			'financeStatus',
-		])->select(
-			// 'activities.id as activity_id',
-			'activities.id',
-			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
-			DB::raw('DATE_FORMAT(activities.created_at,"%d-%m-%Y %H:%i:%s") as activity_date'),
-			DB::raw('IF(activities.deduction_reason IS NULL,"-",deduction_reason) as deduction_reason'),
-			DB::raw('IF(activities.bo_comments IS NULL,"-",bo_comments) as bo_comments'),
-			DB::raw('IF(activities.defer_reason IS NULL,"-",defer_reason) as defer_reason'),
-			'cases.number',
-			'cases.customer_name as customer_name',
-			'cases.vin_no',
-			'cases.km_during_breakdown',
-			'cases.customer_contact_number',
-			'cases.bd_lat',
-			'cases.bd_long',
-			'cases.bd_location',
-			'cases.bd_city',
-			'cases.bd_state',
-			'activities.number as activity_number',
-			'activities.asp_po_accepted as asp_po_accepted',
-			'activities.defer_reason as defer_reason',
-			'activities.is_exceptional_check as is_exceptional_check',
-			DB::raw('CASE
+		])
+			->select([
+				// 'activities.id as activity_id',
+				'activities.id',
+				DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+				DB::raw('DATE_FORMAT(activities.created_at,"%d-%m-%Y %H:%i:%s") as activity_date'),
+				DB::raw('IF(activities.deduction_reason IS NULL,"-",deduction_reason) as deduction_reason'),
+				DB::raw('IF(activities.bo_comments IS NULL,"-",bo_comments) as bo_comments'),
+				DB::raw('IF(activities.defer_reason IS NULL,"-",defer_reason) as defer_reason'),
+				'cases.number',
+				'cases.customer_name as customer_name',
+				'cases.vin_no',
+				'cases.km_during_breakdown',
+				'cases.customer_contact_number',
+				'cases.bd_lat',
+				'cases.bd_long',
+				'cases.bd_location',
+				'cases.bd_city',
+				'cases.bd_state',
+				'activities.number as activity_number',
+				'activities.asp_po_accepted as asp_po_accepted',
+				'activities.defer_reason as defer_reason',
+				'activities.is_exceptional_check as is_exceptional_check',
+				DB::raw('CASE
 				    	WHEN (activities.is_exceptional_check = 1)
 			    		THEN
 			    			CASE
@@ -475,43 +477,43 @@ class ActivityController extends Controller {
 			    		ELSE
 			    			"-"
 					END as exceptional_reason'),
-			//'activities.bo_comments as bo_comments',
-			'cases.vehicle_registration_number',
-			'case_statuses.name as case_status',
-			'vehicle_models.name as vehicle_model',
-			'vehicle_makes.name as vehicle_make',
-			'asps.asp_code',
-			'activities.asp_id as asp_id',
-			'activities.service_type_id as service_type_id',
-			//'asps.name',
-			'service_types.name as service',
-			'activity_finance_statuses.name as asp_status',
-			DB::raw('IF(activities.asp_activity_rejected_reason_id IS NULL,"-",asp_activity_rejected_reasons.name) as asp_activity_rejected_reason'),
-			//'activity_asp_statuses.name as asp_status',
-			'activity_portal_statuses.name as activity_portal_status',
-			'activity_statuses.name as activity_status',
-			'clients.name as client',
-			'call_centers.name as call_center',
-			'asp_po_rejected_reason',
-			'activities.description as description',
-			DB::raw('IF(activities.remarks IS NULL OR activities.remarks="","-",activities.remarks) as remarks'),
-			//'activities.remarks as remarks',
-			// 'cases.*',
-			// DB::raw('CASE
-			// 	    	WHEN (Invoices.invoice_no IS NOT NULL)
-			//     		THEN
-			//     			CASE
-			//     				WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0)
-			//    					THEN
-			//     					Invoices.invoice_no
-			//     				ELSE
-			//     					CONCAT(Invoices.invoice_no,"-",Invoices.id)
-			//     			END
-			//     		ELSE
-			//     			"NA"
-			// 		END as invoice_no'),
-			'Invoices.invoice_no',
-			DB::raw('CASE
+				//'activities.bo_comments as bo_comments',
+				'cases.vehicle_registration_number',
+				'case_statuses.name as case_status',
+				'vehicle_models.name as vehicle_model',
+				'vehicle_makes.name as vehicle_make',
+				'asps.asp_code',
+				'activities.asp_id as asp_id',
+				'activities.service_type_id as service_type_id',
+				//'asps.name',
+				'service_types.name as service',
+				'activity_finance_statuses.name as asp_status',
+				DB::raw('IF(activities.asp_activity_rejected_reason_id IS NULL,"-",asp_activity_rejected_reasons.name) as asp_activity_rejected_reason'),
+				//'activity_asp_statuses.name as asp_status',
+				'activity_portal_statuses.name as activity_portal_status',
+				'activity_statuses.name as activity_status',
+				'clients.name as client',
+				'call_centers.name as call_center',
+				'asp_po_rejected_reason',
+				'activities.description as description',
+				DB::raw('IF(activities.remarks IS NULL OR activities.remarks="","-",activities.remarks) as remarks'),
+				//'activities.remarks as remarks',
+				// 'cases.*',
+				// DB::raw('CASE
+				// 	    	WHEN (Invoices.invoice_no IS NOT NULL)
+				//     		THEN
+				//     			CASE
+				//     				WHEN (asps.has_gst = 1 && asps.is_auto_invoice = 0)
+				//    					THEN
+				//     					Invoices.invoice_no
+				//     				ELSE
+				//     					CONCAT(Invoices.invoice_no,"-",Invoices.id)
+				//     			END
+				//     		ELSE
+				//     			"NA"
+				// 		END as invoice_no'),
+				'Invoices.invoice_no',
+				DB::raw('CASE
 				    	WHEN (Invoices.asp_gst_registration_number IS NULL || Invoices.asp_gst_registration_number = "")
 			    		THEN
 			    			CASE
@@ -524,7 +526,7 @@ class ActivityController extends Controller {
 			    		ELSE
 			    			Invoices.asp_gst_registration_number
 					END as gst_registration_number'),
-			DB::raw('CASE
+				DB::raw('CASE
 				    	WHEN (Invoices.asp_pan_number IS NULL || Invoices.asp_pan_number = "")
 			    		THEN
 			    			CASE
@@ -537,19 +539,18 @@ class ActivityController extends Controller {
 			    		ELSE
 			    			Invoices.asp_pan_number
 					END as pan_number'),
-			DB::raw('IF(Invoices.invoice_amount IS NULL,"NA",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
-			DB::raw('IF(Invoices.invoice_amount IS NULL,"NA",Invoices.invoice_amount) as inv_amount'),
-			DB::raw('IF((asps.has_gst =1 && asps.is_auto_invoice=0),"NO","Yes") as auto_invoice'),
-			DB::raw('IF(Invoices.flow_current_status IS NULL,"NA",Invoices.flow_current_status) as flow_current_status'),
-			DB::raw('IF(Invoices.created_at IS NULL,"NA",DATE_FORMAT(Invoices.created_at,"%d-%m-%Y")) as invoice_date'),
-			'activity_finance_statuses.po_eligibility_type_id',
-			'activities.finance_status_id',
-			'activities.invoice_id',
-			'activities.status_id as activity_portal_status_id',
-			'bd_location_type.name as loction_type',
-			'bd_location_category.name as location_category'
-
-		)
+				DB::raw('IF(Invoices.invoice_amount IS NULL,"NA",format(Invoices.invoice_amount,2,"en_IN")) as invoice_amount'),
+				DB::raw('IF(Invoices.invoice_amount IS NULL,"NA",Invoices.invoice_amount) as inv_amount'),
+				DB::raw('IF((asps.has_gst =1 && asps.is_auto_invoice=0),"NO","Yes") as auto_invoice'),
+				DB::raw('IF(Invoices.flow_current_status IS NULL,"NA",Invoices.flow_current_status) as flow_current_status'),
+				DB::raw('IF(Invoices.created_at IS NULL,"NA",DATE_FORMAT(Invoices.created_at,"%d-%m-%Y")) as invoice_date'),
+				'activity_finance_statuses.po_eligibility_type_id',
+				'activities.finance_status_id',
+				'activities.invoice_id',
+				'activities.status_id as activity_portal_status_id',
+				'bd_location_type.name as loction_type',
+				'bd_location_category.name as location_category',
+			])
 			->leftJoin('asps', 'asps.id', 'activities.asp_id')
 			->leftJoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftJoin('Invoices', 'activities.invoice_id', 'Invoices.id')
@@ -740,9 +741,34 @@ class ActivityController extends Controller {
 			$this->data['activities']['signature_attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
 
 		}
-		$this->data['activities']['asp_service_type_data'] = AspServiceType::where('asp_id', $activity->asp_id)
+
+		$asp_service_type_data = AspServiceType::where('asp_id', $activity->asp_id)
 			->where('service_type_id', $activity->service_type_id)
 			->first();
+		$casewiseRatecardEffectDatetime = config('rsa.CASEWISE_RATECARD_EFFECT_DATETIME');
+		//Activity creation datetime greater than effective datetime
+		if (date('Y-m-d H:i:s', strtotime($activity->activity_date)) > $casewiseRatecardEffectDatetime) {
+			//Activity that is initiated for payment process & not eligible
+			if ($activity->activity_portal_status_id == 1 || $activity->activity_portal_status_id == 10 || $activity->activity_portal_status_id == 11 || $activity->activity_portal_status_id == 12 || $activity->activity_portal_status_id == 13 || $activity->activity_portal_status_id == 14 || $activity->activity_portal_status_id == 15 || $activity->activity_portal_status_id == 16 || $activity->activity_portal_status_id == 17) {
+				$activityRatecard = ActivityRatecard::select([
+					'range_limit',
+					'below_range_price',
+					'above_range_price',
+					'waiting_charge_per_hour',
+					'empty_return_range_price',
+					'adjustment_type',
+					'adjustment',
+				])
+					->where('activity_id', $activity_status_id)
+					->first();
+				if ($activityRatecard) {
+					$asp_service_type_data = $activityRatecard;
+				}
+			}
+		}
+
+		$this->data['activities']['asp_service_type_data'] = $asp_service_type_data;
+
 		$configs = Config::where('entity_type_id', 23)->get();
 		foreach ($configs as $config) {
 			$detail = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $config->id)->first();
@@ -981,6 +1007,17 @@ class ActivityController extends Controller {
 			$activity->status_id = 11;
 			$activity->updated_by_id = Auth::user()->id;
 			$activity->save();
+
+			$saveActivityRatecardResponse = $activity->saveActivityRatecard();
+			if (!$saveActivityRatecardResponse['success']) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						$saveActivityRatecardResponse['error'],
+					],
+				]);
+			}
+
 			$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_DEFERRED');
 			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_APPROVED');
 			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
@@ -1052,6 +1089,14 @@ class ActivityController extends Controller {
 				$activity->status_id = 11;
 				$activity->updated_by_id = Auth::user()->id;
 				$activity->save();
+
+				$saveActivityRatecardResponse = $activity->saveActivityRatecard();
+				if (!$saveActivityRatecardResponse['success']) {
+					return response()->json([
+						'success' => false,
+						'error' => $saveActivityRatecardResponse['error'],
+					]);
+				}
 
 				$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 					->where('service_type_id', $activity->service_type_id)
@@ -1647,6 +1692,16 @@ class ActivityController extends Controller {
 			$activity->updated_by_id = Auth::user()->id;
 			$activity->save();
 
+			$saveActivityRatecardResponse = $activity->saveActivityRatecard();
+			if (!$saveActivityRatecardResponse['success']) {
+				return [
+					'success' => false,
+					'errors' => [
+						$saveActivityRatecardResponse['error'],
+					],
+				];
+			}
+
 			//UPDATE ASP ACTIVITY DETAILS & CALCULATE INVOICE AMOUNT FOR ASP & BO BASED ON ASP ENTERTED DETAILS
 			$asp_key_ids = [
 				//ASP
@@ -1987,146 +2042,159 @@ class ActivityController extends Controller {
 	}
 
 	public function getActivityApprovedDetails($encryption_key = '') {
-		if (empty($encryption_key)) {
-			return response()->json([
-				'success' => false,
-				'errors' => [
-					'Activities not found',
-				],
-			]);
-		}
-		$decrypt = Crypt::decryptString($encryption_key);
-		// $decrypt = decryptStringInv($encryption_key);
-		$activity_ids = explode('-', $decrypt);
-		if (empty($activity_ids)) {
-			return response()->json([
-				'success' => false,
-				'errors' => [
-					'Activities not found',
-				],
-			]);
-		}
-		$asp = Asp::with('rm')->find(Auth::user()->asp->id);
-		if (!$asp) {
-			return response()->json([
-				'success' => false,
-				'errors' => [
-					'ASP not found',
-				],
-			]);
-		}
+		DB::beginTransaction();
+		try {
+			if (empty($encryption_key)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Activities not found',
+					],
+				]);
+			}
+			$decrypt = Crypt::decryptString($encryption_key);
+			// $decrypt = decryptStringInv($encryption_key);
+			$activity_ids = explode('-', $decrypt);
+			if (empty($activity_ids)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Activities not found',
+					],
+				]);
+			}
+			$asp = Asp::with('rm')->find(Auth::user()->asp->id);
+			if (!$asp) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'ASP not found',
+					],
+				]);
+			}
 
-		//CALCULATE TAX FOR INVOICE
-		Invoices::calculateTax($asp, $activity_ids);
-		$activities = Activity::join('cases', 'cases.id', 'activities.case_id')
-			->join('call_centers', 'call_centers.id', 'cases.call_center_id')
-			->join('service_types', 'service_types.id', 'activities.service_type_id')
-			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
-			->leftJoin('activity_details as km_charge', function ($join) {
-				$join->on('km_charge.activity_id', 'activities.id')
-					->where('km_charge.key_id', 172); //BO PO AMOUNT OR KM CHARGE
-			})
-			->leftJoin('activity_details as km_travelled', function ($join) {
-				$join->on('km_travelled.activity_id', 'activities.id')
-					->where('km_travelled.key_id', 158); //BO KM TRAVELLED
-			})
-			->leftJoin('activity_details as net_amount', function ($join) {
-				$join->on('net_amount.activity_id', 'activities.id')
-					->where('net_amount.key_id', 176); //BO NET AMOUNT
-			})
-			->leftJoin('activity_details as collect_amount', function ($join) {
-				$join->on('collect_amount.activity_id', 'activities.id')
-					->where('collect_amount.key_id', 159); //BO COLLECT AMOUNT
-			})
-			->leftJoin('activity_details as not_collected_amount', function ($join) {
-				$join->on('not_collected_amount.activity_id', 'activities.id')
-					->where('not_collected_amount.key_id', 160); //BO NOT COLLECT AMOUNT
-			})
-			->leftJoin('activity_details as total_tax_perc', function ($join) {
-				$join->on('total_tax_perc.activity_id', 'activities.id')
-					->where('total_tax_perc.key_id', 185); //BO TOTAL TAX PERC
-			})
-			->leftJoin('activity_details as total_tax_amount', function ($join) {
-				$join->on('total_tax_amount.activity_id', 'activities.id')
-					->where('total_tax_amount.key_id', 179); //BO TOTAL TAX AMOUNT
-			})
-			->leftJoin('activity_details as total_amount', function ($join) {
-				$join->on('total_amount.activity_id', 'activities.id')
-					->where('total_amount.key_id', 182); //BO INVOICE AMOUNT
-			})
-			->leftjoin('configs as data_sources', 'data_sources.id', 'activities.data_src_id')
-			->select(
-				'cases.number',
-				'activities.id',
-				'activities.asp_id as asp_id',
-				'activities.crm_activity_id',
-				DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
-				'activity_portal_statuses.name as status',
-				'call_centers.name as callcenter',
-				'cases.vehicle_registration_number',
-				'service_types.name as service_type',
-				'km_charge.value as km_charge_value',
-				'km_travelled.value as km_value',
-				'not_collected_amount.value as not_collect_value',
-				'net_amount.value as net_value',
-				'collect_amount.value as collect_value',
-				'total_amount.value as total_value',
-				'total_tax_perc.value as total_tax_perc_value',
-				'total_tax_amount.value as total_tax_amount_value',
-				'data_sources.name as data_source'
+			//CALCULATE TAX FOR INVOICE
+			Invoices::calculateTax($asp, $activity_ids);
+			$activities = Activity::join('cases', 'cases.id', 'activities.case_id')
+				->join('call_centers', 'call_centers.id', 'cases.call_center_id')
+				->join('service_types', 'service_types.id', 'activities.service_type_id')
+				->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+				->leftJoin('activity_details as km_charge', function ($join) {
+					$join->on('km_charge.activity_id', 'activities.id')
+						->where('km_charge.key_id', 172); //BO PO AMOUNT OR KM CHARGE
+				})
+				->leftJoin('activity_details as km_travelled', function ($join) {
+					$join->on('km_travelled.activity_id', 'activities.id')
+						->where('km_travelled.key_id', 158); //BO KM TRAVELLED
+				})
+				->leftJoin('activity_details as net_amount', function ($join) {
+					$join->on('net_amount.activity_id', 'activities.id')
+						->where('net_amount.key_id', 176); //BO NET AMOUNT
+				})
+				->leftJoin('activity_details as collect_amount', function ($join) {
+					$join->on('collect_amount.activity_id', 'activities.id')
+						->where('collect_amount.key_id', 159); //BO COLLECT AMOUNT
+				})
+				->leftJoin('activity_details as not_collected_amount', function ($join) {
+					$join->on('not_collected_amount.activity_id', 'activities.id')
+						->where('not_collected_amount.key_id', 160); //BO NOT COLLECT AMOUNT
+				})
+				->leftJoin('activity_details as total_tax_perc', function ($join) {
+					$join->on('total_tax_perc.activity_id', 'activities.id')
+						->where('total_tax_perc.key_id', 185); //BO TOTAL TAX PERC
+				})
+				->leftJoin('activity_details as total_tax_amount', function ($join) {
+					$join->on('total_tax_amount.activity_id', 'activities.id')
+						->where('total_tax_amount.key_id', 179); //BO TOTAL TAX AMOUNT
+				})
+				->leftJoin('activity_details as total_amount', function ($join) {
+					$join->on('total_amount.activity_id', 'activities.id')
+						->where('total_amount.key_id', 182); //BO INVOICE AMOUNT
+				})
+				->leftjoin('configs as data_sources', 'data_sources.id', 'activities.data_src_id')
+				->select(
+					'cases.number',
+					'activities.id',
+					'activities.asp_id as asp_id',
+					'activities.crm_activity_id',
+					DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
+					'activity_portal_statuses.name as status',
+					'call_centers.name as callcenter',
+					'cases.vehicle_registration_number',
+					'service_types.name as service_type',
+					'km_charge.value as km_charge_value',
+					'km_travelled.value as km_value',
+					'not_collected_amount.value as not_collect_value',
+					'net_amount.value as net_value',
+					'collect_amount.value as collect_value',
+					'total_amount.value as total_value',
+					'total_tax_perc.value as total_tax_perc_value',
+					'total_tax_amount.value as total_tax_amount_value',
+					'data_sources.name as data_source'
+				)
+				->whereIn('activities.id', $activity_ids)
+				->groupBy('activities.id')
+				->get();
+
+			if (count($activities) == 0) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Activities not found',
+					],
+				]);
+			}
+
+			foreach ($activities as $key => $activity) {
+				$taxes = DB::table('activity_tax')->leftjoin('taxes', 'activity_tax.tax_id', '=', 'taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name', 'taxes.tax_rate', 'activity_tax.*')->get();
+				$activity->taxes = $taxes;
+			}
+
+			//GET INVOICE AMOUNT FROM ACTIVITY DETAIL
+			$activity_detail = Activity::select(
+				DB::raw('SUM(bo_invoice_amount.value) as invoice_amount')
 			)
-			->whereIn('activities.id', $activity_ids)
-			->groupBy('activities.id')
-			->get();
+				->leftjoin('activity_details as bo_invoice_amount', function ($join) {
+					$join->on('bo_invoice_amount.activity_id', 'activities.id')
+						->where('bo_invoice_amount.key_id', 182); //BO INVOICE AMOUNT
+				})
+				->whereIn('activities.id', $activity_ids)
+				->first();
 
-		if (count($activities) == 0) {
+			if (!$activity_detail) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Invoice amount not found',
+					],
+				]);
+			}
+
+			$this->data['activities'] = $activities;
+			$this->data['invoice_amount'] = number_format($activity_detail->invoice_amount, 2);
+			$this->data['invoice_amount_in_word'] = getIndianCurrency($activity_detail->invoice_amount);
+			$this->data['asp'] = $asp;
+			$this->data['inv_no'] = generateInvoiceNumber();
+			$this->data['inv_date'] = date("d-m-Y");
+			$this->data['signature_attachment'] = Attachment::where('entity_id', $asp->id)
+				->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))
+				->first();
+			$this->data['signature_attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
+
+			$this->data['action'] = 'ASP Invoice Confirmation';
+			$this->data['success'] = true;
+			DB::commit();
+			return response()->json($this->data);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
 			return response()->json([
 				'success' => false,
 				'errors' => [
-					'Activities not found',
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			]);
 		}
-
-		foreach ($activities as $key => $activity) {
-			$taxes = DB::table('activity_tax')->leftjoin('taxes', 'activity_tax.tax_id', '=', 'taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name', 'taxes.tax_rate', 'activity_tax.*')->get();
-			$activity->taxes = $taxes;
-		}
-
-		//GET INVOICE AMOUNT FROM ACTIVITY DETAIL
-		$activity_detail = Activity::select(
-			DB::raw('SUM(bo_invoice_amount.value) as invoice_amount')
-		)
-			->leftjoin('activity_details as bo_invoice_amount', function ($join) {
-				$join->on('bo_invoice_amount.activity_id', 'activities.id')
-					->where('bo_invoice_amount.key_id', 182); //BO INVOICE AMOUNT
-			})
-			->whereIn('activities.id', $activity_ids)
-			->first();
-
-		if (!$activity_detail) {
-			return response()->json([
-				'success' => false,
-				'errors' => [
-					'Invoice amount not found',
-				],
-			]);
-		}
-
-		$this->data['activities'] = $activities;
-		$this->data['invoice_amount'] = number_format($activity_detail->invoice_amount, 2);
-		$this->data['invoice_amount_in_word'] = getIndianCurrency($activity_detail->invoice_amount);
-		$this->data['asp'] = $asp;
-		$this->data['inv_no'] = generateInvoiceNumber();
-		$this->data['inv_date'] = date("d-m-Y");
-		$this->data['signature_attachment'] = Attachment::where('entity_id', $asp->id)
-			->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))
-			->first();
-		$this->data['signature_attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
-
-		$this->data['action'] = 'ASP Invoice Confirmation';
-		$this->data['success'] = true;
-		return response()->json($this->data);
 	}
 
 	public function generateInvoice(Request $request) {
@@ -2234,7 +2302,10 @@ class ActivityController extends Controller {
 			}
 		} catch (\Exception $e) {
 			DB::rollBack();
-			return response()->json(['success' => false, 'errors' => ['Exception Error' => $e->getMessage()]]);
+			return response()->json([
+				'success' => false,
+				'error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+			]);
 		}
 	}
 
@@ -2287,7 +2358,7 @@ class ActivityController extends Controller {
 			return response()->json([
 				'success' => false,
 				'errors' => [
-					'Exception Error' => $e->getMessage(),
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			]);
 		}
@@ -2339,6 +2410,7 @@ class ActivityController extends Controller {
 			->leftjoin('vehicle_makes', 'vehicle_makes.id', '=', 'vehicle_models.vehicle_make_id')
 			->leftjoin('configs as bd_location_type', 'bd_location_type.id', '=', 'cases.bd_location_type_id')
 			->leftjoin('configs as bd_location_category', 'bd_location_category.id', '=', 'cases.bd_location_category_id')
+			->leftjoin('activity_ratecards', 'activity_ratecards.activity_id', 'activities.id')
 			->whereIn('activities.status_id', $status_ids);
 		if ($request->filter_by == 'general') {
 			$activities->where(function ($q) use ($range1, $range2) {
@@ -2453,6 +2525,14 @@ class ActivityController extends Controller {
 			DB::raw('COALESCE(data_source.name, "--") as data_source'),
 			DB::raw('COALESCE(bd_location_category.name, "--") as location_category'),
 			DB::raw('DATE_FORMAT(activities.updated_at, "%d-%m-%Y %H:%i:%s") as latest_updation_date'),
+			DB::raw('COALESCE(activity_ratecards.range_limit, "--") as range_limit'),
+			DB::raw('COALESCE(activity_ratecards.below_range_price, "--") as below_range_price'),
+			DB::raw('COALESCE(activity_ratecards.above_range_price, "--") as above_range_price'),
+			DB::raw('COALESCE(activity_ratecards.waiting_charge_per_hour, "--") as waiting_charge_per_hour'),
+			DB::raw('COALESCE(activity_ratecards.empty_return_range_price, "--") as empty_return_range_price'),
+			// DB::raw('COALESCE(IF(activity_ratecards.adjustment_type = 1, "Percentage", "Amount"), "--") as adjustment_type'),
+			'activity_ratecards.adjustment_type',
+			DB::raw('COALESCE(activity_ratecards.adjustment, "--") as adjustment'),
 		]);
 
 		if (!empty($request->get('asp_id'))) {
@@ -2692,12 +2772,23 @@ class ActivityController extends Controller {
 			];
 			$activity_details_header = array_merge($activity_details_header, $status_headers);
 		}
+
+		$rateCardHeaders = [
+			'Range Limit',
+			'Below Range Price',
+			'Above Range Price',
+			'Waiting Charge Per Hour',
+			'Empty Return Range Price',
+			'Adjustment Type',
+			'Adjustment',
+		];
+		$activity_details_header = array_merge($activity_details_header, $rateCardHeaders);
 		//dd($activity_details_header );
+
 		$constants = config('constants');
 		$activities = $activities
 			->groupBy('activities.id')
 			->get();
-		//dd($activities);
 		$activity_details_data = [];
 		foreach ($activities as $activity_key => $activity) {
 			if (!empty($activity->case_submission_closing_date)) {
@@ -2842,10 +2933,8 @@ class ActivityController extends Controller {
 
 			if (!Entrust::can('export-own-activities')) {
 				$total_days = 0;
-				//dump($activity);
 				$activity_log = ActivityLog::where('activity_id', $activity->id)->first();
 				if ($activity_log) {
-
 					$activity_details_data[$activity_key][] = $activity_log->imported_at ? date('d-m-Y H:i:s', strtotime($activity_log->imported_at)) : '';
 					$tot = ($activity_log->imported_at && $activity_log->asp_data_filled_at) ? $this->findDifference($activity_log->imported_at, $activity_log->asp_data_filled_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
@@ -2899,15 +2988,19 @@ class ActivityController extends Controller {
 				// $activity_details_data[$activity_key][] = !empty($activity->latest_updation_date) ? $activity->latest_updation_date : '';
 				$activity_details_data[$activity_key][] = $activity->data_source;
 			}
+			$activity_details_data[$activity_key][] = $activity->range_limit;
+			$activity_details_data[$activity_key][] = $activity->below_range_price;
+			$activity_details_data[$activity_key][] = $activity->above_range_price;
+			$activity_details_data[$activity_key][] = $activity->waiting_charge_per_hour;
+			$activity_details_data[$activity_key][] = $activity->empty_return_range_price;
+			$activity_details_data[$activity_key][] = !empty($activity->adjustment_type) ? ($activity->adjustment_type == 1 ? "Percentage" : "Amount") : '--';
+			$activity_details_data[$activity_key][] = $activity->adjustment;
 		}
-		//dd('s');
-		//$activity_details_data = array_merge($activity_details_header, $activity_details_data);
+
 		Excel::create('Activity Status Report', function ($excel) use ($summary, $activity_details_header, $activity_details_data, $status_ids, $summary_period) {
 			$excel->sheet('Summary', function ($sheet) use ($summary, $status_ids, $summary_period) {
-				//dd($summary);
 				$sheet->fromArray($summary, NULL, 'A1');
 				$sheet->row(1, $summary_period);
-
 				$sheet->cells('A1:B1', function ($cells) {
 					$cells->setFont(array(
 						'size' => '10',
@@ -2933,7 +3026,7 @@ class ActivityController extends Controller {
 				$sheet->setAutoSize(false);
 				$sheet->fromArray($activity_details_data, NULL, 'A1');
 				$sheet->row(1, $activity_details_header);
-				$sheet->cells('A1:DT1', function ($cells) {
+				$sheet->cells('A1:EA1', function ($cells) {
 					$cells->setFont(array(
 						'size' => '10',
 						'bold' => true,

@@ -125,6 +125,24 @@
                     </div> -->
                                 </div><!-- Column -->
                                 <!-- Map Attachement -->
+                                <!-- Vehicle Display image -->
+                                <div class="col-sm-3 vehicle_display_image">
+                                    <div class="input-text form-group">
+                                        <label>Vehicle Display Image<sup class="req" style="color:red">*</sup></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" readonly placeholder="Select File">
+                                            <span class="errorfile">This File is Required</span>
+                                            <span class="input-group-btn">
+                                                <span class="btn btn-file">
+                                                    Browse
+                                                    <input name="vehicle_display_image" type="file" class="form-control vehicle_display_image_data" autocomplete='off' ng-model="$ctrl.vehicle_display_image" />
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div class="vehcile_display_image_after"></div>
+                                    </div><!-- Field -->
+                                </div>
+                                <!-- End of Vehicle display image -->
                                 <div class="col-sm-3 resolve_comment" style="display:none;">
                                     <div class="input-text form-group">
                                         <label>Resolve Comments</label>

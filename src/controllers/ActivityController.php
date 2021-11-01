@@ -168,7 +168,7 @@ class ActivityController extends Controller {
 
 					$action .= "<a href='javascript:void(0)' onclick='angular.element(this).scope().backConfirm(" . $activityDetail . ")' class='ticket_back_button'><i class='fa fa-arrow-left dataTable-icon--edit-1' data-cl-id =" . $activity->id . " aria-hidden='true'></i></a>";
 				}
-				$action .= '</div>';
+				$action .= '<a style="cursor: pointer;" data-toggle="modal" data-target="#mandatory-towing-images"><i class="dataTable-icon--edit-1"><img class="" src="resources/assets/images/edit-note.svg"></i></a></div>';
 				return $action;
 			})
 			->make(true);

@@ -90,6 +90,8 @@ app.component('newActivityUpdateDetails', {
             self.for_deffer_activity = response.data.for_deffer_activity;
             //self.actual_km = response.data.activity.total_km;
             self.activity = response.data.activity;
+            self.towingAttachmentsMandatoryLabel = response.data.towingAttachmentsMandatoryLabel;
+            self.towingAttachmentSamplePhoto = 1;
             //TOWING GROUP
             if (self.activity.service_type.service_group_id == 3) {
                 self.showTowingAttachment = true;

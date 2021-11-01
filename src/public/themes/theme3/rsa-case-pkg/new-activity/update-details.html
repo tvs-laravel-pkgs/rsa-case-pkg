@@ -139,6 +139,57 @@
                                                 </span>
                                             </span>
                                         </div>
+                                        <a style="cursor: pointer;text-decoration: underline!important;margin-top: 4px;display: inline-block;" data-toggle="modal" data-target="#vehicle_pickup_sample">Sample Photo</a>
+                                        <div style="margin-top: 5px;display: flex;flex-wrap: nowrap;">
+                                            <img class="img-responsive" src="resources/assets/images/info_icon_red.svg" style="align-self: flex-start;">
+                                            <span style="color:#333332;padding-left: 4px;">View of customer vehicle number plate with vehicle towing mode is mandatory. (This field is mandatory from December onwards)</span>
+                                        </div>
+                                        <div class="vehcile_display_image_after"></div>
+                                    </div><!-- Field -->
+                                </div>
+                                <!-- End of Vehicle display image -->
+                                <!-- Vehicle Display image -->
+                                <div class="col-sm-3 vehicle_display_image">
+                                    <div class="input-text form-group">
+                                        <label>Vehicle Display Image<sup class="req" style="color:red">*</sup></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" readonly placeholder="Select File">
+                                            <span class="errorfile">This File is Required</span>
+                                            <span class="input-group-btn">
+                                                <span class="btn btn-file">
+                                                    Browse
+                                                    <input name="vehicle_display_image" type="file" class="form-control vehicle_display_image_data" autocomplete='off' ng-model="$ctrl.vehicle_display_image" />
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <a style="cursor: pointer;text-decoration: underline!important;margin-top: 4px;display: inline-block;" data-toggle="modal" data-target="#vehicle_drop_sample">Sample Photo</a>
+                                        <div style="margin-top: 5px;display: flex;flex-wrap: nowrap;">
+                                            <img class="img-responsive" src="resources/assets/images/info_icon_red.svg" style="align-self: flex-start;">
+                                            <span style="color:#333332;padding-left: 4px;">View of Dealer workshop with customer vehicle is mandatory. (This field is mandatory from December onwards)</span>
+                                        </div>
+                                        <div class="vehcile_display_image_after"></div>
+                                    </div><!-- Field -->
+                                </div>
+                                <!-- End of Vehicle display image -->
+                                <!-- Vehicle Display image -->
+                                <div class="col-sm-3 vehicle_display_image">
+                                    <div class="input-text form-group">
+                                        <label>Vehicle Display Image<sup class="req" style="color:red">*</sup></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" readonly placeholder="Select File">
+                                            <span class="errorfile">This File is Required</span>
+                                            <span class="input-group-btn">
+                                                <span class="btn btn-file">
+                                                    Browse
+                                                    <input name="vehicle_display_image" type="file" class="form-control vehicle_display_image_data" autocomplete='off' ng-model="$ctrl.vehicle_display_image" />
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <a style="cursor: pointer;text-decoration: underline!important;margin-top: 4px;display: inline-block;" data-toggle="modal" data-target="#inventory_job_sheet_sample">Sample Photo</a>
+                                        <div style="margin-top: 5px;display: flex;flex-wrap: nowrap;">
+                                            <img class="img-responsive" src="resources/assets/images/info_icon_red.svg" style="align-self: flex-start;">
+                                            <span style="color:#333332;padding-left: 4px;">Dealer seal is mandatory (This field is mandatory from December onwards)</span>
+                                        </div>
                                         <div class="vehcile_display_image_after"></div>
                                     </div><!-- Field -->
                                 </div>
@@ -171,6 +222,78 @@
                         </div>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade asp_for_find" id="vehicle_pickup_sample" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <img class="img-responsive close_btn" src="resources/assets/images/close-button-small.svg">
+                </a>
+                <h4 class="modal-title">Sample Photo</h4>
+                <div style="margin-top: 2px;">
+                    <img class="img-responsive" src="resources/assets/images/info_icon_red.svg" style="display: inline-block;vertical-align: middle;">
+                    <span style="color:#333332;display: inline-block;vertical-align: middle;">You need to attach the image clearly like below</span>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        <img class="img-responsive" src="resources/assets/images/modal/vehicle-pickup-sample.png" style="height: 450px;margin: auto;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade asp_for_find" id="vehicle_drop_sample" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <img class="img-responsive close_btn" src="resources/assets/images/close-button-small.svg">
+                </a>
+                <h4 class="modal-title">Sample Photo</h4>
+                <div style="margin-top: 2px;">
+                    <img class="img-responsive" src="resources/assets/images/info_icon_red.svg" style="display: inline-block;vertical-align: middle;">
+                    <span style="color:#333332;display: inline-block;vertical-align: middle;">You need to attach the image clearly like below</span>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        <img class="img-responsive" src="resources/assets/images/modal/vehicle-drop-sample.png" style="height: 450px;margin: auto;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade asp_for_find" id="inventory_job_sheet_sample" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <img class="img-responsive close_btn" src="resources/assets/images/close-button-small.svg">
+                </a>
+                <h4 class="modal-title">Sample Photo</h4>
+                <div style="margin-top: 2px;">
+                    <img class="img-responsive" src="resources/assets/images/info_icon_red.svg" style="display: inline-block;vertical-align: middle;">
+                    <span style="color:#333332;display: inline-block;vertical-align: middle;">You need to attach the image clearly like below</span>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        <img class="img-responsive" src="resources/assets/images/modal/inventory-job-sheet-sample.png" style="height: 450px;margin: auto;">
+                    </div>
+                </div>
             </div>
         </div>
     </div>

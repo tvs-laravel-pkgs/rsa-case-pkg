@@ -90,6 +90,14 @@ app.component('newActivityUpdateDetails', {
             self.for_deffer_activity = response.data.for_deffer_activity;
             //self.actual_km = response.data.activity.total_km;
             self.activity = response.data.activity;
+            self.towingAttachmentsMandatoryLabel = response.data.towingAttachmentsMandatoryLabel;
+            self.towingAttachmentSamplePhoto = 1;
+            //TOWING GROUP
+            if (self.activity.service_type.service_group_id == 3) {
+                self.showTowingAttachment = true;
+            } else {
+                self.showTowingAttachment = false;
+            }
             self.case_details = response.data.case_details;
             self.unpaid_amount = response.data.cc_other_charge;
             self.actual_km = response.data.cc_km_travelled;
@@ -116,7 +124,7 @@ app.component('newActivityUpdateDetails', {
                     var mis_percentage_difference = mis_km * allowed_variation / 100;
                     if (entry_val) {
                         if (entry_val > mis_km) {
-                            var km_difference = entry_val - mis_km; 
+                            var km_difference = entry_val - mis_km;
                             // var actual_val = Math.round(per - mis_percentage);
                             // if (actual_val >= 1) {
 
@@ -180,13 +188,40 @@ app.component('newActivityUpdateDetails', {
 
         });
 
+        $scope.getServiceTypeDetail = () => {
+            if (self.service_type_id) {
+                $.ajax({
+                        url: getActivityServiceTypeDetail + '/' + self.service_type_id,
+                        method: "GET",
+                    })
+                    .done(function(res) {
+                        if (!res.success) {
+                            var errors = '';
+                            for (var i in res.errors) {
+                                errors += '<li>' + res.errors[i] + '</li>';
+                            }
+                            custom_noty('error', errors);
+                            return;
+                        } else {
+                            //TOWING
+                            if (res.serviceType.service_group_id == 3) {
+                                self.showTowingAttachment = true;
+                            } else {
+                                self.showTowingAttachment = false;
+                            }
+                            $scope.$apply()
+                        }
+                    })
+                    .fail(function(xhr) {
+                        custom_noty('error', 'Something went wrong at server');
+                        console.log(xhr);
+                    });
+            }
+        }
 
-        // $('body').on('focusout', '.asp_collected_charges', function() {
-        //     var asp_collected_charges = self.asp_collected_charges;
-        //     if (!$.isNumeric(asp_collected_charges)) {
-        //         $(".asp_collected_charges").val("");
-        //     }
-        // });
+        $.validator.addMethod('imageFileSize', function(value, element, param) {
+            return this.optional(element) || (element.files[0].size <= param)
+        });
 
         //Jquery Validation
         var form_id = '#new-tickect-form';
@@ -236,6 +271,24 @@ app.component('newActivityUpdateDetails', {
                     required: true,
                     extension: "jpg|jpeg|png|gif",
                 },
+                'vehicle_pickup_attachment': {
+                    required: function(element) {
+                        return self.activity.is_towing_attachments_mandatory === 1;
+                    },
+                    imageFileSize: 1048576,
+                },
+                'vehicle_drop_attachment': {
+                    required: function(element) {
+                        return self.activity.is_towing_attachments_mandatory === 1;
+                    },
+                    imageFileSize: 1048576,
+                },
+                'inventory_job_sheet_attachment': {
+                    required: function(element) {
+                        return self.activity.is_towing_attachments_mandatory === 1;
+                    },
+                    imageFileSize: 1048576,
+                }
             },
             messages: {
                 'km_travelled': {
@@ -259,6 +312,18 @@ app.component('newActivityUpdateDetails', {
                 'other_attachment[]': {
                     required: 'Please attach other Attachment',
                 },
+                'vehicle_pickup_attachment': {
+                    required: 'Please Upload Vehicle Pickup image',
+                    imageFileSize: "Vehicle Pickup file size must be less than 1MB",
+                },
+                'vehicle_drop_attachment': {
+                    required: 'Please Upload Vehicle Drop image',
+                    imageFileSize: "Vehicle Drop file size must be less than 1MB",
+                },
+                'inventory_job_sheet_attachment': {
+                    required: 'Please Upload Inventory Job Sheet image',
+                    imageFileSize: "Inventory Job Sheet file size must be less than 1MB",
+                }
             },
             errorPlacement: function(error, element) {
                 if (element.attr("type") == "checkbox") {

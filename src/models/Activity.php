@@ -180,7 +180,11 @@ class Activity extends Model {
 	public static function getFormData($id = NULL, $for_deffer_activity) {
 		$data = [];
 
-		$data['activity'] = $activity = self::findOrFail($id);
+		$data['activity'] = $activity = self::with([
+			'case',
+			'serviceType',
+		])
+			->findOrFail($id);
 		$data['service_types'] = Asp::where('user_id', Auth::id())
 			->join('asp_service_types', 'asp_service_types.asp_id', '=', 'asps.id')
 			->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')
@@ -1111,6 +1115,13 @@ class Activity extends Model {
 							$activity->activity_status_id = $activity_status_id;
 							$activity->data_src_id = 262; //BO MANUAL
 							$activity->save();
+
+							$towingImagesMandatoryEffectiveDate = config('rsa.TOWING_IMAGES_MANDATORY_EFFECTIVE_DATE');
+							if (date('Y-m-d') >= $towingImagesMandatoryEffectiveDate) {
+								$activity->is_towing_attachments_mandatory = 1;
+							} else {
+								$activity->is_towing_attachments_mandatory = 0;
+							}
 							$activity->number = 'ACT' . $activity->id;
 							$activity->save();
 

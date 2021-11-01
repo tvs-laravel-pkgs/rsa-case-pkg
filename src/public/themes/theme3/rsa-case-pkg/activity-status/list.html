@@ -36,7 +36,7 @@
                                 <button class="btn btn-md preview-batch export" data-toggle="modal" data-target="#release-onhold-case">
                                     Release OnHold
                                 </button>
-                            </li>                            
+                            </li>
                             <!-- </div> -->
                             <!-- <li><a href="javascript:void(0)" class="btn btn-md" ng-click="">Export</a></li> -->
                             <li><input class="filterTable" type="text" placeholder="Search"></li>
@@ -216,6 +216,54 @@
         </form>
     </div>
 </div>
+<!-- Modal -->
+<div class="modal fade" id="towingImageRequiredModal" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><img src="{{$ctrl.modal_close}}"></button>
+                <h4 class="modal-title">Ticket Towing Images</h4>
+            </div>
+            <form id="tickect-towing-images-required">
+                <input type="hidden" name="_token" value="{{$ctrl.csrf}}" />
+                <input type="hidden" name="activity_id" value="{{$ctrl.towingImagesActivityId}}">
+                <div class="alert alert-danger" style="display: none;"></div>
+                <div class="modal-body">
+                    <div class="approvalModal-wrapper">
+                        <div class="viewData-threeColumn--wrapper">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Required?<span class="mandatory">*</span></label>
+                                                <div class="radio-button">
+                                                    <label class="radio-item">
+                                                        Yes
+                                                        <input ng-checked="$ctrl.isTowingAttachmentsMandatory == 1" type="radio" name="isTowingAttachmentsMandatory" id="isTowingAttachmentsMandatory" value="1">
+                                                        <span class="checkmark"></span>
+                                                    </label>
+                                                    <label class="radio-item">
+                                                        No
+                                                        <input ng-checked="$ctrl.isTowingAttachmentsMandatory == 0" type="radio" name="isTowingAttachmentsMandatory" id="isTowingAttachmentsMandatory" value="0">
+                                                        <span class="checkmark"></span>
+                                                    </label>
+                                                </div>
+                                            </div><!-- Feild -->
+                                        </div><!-- Column -->
+                                    </div>
+                                    <div class="approvalModal-btns text-right">
+                                        <button type="submit" id="activityTowingImageSubmitId" class="btn btn-primary yellow customForm-btn">Submit</button>
+                                    </div>
+                                </div><!-- row -->
+                            </div><!-- Column -->
+                        </div><!-- Row -->
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 </div>
 <!-- Modal -->
 <div class="modal fade asp_for_find" id="asp_excel_export" role="dialog">
@@ -231,9 +279,8 @@
                 <input type="hidden" name="_token" value="{{$ctrl.csrf}}" />
                 <div ng-if="$ctrl.hasPermission('export-own-activities')">
                     <input type="hidden" name="asp_id" value="{{$ctrl.auth_user_details.entity_id}}" />
-                    <input type="hidden" name="filter_by" value="general"/>
+                    <input type="hidden" name="filter_by" value="general" />
                 </div>
-
                 <div class="modal-body">
                     <div class="approvalModal-wrapper">
                         <div class="viewData-threeColumn--wrapper">
@@ -268,7 +315,7 @@
                                                 <input type="text" value="" name="ticket" id="ticket_export" class="form-control valid" placeholder="Enter Ticket Number" autocomplete="off">
                                             </div>
                                         </div>
-                                        <div class="col-sm-6" ng-if= "!$ctrl.hasPermission('export-own-activities')">
+                                        <div class="col-sm-6" ng-if="!$ctrl.hasPermission('export-own-activities')">
                                             <div class="input-text form-group">
                                                 <label>ASP</label>
                                                 <md-autocomplete class="type-sm" md-items="option in $ctrl.searchAsps($ctrl.aspSearchText)" md-input-id="autoFocusId" md-selected-item="$ctrl.asp" md-search-text="$ctrl.aspSearchText" md-item-text="option.workshop" md-min-length="3" placeholder="Search ASP Code" md-clear-button="true" md-no-cache="true">
@@ -287,7 +334,7 @@
                                         <div class="col-sm-6">
                                             <div class="input-text form-group">
                                                 <label>Client</label>
-                                                 <md-autocomplete class="type-sm" md-items="option in $ctrl.searchClients($ctrl.clientSearchText)" md-input-id="autoFocusId" md-selected-item="$ctrl.client" md-search-text="$ctrl.clientSearchText" md-item-text="option.name" md-min-length="3" placeholder="Search Client" md-clear-button="true" md-no-cache="true">
+                                                <md-autocomplete class="type-sm" md-items="option in $ctrl.searchClients($ctrl.clientSearchText)" md-input-id="autoFocusId" md-selected-item="$ctrl.client" md-search-text="$ctrl.clientSearchText" md-item-text="option.name" md-min-length="3" placeholder="Search Client" md-clear-button="true" md-no-cache="true">
                                                     <md-item-template>
                                                         <span>
                                                             {{option.name}}
@@ -300,7 +347,7 @@
                                                 <input type="hidden" name="client_id" value="{{$ctrl.client.id}}" />
                                             </div>
                                         </div>
-                                        <div class="col-sm-6" ng-if= "!$ctrl.hasPermission('export-own-activities')">
+                                        <div class="col-sm-6" ng-if="!$ctrl.hasPermission('export-own-activities')">
                                             <div class="input-text form-group">
                                                 <label>Filter By </label>
                                                 <div class="radio-button">
@@ -316,7 +363,7 @@
                                                     </label>
                                                 </div>
                                             </div><!-- Field -->
-                                        </div><!-- Column -->                                        
+                                        </div><!-- Column -->
                                     </div>
                                     <div class="alert alert-danger">Sometimes Export may take few minutes to export large amount of data. So please be patient.</div>
                                     <div class="approvalModal-btns">
@@ -331,7 +378,6 @@
         </div>
     </div>
 </div><!-- Modal -->
-
 <!-- Modal -->
 <div class="modal fade" id="release-onhold-case" role="dialog">
     <div class="modal-dialog modal-lg">

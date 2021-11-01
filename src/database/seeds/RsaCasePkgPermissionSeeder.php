@@ -86,6 +86,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'export-own-activities',
 				'display_name' => 'Export Own',
 			],
+			[
+				'display_order' => 11,
+				'parent' => 'activity-status',
+				'name' => 'towing-images-required-for-activities',
+				'display_name' => 'Towing Images Required Option',
+			],
 
 			//ACTIVITIES VERIFICATION
 			[
@@ -444,6 +450,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'parent' => 'dealer-wallet',
 				'name' => 'check-staus-self-topup-dealer-wallet',
 				'display_name' => 'Topup check status',
+			],
+			[
+				'display_order' => 10,
+				'parent' => 'dealer-wallet',
+				'name' => 'own-dealers-topup-dealer-wallet',
+				'display_name' => 'Own Dealers Topup',
 			],
 
 			// //TOPUP DEALER WALLET
@@ -920,6 +932,24 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'own-dealers-membership-cancellation-invoice',
 				'display_name' => 'Own Dealers',
 			],
+			[
+				'display_order' => 5,
+				'parent' => 'membership-cancellation-invoice',
+				'name' => 'finance-export-membership-cancellation-invoice',
+				'display_name' => 'Finance Export All',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'membership-cancellation-invoice',
+				'name' => 'finance-export-own-only-membership-cancellation-invoice',
+				'display_name' => 'Finance Export Own Only',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'membership-cancellation-invoice',
+				'name' => 'finance-export-own-dealers-membership-cancellation-invoice',
+				'display_name' => 'Finance Export Own Dealers',
+			],
 
 			//MEMBERSHIP MENU
 			[
@@ -989,6 +1019,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'parent' => 'membership-customer-invoice',
 				'name' => 'finance-export-own-dealers-membership-customer-invoice',
 				'display_name' => 'Finance Export Own Dealers',
+			],
+			[
+				'display_order' => 10,
+				'parent' => 'membership-customer-invoice',
+				'name' => 'download-customer-einvoice',
+				'display_name' => 'Download E-Invoice',
 			],
 
 			//CREDIT DEBIT NOTE
@@ -1109,6 +1145,82 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'parent' => 'query-log',
 				'name' => 'query-log-export',
 				'display_name' => 'Export',
+			],
+
+			//NON MEMBERSHIP MENU
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'non-membership-menu',
+				'display_name' => 'Non Membership Menu',
+			],
+
+			//NON MEMBERSHIPS
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'non-membership',
+				'display_name' => 'Non Memberships',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'non-membership',
+				'name' => 'add-non-membership',
+				'display_name' => 'Add',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'non-membership',
+				'name' => 'edit-non-membership',
+				'display_name' => 'Edit',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'non-membership',
+				'name' => 'view-non-membership',
+				'display_name' => 'View',
+			],
+			[
+				'display_order' => 5,
+				'parent' => 'non-membership',
+				'name' => 'own-non-membership',
+				'display_name' => 'Own Only',
+			],
+			[
+				'display_order' => 8,
+				'parent' => 'non-membership',
+				'name' => 'all-non-membership',
+				'display_name' => 'All',
+			],
+			[
+				'display_order' => 10,
+				'parent' => 'non-membership',
+				'name' => 'admin-report-non-membership',
+				'display_name' => 'Admin Report',
+			],
+			[
+				'display_order' => 11,
+				'parent' => 'non-membership',
+				'name' => 'general-report-non-membership',
+				'display_name' => 'General Report - All',
+			],
+			[
+				'display_order' => 12,
+				'parent' => 'non-membership',
+				'name' => 'own-general-report-non-membership',
+				'display_name' => 'General Report - Own Only',
+			],
+			[
+				'display_order' => 15,
+				'parent' => 'non-membership',
+				'name' => 'initiate-cancel-non-membership',
+				'display_name' => 'Initiate Cancellation',
+			],
+			[
+				'display_order' => 15,
+				'parent' => 'non-membership',
+				'name' => 'send-customer-invoice-to-customer-for-non-membership',
+				'display_name' => 'Send Customer Invoice To Customer',
 			],
 		];
 		Permission::createFromArrays($permissions);

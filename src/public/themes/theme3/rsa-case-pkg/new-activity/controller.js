@@ -314,15 +314,15 @@ app.component('newActivityUpdateDetails', {
                 },
                 'vehicle_pickup_attachment': {
                     required: 'Please Upload Vehicle Pickup image',
-                    imageFileSize: "Vehicle Pickup file size must be less than 1MB",
+                    imageFileSize: "Vehicle Pickup image size must be less than 1MB",
                 },
                 'vehicle_drop_attachment': {
                     required: 'Please Upload Vehicle Drop image',
-                    imageFileSize: "Vehicle Drop file size must be less than 1MB",
+                    imageFileSize: "Vehicle Drop image size must be less than 1MB",
                 },
                 'inventory_job_sheet_attachment': {
                     required: 'Please Upload Inventory Job Sheet image',
-                    imageFileSize: "Inventory Job Sheet file size must be less than 1MB",
+                    imageFileSize: "Inventory Job Sheet image size must be less than 1MB",
                 }
             },
             errorPlacement: function(error, element) {

@@ -103,6 +103,7 @@
     var asp_new_activity_form_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/form.html')}}";
     var asp_new_activity_update_details_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/update-details.html')}}";
     var get_activity_form_data_url = "{{route('activityNewGetFormData')}}";
+    var getActivityServiceTypeDetail = "{{url('rsa-case-pkg/new-activity/get-service-type-detail')}}";
 
     var activity_status_list_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-status/list.html')}}";
     var activity_status_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-status/view.html')}}";
@@ -146,20 +147,14 @@
     var canExportActivity = "{{Entrust::can('export-activities')}}";
     var canImportActivity = "{{Entrust::can('import-cron-jobs')}}";
     var activity_back_asp_update = "{{route('activityBackAspUpdate')}}";
+    var activity_towing_images_required_url = "{{route('activityTowingImagesRequiredUpdated')}}";
     var releaseOnHold = "{{route('releaseOnHold')}}";
     //NEW ACTIVITY
 
 </script>
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/common/controller.js?v=5')}}"></script>
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-status/controller.js?v=4')}}"></script>
-
-<!-- RSA-NEW-ACTIVITY-PKG -->
-<script type="text/javascript">
-    var asp_new_activity_form_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/form.html')}}";
-    var asp_new_activity_update_details_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/update-details.html')}}";
-    var get_activity_form_data_url = "{{route('activityNewGetFormData')}}";
-</script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/controller.js?v=3')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/controller.js?v=4')}}"></script>
 
 <!-- RSA-DASHBOARD -->
 <script type="text/javascript">
@@ -228,5 +223,5 @@
     var activity_approved_invoice_preview_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-approved/invoice-preview.html')}}";
     var activity_approved_invoice_preview_data_url = "{{url('rsa-case-pkg/activity-approved/get-details/')}}";
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-approved/controller.js?v=2')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-approved/controller.js?v=3')}}"></script>
 

@@ -212,10 +212,92 @@
                         </div><!-- Row -->
                     </div>
                 </div>
+            </form>
         </div>
-        </form>
     </div>
 </div>
+<!-- Modal -->
+<div class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><img src="{{$ctrl.modal_close}}"></button>
+                <h4 class="modal-title">Ticket Towing Images</h4>
+            </div>
+            <form>
+                <input type="hidden" name="_token" value="{{$ctrl.csrf}}" />
+                <input type="hidden" name="activity_id" value="{{$ctrl.towingImagesActivityId}}">
+                <div class="alert alert-danger" style="display: none;"></div>
+                <div class="modal-body">
+                    <div class="approvalModal-wrapper">
+                        <div class="viewData-threeColumn--wrapper">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Required?<span class="mandatory">*</span></label>
+                                                <div class="radio-button">
+                                                    <label class="radio-item">
+                                                        Yes
+                                                        <input ng-checked="$ctrl.isTowingAttachmentsMandatory == 1" type="radio" name="isTowingAttachmentsMandatory" id="isTowingAttachmentsMandatory" value="1">
+                                                        <span class="checkmark"></span>
+                                                    </label>
+                                                    <label class="radio-item">
+                                                        No
+                                                        <input ng-checked="$ctrl.isTowingAttachmentsMandatory == 0" type="radio" name="isTowingAttachmentsMandatory" id="isTowingAttachmentsMandatory" value="0">
+                                                        <span class="checkmark"></span>
+                                                    </label>
+                                                </div>
+                                            </div><!-- Feild -->
+                                        </div><!-- Column -->
+                                    </div>
+                                    <div class="approvalModal-btns text-right">
+                                        <button type="submit" class="btn btn-primary yellow customForm-btn">Submit</button>
+                                    </div>
+                                </div><!-- row -->
+                            </div><!-- Column -->
+                        </div><!-- Row -->
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade asp_for_find" id="towingImageRequiredModal" role="dialog">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <form id="tickect-towing-images-required">
+                <input type="hidden" name="_token" value="{{$ctrl.csrf}}" />
+                <input type="hidden" name="activity_id" value="{{$ctrl.towingImagesActivityId}}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="input-text form-group">
+                                <label>Towing Images Mandatory?</label>
+                                <div class="radio-button">
+                                    <label class="radio-item">
+                                        Yes
+                                        <input ng-checked="$ctrl.isTowingAttachmentsMandatory == 1" type="radio" name="isTowingAttachmentsMandatory" id="isTowingAttachmentsMandatory" value="1">
+                                        <span class="checkmark"></span>
+                                    </label>
+                                    <label class="radio-item">
+                                        No
+                                        <input ng-checked="$ctrl.isTowingAttachmentsMandatory == 0" type="radio" name="isTowingAttachmentsMandatory" id="isTowingAttachmentsMandatory" value="0">
+                                        <span class="checkmark"></span>
+                                    </label>
+                                </div>
+                            </div><!-- Field -->
+                        </div>
+                        <div class="col-md-12">
+                            <button type="submit" id="activityTowingImageSubmitId" class="approve-btn" style="font-size: 14px;width: 100%;padding: 8px 10px;">Update</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 <!-- Modal -->
 <div class="modal fade asp_for_find" id="asp_excel_export" role="dialog">

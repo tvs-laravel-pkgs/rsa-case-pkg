@@ -255,7 +255,16 @@ class ActivityController extends Controller {
 	}
 
 	public function delete($id) {
-		Activity::where('id', $id)->delete();
+		$deleteActivityBaseQuery = Activity::where('id', $id);
+		if (Auth::check()) {
+			$deleteActivityUpdatedByQuery = clone $deleteActivityBaseQuery;
+			$deleteActivityUpdatedByQuery->update([
+				'updated_by_id' => Auth::user()->id,
+			]);
+		}
+		$deleteActivityQuery = clone $deleteActivityBaseQuery;
+		$deleteActivityQuery->delete();
+
 		return response()->json(['success' => true]);
 	}
 

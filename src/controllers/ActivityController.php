@@ -2210,7 +2210,7 @@ class ActivityController extends Controller {
 				if (Str::length($request->invoice_no) > 20) {
 					return response()->json([
 						'success' => false,
-						'error' => 'Invoice number should not be more than 20 characters',
+						'error' => 'The invoice number may not be greater than 20 characters',
 					]);
 				}
 

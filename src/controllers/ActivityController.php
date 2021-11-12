@@ -1255,6 +1255,7 @@ class ActivityController extends Controller {
 		//CHECK TICKET EXIST WITH DATA ENTRY STATUS & DATE FOR ASP
 		$query = Activity::select([
 			'activities.id as id',
+			'activities.activity_status_id',
 			'cases.created_at as case_created_at',
 			// 'cases.date as case_date',
 			DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y") as case_date'),
@@ -1349,10 +1350,14 @@ class ActivityController extends Controller {
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
 					if ($check_ticket_date) {
+						$checkTicketDateError = "Please contact administrator.";
+						if ($check_ticket_date->activityStatus) {
+							$checkTicketDateError = "Please contact administrator. Activity status: " . $check_ticket_date->activityStatus->name;
+						}
 						return response()->json([
 							'success' => false,
 							'errors' => [
-								"Please contact administrator.",
+								$checkTicketDateError,
 							],
 						]);
 					}
@@ -1368,10 +1373,14 @@ class ActivityController extends Controller {
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
 					if ($activity_on_hold) {
+						$activityOnHoldError = "Ticket On Hold";
+						if ($activity_on_hold->activityStatus) {
+							$activityOnHoldError = "Ticket On Hold. Activity status: " . $activity_on_hold->activityStatus->name;
+						}
 						return response()->json([
 							'success' => false,
 							'errors' => [
-								"Ticket On Hold",
+								$activityOnHoldError,
 							],
 						]);
 					}

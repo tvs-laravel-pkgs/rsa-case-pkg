@@ -1374,6 +1374,7 @@ class ActivityController extends Controller {
 		//CHECK TICKET EXIST WITH DATA ENTRY STATUS & DATE FOR ASP
 		$query = Activity::select([
 			'activities.id as id',
+			'activities.activity_status_id',
 			'cases.created_at as case_created_at',
 			// 'cases.date as case_date',
 			DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y") as case_date'),
@@ -1468,10 +1469,14 @@ class ActivityController extends Controller {
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
 					if ($check_ticket_date) {
+						$checkTicketDateError = "Please contact administrator.";
+						if ($check_ticket_date->activityStatus) {
+							$checkTicketDateError = "Please contact administrator. Activity status : " . $check_ticket_date->activityStatus->name;
+						}
 						return response()->json([
 							'success' => false,
 							'errors' => [
-								"Please contact administrator.",
+								$checkTicketDateError,
 							],
 						]);
 					}
@@ -1487,10 +1492,14 @@ class ActivityController extends Controller {
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
 					if ($activity_on_hold) {
+						$activityOnHoldError = "Ticket On Hold";
+						if ($activity_on_hold->activityStatus) {
+							$activityOnHoldError = "Ticket On Hold. Activity status : " . $activity_on_hold->activityStatus->name;
+						}
 						return response()->json([
 							'success' => false,
 							'errors' => [
-								"Ticket On Hold",
+								$activityOnHoldError,
 							],
 						]);
 					}
@@ -1507,10 +1516,14 @@ class ActivityController extends Controller {
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
 					if ($activity_not_eligible_for_payment) {
+						$activityNotEligibleForPaymentError = 'Ticket not found';
+						if ($activity_not_eligible_for_payment->activityStatus) {
+							$activityNotEligibleForPaymentError = "Ticket not found. Activity status : " . $activity_not_eligible_for_payment->activityStatus->name;
+						}
 						return response()->json([
 							'success' => false,
 							'errors' => [
-								'Ticket not found',
+								$activityNotEligibleForPaymentError,
 							],
 						]);
 					}
@@ -1527,10 +1540,14 @@ class ActivityController extends Controller {
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
 					if ($activity_already_completed) {
+						$activityAlreadyCompletedError = "Ticket already submitted. Case : " . $activity_already_completed->case_number . "(" . $activity_already_completed->case_date . ")";
+						if ($activity_already_completed->activityStatus) {
+							$activityAlreadyCompletedError = "Ticket already submitted. Case : " . $activity_already_completed->case_number . "(" . $activity_already_completed->case_date . "), Activity status : " . $activity_already_completed->activityStatus->name;
+						}
 						return response()->json([
 							'success' => false,
 							'errors' => [
-								"Ticket already submitted. Case : " . $activity_already_completed->case_number . "(" . $activity_already_completed->case_date . ")",
+								$activityAlreadyCompletedError,
 							],
 						]);
 					}
@@ -1547,10 +1564,14 @@ class ActivityController extends Controller {
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
 					if ($case_with_cancelled_status) {
+						$caseWithCancelledStatusError = "Ticket is cancelled";
+						if ($case_with_cancelled_status->activityStatus) {
+							$caseWithCancelledStatusError = "Ticket is cancelled. Activity status : " . $case_with_cancelled_status->activityStatus->name;
+						}
 						return response()->json([
 							'success' => false,
 							'errors' => [
-								"Ticket is cancelled",
+								$caseWithCancelledStatusError,
 							],
 						]);
 					}
@@ -1565,11 +1586,15 @@ class ActivityController extends Controller {
 						})
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
-					if (!$case_with_closed_status) {
+					if ($case_with_closed_status) {
+						$caseWithClosedStatusError = "Ticket is closed";
+						if ($case_with_closed_status->activityStatus) {
+							$caseWithClosedStatusError = "Ticket is closed. Activity status : " . $case_with_closed_status->activityStatus->name;
+						}
 						return response()->json([
 							'success' => false,
 							'errors' => [
-								"Ticket is closed",
+								$caseWithClosedStatusError,
 							],
 						]);
 					}

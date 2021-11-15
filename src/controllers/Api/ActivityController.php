@@ -41,7 +41,7 @@ class ActivityController extends Controller {
 					'max:24',
 					Rule::exists('asps', 'asp_code')
 						->where(function ($query) {
-							$query->whereNull('deleted_at');
+							$query->where('is_active', 1);
 						}),
 				],
 				'case_number' => [

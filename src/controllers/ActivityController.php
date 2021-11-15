@@ -26,6 +26,7 @@ use Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Validator;
 use Yajra\Datatables\Datatables;
 
@@ -159,8 +160,14 @@ class ActivityController extends Controller {
 						                <i class="fa fa-trash dataTable-icon--trash cl-delete" data-cl-id =' . $activity->id . ' aria-hidden="true"></i>
 						            </a>';
 				}
+
 				if (Entrust::can('backstep-activity') && in_array($activity->status_id, $return_status_ids)) {
-					$action .= "<a href='javascript:void(0)' onclick='angular.element(this).scope().backConfirm(" . $activity . ")' class='ticket_back_button'><i class='fa fa-arrow-left dataTable-icon--edit-1' data-cl-id =" . $activity->id . " aria-hidden='true'></i></a>";
+					$activityDetail = new Activity;
+					$activityDetail->id = $activity->id;
+					$activityDetail->status_id = $activity->status_id;
+					$activityDetail->activity_number = $activity->activity_number;
+
+					$action .= "<a href='javascript:void(0)' onclick='angular.element(this).scope().backConfirm(" . $activityDetail . ")' class='ticket_back_button'><i class='fa fa-arrow-left dataTable-icon--edit-1' data-cl-id =" . $activity->id . " aria-hidden='true'></i></a>";
 				}
 				$action .= '</div>';
 				return $action;
@@ -239,7 +246,16 @@ class ActivityController extends Controller {
 	}
 
 	public function delete($id) {
-		Activity::where('id', $id)->delete();
+		$deleteActivityBaseQuery = Activity::where('id', $id);
+		if (Auth::check()) {
+			$deleteActivityUpdatedByQuery = clone $deleteActivityBaseQuery;
+			$deleteActivityUpdatedByQuery->update([
+				'updated_by_id' => Auth::user()->id,
+			]);
+		}
+		$deleteActivityQuery = clone $deleteActivityBaseQuery;
+		$deleteActivityQuery->delete();
+
 		return response()->json(['success' => true]);
 	}
 
@@ -2190,6 +2206,14 @@ class ActivityController extends Controller {
 						'error' => 'Invoice date is required',
 					]);
 				}
+
+				if (Str::length($request->invoice_no) > 20) {
+					return response()->json([
+						'success' => false,
+						'error' => 'The invoice number may not be greater than 20 characters',
+					]);
+				}
+
 				//CHECK IF ZERO AS FIRST LETTER
 				$invoiceNumberfirstLetter = substr(trim($request->invoice_no), 0, 1);
 				if (is_numeric($invoiceNumberfirstLetter)) {

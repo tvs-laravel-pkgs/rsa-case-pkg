@@ -270,6 +270,8 @@ app.component('approvedActivityInvoicePreview', {
                 rules: {
                     invoice_no: {
                         required: true,
+                        minlength: 3,
+                        maxlength: 20,
                     },
                     inv_date: {
                         required: true,
@@ -284,61 +286,79 @@ app.component('approvedActivityInvoicePreview', {
                     },
                 },
                 submitHandler: function(form) {
-                    let formData = new FormData($(form_id)[0]);
-                    $('#submit').button('loading');
-                    if ($(".loader-type-2").hasClass("loader-hide")) {
-                        $(".loader-type-2").removeClass("loader-hide");
-                    }
-                    $.ajax({
-                            url: laravel_routes['generateInvoice'],
-                            method: "POST",
-                            data: formData,
-                            processData: false,
-                            contentType: false,
-                        })
-                        .done(function(res) {
-                            // console.log(res);
-                            if (!res.success) {
-                                $(".loader-type-2").addClass("loader-hide");
-                                $('#submit').button('reset');
-                                $noty = new Noty({
-                                    type: 'error',
-                                    layout: 'topRight',
-                                    text: res.error,
-                                }).show();
-                                setTimeout(function() {
-                                    $noty.close();
-                                }, 5000);
-                            } else {
-                                $noty = new Noty({
-                                    type: 'success',
-                                    layout: 'topRight',
-                                    text: res.message,
-                                    animation: {
-                                        speed: 500
-                                    }
-                                }).show();
-                                setTimeout(function() {
-                                    $noty.close();
-                                }, 1000);
-                                setTimeout(function() {
-                                    $location.path('/rsa-case-pkg/approved-activity/list');
-                                    $scope.$apply();
-                                }, 1500);
+                    bootbox.confirm({
+                        message: 'Are you sure you want to create the invoice?',
+                        className: 'action-confirm-modal',
+                        buttons: {
+                            confirm: {
+                                label: 'Yes',
+                                className: 'btn-success'
+                            },
+                            cancel: {
+                                label: 'No',
+                                className: 'btn-danger'
                             }
-                        })
-                        .fail(function(xhr) {
-                            $(".loader-type-2").addClass("loader-hide");
-                            $('#submit').button('reset');
-                            $noty = new Noty({
-                                type: 'error',
-                                layout: 'topRight',
-                                text: 'Something went wrong at server',
-                            }).show();
-                            setTimeout(function() {
-                                $noty.close();
-                            }, 5000);
-                        });
+                        },
+                        callback: function(result) {
+                            if (result) {
+                                let formData = new FormData($(form_id)[0]);
+                                $('#submit').button('loading');
+                                if ($(".loader-type-2").hasClass("loader-hide")) {
+                                    $(".loader-type-2").removeClass("loader-hide");
+                                }
+                                $.ajax({
+                                        url: laravel_routes['generateInvoice'],
+                                        method: "POST",
+                                        data: formData,
+                                        processData: false,
+                                        contentType: false,
+                                    })
+                                    .done(function(res) {
+                                        // console.log(res);
+                                        if (!res.success) {
+                                            $(".loader-type-2").addClass("loader-hide");
+                                            $('#submit').button('reset');
+                                            $noty = new Noty({
+                                                type: 'error',
+                                                layout: 'topRight',
+                                                text: res.error,
+                                            }).show();
+                                            setTimeout(function() {
+                                                $noty.close();
+                                            }, 5000);
+                                        } else {
+                                            $noty = new Noty({
+                                                type: 'success',
+                                                layout: 'topRight',
+                                                text: res.message,
+                                                animation: {
+                                                    speed: 500
+                                                }
+                                            }).show();
+                                            setTimeout(function() {
+                                                $noty.close();
+                                            }, 1000);
+                                            setTimeout(function() {
+                                                $location.path('/rsa-case-pkg/approved-activity/list');
+                                                $scope.$apply();
+                                            }, 1500);
+                                        }
+                                    })
+                                    .fail(function(xhr) {
+                                        $(".loader-type-2").addClass("loader-hide");
+                                        $('#submit').button('reset');
+                                        $noty = new Noty({
+                                            type: 'error',
+                                            layout: 'topRight',
+                                            text: 'Something went wrong at server',
+                                        }).show();
+                                        setTimeout(function() {
+                                            $noty.close();
+                                        }, 5000);
+                                    });
+                            }
+                        }
+                    });
                 },
             });
 

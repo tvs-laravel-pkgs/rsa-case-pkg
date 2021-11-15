@@ -1222,6 +1222,27 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'send-customer-invoice-to-customer-for-non-membership',
 				'display_name' => 'Send Customer Invoice To Customer',
 			],
+
+			//LOCATOR
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'locator',
+				'display_name' => 'Locator',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'locator',
+				'name' => 'own-client-locator',
+				'display_name' => 'Own Client',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'locator',
+				'name' => 'all-locator',
+				'display_name' => 'All',
+			],
+
 		];
 		Permission::createFromArrays($permissions);
 	}

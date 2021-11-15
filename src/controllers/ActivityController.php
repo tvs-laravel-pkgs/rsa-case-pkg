@@ -26,6 +26,7 @@ use Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Validator;
 use Yajra\Datatables\Datatables;
 
@@ -2205,6 +2206,14 @@ class ActivityController extends Controller {
 						'error' => 'Invoice date is required',
 					]);
 				}
+
+				if (Str::length($request->invoice_no) > 20) {
+					return response()->json([
+						'success' => false,
+						'error' => 'The invoice number may not be greater than 20 characters',
+					]);
+				}
+
 				//CHECK IF ZERO AS FIRST LETTER
 				$invoiceNumberfirstLetter = substr(trim($request->invoice_no), 0, 1);
 				if (is_numeric($invoiceNumberfirstLetter)) {

@@ -228,5 +228,5 @@
     var activity_approved_invoice_preview_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-approved/invoice-preview.html')}}";
     var activity_approved_invoice_preview_data_url = "{{url('rsa-case-pkg/activity-approved/get-details/')}}";
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-approved/controller.js?v=3')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-approved/controller.js?v=4')}}"></script>
 

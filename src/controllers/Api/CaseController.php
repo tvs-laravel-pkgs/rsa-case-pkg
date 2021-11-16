@@ -15,6 +15,8 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Validator;
+use Abs\RsaCasePkg\Activity;
+use Auth;
 
 class CaseController extends Controller {
 	private $successStatus = 200;
@@ -389,6 +391,42 @@ class CaseController extends Controller {
 						'status_id' => 1,
 					]);
 			}
+			if ($case->status_id == 4 || $case->status_id == 3) {
+		        $activities = Activity::select([
+					'activities.id',
+					'activities.service_type_id',
+					'activities.asp_id',
+				])
+					->join('cases', 'cases.id', 'activities.case_id')
+					->where('activities.status_id', 17) //ONHOLD
+					->whereIn('cases.status_id', [3, 4]) //CANCELLED/CLOSED
+					->where('activities.case_id','=',$case->id)
+					->get();
+
+	            if ($activities->isNotEmpty()) {
+					foreach ($activities as $key => $activity) {
+						//MECHANICAL SERVICE GROUP
+						if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
+							$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
+							$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km);
+							if ($is_bulk) {
+								//ASP Completed Data Entry - Waiting for BO Bulk Verification
+								$status_id = 5;
+							} else {
+								//ASP Completed Data Entry - Waiting for BO Individual Verification
+								$status_id = 6;
+							}
+						} else {
+							$status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+						}
+						 $activity->update([
+							'status_id' => $status_id,
+						]);
+					}
+				}
+			}
+
+
 
 			//SAVE CASE API LOG
 			saveApiLog(102, $request->number, $request->all(), $errors, NULL, 120);

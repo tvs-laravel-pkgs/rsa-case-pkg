@@ -1,6 +1,7 @@
 <?php
 
 namespace Abs\RsaCasePkg\Api;
+use Abs\RsaCasePkg\Activity;
 use Abs\RsaCasePkg\CaseCancelledReason;
 use Abs\RsaCasePkg\CaseStatus;
 use Abs\RsaCasePkg\RsaCase;
@@ -376,6 +377,7 @@ class CaseController extends Controller {
 					}
 				}
 			}
+
 			if ($case->status_id == 4) {
 				//CLOSED
 				$case
@@ -388,6 +390,32 @@ class CaseController extends Controller {
 						// Case Closed - Waiting for ASP to Generate Invoice
 						'status_id' => 1,
 					]);
+			}
+
+			//RELEASE ONHOLD ACTIVITIES WITH CLOSED OR CANCELLED CASES
+			if ($case->status_id == 4 || $case->status_id == 3) {
+				$activities = $case->activities()->where('status_id', 17)->get();
+				if ($activities->isNotEmpty()) {
+					foreach ($activities as $key => $activity) {
+						//MECHANICAL SERVICE GROUP
+						if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
+							$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
+							$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km);
+							if ($is_bulk) {
+								//ASP Completed Data Entry - Waiting for BO Bulk Verification
+								$status_id = 5;
+							} else {
+								//ASP Completed Data Entry - Waiting for BO Individual Verification
+								$status_id = 6;
+							}
+						} else {
+							$status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+						}
+						$activity->update([
+							'status_id' => $status_id,
+						]);
+					}
+				}
 			}
 
 			//SAVE CASE API LOG

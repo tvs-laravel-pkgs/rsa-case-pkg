@@ -1711,6 +1711,16 @@ class ActivityController extends Controller {
 
 			//VEHICLE PICKUP ATTACHMENT
 			if ($request->hasFile("vehicle_pickup_attachment")) {
+
+				//REMOVE EXISTING ATTACHMENT
+				$getVehiclePickupAttach = Attachment::where('entity_id', $activity->id)
+					->where('entity_type', config('constants.entity_types.VEHICLE_PICKUP_ATTACHMENT'))
+					->first();
+				if ($getVehiclePickupAttach) {
+					unlink(storage_path('app/' . $destination . '/' . $getVehiclePickupAttach->attachment_file_name));
+					$getVehiclePickupAttach->delete();
+				}
+
 				$filename = "vehicle_pickup_attachment";
 				$extension = $request->file("vehicle_pickup_attachment")->getClientOriginalExtension();
 				$status = $request->file("vehicle_pickup_attachment")->storeAs($destination, $filename . '.' . $extension);
@@ -1724,6 +1734,16 @@ class ActivityController extends Controller {
 
 			//VEHICLE DROP ATTACHMENT
 			if ($request->hasFile("vehicle_drop_attachment")) {
+
+				//REMOVE EXISTING ATTACHMENT
+				$getVehicleDropAttach = Attachment::where('entity_id', $activity->id)
+					->where('entity_type', config('constants.entity_types.VEHICLE_DROP_ATTACHMENT'))
+					->first();
+				if ($getVehicleDropAttach) {
+					unlink(storage_path('app/' . $destination . '/' . $getVehicleDropAttach->attachment_file_name));
+					$getVehicleDropAttach->delete();
+				}
+
 				$filename = "vehicle_drop_attachment";
 				$extension = $request->file("vehicle_drop_attachment")->getClientOriginalExtension();
 				$status = $request->file("vehicle_drop_attachment")->storeAs($destination, $filename . '.' . $extension);
@@ -1737,6 +1757,16 @@ class ActivityController extends Controller {
 
 			//INVENTORY JOB SHEET ATTACHMENT
 			if ($request->hasFile("inventory_job_sheet_attachment")) {
+
+				//REMOVE EXISTING ATTACHMENT
+				$getInventoryJobSheetAttach = Attachment::where('entity_id', $activity->id)
+					->where('entity_type', config('constants.entity_types.INVENTORY_JOB_SHEET_ATTACHMENT'))
+					->first();
+				if ($getInventoryJobSheetAttach) {
+					unlink(storage_path('app/' . $destination . '/' . $getInventoryJobSheetAttach->attachment_file_name));
+					$getInventoryJobSheetAttach->delete();
+				}
+
 				$filename = "inventory_job_sheet_attachment";
 				$extension = $request->file("inventory_job_sheet_attachment")->getClientOriginalExtension();
 				$status = $request->file("inventory_job_sheet_attachment")->storeAs($destination, $filename . '.' . $extension);

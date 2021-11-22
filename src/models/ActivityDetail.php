@@ -2,15 +2,15 @@
 
 namespace Abs\RsaCasePkg;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Abs\HelperPkg\Traits\SeederTrait;
 use App\Company;
 use App\Config;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ActivityDetail extends Model {
 	use SoftDeletes;
-		use SeederTrait;
+	use SeederTrait;
 
 	protected $table = 'activity_details';
 	protected $fillable = [

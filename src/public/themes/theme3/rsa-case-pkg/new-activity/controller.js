@@ -98,6 +98,7 @@ app.component('newActivityUpdateDetails', {
             self.service_type_id = response.data.activity.service_type_id;
             self.range_limit = response.data.range_limit;
             self.bd_location = response.data.case_details.bd_location;
+            self.dropLocation = response.data.dropLocation;
             $rootScope.loading = false;
             if (self.for_deffer_activity) {
                 $('.resolve_comment').show();
@@ -117,7 +118,7 @@ app.component('newActivityUpdateDetails', {
                     var mis_percentage_difference = mis_km * allowed_variation / 100;
                     if (entry_val) {
                         if (entry_val > mis_km) {
-                            var km_difference = entry_val - mis_km; 
+                            var km_difference = entry_val - mis_km;
                             // var actual_val = Math.round(per - mis_percentage);
                             // if (actual_val >= 1) {
 

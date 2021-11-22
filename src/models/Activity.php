@@ -8,6 +8,7 @@ use Abs\RsaCasePkg\ActivityAspStatus;
 use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityLog;
+use Abs\RsaCasePkg\ActivityRatecard;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
 use Abs\RsaCasePkg\AspPoRejectedReason;
@@ -300,6 +301,49 @@ class Activity extends Model {
 		return $record;
 	}
 
+	public function saveActivityRatecard() {
+		$aspServiceTypeRateCard = AspServiceType::select([
+			'range_limit',
+			'below_range_price',
+			'above_range_price',
+			'waiting_charge_per_hour',
+			'empty_return_range_price',
+			'adjustment_type',
+			'adjustment',
+		])
+			->where('asp_id', $this->asp->id)
+			->where('service_type_id', $this->serviceType->id)
+			->first();
+
+		if (!$aspServiceTypeRateCard) {
+			return [
+				'success' => false,
+				'error' => 'Service (' . $this->serviceType->name . ') not enabled for ASP (' . $this->asp->asp_code . ')',
+			];
+		}
+
+		$activityRateCard = ActivityRatecard::firstOrNew([
+			'activity_id' => $this->id,
+		]);
+		if (!$activityRateCard->exists) {
+			$activityRateCard->created_by_id = Auth::check() ? Auth::user()->id : 72;
+		} else {
+			$activityRateCard->updated_by_id = Auth::check() ? Auth::user()->id : 72;
+		}
+		$activityRateCard->range_limit = $aspServiceTypeRateCard->range_limit;
+		$activityRateCard->below_range_price = $aspServiceTypeRateCard->below_range_price;
+		$activityRateCard->above_range_price = $aspServiceTypeRateCard->above_range_price;
+		$activityRateCard->waiting_charge_per_hour = $aspServiceTypeRateCard->waiting_charge_per_hour;
+		$activityRateCard->empty_return_range_price = $aspServiceTypeRateCard->empty_return_range_price;
+		$activityRateCard->adjustment_type = $aspServiceTypeRateCard->adjustment_type;
+		$activityRateCard->adjustment = $aspServiceTypeRateCard->adjustment;
+		$activityRateCard->save();
+
+		return [
+			'success' => true,
+		];
+	}
+
 	public function calculatePayoutAmount($data_src) {
 		if ($this->financeStatus->po_eligibility_type_id == 342) {
 			//No Payout
@@ -315,6 +359,14 @@ class Activity extends Model {
 				return [
 					'success' => false,
 					'error' => $response['error'],
+				];
+			}
+
+			$saveActivityRatecardResponse = $this->saveActivityRatecard();
+			if (!$saveActivityRatecardResponse['success']) {
+				return [
+					'success' => false,
+					'error' => $saveActivityRatecardResponse['error'],
 				];
 			}
 

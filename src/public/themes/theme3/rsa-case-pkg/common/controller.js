@@ -398,6 +398,7 @@ app.component('billingDetails', {
                 }
 
                 $scope.calculate = function() {
+                    //If view page and activity has been initiated for payment process
                     if (self.data.verification == 0 && (self.data.activity_portal_status_id == 1 || self.data.activity_portal_status_id == 10 || self.data.activity_portal_status_id == 11 || self.data.activity_portal_status_id == 12 || self.data.activity_portal_status_id == 13 || self.data.activity_portal_status_id == 14)) {
                         self.show_km = 0;
                         self.data.bo_po_amount = self.data.raw_bo_po_amount;

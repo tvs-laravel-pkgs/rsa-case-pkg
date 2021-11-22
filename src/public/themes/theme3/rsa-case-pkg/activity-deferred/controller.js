@@ -104,7 +104,7 @@ app.component('deferredActivityList', {
                 format: 'dd-mm-yyyy',
                 autoclose: true,
             });
-            
+
             $('.filter-content').bind('click', function(event) {
 
                 if ($('.md-select-menu-container').hasClass('md-active')) {
@@ -160,6 +160,8 @@ app.component('deferredActivityUpdate', {
             self.other_attachment = response.data.other_attachment;
             self.defer_reason = response.data.activity.defer_reason;
             self.case = response.data.case;
+            self.bd_location = response.data.case.bd_location;
+            self.dropLocation = response.data.dropLocation;
 
             self.kmTravelledHideShow();
             self.otherChargeHideShow();

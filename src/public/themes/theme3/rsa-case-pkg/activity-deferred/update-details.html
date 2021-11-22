@@ -107,11 +107,11 @@
                                         </div>
                                     </div><!-- Field -->
                                     <div class="map_after"></div>
-                                    <div ng-repeat="(index, km_attach) in $ctrl.km_attachment" style="position: absolute; bottom: 0px; display: block;">
+                                    <div ng-repeat="(index, km_attach) in $ctrl.km_attachment">
                                         {{ km_attach.attachment_file_name }}
                                         <button class='close_map' id="{{km_attach.id}}" ng-click="$ctrl.closeKmMapAttach(index,km_attach.id)" type='button'>X</button>
                                     </div>
-                                    <a href="https://www.google.com/maps" class="blue" target="_blank" style="position: absolute; bottom: -20px;">GO TO GOOGLE MAP</a>
+                                    <a href="https://www.google.com/maps" class="blue" target="_blank">GO TO GOOGLE MAP</a>
                                     <input ng-if="$ctrl.km_attachment.length > 0" type="hidden" name="km_attachment_exist" value="1">
                                 </div><!-- Column -->
                                 <!-- Map Attachement -->
@@ -127,6 +127,18 @@
                                         <textarea class="form-control" autocomplete='off' ng-model="$ctrl.defer_reason" rows="2" readonly></textarea>
                                     </div><!-- Field -->
                                 </div><!-- Column -->
+                                <div class="col-sm-3">
+                                    <div class="input-text form-group">
+                                        <label>Breakdown Location</label>
+                                        <textarea type="textarea" class="form-control" rows="3" name="bd_location" ng-model="$ctrl.bd_location" disabled="" autocomplete='off'></textarea>
+                                    </div><!-- Field -->
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="input-text form-group">
+                                        <label>Drop Location</label>
+                                        <textarea type="textarea" class="form-control" rows="3" name="dropLocation" ng-model="$ctrl.dropLocation" disabled="" autocomplete='off'></textarea>
+                                    </div><!-- Field -->
+                                </div>
                                 <div class="col-xs-12 col-sm-12 mt-30">
                                     <div class="form-group">
                                         <button type="submit" class="btn btn-primary customForm-btn" id="submit">Submit</button>

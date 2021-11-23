@@ -31,6 +31,9 @@
                     <div class="defer_hidden"></div>
                     <input type='hidden' name='update_attach_other_id' id="update_attach_other_id" value="">
                     <input type='hidden' name='update_attach_km_map_id' id="update_attach_km_map_id" value="">
+                    <input type='hidden' name='vehiclePickupAttachRemovelIds' id="vehiclePickupAttachRemovelIds" value="">
+                    <input type='hidden' name='vehicleDropAttachRemovelIds' id="vehicleDropAttachRemovelIds" value="">
+                    <input type='hidden' name='inventoryJobSheetAttachRemovelIds' id="inventoryJobSheetAttachRemovelIds" value="">
                     <div class="alert alert-danger" style="display: none;"></div>
                     <div class="customTab-content">
                         <div class="customForm-wrapper">
@@ -152,6 +155,10 @@
                                             <img class="img-responsive" src="resources/assets/images/info_icon_red.svg" style="align-self: flex-start;">
                                             <span style="color:#333332;padding-left: 4px;">View of customer vehicle number plate with vehicle towing mode is mandatory. {{$ctrl.towingAttachmentsMandatoryLabel}}</span>
                                         </div>
+                                        <div ng-if="$ctrl.vehiclePickupAttach">
+                                            {{ $ctrl.vehiclePickupAttach.attachment_file_name }}
+                                            <button class='close_other' id="{{$ctrl.vehiclePickupAttach.id}}" type='button' ng-click="$ctrl.closeVehiclePickupAttach(index, $ctrl.vehiclePickupAttach.id)">X</button>
+                                        </div>
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
@@ -171,6 +178,10 @@
                                             <img class="img-responsive" src="resources/assets/images/info_icon_red.svg" style="align-self: flex-start;">
                                             <span style="color:#333332;padding-left: 4px;">View of Dealer workshop with customer vehicle is mandatory. {{$ctrl.towingAttachmentsMandatoryLabel}}</span>
                                         </div>
+                                        <div ng-if="$ctrl.vehicleDropAttach">
+                                            {{ $ctrl.vehicleDropAttach.attachment_file_name }}
+                                            <button class='close_other' id="{{$ctrl.vehicleDropAttach.id}}" type='button' ng-click="$ctrl.closeVehicleDropAttach(index, $ctrl.vehicleDropAttach.id)">X</button>
+                                        </div>
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
@@ -189,6 +200,10 @@
                                         <div style="margin-top: 5px;display: flex;flex-wrap: nowrap;">
                                             <img class="img-responsive" src="resources/assets/images/info_icon_red.svg" style="align-self: flex-start;">
                                             <span style="color:#333332;padding-left: 4px;">Dealer seal is mandatory. {{$ctrl.towingAttachmentsMandatoryLabel}}</span>
+                                        </div>
+                                        <div ng-if="$ctrl.inventoryJobSheetAttach">
+                                            {{ $ctrl.inventoryJobSheetAttach.attachment_file_name }}
+                                            <button class='close_other' id="{{$ctrl.inventoryJobSheetAttach.id}}" type='button' ng-click="$ctrl.closeInventoryJobSheetAttach(index, $ctrl.inventoryJobSheetAttach.id)">X</button>
                                         </div>
                                     </div><!-- Field -->
                                 </div><!-- Column -->

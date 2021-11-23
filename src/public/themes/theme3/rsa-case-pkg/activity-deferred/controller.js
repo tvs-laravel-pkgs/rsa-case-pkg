@@ -130,6 +130,9 @@ app.component('deferredActivityUpdate', {
 
         var update_attach_other_id = [];
         var update_attach_km_map_id = [];
+        const vehiclePickupAttachRemovelIds = [];
+        const vehicleDropAttachRemovelIds = [];
+        const inventoryJobSheetAttachRemovelIds = [];
 
         $http.get(
             $form_data_url
@@ -161,6 +164,9 @@ app.component('deferredActivityUpdate', {
             self.defer_reason = response.data.activity.defer_reason;
             self.case = response.data.case;
 
+            self.vehiclePickupAttach = response.data.vehiclePickupAttach;
+            self.vehicleDropAttach = response.data.vehicleDropAttach;
+            self.inventoryJobSheetAttach = response.data.inventoryJobSheetAttach;
             self.towingAttachmentsMandatoryLabel = response.data.towingAttachmentsMandatoryLabel;
             self.towingAttachmentSamplePhoto = 1;
             //TOWING GROUP
@@ -189,6 +195,30 @@ app.component('deferredActivityUpdate', {
                 $('#update_attach_km_map_id').val(JSON.stringify(update_attach_km_map_id));
             }
             self.km_attachment.splice(index, 1);
+        }
+
+        self.closeVehiclePickupAttach = (index, vehiclePickupAttachId) => {
+            if (vehiclePickupAttachId) {
+                vehiclePickupAttachRemovelIds.push(vehiclePickupAttachId);
+                $('#vehiclePickupAttachRemovelIds').val(JSON.stringify(vehiclePickupAttachRemovelIds));
+            }
+            self.vehiclePickupAttach = '';
+        }
+
+        self.closeVehicleDropAttach = (index, vehicleDropAttachId) => {
+            if (vehicleDropAttachId) {
+                vehicleDropAttachRemovelIds.push(vehicleDropAttachId);
+                $('#vehicleDropAttachRemovelIds').val(JSON.stringify(vehicleDropAttachRemovelIds));
+            }
+            self.vehicleDropAttach = '';
+        }
+
+        self.closeInventoryJobSheetAttach = (index, inventoryJobSheetAttachId) => {
+            if (inventoryJobSheetAttachId) {
+                inventoryJobSheetAttachRemovelIds.push(inventoryJobSheetAttachId);
+                $('#inventoryJobSheetAttachRemovelIds').val(JSON.stringify(inventoryJobSheetAttachRemovelIds));
+            }
+            self.inventoryJobSheetAttach = '';
         }
 
         self.kmTravelledHideShow = function() {
@@ -378,19 +408,19 @@ app.component('deferredActivityUpdate', {
                 },
                 'vehicle_pickup_attachment': {
                     required: function(element) {
-                        return self.activity.is_towing_attachments_mandatory === 1;
+                        return self.activity.is_towing_attachments_mandatory === 1 && !self.vehiclePickupAttach;
                     },
                     imageFileSize: 1048576,
                 },
                 'vehicle_drop_attachment': {
                     required: function(element) {
-                        return self.activity.is_towing_attachments_mandatory === 1;
+                        return self.activity.is_towing_attachments_mandatory === 1 && !self.vehicleDropAttach;
                     },
                     imageFileSize: 1048576,
                 },
                 'inventory_job_sheet_attachment': {
                     required: function(element) {
-                        return self.activity.is_towing_attachments_mandatory === 1;
+                        return self.activity.is_towing_attachments_mandatory === 1 && !self.inventoryJobSheetAttach;
                     },
                     imageFileSize: 1048576,
                 }

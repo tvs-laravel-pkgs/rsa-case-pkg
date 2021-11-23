@@ -1648,26 +1648,67 @@ class ActivityController extends Controller {
 			$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
 			Storage::makeDirectory($destination, 0777);
 
+			//MAP ATTACHMENTS REMOVAL
 			if (!empty($request->update_attach_map_id)) {
 				$update_attach_km_map_ids = json_decode($request->update_attach_km_map_id, true);
-				$getMapAttachments = Attachment::whereIn('id', $update_attach_km_map_ids)
+				$removeMapAttachments = Attachment::whereIn('id', $update_attach_km_map_ids)
 					->get();
-				if ($getMapAttachments->isNotEmpty()) {
-					foreach ($getMapAttachments as $key => $getMapAttachment) {
-						unlink(storage_path('app/' . $destination . '/' . $getMapAttachment->attachment_file_name));
-						$getMapAttachment->delete();
+				if ($removeMapAttachments->isNotEmpty()) {
+					foreach ($removeMapAttachments as $removeMapAttachmentKey => $removeMapAttachment) {
+						unlink(storage_path('app/' . $destination . '/' . $removeMapAttachment->attachment_file_name));
+						$removeMapAttachment->delete();
 					}
 				}
 			}
 
+			//OTHER ATTACHMENTS REMOVAL
 			if (!empty($request->update_attach_other_id)) {
 				$update_attach_other_ids = json_decode($request->update_attach_other_id, true);
-				$getOtherAttachments = Attachment::whereIn('id', $update_attach_other_ids)
+				$removeOtherAttachments = Attachment::whereIn('id', $update_attach_other_ids)
 					->get();
-				if ($getOtherAttachments->isNotEmpty()) {
-					foreach ($getOtherAttachments as $key => $getOtherAttachment) {
-						unlink(storage_path('app/' . $destination . '/' . $getOtherAttachment->attachment_file_name));
-						$getOtherAttachment->delete();
+				if ($removeOtherAttachments->isNotEmpty()) {
+					foreach ($removeOtherAttachments as $removeOtherAttachmentKey => $removeOtherAttachment) {
+						unlink(storage_path('app/' . $destination . '/' . $removeOtherAttachment->attachment_file_name));
+						$removeOtherAttachment->delete();
+					}
+				}
+			}
+
+			//VEHICLE PICKUP ATTACHMENTS REMOVAL
+			if (!empty($request->vehiclePickupAttachRemovelIds)) {
+				$vehiclePickupAttachRemovelIds = json_decode($request->vehiclePickupAttachRemovelIds, true);
+				$removeVehiclePickupAttachments = Attachment::whereIn('id', $vehiclePickupAttachRemovelIds)
+					->get();
+				if ($removeVehiclePickupAttachments->isNotEmpty()) {
+					foreach ($removeVehiclePickupAttachments as $removeVehiclePickupAttachmentKey => $removeVehiclePickupAttachment) {
+						unlink(storage_path('app/' . $destination . '/' . $removeVehiclePickupAttachment->attachment_file_name));
+						$removeVehiclePickupAttachment->delete();
+					}
+				}
+			}
+
+			//VEHICLE DROP ATTACHMENTS REMOVAL
+			if (!empty($request->vehicleDropAttachRemovelIds)) {
+				$vehicleDropAttachRemovelIds = json_decode($request->vehicleDropAttachRemovelIds, true);
+				$removeVehicleDropAttachments = Attachment::whereIn('id', $vehicleDropAttachRemovelIds)
+					->get();
+				if ($removeVehicleDropAttachments->isNotEmpty()) {
+					foreach ($removeVehicleDropAttachments as $removeVehicleDropAttachmentKey => $removeVehicleDropAttachment) {
+						unlink(storage_path('app/' . $destination . '/' . $removeVehicleDropAttachment->attachment_file_name));
+						$removeVehicleDropAttachment->delete();
+					}
+				}
+			}
+
+			//INVENTORY JOB SHEET ATTACHMENTS REMOVAL
+			if (!empty($request->inventoryJobSheetAttachRemovelIds)) {
+				$inventoryJobSheetAttachRemovelIds = json_decode($request->inventoryJobSheetAttachRemovelIds, true);
+				$removeInventoryJobSheetAttachments = Attachment::whereIn('id', $inventoryJobSheetAttachRemovelIds)
+					->get();
+				if ($removeInventoryJobSheetAttachments->isNotEmpty()) {
+					foreach ($removeInventoryJobSheetAttachments as $removeInventoryJobSheetAttachmentKey => $removeInventoryJobSheetAttachment) {
+						unlink(storage_path('app/' . $destination . '/' . $removeInventoryJobSheetAttachment->attachment_file_name));
+						$removeInventoryJobSheetAttachment->delete();
 					}
 				}
 			}

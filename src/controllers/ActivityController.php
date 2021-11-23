@@ -1645,15 +1645,33 @@ class ActivityController extends Controller {
 			}
 
 			$range_limit = 0;
+			$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
+			Storage::makeDirectory($destination, 0777);
 
 			if (!empty($request->update_attach_map_id)) {
 				$update_attach_km_map_ids = json_decode($request->update_attach_km_map_id, true);
-				Attachment::whereIn('id', $update_attach_km_map_ids)->delete();
+				$getMapAttachments = Attachment::whereIn('id', $update_attach_km_map_ids)
+					->get();
+				if ($getMapAttachments->isNotEmpty()) {
+					foreach ($getMapAttachments as $key => $getMapAttachment) {
+						unlink(storage_path('app/' . $destination . '/' . $getMapAttachment->attachment_file_name));
+						$getMapAttachment->delete();
+					}
+				}
 			}
+
 			if (!empty($request->update_attach_other_id)) {
 				$update_attach_other_ids = json_decode($request->update_attach_other_id, true);
-				Attachment::whereIn('id', $update_attach_other_ids)->delete();
+				$getOtherAttachments = Attachment::whereIn('id', $update_attach_other_ids)
+					->get();
+				if ($getOtherAttachments->isNotEmpty()) {
+					foreach ($getOtherAttachments as $key => $getOtherAttachment) {
+						unlink(storage_path('app/' . $destination . '/' . $getOtherAttachment->attachment_file_name));
+						$getOtherAttachment->delete();
+					}
+				}
 			}
+
 			$cc_service_type_exist = ActivityDetail::where('activity_id', $activity->id)
 				->where('key_id', 153)
 				->first();
@@ -1669,9 +1687,6 @@ class ActivityController extends Controller {
 			if (!empty($request->comments)) {
 				$activity->asp_resolve_comments = $request->comments;
 			}
-
-			$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
-			$status = Storage::makeDirectory($destination, 0777);
 
 			if (!empty($request->other_attachment)) {
 				Attachment::where('entity_id', $activity->id)->where('entity_type', 17)->delete();

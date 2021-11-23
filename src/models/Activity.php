@@ -261,6 +261,27 @@ class Activity extends Model {
 			->where('entity_id', '=', $activity->id)
 			->select('id', 'attachment_file_name')
 			->get();
+		$data['vehiclePickupAttach'] = Attachment::select([
+			'id',
+			'attachment_file_name',
+		])
+			->where('entity_type', config('constants.entity_types.VEHICLE_PICKUP_ATTACHMENT'))
+			->where('entity_id', $activity->id)
+			->first();
+		$data['vehicleDropAttach'] = Attachment::select([
+			'id',
+			'attachment_file_name',
+		])
+			->where('entity_type', config('constants.entity_types.VEHICLE_DROP_ATTACHMENT'))
+			->where('entity_id', $activity->id)
+			->first();
+		$data['inventoryJobSheetAttach'] = Attachment::select([
+			'id',
+			'attachment_file_name',
+		])
+			->where('entity_type', config('constants.entity_types.INVENTORY_JOB_SHEET_ATTACHMENT'))
+			->where('entity_id', $activity->id)
+			->first();
 		$data['for_deffer_activity'] = $for_deffer_activity;
 		$data['dropLocation'] = $activity->detail(295) ? $activity->detail(295)->value : '';
 		$data['success'] = true;

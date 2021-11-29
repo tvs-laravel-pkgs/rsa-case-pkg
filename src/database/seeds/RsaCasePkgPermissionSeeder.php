@@ -1243,6 +1243,13 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'All',
 			],
 
+			//DISPLAY LATEST UPDATES
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'display-latest-updates',
+				'display_name' => 'Display Latest Updates',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

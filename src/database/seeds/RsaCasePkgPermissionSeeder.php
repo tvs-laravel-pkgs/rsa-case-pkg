@@ -1250,7 +1250,6 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'display-latest-updates',
 				'display_name' => 'Display Latest Updates',
 			],
-
 		];
 		Permission::createFromArrays($permissions);
 	}

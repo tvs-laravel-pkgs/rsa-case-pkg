@@ -103,6 +103,7 @@
     var asp_new_activity_form_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/form.html')}}";
     var asp_new_activity_update_details_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/update-details.html')}}";
     var get_activity_form_data_url = "{{route('activityNewGetFormData')}}";
+    var getActivityServiceTypeDetail = "{{url('rsa-case-pkg/new-activity/get-service-type-detail')}}";
 
     var activity_status_list_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-status/list.html')}}";
     var activity_status_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-status/view.html')}}";
@@ -146,6 +147,7 @@
     var canExportActivity = "{{Entrust::can('export-activities')}}";
     var canImportActivity = "{{Entrust::can('import-cron-jobs')}}";
     var activity_back_asp_update = "{{route('activityBackAspUpdate')}}";
+    var activity_towing_images_required_url = "{{route('activityTowingImagesRequiredUpdated')}}";
     var releaseOnHold = "{{route('releaseOnHold')}}";
     //NEW ACTIVITY
 

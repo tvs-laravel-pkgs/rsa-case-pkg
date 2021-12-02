@@ -61,9 +61,10 @@ class ActivityController extends Controller {
 			$end_date = date('Y-m-d', strtotime($to));
 		}
 
-		$activities = Activity::select(
+		$activities = Activity::select([
 			'activities.id',
 			'activities.crm_activity_id',
+			'activities.is_towing_attachments_mandatory',
 			'activities.status_id as status_id',
 			'activities.number as activity_number',
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
@@ -72,15 +73,15 @@ class ActivityController extends Controller {
 			// 'asps.asp_code',
 			DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
 			'service_types.name as sub_service',
+			'service_types.service_group_id',
 			// 'activity_asp_statuses.name as asp_status',
 			'activity_finance_statuses.name as finance_status',
 			'activity_portal_statuses.name as status',
 			'activity_statuses.name as activity_status',
 			'clients.name as client',
 			'configs.name as source',
-			'call_centers.name as call_center'
-		)
-
+			'call_centers.name as call_center',
+		])
 			->where(function ($query) use ($from_date, $end_date) {
 				if (!empty($from_date) && !empty($end_date)) {
 					$query->whereRaw('DATE(cases.date) between "' . $from_date . '" and "' . $end_date . '"');
@@ -170,6 +171,14 @@ class ActivityController extends Controller {
 
 					$action .= "<a href='javascript:void(0)' onclick='angular.element(this).scope().backConfirm(" . $activityDetail . ")' class='ticket_back_button'><i class='fa fa-arrow-left dataTable-icon--edit-1' data-cl-id =" . $activity->id . " aria-hidden='true'></i></a>";
 				}
+
+				//IF ASP DATA ENTRY OR REENTRY & TOWING SERVICE GROUP
+				if (($activity->status_id == 2 || $activity->status_id == 7) && $activity->service_group_id == 3 && Entrust::can('towing-images-required-for-activities')) {
+					$action .= '<a onclick="angular.element(this).scope().towingImageRequiredBtn(' . $activity->id . ',' . $activity->is_towing_attachments_mandatory . ')" href="javascript:void(0)">
+										<i class="dataTable-icon--edit-1" data-cl-id =' . $activity->id . ' aria-hidden="true"><img class="" src="resources/assets/images/edit-note.svg"></i>
+						            </a>';
+				}
+
 				$action .= '</div>';
 				return $action;
 			})
@@ -642,7 +651,71 @@ class ActivityController extends Controller {
 		}
 		$this->data['activities']['km_travelled_attachment_url'] = $km_travelled_attachment_url;
 		$this->data['activities']['other_charges_attachment_url'] = $other_charges_attachment_url;
-		//dd($this->data['activities']['km_travelled_attachment']->attachment_file_name,$activity_status_id,,$activity->serviceType->id);
+
+		$vehiclePickupAttachment = Attachment::where([
+			['entity_id', '=', $activity_status_id],
+			['entity_type', '=', 18],
+		])
+			->first();
+		$vehiclePickupAttachmentUrl = '';
+		if ($vehiclePickupAttachment) {
+			if ($hasccServiceType) {
+				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $ccServiceType->id . '/' . $vehiclePickupAttachment->attachment_file_name)) {
+					$vehiclePickupAttachmentUrl = aspTicketAttachmentImage($vehiclePickupAttachment->attachment_file_name, $activity_status_id, $activity->asp->id, $ccServiceType->id);
+				}
+
+			}
+			if ($hasaspServiceType) {
+				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $aspServiceType->id . '/' . $vehiclePickupAttachment->attachment_file_name)) {
+					$vehiclePickupAttachmentUrl = aspTicketAttachmentImage($vehiclePickupAttachment->attachment_file_name, $activity_status_id, $activity->asp->id, $aspServiceType->id);
+				}
+			}
+		}
+		$this->data['activities']['vehiclePickupAttachment'] = $vehiclePickupAttachment;
+		$this->data['activities']['vehiclePickupAttachmentUrl'] = $vehiclePickupAttachmentUrl;
+
+		$vehicleDropAttachment = Attachment::where([
+			['entity_id', '=', $activity_status_id],
+			['entity_type', '=', 19],
+		])
+			->first();
+		$vehicleDropAttachmentUrl = '';
+		if ($vehicleDropAttachment) {
+			if ($hasccServiceType) {
+				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $ccServiceType->id . '/' . $vehicleDropAttachment->attachment_file_name)) {
+					$vehicleDropAttachmentUrl = aspTicketAttachmentImage($vehicleDropAttachment->attachment_file_name, $activity_status_id, $activity->asp->id, $ccServiceType->id);
+				}
+			}
+			if ($hasaspServiceType) {
+				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $aspServiceType->id . '/' . $vehicleDropAttachment->attachment_file_name)) {
+					$vehicleDropAttachmentUrl = aspTicketAttachmentImage($vehicleDropAttachment->attachment_file_name, $activity_status_id, $activity->asp->id, $aspServiceType->id);
+				}
+			}
+		}
+		$this->data['activities']['vehicleDropAttachment'] = $vehicleDropAttachment;
+		$this->data['activities']['vehicleDropAttachmentUrl'] = $vehicleDropAttachmentUrl;
+
+		$inventoryJobSheetAttachment = Attachment::where([
+			['entity_id', '=', $activity_status_id],
+			['entity_type', '=', 20],
+		])
+			->first();
+		$inventoryJobSheetAttachmentUrl = '';
+		if ($inventoryJobSheetAttachment) {
+			if ($hasccServiceType) {
+				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $ccServiceType->id . '/' . $inventoryJobSheetAttachment->attachment_file_name)) {
+					$inventoryJobSheetAttachmentUrl = aspTicketAttachmentImage($inventoryJobSheetAttachment->attachment_file_name, $activity_status_id, $activity->asp->id, $ccServiceType->id);
+				}
+			}
+			if ($hasaspServiceType) {
+				if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $aspServiceType->id . '/' . $inventoryJobSheetAttachment->attachment_file_name)) {
+					$inventoryJobSheetAttachmentUrl = aspTicketAttachmentImage($inventoryJobSheetAttachment->attachment_file_name, $activity_status_id, $activity->asp->id, $aspServiceType->id);
+				}
+			}
+		}
+		$this->data['activities']['inventoryJobSheetAttachment'] = $inventoryJobSheetAttachment;
+		$this->data['activities']['inventoryJobSheetAttachmentUrl'] = $inventoryJobSheetAttachmentUrl;
+
 		$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 179, 182, 171, 175, 181];
 		foreach ($key_list as $keyw) {
 			$var_key = Config::where('id', $keyw)->first();
@@ -1516,7 +1589,47 @@ class ActivityController extends Controller {
 		$for_deffer_activity = 0;
 		$this->data = Activity::getFormData($id, $for_deffer_activity);
 		$this->data['case_details'] = $this->data['activity']->case;
+		if (date('Y-m-d') > "2022-01-01") {
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st February onwards)';
+		} elseif (date('Y-m-d') > "2022-02-01") {
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st April onwards)';
+		} elseif (date('Y-m-d') >= "2022-04-01") {
+			$towingAttachmentsMandatoryLabel = '';
+		} else {
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st January onwards)';
+		}
+		$this->data['towingAttachmentsMandatoryLabel'] = $towingAttachmentsMandatoryLabel;
 		return response()->json($this->data);
+	}
+
+	public function activityNewGetServiceTypeDetail($id) {
+		try {
+			$serviceType = ServiceType::select([
+				'id',
+				'service_group_id',
+			])
+				->where('id', $id)
+				->first();
+			if (!$serviceType) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Ticket not found',
+					],
+				]);
+			}
+			return response()->json([
+				'success' => true,
+				'serviceType' => $serviceType,
+			]);
+		} catch (\Exception $e) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
+		}
 	}
 
 	public function updateActivity(Request $request) {
@@ -1532,15 +1645,74 @@ class ActivityController extends Controller {
 			}
 
 			$range_limit = 0;
+			$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
+			Storage::makeDirectory($destination, 0777);
 
+			//MAP ATTACHMENTS REMOVAL
 			if (!empty($request->update_attach_map_id)) {
 				$update_attach_km_map_ids = json_decode($request->update_attach_km_map_id, true);
-				Attachment::whereIn('id', $update_attach_km_map_ids)->delete();
+				$removeMapAttachments = Attachment::whereIn('id', $update_attach_km_map_ids)
+					->get();
+				if ($removeMapAttachments->isNotEmpty()) {
+					foreach ($removeMapAttachments as $removeMapAttachmentKey => $removeMapAttachment) {
+						unlink(storage_path('app/' . $destination . '/' . $removeMapAttachment->attachment_file_name));
+						$removeMapAttachment->delete();
+					}
+				}
 			}
+
+			//OTHER ATTACHMENTS REMOVAL
 			if (!empty($request->update_attach_other_id)) {
 				$update_attach_other_ids = json_decode($request->update_attach_other_id, true);
-				Attachment::whereIn('id', $update_attach_other_ids)->delete();
+				$removeOtherAttachments = Attachment::whereIn('id', $update_attach_other_ids)
+					->get();
+				if ($removeOtherAttachments->isNotEmpty()) {
+					foreach ($removeOtherAttachments as $removeOtherAttachmentKey => $removeOtherAttachment) {
+						unlink(storage_path('app/' . $destination . '/' . $removeOtherAttachment->attachment_file_name));
+						$removeOtherAttachment->delete();
+					}
+				}
 			}
+
+			//VEHICLE PICKUP ATTACHMENTS REMOVAL
+			if (!empty($request->vehiclePickupAttachRemovelIds)) {
+				$vehiclePickupAttachRemovelIds = json_decode($request->vehiclePickupAttachRemovelIds, true);
+				$removeVehiclePickupAttachments = Attachment::whereIn('id', $vehiclePickupAttachRemovelIds)
+					->get();
+				if ($removeVehiclePickupAttachments->isNotEmpty()) {
+					foreach ($removeVehiclePickupAttachments as $removeVehiclePickupAttachmentKey => $removeVehiclePickupAttachment) {
+						unlink(storage_path('app/' . $destination . '/' . $removeVehiclePickupAttachment->attachment_file_name));
+						$removeVehiclePickupAttachment->delete();
+					}
+				}
+			}
+
+			//VEHICLE DROP ATTACHMENTS REMOVAL
+			if (!empty($request->vehicleDropAttachRemovelIds)) {
+				$vehicleDropAttachRemovelIds = json_decode($request->vehicleDropAttachRemovelIds, true);
+				$removeVehicleDropAttachments = Attachment::whereIn('id', $vehicleDropAttachRemovelIds)
+					->get();
+				if ($removeVehicleDropAttachments->isNotEmpty()) {
+					foreach ($removeVehicleDropAttachments as $removeVehicleDropAttachmentKey => $removeVehicleDropAttachment) {
+						unlink(storage_path('app/' . $destination . '/' . $removeVehicleDropAttachment->attachment_file_name));
+						$removeVehicleDropAttachment->delete();
+					}
+				}
+			}
+
+			//INVENTORY JOB SHEET ATTACHMENTS REMOVAL
+			if (!empty($request->inventoryJobSheetAttachRemovelIds)) {
+				$inventoryJobSheetAttachRemovelIds = json_decode($request->inventoryJobSheetAttachRemovelIds, true);
+				$removeInventoryJobSheetAttachments = Attachment::whereIn('id', $inventoryJobSheetAttachRemovelIds)
+					->get();
+				if ($removeInventoryJobSheetAttachments->isNotEmpty()) {
+					foreach ($removeInventoryJobSheetAttachments as $removeInventoryJobSheetAttachmentKey => $removeInventoryJobSheetAttachment) {
+						unlink(storage_path('app/' . $destination . '/' . $removeInventoryJobSheetAttachment->attachment_file_name));
+						$removeInventoryJobSheetAttachment->delete();
+					}
+				}
+			}
+
 			$cc_service_type_exist = ActivityDetail::where('activity_id', $activity->id)
 				->where('key_id', 153)
 				->first();
@@ -1557,11 +1729,17 @@ class ActivityController extends Controller {
 				$activity->asp_resolve_comments = $request->comments;
 			}
 
-			$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
-			$status = Storage::makeDirectory($destination, 0777);
-
-			if (!empty($request->other_attachment)):
-				Attachment::where('entity_id', $activity->id)->where('entity_type', 17)->delete();
+			if (!empty($request->other_attachment)) {
+				//REMOVE EXISTING ATTACHMENT
+				$getOtherAttachments = Attachment::where('entity_id', $activity->id)
+					->where('entity_type', 17)
+					->get();
+				if ($getOtherAttachments->isNotEmpty()) {
+					foreach ($getOtherAttachments as $getOtherAttachmentKey => $getOtherAttachment) {
+						unlink(storage_path('app/' . $destination . '/' . $getOtherAttachment->attachment_file_name));
+						$getOtherAttachment->delete();
+					}
+				}
 				foreach ($request->other_attachment as $key => $value) {
 					if ($request->hasFile("other_attachment.$key")) {
 						$key1 = $key + 1;
@@ -1576,11 +1754,19 @@ class ActivityController extends Controller {
 						]);
 					}
 				}
-			endif;
+			}
 
-			if (!empty($request->map_attachment)):
-				Attachment::where('entity_id', $activity->id)->where('entity_type', 16)->delete();
-
+			if (!empty($request->map_attachment)) {
+				//REMOVE EXISTING ATTACHMENT
+				$getMapAttachments = Attachment::where('entity_id', $activity->id)
+					->where('entity_type', 16)
+					->get();
+				if ($getMapAttachments->isNotEmpty()) {
+					foreach ($getMapAttachments as $getMapAttachmentKey => $getMapAttachment) {
+						unlink(storage_path('app/' . $destination . '/' . $getMapAttachment->attachment_file_name));
+						$getMapAttachment->delete();
+					}
+				}
 				foreach ($request->map_attachment as $key => $value) {
 					if ($request->hasFile("map_attachment.$key")) {
 						$key1 = $key + 1;
@@ -1595,7 +1781,73 @@ class ActivityController extends Controller {
 						]);
 					}
 				}
-			endif;
+			}
+
+			//VEHICLE PICKUP ATTACHMENT
+			if (isset($request->vehicle_pickup_attachment) && $request->hasFile("vehicle_pickup_attachment")) {
+				//REMOVE EXISTING ATTACHMENT
+				$getVehiclePickupAttach = Attachment::where('entity_id', $activity->id)
+					->where('entity_type', config('constants.entity_types.VEHICLE_PICKUP_ATTACHMENT'))
+					->first();
+				if ($getVehiclePickupAttach) {
+					unlink(storage_path('app/' . $destination . '/' . $getVehiclePickupAttach->attachment_file_name));
+					$getVehiclePickupAttach->delete();
+				}
+
+				$filename = "vehicle_pickup_attachment";
+				$extension = $request->file("vehicle_pickup_attachment")->getClientOriginalExtension();
+				$status = $request->file("vehicle_pickup_attachment")->storeAs($destination, $filename . '.' . $extension);
+				$attachmentFileName = $filename . '.' . $extension;
+				$attachment = $Attachment = Attachment::create([
+					'entity_type' => config('constants.entity_types.VEHICLE_PICKUP_ATTACHMENT'),
+					'entity_id' => $activity->id,
+					'attachment_file_name' => $attachmentFileName,
+				]);
+			}
+
+			//VEHICLE DROP ATTACHMENT
+			if (isset($request->vehicle_drop_attachment) && $request->hasFile("vehicle_drop_attachment")) {
+				//REMOVE EXISTING ATTACHMENT
+				$getVehicleDropAttach = Attachment::where('entity_id', $activity->id)
+					->where('entity_type', config('constants.entity_types.VEHICLE_DROP_ATTACHMENT'))
+					->first();
+				if ($getVehicleDropAttach) {
+					unlink(storage_path('app/' . $destination . '/' . $getVehicleDropAttach->attachment_file_name));
+					$getVehicleDropAttach->delete();
+				}
+
+				$filename = "vehicle_drop_attachment";
+				$extension = $request->file("vehicle_drop_attachment")->getClientOriginalExtension();
+				$status = $request->file("vehicle_drop_attachment")->storeAs($destination, $filename . '.' . $extension);
+				$attachmentFileName = $filename . '.' . $extension;
+				$attachment = $Attachment = Attachment::create([
+					'entity_type' => config('constants.entity_types.VEHICLE_DROP_ATTACHMENT'),
+					'entity_id' => $activity->id,
+					'attachment_file_name' => $attachmentFileName,
+				]);
+			}
+
+			//INVENTORY JOB SHEET ATTACHMENT
+			if (isset($request->inventory_job_sheet_attachment) && $request->hasFile("inventory_job_sheet_attachment")) {
+				//REMOVE EXISTING ATTACHMENT
+				$getInventoryJobSheetAttach = Attachment::where('entity_id', $activity->id)
+					->where('entity_type', config('constants.entity_types.INVENTORY_JOB_SHEET_ATTACHMENT'))
+					->first();
+				if ($getInventoryJobSheetAttach) {
+					unlink(storage_path('app/' . $destination . '/' . $getInventoryJobSheetAttach->attachment_file_name));
+					$getInventoryJobSheetAttach->delete();
+				}
+
+				$filename = "inventory_job_sheet_attachment";
+				$extension = $request->file("inventory_job_sheet_attachment")->getClientOriginalExtension();
+				$status = $request->file("inventory_job_sheet_attachment")->storeAs($destination, $filename . '.' . $extension);
+				$attachmentFileName = $filename . '.' . $extension;
+				$attachment = $Attachment = Attachment::create([
+					'entity_type' => config('constants.entity_types.INVENTORY_JOB_SHEET_ATTACHMENT'),
+					'entity_id' => $activity->id,
+					'attachment_file_name' => $attachmentFileName,
+				]);
+			}
 
 			//Updating ticket status.. Check if "Bulk Approval" OR "Deferred Approval"
 			$configs = Config::where('entity_type_id', 23)->get();
@@ -1947,6 +2199,16 @@ class ActivityController extends Controller {
 		$for_deffer_activity = 1;
 		$this->data = Activity::getFormData($id, $for_deffer_activity);
 		$this->data['case'] = $this->data['activity']->case;
+		if (date('Y-m-d') > "2022-01-01") {
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st February onwards)';
+		} elseif (date('Y-m-d') > "2022-02-01") {
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st April onwards)';
+		} elseif (date('Y-m-d') >= "2022-04-01") {
+			$towingAttachmentsMandatoryLabel = '';
+		} else {
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st January onwards)';
+		}
+		$this->data['towingAttachmentsMandatoryLabel'] = $towingAttachmentsMandatoryLabel;
 		return response()->json($this->data);
 	}
 
@@ -2377,6 +2639,48 @@ class ActivityController extends Controller {
 				'success' => false,
 				'errors' => [
 					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
+		}
+	}
+
+	public function towingImagesRequiredUpdated(Request $r) {
+		// dd($r->all());
+		DB::beginTransaction();
+		try {
+			$validator = Validator::make($r->all(), [
+				'activity_id' => [
+					'required:true',
+					'integer',
+					'exists:activities,id',
+				],
+				'isTowingAttachmentsMandatory' => [
+					'required:true',
+					'integer',
+				],
+			]);
+
+			if ($validator->fails()) {
+				return response()->json([
+					'success' => false,
+					'errors' => $validator->errors()->all(),
+				]);
+			}
+
+			$activity = Activity::find($r->activity_id);
+			$activity->is_towing_attachments_mandatory = $r->isTowingAttachmentsMandatory;
+			$activity->save();
+			DB::commit();
+			return response()->json([
+				'success' => true,
+				'message' => 'Activity updated successfully',
+			]);
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Exception Error' => $e->getMessage(),
 				],
 			]);
 		}

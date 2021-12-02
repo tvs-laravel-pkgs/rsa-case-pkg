@@ -180,7 +180,11 @@ class Activity extends Model {
 	public static function getFormData($id = NULL, $for_deffer_activity) {
 		$data = [];
 
-		$data['activity'] = $activity = self::findOrFail($id);
+		$data['activity'] = $activity = self::with([
+			'case',
+			'serviceType',
+		])
+			->findOrFail($id);
 		$data['service_types'] = Asp::where('user_id', Auth::id())
 			->join('asp_service_types', 'asp_service_types.asp_id', '=', 'asps.id')
 			->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')
@@ -257,6 +261,27 @@ class Activity extends Model {
 			->where('entity_id', '=', $activity->id)
 			->select('id', 'attachment_file_name')
 			->get();
+		$data['vehiclePickupAttach'] = Attachment::select([
+			'id',
+			'attachment_file_name',
+		])
+			->where('entity_type', config('constants.entity_types.VEHICLE_PICKUP_ATTACHMENT'))
+			->where('entity_id', $activity->id)
+			->first();
+		$data['vehicleDropAttach'] = Attachment::select([
+			'id',
+			'attachment_file_name',
+		])
+			->where('entity_type', config('constants.entity_types.VEHICLE_DROP_ATTACHMENT'))
+			->where('entity_id', $activity->id)
+			->first();
+		$data['inventoryJobSheetAttach'] = Attachment::select([
+			'id',
+			'attachment_file_name',
+		])
+			->where('entity_type', config('constants.entity_types.INVENTORY_JOB_SHEET_ATTACHMENT'))
+			->where('entity_id', $activity->id)
+			->first();
 		$data['for_deffer_activity'] = $for_deffer_activity;
 		$data['dropDealer'] = $activity->detail(294) ? $activity->detail(294)->value : '';
 		$data['dropLocation'] = $activity->detail(295) ? $activity->detail(295)->value : '';
@@ -1113,6 +1138,13 @@ class Activity extends Model {
 							$activity->activity_status_id = $activity_status_id;
 							$activity->data_src_id = 262; //BO MANUAL
 							$activity->save();
+
+							$towingImagesMandatoryEffectiveDate = config('rsa.TOWING_IMAGES_MANDATORY_EFFECTIVE_DATE');
+							if (date('Y-m-d') >= $towingImagesMandatoryEffectiveDate) {
+								$activity->is_towing_attachments_mandatory = 1;
+							} else {
+								$activity->is_towing_attachments_mandatory = 0;
+							}
 							$activity->number = 'ACT' . $activity->id;
 							$activity->save();
 

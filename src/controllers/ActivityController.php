@@ -1589,14 +1589,14 @@ class ActivityController extends Controller {
 		$for_deffer_activity = 0;
 		$this->data = Activity::getFormData($id, $for_deffer_activity);
 		$this->data['case_details'] = $this->data['activity']->case;
-		if (date('Y-m-d') > "2021-12-15") {
-			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st January onwards)';
-		} elseif (date('Y-m-d') > "2022-01-01") {
-			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 31st March onwards)';
-		} elseif (date('Y-m-d') >= "2022-03-31") {
+		if (date('Y-m-d') > "2022-01-01") {
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st February onwards)';
+		} elseif (date('Y-m-d') > "2022-02-01") {
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st April onwards)';
+		} elseif (date('Y-m-d') >= "2022-04-01") {
 			$towingAttachmentsMandatoryLabel = '';
 		} else {
-			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 15th December onwards)';
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st January onwards)';
 		}
 		$this->data['towingAttachmentsMandatoryLabel'] = $towingAttachmentsMandatoryLabel;
 		return response()->json($this->data);
@@ -2199,14 +2199,14 @@ class ActivityController extends Controller {
 		$for_deffer_activity = 1;
 		$this->data = Activity::getFormData($id, $for_deffer_activity);
 		$this->data['case'] = $this->data['activity']->case;
-		if (date('Y-m-d') > "2021-12-15") {
-			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st January onwards)';
-		} elseif (date('Y-m-d') > "2022-01-01") {
-			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 31st March onwards)';
-		} elseif (date('Y-m-d') >= "2022-03-31") {
+		if (date('Y-m-d') > "2022-01-01") {
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st February onwards)';
+		} elseif (date('Y-m-d') > "2022-02-01") {
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st April onwards)';
+		} elseif (date('Y-m-d') >= "2022-04-01") {
 			$towingAttachmentsMandatoryLabel = '';
 		} else {
-			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 15th December onwards)';
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st January onwards)';
 		}
 		$this->data['towingAttachmentsMandatoryLabel'] = $towingAttachmentsMandatoryLabel;
 		return response()->json($this->data);

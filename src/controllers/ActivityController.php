@@ -173,7 +173,7 @@ class ActivityController extends Controller {
 				}
 
 				//IF ASP DATA ENTRY OR REENTRY & TOWING SERVICE GROUP
-				if (($activity->status_id == 2 || $activity->status_id == 7) && isset($activity->is_towing_attachments_mandatory) && $activity->service_group_id == 3 && Entrust::can('towing-images-required-for-activities')) {
+				if (($activity->status_id == 2 || $activity->status_id == 7) && $activity->service_group_id == 3 && Entrust::can('towing-images-required-for-activities')) {
 					$action .= '<a onclick="angular.element(this).scope().towingImageRequiredBtn(' . $activity->id . ',' . $activity->is_towing_attachments_mandatory . ')" href="javascript:void(0)">
 										<i class="dataTable-icon--edit-1" data-cl-id =' . $activity->id . ' aria-hidden="true"><img class="" src="resources/assets/images/edit-note.svg"></i>
 						            </a>';

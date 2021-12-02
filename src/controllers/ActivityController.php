@@ -173,7 +173,7 @@ class ActivityController extends Controller {
 				}
 
 				//IF ASP DATA ENTRY OR REENTRY & TOWING SERVICE GROUP
-				if (($activity->status_id == 2 || $activity->status_id == 7) && isset($activity->is_towing_attachments_mandatory) && $activity->service_group_id == 3 && Entrust::can('towing-images-required-for-activities')) {
+				if (($activity->status_id == 2 || $activity->status_id == 7) && $activity->service_group_id == 3 && Entrust::can('towing-images-required-for-activities')) {
 					$action .= '<a onclick="angular.element(this).scope().towingImageRequiredBtn(' . $activity->id . ',' . $activity->is_towing_attachments_mandatory . ')" href="javascript:void(0)">
 										<i class="dataTable-icon--edit-1" data-cl-id =' . $activity->id . ' aria-hidden="true"><img class="" src="resources/assets/images/edit-note.svg"></i>
 						            </a>';
@@ -1614,14 +1614,14 @@ class ActivityController extends Controller {
 		$for_deffer_activity = 0;
 		$this->data = Activity::getFormData($id, $for_deffer_activity);
 		$this->data['case_details'] = $this->data['activity']->case;
-		if (date('Y-m-d') > "2021-12-15") {
-			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st January onwards)';
-		} elseif (date('Y-m-d') > "2022-01-01") {
-			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 31st March onwards)';
-		} elseif (date('Y-m-d') >= "2022-03-31") {
+		if (date('Y-m-d') > "2022-01-01") {
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st February onwards)';
+		} elseif (date('Y-m-d') > "2022-02-01") {
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st April onwards)';
+		} elseif (date('Y-m-d') >= "2022-04-01") {
 			$towingAttachmentsMandatoryLabel = '';
 		} else {
-			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 15th December onwards)';
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st January onwards)';
 		}
 		$this->data['towingAttachmentsMandatoryLabel'] = $towingAttachmentsMandatoryLabel;
 		return response()->json($this->data);
@@ -2224,14 +2224,14 @@ class ActivityController extends Controller {
 		$for_deffer_activity = 1;
 		$this->data = Activity::getFormData($id, $for_deffer_activity);
 		$this->data['case'] = $this->data['activity']->case;
-		if (date('Y-m-d') > "2021-12-15") {
-			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st January onwards)';
-		} elseif (date('Y-m-d') > "2022-01-01") {
-			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 31st March onwards)';
-		} elseif (date('Y-m-d') >= "2022-03-31") {
+		if (date('Y-m-d') > "2022-01-01") {
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st February onwards)';
+		} elseif (date('Y-m-d') > "2022-02-01") {
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st April onwards)';
+		} elseif (date('Y-m-d') >= "2022-04-01") {
 			$towingAttachmentsMandatoryLabel = '';
 		} else {
-			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 15th December onwards)';
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st January onwards)';
 		}
 		$this->data['towingAttachmentsMandatoryLabel'] = $towingAttachmentsMandatoryLabel;
 		return response()->json($this->data);

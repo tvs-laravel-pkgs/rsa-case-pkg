@@ -283,6 +283,7 @@ class Activity extends Model {
 			->where('entity_id', $activity->id)
 			->first();
 		$data['for_deffer_activity'] = $for_deffer_activity;
+		$data['dropDealer'] = $activity->detail(294) ? $activity->detail(294)->value : '';
 		$data['dropLocation'] = $activity->detail(295) ? $activity->detail(295)->value : '';
 		$data['success'] = true;
 		return $data;

@@ -161,6 +161,7 @@ app.component('deferredActivityUpdate', {
             self.defer_reason = response.data.activity.defer_reason;
             self.case = response.data.case;
             self.bd_location = response.data.case.bd_location;
+            self.dropDealer = response.data.dropDealer;
             self.dropLocation = response.data.dropLocation;
 
             self.kmTravelledHideShow();

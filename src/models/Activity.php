@@ -258,6 +258,7 @@ class Activity extends Model {
 			->select('id', 'attachment_file_name')
 			->get();
 		$data['for_deffer_activity'] = $for_deffer_activity;
+		$data['dropDealer'] = $activity->detail(294) ? $activity->detail(294)->value : '';
 		$data['dropLocation'] = $activity->detail(295) ? $activity->detail(295)->value : '';
 		$data['success'] = true;
 		return $data;

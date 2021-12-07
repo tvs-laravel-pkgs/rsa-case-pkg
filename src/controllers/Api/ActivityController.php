@@ -183,7 +183,8 @@ class ActivityController extends Controller {
 			$data_src = Config::where([
 				'entity_type_id' => 22,
 				'name' => $request->data_src,
-			])->first();
+			])
+				->first();
 			if (!$data_src) {
 				//SAVE ACTIVITY API LOG
 				$errors[] = 'Invalid Data Source';

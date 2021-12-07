@@ -325,6 +325,12 @@ class Activity extends Model {
 	}
 
 	public function saveActivityRatecard() {
+		$isMobile = 0; //WEB
+		//MOBILE APP
+		if ($this->data_src_id == 260 || $this->data_src_id == 263) {
+			$isMobile = 1;
+		}
+
 		$aspServiceTypeRateCard = AspServiceType::select([
 			'range_limit',
 			'below_range_price',
@@ -333,9 +339,14 @@ class Activity extends Model {
 			'empty_return_range_price',
 			'adjustment_type',
 			'adjustment',
+			'below_range_price_margin',
+			'above_range_price_margin',
+			'fleet_count',
+			'is_mobile',
 		])
 			->where('asp_id', $this->asp->id)
 			->where('service_type_id', $this->serviceType->id)
+			->where('is_mobile', $isMobile)
 			->first();
 
 		if (!$aspServiceTypeRateCard) {
@@ -360,6 +371,10 @@ class Activity extends Model {
 		$activityRateCard->empty_return_range_price = $aspServiceTypeRateCard->empty_return_range_price;
 		$activityRateCard->adjustment_type = $aspServiceTypeRateCard->adjustment_type;
 		$activityRateCard->adjustment = $aspServiceTypeRateCard->adjustment;
+		$activityRateCard->below_range_price_margin = $aspServiceTypeRateCard->below_range_price_margin;
+		$activityRateCard->above_range_price_margin = $aspServiceTypeRateCard->above_range_price_margin;
+		$activityRateCard->fleet_count = $aspServiceTypeRateCard->fleet_count;
+		$activityRateCard->is_mobile = $aspServiceTypeRateCard->is_mobile;
 		$activityRateCard->save();
 
 		return [
@@ -377,7 +392,7 @@ class Activity extends Model {
 		}
 
 		if ($data_src == 'CC') {
-			$response = getKMPrices($this->serviceType, $this->asp);
+			$response = getActivityKMPrices($this->serviceType, $this->asp, $this->data_src_id);
 			if (!$response['success']) {
 				return [
 					'success' => false,
@@ -567,7 +582,7 @@ class Activity extends Model {
 		$job->save();
 		DB::beginTransaction();
 		try {
-			$response = ImportCronJob::getRecordsFromExcel($job, 'BR');
+			$response = ImportCronJob::getRecordsFromExcel($job, 'BS');
 			$rows = $response['rows'];
 			$header = $response['header'];
 			$all_error_records = [];
@@ -703,6 +718,15 @@ class Activity extends Model {
 						// ],
 						//ACTIVITY
 						'crm_activity_id' => 'required|string',
+						'data_source' => [
+							'required',
+							'string',
+							'max:60',
+							Rule::exists('configs', 'name')
+								->where(function ($query) {
+									$query->where('entity_type_id', 22);
+								}),
+						],
 						'asp_code' => [
 							'required',
 							'string',
@@ -1000,6 +1024,15 @@ class Activity extends Model {
 						$save_eligible = false;
 					}
 
+					$dataSource = Config::where('name', $record['data_source'])
+						->where('entity_type_id', 22) // Activity Data Sources
+						->first();
+					if ($dataSource) {
+						$dataSourceId = $dataSource->id;
+					} else {
+						$save_eligible = false;
+					}
+
 					//SAVE CASE AND ACTIVITY
 					if ($save_eligible) {
 						// $case_date1 = PHPExcel_Style_NumberFormat::toFormattedString($record['case_date'], PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
@@ -1136,7 +1169,7 @@ class Activity extends Model {
 							}
 							$activity->reason_for_asp_rejected_cc_details = $record['asp_rejected_cc_details_reason'];
 							$activity->activity_status_id = $activity_status_id;
-							$activity->data_src_id = 262; //BO MANUAL
+							$activity->data_src_id = $dataSourceId; //BO MANUAL
 							$activity->save();
 
 							$towingImagesMandatoryEffectiveDate = config('rsa.TOWING_IMAGES_MANDATORY_EFFECTIVE_DATE');

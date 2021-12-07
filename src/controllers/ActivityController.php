@@ -569,6 +569,7 @@ class ActivityController extends Controller {
 				'activities.status_id as activity_portal_status_id',
 				'bd_location_type.name as loction_type',
 				'bd_location_category.name as location_category',
+				'activities.data_src_id',
 			])
 			->leftJoin('asps', 'asps.id', 'activities.asp_id')
 			->leftJoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
@@ -825,8 +826,15 @@ class ActivityController extends Controller {
 
 		}
 
+		$isMobile = 0; //WEB
+		//MOBILE APP
+		if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
+			$isMobile = 1;
+		}
+
 		$asp_service_type_data = AspServiceType::where('asp_id', $activity->asp_id)
 			->where('service_type_id', $activity->service_type_id)
+			->where('is_mobile', $isMobile)
 			->first();
 		$casewiseRatecardEffectDatetime = config('rsa.CASEWISE_RATECARD_EFFECT_DATETIME');
 		//Activity creation datetime greater than effective datetime
@@ -895,6 +903,7 @@ class ActivityController extends Controller {
 			if ($service_type) {
 				$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 					->where('service_type_id', $service_type->id)
+					->where('is_mobile', $isMobile)
 					->first();
 				if ($aspServiceType) {
 					$range_limit = $aspServiceType->range_limit;
@@ -1191,7 +1200,7 @@ class ActivityController extends Controller {
 					$bo_km_collected = $activity->detail(159) ? $activity->detail(159)->value : 0;
 					$bo_km_not_collected = $activity->detail(160) ? $activity->detail(160)->value : 0;
 
-					$response = getKMPrices($activity->serviceType, $activity->asp);
+					$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id);
 					$price = $response['asp_service_price'];
 
 					if ($activity->financeStatus->po_eligibility_type_id == 341) {
@@ -1204,11 +1213,13 @@ class ActivityController extends Controller {
 					$above_range_price = ($bo_km_travelled > $price->range_limit) ? ($bo_km_travelled - $price->range_limit) * $price->above_range_price : 0;
 					$km_charge = $below_range_price + $above_range_price;
 
-					if ($aspServiceType->adjustment_type == 2) {
-						$boDeduction = floatval($aspServiceType->adjustment);
-					} else if ($aspServiceType->adjustment_type == 1) {
-						$boDeduction = floatval($km_charge) * floatval($aspServiceType->adjustment / 100);
-					}
+					$boDeduction = 0;
+					//DISABLED AS THERE IS NO ADJUSTMENT TYPE IN FUTURE
+					// if ($aspServiceType->adjustment_type == 2) {
+					// 	$boDeduction = floatval($aspServiceType->adjustment);
+					// } else if ($aspServiceType->adjustment_type == 1) {
+					// 	$boDeduction = floatval($km_charge) * floatval($aspServiceType->adjustment / 100);
+					// }
 
 					$invoiceAmount = (floatval($km_charge) + floatval($bo_km_not_collected)) - floatval($boDeduction) - floatval($bo_km_collected);
 
@@ -1981,7 +1992,7 @@ class ActivityController extends Controller {
 				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $activity->id, 'key_id' => $key_id, 'company_id' => 1], ['value' => $value]);
 			}
 
-			$response = getKMPrices($activity->serviceType, $activity->asp);
+			$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id);
 			if (!$response['success']) {
 				return [
 					'success' => false,

@@ -185,7 +185,15 @@ class Activity extends Model {
 			'serviceType',
 		])
 			->findOrFail($id);
-		$data['service_types'] = Asp::where('user_id', Auth::id())
+
+		$isMobile = 0; //WEB
+		//MOBILE APP
+		if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
+			$isMobile = 1;
+		}
+
+		$data['service_types'] = Asp::where('asps.user_id', Auth::id())
+			->where('asp_service_types.is_mobile', $isMobile)
 			->join('asp_service_types', 'asp_service_types.asp_id', '=', 'asps.id')
 			->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')
 			->select('service_types.name', 'asp_service_types.service_type_id as id')
@@ -248,6 +256,7 @@ class Activity extends Model {
 		$range_limit = "";
 		$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 			->where('service_type_id', $activity->service_type_id)
+			->where('is_mobile', $isMobile)
 			->first();
 		if ($aspServiceType) {
 			$range_limit = $aspServiceType->range_limit;
@@ -1150,7 +1159,7 @@ class Activity extends Model {
 								if ($case->status_id == 4) {
 									//IF MECHANICAL SERVICE GROUP
 									if ($service_type->service_group_id == 2) {
-										$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km']);
+										$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $dataSourceId);
 										if ($is_bulk) {
 											//ASP Completed Data Entry - Waiting for BO Bulk Verification
 											$activity->status_id = 5;
@@ -1242,7 +1251,7 @@ class Activity extends Model {
 
 										//IF MECHANICAL
 										if ($service_type->service_group_id == 2) {
-											$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km']);
+											$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $activity->data_src_id);
 											if ($is_bulk) {
 												//ASP Completed Data Entry - Waiting for BO Bulk Verification
 												$activity->status_id = 5;
@@ -1351,11 +1360,18 @@ class Activity extends Model {
 		return $km_charge;
 	}
 
-	public static function checkTicketIsBulk($asp_id, $service_type_id, $asp_km) {
+	public static function checkTicketIsBulk($asp_id, $service_type_id, $asp_km, $dataSourceId) {
+		$isMobile = 0; //WEB
+		//MOBILE APP
+		if ($dataSourceId == 260 || $dataSourceId == 263) {
+			$isMobile = 1;
+		}
+
 		$is_bulk = true;
 		$range_limit = 0;
 		$aspServiceType = AspServiceType::where('asp_id', $asp_id)
 			->where('service_type_id', $service_type_id)
+			->where('is_mobile', $isMobile)
 			->first();
 		if ($aspServiceType) {
 			$range_limit = $aspServiceType->range_limit;

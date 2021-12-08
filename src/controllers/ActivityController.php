@@ -1190,8 +1190,15 @@ class ActivityController extends Controller {
 					]);
 				}
 
+				$isMobile = 0; //WEB
+				//MOBILE APP
+				if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
+					$isMobile = 1;
+				}
+
 				$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 					->where('service_type_id', $activity->service_type_id)
+					->where('is_mobile', $isMobile)
 					->first();
 
 				if ($aspServiceType) {
@@ -1729,8 +1736,15 @@ class ActivityController extends Controller {
 				->first();
 			$cc_service_type = ServiceType::where('name', $cc_service_type_exist->value)->first();
 
+			$isMobile = 0; //WEB
+			//MOBILE APP
+			if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
+				$isMobile = 1;
+			}
+
 			$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 				->where('service_type_id', $cc_service_type->id)
+				->where('is_mobile', $isMobile)
 				->first();
 			if ($aspServiceType) {
 				$range_limit = $aspServiceType->range_limit;
@@ -3408,7 +3422,7 @@ class ActivityController extends Controller {
 				//MECHANICAL SERVICE GROUP
 				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
 					$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
-					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km);
+					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
 					if ($is_bulk) {
 						//ASP Completed Data Entry - Waiting for BO Bulk Verification
 						$status_id = 5;

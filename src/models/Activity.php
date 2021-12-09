@@ -8,6 +8,7 @@ use Abs\RsaCasePkg\ActivityAspStatus;
 use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityLog;
+use Abs\RsaCasePkg\ActivityRatecard;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
 use Abs\RsaCasePkg\AspPoRejectedReason;
@@ -179,7 +180,11 @@ class Activity extends Model {
 	public static function getFormData($id = NULL, $for_deffer_activity) {
 		$data = [];
 
-		$data['activity'] = $activity = self::findOrFail($id);
+		$data['activity'] = $activity = self::with([
+			'case',
+			'serviceType',
+		])
+			->findOrFail($id);
 		$data['service_types'] = Asp::where('user_id', Auth::id())
 			->join('asp_service_types', 'asp_service_types.asp_id', '=', 'asps.id')
 			->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')
@@ -256,7 +261,30 @@ class Activity extends Model {
 			->where('entity_id', '=', $activity->id)
 			->select('id', 'attachment_file_name')
 			->get();
+		$data['vehiclePickupAttach'] = Attachment::select([
+			'id',
+			'attachment_file_name',
+		])
+			->where('entity_type', config('constants.entity_types.VEHICLE_PICKUP_ATTACHMENT'))
+			->where('entity_id', $activity->id)
+			->first();
+		$data['vehicleDropAttach'] = Attachment::select([
+			'id',
+			'attachment_file_name',
+		])
+			->where('entity_type', config('constants.entity_types.VEHICLE_DROP_ATTACHMENT'))
+			->where('entity_id', $activity->id)
+			->first();
+		$data['inventoryJobSheetAttach'] = Attachment::select([
+			'id',
+			'attachment_file_name',
+		])
+			->where('entity_type', config('constants.entity_types.INVENTORY_JOB_SHEET_ATTACHMENT'))
+			->where('entity_id', $activity->id)
+			->first();
 		$data['for_deffer_activity'] = $for_deffer_activity;
+		$data['dropDealer'] = $activity->detail(294) ? $activity->detail(294)->value : '';
+		$data['dropLocation'] = $activity->detail(295) ? $activity->detail(295)->value : '';
 		$data['success'] = true;
 		return $data;
 	}
@@ -296,6 +324,49 @@ class Activity extends Model {
 		return $record;
 	}
 
+	public function saveActivityRatecard() {
+		$aspServiceTypeRateCard = AspServiceType::select([
+			'range_limit',
+			'below_range_price',
+			'above_range_price',
+			'waiting_charge_per_hour',
+			'empty_return_range_price',
+			'adjustment_type',
+			'adjustment',
+		])
+			->where('asp_id', $this->asp->id)
+			->where('service_type_id', $this->serviceType->id)
+			->first();
+
+		if (!$aspServiceTypeRateCard) {
+			return [
+				'success' => false,
+				'error' => 'Service (' . $this->serviceType->name . ') not enabled for ASP (' . $this->asp->asp_code . ')',
+			];
+		}
+
+		$activityRateCard = ActivityRatecard::firstOrNew([
+			'activity_id' => $this->id,
+		]);
+		if (!$activityRateCard->exists) {
+			$activityRateCard->created_by_id = Auth::check() ? Auth::user()->id : 72;
+		} else {
+			$activityRateCard->updated_by_id = Auth::check() ? Auth::user()->id : 72;
+		}
+		$activityRateCard->range_limit = $aspServiceTypeRateCard->range_limit;
+		$activityRateCard->below_range_price = $aspServiceTypeRateCard->below_range_price;
+		$activityRateCard->above_range_price = $aspServiceTypeRateCard->above_range_price;
+		$activityRateCard->waiting_charge_per_hour = $aspServiceTypeRateCard->waiting_charge_per_hour;
+		$activityRateCard->empty_return_range_price = $aspServiceTypeRateCard->empty_return_range_price;
+		$activityRateCard->adjustment_type = $aspServiceTypeRateCard->adjustment_type;
+		$activityRateCard->adjustment = $aspServiceTypeRateCard->adjustment;
+		$activityRateCard->save();
+
+		return [
+			'success' => true,
+		];
+	}
+
 	public function calculatePayoutAmount($data_src) {
 		if ($this->financeStatus->po_eligibility_type_id == 342) {
 			//No Payout
@@ -311,6 +382,14 @@ class Activity extends Model {
 				return [
 					'success' => false,
 					'error' => $response['error'],
+				];
+			}
+
+			$saveActivityRatecardResponse = $this->saveActivityRatecard();
+			if (!$saveActivityRatecardResponse['success']) {
+				return [
+					'success' => false,
+					'error' => $saveActivityRatecardResponse['error'],
 				];
 			}
 
@@ -1059,6 +1138,13 @@ class Activity extends Model {
 							$activity->activity_status_id = $activity_status_id;
 							$activity->data_src_id = 262; //BO MANUAL
 							$activity->save();
+
+							$towingImagesMandatoryEffectiveDate = config('rsa.TOWING_IMAGES_MANDATORY_EFFECTIVE_DATE');
+							if (date('Y-m-d') >= $towingImagesMandatoryEffectiveDate) {
+								$activity->is_towing_attachments_mandatory = 1;
+							} else {
+								$activity->is_towing_attachments_mandatory = 0;
+							}
 							$activity->number = 'ACT' . $activity->id;
 							$activity->save();
 

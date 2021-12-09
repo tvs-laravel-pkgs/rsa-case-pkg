@@ -23,7 +23,7 @@ app.component('activityStatusList', {
             self.asp_list = response.data.extras.asp_list;
             // self.status_list.splice(0, 1);
             self.modal_close = modal_close;
-            var cols = [
+            const topCols = [
                 { data: 'action', searchable: false },
                 { data: 'case_date', searchable: false },
                 { data: 'number', name: 'cases.number', searchable: true },
@@ -41,6 +41,15 @@ app.component('activityStatusList', {
                 { data: 'client', name: 'clients.name', searchable: true },
                 { data: 'call_center', name: 'call_centers.name', searchable: true },
             ];
+
+            var bottomCols = [];
+            if (self.hasPermission('display-soft-deleted-activities')) {
+                bottomCols = [
+                    { data: 'activeStatus', searchable: false },
+                ];
+            }
+
+            const cols = [...topCols, ...bottomCols];
 
             var activities_status_dt_config = JSON.parse(JSON.stringify(dt_config));
 

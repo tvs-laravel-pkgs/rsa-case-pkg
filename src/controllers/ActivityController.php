@@ -61,32 +61,61 @@ class ActivityController extends Controller {
 			$end_date = date('Y-m-d', strtotime($to));
 		}
 
-		$activities = Activity::select([
-			'activities.id',
-			'activities.crm_activity_id',
-			'activities.is_towing_attachments_mandatory',
-			'activities.status_id as status_id',
-			'activities.number as activity_number',
-			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
-			'cases.number',
-			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
-			// 'asps.asp_code',
-			DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
-			'service_types.name as sub_service',
-			'service_types.service_group_id',
-			// 'activity_asp_statuses.name as asp_status',
-			'activity_finance_statuses.name as finance_status',
-			'activity_portal_statuses.name as status',
-			'activity_statuses.name as activity_status',
-			'clients.name as client',
-			'configs.name as source',
-			'call_centers.name as call_center',
-		])
-			->where(function ($query) use ($from_date, $end_date) {
-				if (!empty($from_date) && !empty($end_date)) {
-					$query->whereRaw('DATE(cases.date) between "' . $from_date . '" and "' . $end_date . '"');
-				}
-			})
+		if (Entrust::can('display-soft-deleted-activities')) {
+			$activities = Activity::withTrashed()->select([
+				'activities.id',
+				'activities.crm_activity_id',
+				'activities.is_towing_attachments_mandatory',
+				'activities.status_id as status_id',
+				'activities.number as activity_number',
+				DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+				'cases.number',
+				DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
+				// 'asps.asp_code',
+				DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
+				'service_types.name as sub_service',
+				'service_types.service_group_id',
+				// 'activity_asp_statuses.name as asp_status',
+				'activity_finance_statuses.name as finance_status',
+				'activity_portal_statuses.name as status',
+				'activity_statuses.name as activity_status',
+				'clients.name as client',
+				'configs.name as source',
+				'call_centers.name as call_center',
+				DB::raw('IF(activities.deleted_at IS NULL,"ACTIVE","INACTIVE") as activeStatus'),
+				'activities.deleted_at',
+			]);
+		} else {
+			$activities = Activity::select([
+				'activities.id',
+				'activities.crm_activity_id',
+				'activities.is_towing_attachments_mandatory',
+				'activities.status_id as status_id',
+				'activities.number as activity_number',
+				DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+				'cases.number',
+				DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
+				// 'asps.asp_code',
+				DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
+				'service_types.name as sub_service',
+				'service_types.service_group_id',
+				// 'activity_asp_statuses.name as asp_status',
+				'activity_finance_statuses.name as finance_status',
+				'activity_portal_statuses.name as status',
+				'activity_statuses.name as activity_status',
+				'clients.name as client',
+				'configs.name as source',
+				'call_centers.name as call_center',
+				DB::raw('IF(activities.deleted_at IS NULL,"ACTIVE","INACTIVE") as activeStatus'),
+				'activities.deleted_at',
+			]);
+		}
+
+		$activities->where(function ($query) use ($from_date, $end_date) {
+			if (!empty($from_date) && !empty($end_date)) {
+				$query->whereRaw('DATE(cases.date) between "' . $from_date . '" and "' . $end_date . '"');
+			}
+		})
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('users', 'users.id', 'asps.user_id')
 			->leftjoin('cases', 'cases.id', 'activities.case_id')
@@ -157,7 +186,7 @@ class ActivityController extends Controller {
 				<a href="#!/rsa-case-pkg/activity-status/' . $status_id . '/view/' . $activity->id . '">
 					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
 					            </a>';
-				if (($activity->status_id == 2 || $activity->status_id == 4 || $activity->status_id == 15 || $activity->status_id == 16 || $activity->status_id == 17) && Entrust::can('delete-activities')) {
+				if (($activity->status_id == 2 || $activity->status_id == 4 || $activity->status_id == 15 || $activity->status_id == 16 || $activity->status_id == 17) && Entrust::can('delete-activities') && empty($activity->deleted_at)) {
 					$action .= '<a onclick="angular.element(this).scope().deleteConfirm(' . $activity->id . ')" href="javascript:void(0)">
 						                <i class="fa fa-trash dataTable-icon--trash cl-delete" data-cl-id =' . $activity->id . ' aria-hidden="true"></i>
 						            </a>';

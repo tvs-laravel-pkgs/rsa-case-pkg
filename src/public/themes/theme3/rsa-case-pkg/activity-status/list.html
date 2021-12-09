@@ -154,6 +154,7 @@
                             <th>Activity Status</th>
                             <th>Client</th>
                             <th>Call Center</th>
+                            <th ng-if="$ctrl.hasPermission('display-soft-deleted-activities')">Active Status</th>
                         </tr>
                     </thead>
                 </table>

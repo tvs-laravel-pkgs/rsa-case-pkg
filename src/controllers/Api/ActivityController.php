@@ -581,7 +581,12 @@ class ActivityController extends Controller {
 			if ($request->asp_accepted_cc_details) {
 				$activity_log->bo_approved_at = date('Y-m-d H:i:s');
 			}
-			$activity_log->created_by_id = 72;
+			//NEW
+			if (!$activity_log->exists) {
+				$activity_log->created_by_id = 72;
+			} else {
+				$activity_log->updated_by_id = 72;
+			}
 			$activity_log->save();
 
 			//SAVE ACTIVITY API LOG

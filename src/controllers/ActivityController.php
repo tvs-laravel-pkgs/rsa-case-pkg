@@ -1112,6 +1112,7 @@ class ActivityController extends Controller {
 				'activity_id' => $activity->id,
 			]);
 			$activity_log->bo_approved_at = date('Y-m-d H:i:s');
+			$activity_log->bo_approved_by_id = Auth::id();
 			$activity_log->updated_by_id = Auth::id();
 			$activity_log->save();
 
@@ -1256,6 +1257,7 @@ class ActivityController extends Controller {
 					'activity_id' => $activity->id,
 				]);
 				$activity_log->bo_approved_at = date('Y-m-d H:i:s');
+				$activity_log->bo_approved_by_id = Auth::id();
 				$activity_log->updated_by_id = Auth::id();
 				$activity_log->save();
 
@@ -1308,6 +1310,7 @@ class ActivityController extends Controller {
 				'activity_id' => $activity->id,
 			]);
 			$activity_log->bo_deffered_at = date('Y-m-d H:i:s');
+			$activity_log->bo_deffered_by_id = Auth::id();
 			$activity_log->updated_by_id = Auth::id();
 			$activity_log->save();
 
@@ -2108,6 +2111,7 @@ class ActivityController extends Controller {
 				'activity_id' => $activity->id,
 			]);
 			$activity_log->asp_data_filled_at = date('Y-m-d H:i:s');
+			$activity_log->asp_data_filled_by_id = Auth::id();
 			$activity_log->updated_by_id = Auth::id();
 			$activity_log->save();
 
@@ -3380,7 +3384,7 @@ class ActivityController extends Controller {
 					))->setBackground('#CCC9C9');
 				});
 			});
-		})->export('xlsx');
+		})->export('xls');
 
 		return redirect()->back()->with(['success' => 'exported!']);
 	}

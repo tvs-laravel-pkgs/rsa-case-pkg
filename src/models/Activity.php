@@ -1243,7 +1243,18 @@ class Activity extends Model {
 								'activity_id' => $activity->id,
 							]);
 							$activity_log->imported_at = date('Y-m-d H:i:s');
-							$activity_log->created_by_id = 72;
+							$activity_log->imported_by_id = $job->created_by_id;
+							$activity_log->asp_data_filled_at = date('Y-m-d H:i:s');
+							if ($record['asp_accepted_cc_details']) {
+								$activity_log->bo_approved_at = date('Y-m-d H:i:s');
+								$activity_log->bo_approved_by_id = $job->created_by_id;
+							}
+							//NEW
+							if (!$activity_log->exists) {
+								$activity_log->created_by_id = 72;
+							} else {
+								$activity_log->updated_by_id = 72;
+							}
 							$activity_log->save();
 						}
 					}

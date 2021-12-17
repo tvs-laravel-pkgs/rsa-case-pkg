@@ -8,13 +8,14 @@
         <div class="row">
             <div class="col-xs-12 col-sm-offset-1 col-sm-11 col-md-10 col-lg-10 text-center">
                 <ul class="nav nav-tabs customTab-group nav-custom-group activity_view">
-                    <li class="active" ng-class="{'wid-14': !$ctrl.data.has_view_own_activities, 'wid-33': $ctrl.data.has_view_own_activities}" ><a data-toggle="tab" data-target="#bill">Billing Details</a></li>
-                    <li ng-if="!$ctrl.data.has_view_own_activities" class="wid-14"><a data-toggle="tab" data-target="#activity" aria-expanded="false" >Activity Details</a></li>
-                    <li ng-if="!$ctrl.data.has_view_own_activities" class="wid-14"><a data-toggle="tab" data-target="#location" aria-expanded="false" >Location Details</a></li>
-                    <li ng-if="!$ctrl.data.has_view_own_activities" class="wid-14"><a data-toggle="tab" data-target="#km" aria-expanded="false" >KM Details</a></li>
+                    <li class="active" ng-class="{'wid-14': !$ctrl.data.has_view_own_activities, 'wid-33': $ctrl.data.has_view_own_activities}"><a data-toggle="tab" data-target="#bill">Billing Details</a></li>
+                    <li ng-if="!$ctrl.data.has_view_own_activities" class="wid-14"><a data-toggle="tab" data-target="#activity" aria-expanded="false">Activity Details</a></li>
+                    <li ng-if="!$ctrl.data.has_view_own_activities" class="wid-14"><a data-toggle="tab" data-target="#location" aria-expanded="false">Location Details</a></li>
+                    <li ng-if="!$ctrl.data.has_view_own_activities" class="wid-14"><a data-toggle="tab" data-target="#km" aria-expanded="false">KM Details</a></li>
                     <li ng-class="{'wid-14': !$ctrl.data.has_view_own_activities, 'wid-33': $ctrl.data.has_view_own_activities}"><a data-toggle="tab" data-target="#invoice" aria-expanded="false">Invoice Details</a></li>
-                    <li ng-if="!$ctrl.data.has_view_own_activities" class="wid-14"><a data-toggle="tab" data-target="#financial" aria-expanded="false" >Financial Details</a></li>
+                    <li ng-if="!$ctrl.data.has_view_own_activities" class="wid-14"><a data-toggle="tab" data-target="#financial" aria-expanded="false">Financial Details</a></li>
                     <li ng-class="{'wid-14': !$ctrl.data.has_view_own_activities, 'wid-33': $ctrl.data.has_view_own_activities}"><a data-toggle="tab" data-target="#case" aria-expanded="false">Case Details</a></li>
+                    <li ng-if="!$ctrl.data.has_view_own_activities" class="wid-14"><a data-toggle="tab" data-target="#history" aria-expanded="false">History</a></li>
                 </ul>
                 <span style="color: red; font-size: 15px;">* ( <i class="ion-arrow-left-c"></i> ) & ( <i class="ion-arrow-right-c"></i> ) Key using for Tab Navigation </span>
             </div>

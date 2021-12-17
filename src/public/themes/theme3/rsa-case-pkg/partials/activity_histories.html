@@ -1,0 +1,99 @@
+<div class="viewData-wrapper bordered mt-20">
+    <div class="customStatus-wrapper wid-full">
+        <div class="customStatus-inner">
+            <div class="customStatus-left">
+                <div class="customStatus-list--header">
+                </div>
+                <div class="customStatus-list--body">
+                    <ul>
+                        <li ng-if="$ctrl.data.importedAt != ''">
+                            <div class="customStatus-list-item">
+                                <div class="customStatus-list-child left">
+                                    <p class="date"><span>{{ formatDate($ctrl.data.importedAt) | date: 'd-M' }} <br>{{ formatDate($ctrl.data.importedAt) | date: 'y' }}</span></p>
+                                </div>
+                                <div class="customStatus-list-child">
+                                    <h3 class="title">Imported through MIS Import</h3>
+                                    <p ng-if="$ctrl.data.importedBy != ''">By : {{ $ctrl.data.importedBy }}</p>
+                                    <span>{{ formatDate($ctrl.data.importedAt) | date: 'h:m a' }}</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li ng-if="$ctrl.data.aspDataFilledAt != ''">
+                            <div class="customStatus-list-item">
+                                <div class="customStatus-list-child left">
+                                    <p class="date"><span>{{ formatDate($ctrl.data.aspDataFilledAt) | date: 'd-M' }} <br>{{ formatDate($ctrl.data.aspDataFilledAt) | date: 'y' }}</span></p>
+                                </div>
+                                <div class="customStatus-list-child">
+                                    <h3 class="title">ASP Data Filled</h3>
+                                    <p ng-if="$ctrl.data.aspDataFilledBy != ''">By : {{ $ctrl.data.aspDataFilledBy }}</p>
+                                    <span>{{ formatDate($ctrl.data.aspDataFilledAt) | date: 'h:m a' }}</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li ng-if="$ctrl.data.boDefferedAt != ''">
+                            <div class="customStatus-list-item">
+                                <div class="customStatus-list-child left">
+                                    <p class="date"><span>{{ formatDate($ctrl.data.boDefferedAt) | date: 'd-M' }} <br>{{ formatDate($ctrl.data.boDefferedAt) | date: 'y' }}</span></p>
+                                </div>
+                                <div class="customStatus-list-child">
+                                    <h3 class="title">BO Deferred</h3>
+                                    <p ng-if="$ctrl.data.boDefferedBy != ''">By : {{ $ctrl.data.boDefferedBy }}</p>
+                                    <span>{{ formatDate($ctrl.data.boDefferedAt) | date: 'h:m a' }}</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li ng-if="$ctrl.data.boApprovedAt != ''">
+                            <div class="customStatus-list-item">
+                                <div class="customStatus-list-child left">
+                                    <p class="date"><span>{{ formatDate($ctrl.data.boApprovedAt) | date: 'd-M' }} <br>{{ formatDate($ctrl.data.boApprovedAt) | date: 'y' }}</span></p>
+                                </div>
+                                <div class="customStatus-list-child">
+                                    <h3 class="title">BO Approved</h3>
+                                    <p ng-if="$ctrl.data.boApprovedBy != ''">By : {{ $ctrl.data.boApprovedBy }}</p>
+                                    <span>{{ formatDate($ctrl.data.boApprovedAt) | date: 'h:m a' }}</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li ng-if="$ctrl.data.invoiceGeneratedAt != ''">
+                            <div class="customStatus-list-item">
+                                <div class="customStatus-list-child left">
+                                    <p class="date"><span>{{ formatDate($ctrl.data.invoiceGeneratedAt) | date: 'd-M' }} <br>{{ formatDate($ctrl.data.invoiceGeneratedAt) | date: 'y' }}</span></p>
+                                </div>
+                                <div class="customStatus-list-child">
+                                    <h3 class="title">Invoice Generated</h3>
+                                    <p ng-if="$ctrl.data.invoiceGeneratedBy != ''">By : {{ $ctrl.data.invoiceGeneratedBy }}</p>
+                                    <span>{{ formatDate($ctrl.data.invoiceGeneratedAt) | date: 'h:m a' }}</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li ng-if="$ctrl.data.axaptaGeneratedAt != ''">
+                            <div class="customStatus-list-item">
+                                <div class="customStatus-list-child left">
+                                    <p class="date"><span>{{ formatDate($ctrl.data.axaptaGeneratedAt) | date: 'd-M' }} <br>{{ formatDate($ctrl.data.axaptaGeneratedAt) | date: 'y' }}</span></p>
+                                </div>
+                                <div class="customStatus-list-child">
+                                    <h3 class="title">Axapta Generated</h3>
+                                    <p ng-if="$ctrl.data.axaptaGeneratedBy != ''">By : {{ $ctrl.data.axaptaGeneratedBy }}</p>
+                                    <span>{{ formatDate($ctrl.data.axaptaGeneratedAt) | date: 'h:m a' }}</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li ng-if="$ctrl.data.paymentCompletedAt != ''">
+                            <div class="customStatus-list-item">
+                                <div class="customStatus-list-child left">
+                                    <p class="date"><span>{{ formatDate($ctrl.data.paymentCompletedAt) | date: 'd-M' }} <br>{{ formatDate($ctrl.data.paymentCompletedAt) | date: 'y' }}</span></p>
+                                </div>
+                                <div class="customStatus-list-child">
+                                    <h3 class="title">Payment Completed</h3>
+                                    <span>{{ formatDate($ctrl.data.paymentCompletedAt) | date: 'h:m a' }}</span>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="customStatus-right">
+            </div>
+        </div>
+    </div>
+</div>

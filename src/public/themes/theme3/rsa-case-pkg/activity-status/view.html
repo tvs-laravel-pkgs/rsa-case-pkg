@@ -27,7 +27,7 @@
         </div>
         <div class="col-md-6">
             <div class="dataTable--right_wrapper" ng-if="$ctrl.hasPermission('select-case-submission-closing-date-activity') && $ctrl.data.activity_portal_status_id == 2 && $ctrl.data.verification==0 && $ctrl.data.is_case_lapsed" style="text-align: right;">
-                    <button class="btn btn-md" data-toggle="modal" data-target="#case-submission-closing-date">Extend Case Submission Closing</button>
+                <button class="btn btn-md" data-toggle="modal" data-target="#case-submission-closing-date">Extend Case Submission Closing</button>
             </div>
         </div>
     </div><!-- Row -->
@@ -54,54 +54,57 @@
         <div id="case" class="tab-pane fade">
             <case-details data="$ctrl.data"></case-details>
         </div>
+        <div id="history" class="tab-pane fade">
+            <activity-histories data="$ctrl.data"></activity-histories>
+        </div>
     </div>
     <!-- Modal -->
-<div class="modal fade" id="case-submission-closing-date" role="dialog">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <a href="#" type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <img class="close_btn" src="{{ $ctrl.style_modal_close_image_url }}">
-                </a>
-                <h4 class="modal-title">Extend Case Submission Closing</h4>
-            </div>
-            <form id="case_submission_closing_date_form" method="post">
-                <input type="hidden" name="_token" value="{{$ctrl.csrf}}" />
-                <input type="hidden" name="activity_id" value="{{$ctrl.data.id}}" />
-                <div class="modal-body">
-                    <div class="approvalModal-wrapper">
-                        <div class="viewData-threeColumn--wrapper">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="row">
-                                        <div class="col-sm-6">
-                                            <div class="form-group">
-                                                <label>Closing Date<sup class="req" style="color:red">*</sup></label>
-                                                <div class="input-group date" moment-picker="$ctrl.closing_date" format="DD-MM-YYYY LT" min-date="$ctrl.closingMinDate" autoclose = true>
-                                                    <input class="form-control time-picker-form-contol" placeholder="Select a Date & time" ng-model="$ctrl.closing_date" name="closing_date" id="closing_date">
-                                                    <span class="input-group-addon">
-                                                        <img class="img-responsive" src="./resources/assets/images/calender-gray-icon.svg" alt="Calendar Image" />
-                                                    </span>
-                                                </div><!-- Input Group -->
-                                            </div><!-- Field -->
-                                        </div><!-- Column -->
-                                        <div class="col-sm-6">
-                                            <div class="input-text form-group">
-                                                <label>Remarks<sup class="req" style="color:red">*</sup></label>
-                                                <textarea name="remarks" id="remarks" class="form-control" type="text" placeholder="Remarks" rows="4" autocomplete="off"></textarea>
-                                            </div><!-- Field -->
-                                        </div><!-- Column -->
-                                    </div>
-                                    <div class="approvalModal-btns">
-                                        <button type="submit" class="differed-btn blue approve-btn">Submit</button>
+    <div class="modal fade" id="case-submission-closing-date" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <a href="#" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <img class="close_btn" src="{{ $ctrl.style_modal_close_image_url }}">
+                    </a>
+                    <h4 class="modal-title">Extend Case Submission Closing</h4>
+                </div>
+                <form id="case_submission_closing_date_form" method="post">
+                    <input type="hidden" name="_token" value="{{$ctrl.csrf}}" />
+                    <input type="hidden" name="activity_id" value="{{$ctrl.data.id}}" />
+                    <div class="modal-body">
+                        <div class="approvalModal-wrapper">
+                            <div class="viewData-threeColumn--wrapper">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label>Closing Date<sup class="req" style="color:red">*</sup></label>
+                                                    <div class="input-group date" moment-picker="$ctrl.closing_date" format="DD-MM-YYYY LT" min-date="$ctrl.closingMinDate" autoclose=true>
+                                                        <input class="form-control time-picker-form-contol" placeholder="Select a Date & time" ng-model="$ctrl.closing_date" name="closing_date" id="closing_date">
+                                                        <span class="input-group-addon">
+                                                            <img class="img-responsive" src="./resources/assets/images/calender-gray-icon.svg" alt="Calendar Image" />
+                                                        </span>
+                                                    </div><!-- Input Group -->
+                                                </div><!-- Field -->
+                                            </div><!-- Column -->
+                                            <div class="col-sm-6">
+                                                <div class="input-text form-group">
+                                                    <label>Remarks<sup class="req" style="color:red">*</sup></label>
+                                                    <textarea name="remarks" id="remarks" class="form-control" type="text" placeholder="Remarks" rows="4" autocomplete="off"></textarea>
+                                                </div><!-- Field -->
+                                            </div><!-- Column -->
+                                        </div>
+                                        <div class="approvalModal-btns">
+                                            <button type="submit" class="differed-btn blue approve-btn">Submit</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
-</div><!-- Modal -->
+    </div><!-- Modal -->
 </div><!-- pricing-table-data -->

@@ -984,6 +984,76 @@ class ActivityController extends Controller {
 			$is_case_lapsed = true;
 		}
 
+		$importedAt = "";
+		$importedBy = "";
+		$aspDataFilledAt = "";
+		$aspDataFilledBy = "";
+		$boDefferedAt = "";
+		$boDefferedBy = "";
+		$boApprovedAt = "";
+		$boApprovedBy = "";
+		$invoiceGeneratedAt = "";
+		$invoiceGeneratedBy = "";
+		$axaptaGeneratedAt = "";
+		$axaptaGeneratedBy = "";
+		$paymentCompletedAt = "";
+
+		if ($activity_data->log) {
+			if (!empty($activity_data->log->imported_at)) {
+				$importedAt = $activity_data->log->imported_at;
+			}
+			if (!empty($activity_data->log->imported_by_id)) {
+				$importedBy = $activity_data->log->importedBy ? $activity_data->log->importedBy->name : '';
+			}
+			if (!empty($activity_data->log->asp_data_filled_at)) {
+				$aspDataFilledAt = $activity_data->log->asp_data_filled_at;
+			}
+			if (!empty($activity_data->log->asp_data_filled_by_id)) {
+				$aspDataFilledBy = $activity_data->log->aspDataFilledBy ? $activity_data->log->aspDataFilledBy->name : '';
+			}
+			if (!empty($activity_data->log->bo_deffered_at)) {
+				$boDefferedAt = $activity_data->log->bo_deffered_at;
+			}
+			if (!empty($activity_data->log->bo_deffered_by_id)) {
+				$boDefferedBy = $activity_data->log->boDefferedBy ? $activity_data->log->boDefferedBy->name : '';
+			}
+			if (!empty($activity_data->log->bo_approved_at)) {
+				$boApprovedAt = $activity_data->log->bo_approved_at;
+			}
+			if (!empty($activity_data->log->bo_approved_by_id)) {
+				$boApprovedBy = $activity_data->log->boApprovedBy ? $activity_data->log->boApprovedBy->name : '';
+			}
+			if (!empty($activity_data->log->invoice_generated_at)) {
+				$invoiceGeneratedAt = $activity_data->log->invoice_generated_at;
+			}
+			if (!empty($activity_data->log->invoice_generated_by_id)) {
+				$invoiceGeneratedBy = $activity_data->log->invoiceGeneratedBy ? $activity_data->log->invoiceGeneratedBy->name : '';
+			}
+			if (!empty($activity_data->log->axapta_generated_at)) {
+				$axaptaGeneratedAt = $activity_data->log->axapta_generated_at;
+			}
+			if (!empty($activity_data->log->axapta_generated_by_id)) {
+				$axaptaGeneratedBy = $activity_data->log->axaptaGeneratedBy ? $activity_data->log->axaptaGeneratedBy->name : '';
+			}
+			if (!empty($activity_data->log->payment_completed_at)) {
+				$paymentCompletedAt = $activity_data->log->payment_completed_at;
+			}
+		}
+
+		$this->data['activities']['importedAt'] = $importedAt;
+		$this->data['activities']['importedBy'] = $importedBy;
+		$this->data['activities']['aspDataFilledAt'] = $aspDataFilledAt;
+		$this->data['activities']['aspDataFilledBy'] = $aspDataFilledBy;
+		$this->data['activities']['boDefferedAt'] = $boDefferedAt;
+		$this->data['activities']['boDefferedBy'] = $boDefferedBy;
+		$this->data['activities']['boApprovedAt'] = $boApprovedAt;
+		$this->data['activities']['boApprovedBy'] = $boApprovedBy;
+		$this->data['activities']['invoiceGeneratedAt'] = $invoiceGeneratedAt;
+		$this->data['activities']['invoiceGeneratedBy'] = $invoiceGeneratedBy;
+		$this->data['activities']['axaptaGeneratedAt'] = $axaptaGeneratedAt;
+		$this->data['activities']['axaptaGeneratedBy'] = $axaptaGeneratedBy;
+		$this->data['activities']['paymentCompletedAt'] = $paymentCompletedAt;
+
 		$this->data['activities']['is_service_type_eligible'] = $is_service_type_eligible;
 		$this->data['activities']['is_km_travelled_eligible'] = $is_km_travelled_eligible;
 		$this->data['activities']['is_not_collected_eligible'] = $is_not_collected_eligible;

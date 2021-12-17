@@ -3402,7 +3402,7 @@ class ActivityController extends Controller {
 					))->setBackground('#CCC9C9');
 				});
 			});
-		})->export('xls');
+		})->export('xlsx');
 
 		return redirect()->back()->with(['success' => 'exported!']);
 	}

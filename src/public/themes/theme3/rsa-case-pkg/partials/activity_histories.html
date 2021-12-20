@@ -14,7 +14,7 @@
                                 <div class="customStatus-list-child">
                                     <h3 class="title">Imported through MIS Import</h3>
                                     <p ng-if="$ctrl.data.importedBy != ''">By : {{ $ctrl.data.importedBy }}</p>
-                                    <span>{{ formatDate($ctrl.data.importedAt) | date: 'h:m a' }}</span>
+                                    <span>{{ formatDate($ctrl.data.importedAt) | date: 'h:mm a' }}</span>
                                 </div>
                             </div>
                         </li>
@@ -26,7 +26,7 @@
                                 <div class="customStatus-list-child">
                                     <h3 class="title">ASP Data Filled</h3>
                                     <p ng-if="$ctrl.data.aspDataFilledBy != ''">By : {{ $ctrl.data.aspDataFilledBy }}</p>
-                                    <span>{{ formatDate($ctrl.data.aspDataFilledAt) | date: 'h:m a' }}</span>
+                                    <span>{{ formatDate($ctrl.data.aspDataFilledAt) | date: 'h:mm a' }}</span>
                                 </div>
                             </div>
                         </li>
@@ -38,7 +38,7 @@
                                 <div class="customStatus-list-child">
                                     <h3 class="title">BO Deferred</h3>
                                     <p ng-if="$ctrl.data.boDefferedBy != ''">By : {{ $ctrl.data.boDefferedBy }}</p>
-                                    <span>{{ formatDate($ctrl.data.boDefferedAt) | date: 'h:m a' }}</span>
+                                    <span>{{ formatDate($ctrl.data.boDefferedAt) | date: 'h:mm a' }}</span>
                                 </div>
                             </div>
                         </li>
@@ -50,7 +50,7 @@
                                 <div class="customStatus-list-child">
                                     <h3 class="title">BO Approved</h3>
                                     <p ng-if="$ctrl.data.boApprovedBy != ''">By : {{ $ctrl.data.boApprovedBy }}</p>
-                                    <span>{{ formatDate($ctrl.data.boApprovedAt) | date: 'h:m a' }}</span>
+                                    <span>{{ formatDate($ctrl.data.boApprovedAt) | date: 'h:mm a' }}</span>
                                 </div>
                             </div>
                         </li>
@@ -62,7 +62,7 @@
                                 <div class="customStatus-list-child">
                                     <h3 class="title">Invoice Generated</h3>
                                     <p ng-if="$ctrl.data.invoiceGeneratedBy != ''">By : {{ $ctrl.data.invoiceGeneratedBy }}</p>
-                                    <span>{{ formatDate($ctrl.data.invoiceGeneratedAt) | date: 'h:m a' }}</span>
+                                    <span>{{ formatDate($ctrl.data.invoiceGeneratedAt) | date: 'h:mm a' }}</span>
                                 </div>
                             </div>
                         </li>
@@ -74,7 +74,7 @@
                                 <div class="customStatus-list-child">
                                     <h3 class="title">Axapta Generated</h3>
                                     <p ng-if="$ctrl.data.axaptaGeneratedBy != ''">By : {{ $ctrl.data.axaptaGeneratedBy }}</p>
-                                    <span>{{ formatDate($ctrl.data.axaptaGeneratedAt) | date: 'h:m a' }}</span>
+                                    <span>{{ formatDate($ctrl.data.axaptaGeneratedAt) | date: 'h:mm a' }}</span>
                                 </div>
                             </div>
                         </li>
@@ -85,7 +85,7 @@
                                 </div>
                                 <div class="customStatus-list-child">
                                     <h3 class="title">Payment Completed</h3>
-                                    <span>{{ formatDate($ctrl.data.paymentCompletedAt) | date: 'h:m a' }}</span>
+                                    <span>{{ formatDate($ctrl.data.paymentCompletedAt) | date: 'h:mm a' }}</span>
                                 </div>
                             </div>
                         </li>

@@ -1250,6 +1250,43 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'display-latest-updates',
 				'display_name' => 'Display Latest Updates',
 			],
+
+			//LOG REPORT MENU
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'log-menu',
+				'display_name' => 'Log Menu',
+			],
+
+			//USER LOG
+			[
+				'display_order' => 999,
+				'parent' => null,
+				'name' => 'user-log',
+				'display_name' => 'User Log',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'user-log',
+				'name' => 'user-log-export',
+				'display_name' => 'Export',
+			],
+
+			//LAST LOGIN LOG
+			[
+				'display_order' => 999,
+				'parent' => null,
+				'name' => 'last-login-log',
+				'display_name' => 'Last Login Log',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'last-login-log',
+				'name' => 'last-login-log-export',
+				'display_name' => 'Export',
+			],
+
 		];
 		Permission::createFromArrays($permissions);
 	}

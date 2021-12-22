@@ -1237,6 +1237,32 @@ class Activity extends Model {
 								$activity->save();
 							}
 
+							//RELEASE ONHOLD ACTIVITIES WITH CLOSED OR CANCELLED CASES
+							if ($case->status_id == 4 || $case->status_id == 3) {
+								$caseActivities = $case->activities()->where('status_id', 17)->get();
+								if ($caseActivities->isNotEmpty()) {
+									foreach ($caseActivities as $key => $caseActivity) {
+										//MECHANICAL SERVICE GROUP
+										if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id == 2) {
+											$cc_total_km = $caseActivity->detail(280) ? $caseActivity->detail(280)->value : 0;
+											$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km);
+											if ($isBulk) {
+												//ASP Completed Data Entry - Waiting for BO Bulk Verification
+												$statusId = 5;
+											} else {
+												//ASP Completed Data Entry - Waiting for BO Individual Verification
+												$statusId = 6;
+											}
+										} else {
+											$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+										}
+										$caseActivity->update([
+											'status_id' => $statusId,
+										]);
+									}
+								}
+							}
+
 							//UPDATE LOG ACTIVITY AND LOG MESSAGE
 							logActivity3(config('constants.entity_types.ticket'), $activity->id, [
 								'Status' => 'Imported through MIS Import',

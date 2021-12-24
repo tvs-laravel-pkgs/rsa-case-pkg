@@ -3,8 +3,11 @@ app.component('deferredActivityList', {
     controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope, $mdSelect) {
         var self = this;
         self.hasPermission = HelperService.hasPermission;
+        if (!self.hasPermission('asp-deferred-activities')) {
+            window.location = "#!/page-permission-denied";
+            return false;
+        }
         self.angular_routes = angular_routes;
-
         self.filter_img_url = filter_img_url;
         $http.get(
             activity_deferred_filter_url

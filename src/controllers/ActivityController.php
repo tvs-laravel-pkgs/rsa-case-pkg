@@ -1003,37 +1003,37 @@ class ActivityController extends Controller {
 				$importedAt = $activity_data->log->imported_at;
 			}
 			if (!empty($activity_data->log->imported_by_id)) {
-				$importedBy = $activity_data->log->importedBy ? $activity_data->log->importedBy->username : '';
+				$importedBy = $activity_data->log->importedBy ? ($activity_data->log->importedBy->name . ' - ' . $activity_data->log->importedBy->username) : '';
 			}
 			if (!empty($activity_data->log->asp_data_filled_at)) {
 				$aspDataFilledAt = $activity_data->log->asp_data_filled_at;
 			}
 			if (!empty($activity_data->log->asp_data_filled_by_id)) {
-				$aspDataFilledBy = $activity_data->log->aspDataFilledBy ? $activity_data->log->aspDataFilledBy->username : '';
+				$aspDataFilledBy = $activity_data->log->aspDataFilledBy ? ($activity_data->log->aspDataFilledBy->name . ' - ' . $activity_data->log->aspDataFilledBy->username) : '';
 			}
 			if (!empty($activity_data->log->bo_deffered_at)) {
 				$boDefferedAt = $activity_data->log->bo_deffered_at;
 			}
 			if (!empty($activity_data->log->bo_deffered_by_id)) {
-				$boDefferedBy = $activity_data->log->boDefferedBy ? $activity_data->log->boDefferedBy->username : '';
+				$boDefferedBy = $activity_data->log->boDefferedBy ? ($activity_data->log->boDefferedBy->name . ' - ' . $activity_data->log->boDefferedBy->username) : '';
 			}
 			if (!empty($activity_data->log->bo_approved_at)) {
 				$boApprovedAt = $activity_data->log->bo_approved_at;
 			}
 			if (!empty($activity_data->log->bo_approved_by_id)) {
-				$boApprovedBy = $activity_data->log->boApprovedBy ? $activity_data->log->boApprovedBy->username : '';
+				$boApprovedBy = $activity_data->log->boApprovedBy ? ($activity_data->log->boApprovedBy->name . ' - ' . $activity_data->log->boApprovedBy->username) : '';
 			}
 			if (!empty($activity_data->log->invoice_generated_at)) {
 				$invoiceGeneratedAt = $activity_data->log->invoice_generated_at;
 			}
 			if (!empty($activity_data->log->invoice_generated_by_id)) {
-				$invoiceGeneratedBy = $activity_data->log->invoiceGeneratedBy ? $activity_data->log->invoiceGeneratedBy->username : '';
+				$invoiceGeneratedBy = $activity_data->log->invoiceGeneratedBy ? ($activity_data->log->invoiceGeneratedBy->name . ' - ' . $activity_data->log->invoiceGeneratedBy->username) : '';
 			}
 			if (!empty($activity_data->log->axapta_generated_at)) {
 				$axaptaGeneratedAt = $activity_data->log->axapta_generated_at;
 			}
 			if (!empty($activity_data->log->axapta_generated_by_id)) {
-				$axaptaGeneratedBy = $activity_data->log->axaptaGeneratedBy ? $activity_data->log->axaptaGeneratedBy->username : '';
+				$axaptaGeneratedBy = $activity_data->log->axaptaGeneratedBy ? ($activity_data->log->axaptaGeneratedBy->name . ' - ' . $activity_data->log->axaptaGeneratedBy->username) : '';
 			}
 			if (!empty($activity_data->log->payment_completed_at)) {
 				$paymentCompletedAt = $activity_data->log->payment_completed_at;

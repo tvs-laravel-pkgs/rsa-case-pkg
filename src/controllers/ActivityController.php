@@ -1003,37 +1003,37 @@ class ActivityController extends Controller {
 				$importedAt = $activity_data->log->imported_at;
 			}
 			if (!empty($activity_data->log->imported_by_id)) {
-				$importedBy = $activity_data->log->importedBy ? $activity_data->log->importedBy->name : '';
+				$importedBy = $activity_data->log->importedBy ? $activity_data->log->importedBy->username : '';
 			}
 			if (!empty($activity_data->log->asp_data_filled_at)) {
 				$aspDataFilledAt = $activity_data->log->asp_data_filled_at;
 			}
 			if (!empty($activity_data->log->asp_data_filled_by_id)) {
-				$aspDataFilledBy = $activity_data->log->aspDataFilledBy ? $activity_data->log->aspDataFilledBy->name : '';
+				$aspDataFilledBy = $activity_data->log->aspDataFilledBy ? $activity_data->log->aspDataFilledBy->username : '';
 			}
 			if (!empty($activity_data->log->bo_deffered_at)) {
 				$boDefferedAt = $activity_data->log->bo_deffered_at;
 			}
 			if (!empty($activity_data->log->bo_deffered_by_id)) {
-				$boDefferedBy = $activity_data->log->boDefferedBy ? $activity_data->log->boDefferedBy->name : '';
+				$boDefferedBy = $activity_data->log->boDefferedBy ? $activity_data->log->boDefferedBy->username : '';
 			}
 			if (!empty($activity_data->log->bo_approved_at)) {
 				$boApprovedAt = $activity_data->log->bo_approved_at;
 			}
 			if (!empty($activity_data->log->bo_approved_by_id)) {
-				$boApprovedBy = $activity_data->log->boApprovedBy ? $activity_data->log->boApprovedBy->name : '';
+				$boApprovedBy = $activity_data->log->boApprovedBy ? $activity_data->log->boApprovedBy->username : '';
 			}
 			if (!empty($activity_data->log->invoice_generated_at)) {
 				$invoiceGeneratedAt = $activity_data->log->invoice_generated_at;
 			}
 			if (!empty($activity_data->log->invoice_generated_by_id)) {
-				$invoiceGeneratedBy = $activity_data->log->invoiceGeneratedBy ? $activity_data->log->invoiceGeneratedBy->name : '';
+				$invoiceGeneratedBy = $activity_data->log->invoiceGeneratedBy ? $activity_data->log->invoiceGeneratedBy->username : '';
 			}
 			if (!empty($activity_data->log->axapta_generated_at)) {
 				$axaptaGeneratedAt = $activity_data->log->axapta_generated_at;
 			}
 			if (!empty($activity_data->log->axapta_generated_by_id)) {
-				$axaptaGeneratedBy = $activity_data->log->axaptaGeneratedBy ? $activity_data->log->axaptaGeneratedBy->name : '';
+				$axaptaGeneratedBy = $activity_data->log->axaptaGeneratedBy ? $activity_data->log->axaptaGeneratedBy->username : '';
 			}
 			if (!empty($activity_data->log->payment_completed_at)) {
 				$paymentCompletedAt = $activity_data->log->payment_completed_at;
@@ -3363,37 +3363,37 @@ class ActivityController extends Controller {
 				$activity_log = ActivityLog::where('activity_id', $activity->id)->first();
 				if ($activity_log) {
 					$activity_details_data[$activity_key][] = $activity_log->imported_at ? date('d-m-Y H:i:s', strtotime($activity_log->imported_at)) : '';
-					$activity_details_data[$activity_key][] = $activity_log->importedBy ? $activity_log->importedBy->name : '';
+					$activity_details_data[$activity_key][] = $activity_log->importedBy ? $activity_log->importedBy->username : '';
 					$tot = ($activity_log->imported_at && $activity_log->asp_data_filled_at) ? $this->findDifference($activity_log->imported_at, $activity_log->asp_data_filled_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
 					$activity_details_data[$activity_key][] = $activity_log->asp_data_filled_at ? date('d-m-Y H:i:s', strtotime($activity_log->asp_data_filled_at)) : '';
-					$activity_details_data[$activity_key][] = $activity_log->aspDataFilledBy ? $activity_log->aspDataFilledBy->name : '';
+					$activity_details_data[$activity_key][] = $activity_log->aspDataFilledBy ? $activity_log->aspDataFilledBy->username : '';
 					$tot = ($activity_log->asp_data_filled_at && $activity_log->bo_deffered_at) ? $this->findDifference($activity_log->asp_data_filled_at, $activity_log->bo_deffered_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
 					$activity_details_data[$activity_key][] = $activity_log->bo_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_deffered_at)) : '';
-					$activity_details_data[$activity_key][] = $activity_log->boDefferedBy ? $activity_log->boDefferedBy->name : '';
+					$activity_details_data[$activity_key][] = $activity_log->boDefferedBy ? $activity_log->boDefferedBy->username : '';
 					$tot = ($activity_log->asp_data_filled_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->asp_data_filled_at, $activity_log->bo_approved_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
 					$activity_details_data[$activity_key][] = $activity_log->bo_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_approved_at)) : '';
-					$activity_details_data[$activity_key][] = $activity_log->boApprovedBy ? $activity_log->boApprovedBy->name : '';
+					$activity_details_data[$activity_key][] = $activity_log->boApprovedBy ? $activity_log->boApprovedBy->username : '';
 					$tot = ($activity_log->invoice_generated_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->bo_approved_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
 					$activity_details_data[$activity_key][] = $activity_log->invoice_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->invoice_generated_at)) : '';
-					$activity_details_data[$activity_key][] = $activity_log->invoiceGeneratedBy ? $activity_log->invoiceGeneratedBy->name : '';
+					$activity_details_data[$activity_key][] = $activity_log->invoiceGeneratedBy ? $activity_log->invoiceGeneratedBy->username : '';
 					$tot = ($activity_log->invoice_generated_at && $activity_log->axapta_generated_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->axapta_generated_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
 					$activity_details_data[$activity_key][] = $activity_log->axapta_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->axapta_generated_at)) : '';
-					$activity_details_data[$activity_key][] = $activity_log->axaptaGeneratedBy ? $activity_log->axaptaGeneratedBy->name : '';
+					$activity_details_data[$activity_key][] = $activity_log->axaptaGeneratedBy ? $activity_log->axaptaGeneratedBy->username : '';
 					$tot = ($activity_log->axapta_generated_at && $activity_log->payment_completed_at) ? $this->findDifference($activity_log->axapta_generated_at, $activity_log->payment_completed_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';

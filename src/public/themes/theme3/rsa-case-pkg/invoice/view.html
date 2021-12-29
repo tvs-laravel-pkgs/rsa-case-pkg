@@ -72,7 +72,7 @@
                                         <ul class="viewData-threeColumn--group">
                                             <li><img src="./resources/assets/images/ic-phone.svg"></li>
                                             <li>
-                                                <p><b>{{$ctrl.asp.contact_number1 ? $ctrl.asp.contact_number1 : 'N/A'}}<br><a href="javascript:;">{{$ctrl.asp.email ? $ctrl.asp.email : 'N/A'}}</a></b></p>
+                                                <p><b>{{$ctrl.asp.contact_number1 ? ($ctrl.asp.contact_number1 | maskPhoneNumber) : 'N/A'}}<br><a href="javascript:;">{{$ctrl.asp.email ? $ctrl.asp.email : 'N/A'}}</a></b></p>
                                             </li>
                                         </ul>
                                     </div>
@@ -104,7 +104,7 @@
                                             CIN - U34100TN2009PTC071439<br />GSTIN - 33AAGCM0329K1ZM
                                         </p>
                                         <p ng-if="$ctrl.ki_company_address">
-                                            KI MOBILITY SOLUTIONS PRIVATE LIMITED <br/>10, JAWAHAR ROAD,<br/>CHOKKIKULAM,<br/>MADURAI – 625002<br/>CIN - U52590TN2018PTC125028<br/>PAN - AAKCP0950F<br/>GSTIN - 33AAKCP0950F1ZN
+                                            KI MOBILITY SOLUTIONS PRIVATE LIMITED <br />10, JAWAHAR ROAD,<br />CHOKKIKULAM,<br />MADURAI – 625002<br />CIN - U52590TN2018PTC125028<br />PAN - AAKCP0950F<br />GSTIN - 33AAKCP0950F1ZN
                                         </p>
                                     </div>
                                 </div>

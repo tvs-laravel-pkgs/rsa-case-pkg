@@ -32,6 +32,7 @@ app.component('aspDetails', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
+        self.hasPermission = HelperService.hasPermission;
     }
 });
 //----------------------------------------------------------------------------------------------------------------------------

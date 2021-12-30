@@ -92,6 +92,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'towing-images-required-for-activities',
 				'display_name' => 'Towing Images Required Option',
 			],
+			[
+				'display_order' => 12,
+				'parent' => 'activity-status',
+				'name' => 'display-asp-number-in-activities',
+				'display_name' => 'Display ASP Number',
+			],
 
 			//ACTIVITIES VERIFICATION
 			[

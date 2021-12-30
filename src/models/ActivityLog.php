@@ -15,8 +15,34 @@ class ActivityLog extends Model {
 		'activity_id',
 	];
 
+	// Relationships --------------------------------------------------------------
+
 	public function activity() {
 		return $this->belongsTo('App\Activity', 'activity_id');
+	}
+
+	public function importedBy() {
+		return $this->belongsTo('App\User', 'imported_by_id');
+	}
+
+	public function aspDataFilledBy() {
+		return $this->belongsTo('App\User', 'asp_data_filled_by_id');
+	}
+
+	public function boDefferedBy() {
+		return $this->belongsTo('App\User', 'bo_deffered_by_id');
+	}
+
+	public function boApprovedBy() {
+		return $this->belongsTo('App\User', 'bo_approved_by_id');
+	}
+
+	public function invoiceGeneratedBy() {
+		return $this->belongsTo('App\User', 'invoice_generated_by_id');
+	}
+
+	public function axaptaGeneratedBy() {
+		return $this->belongsTo('App\User', 'axapta_generated_by_id');
 	}
 
 	public function createdBy() {

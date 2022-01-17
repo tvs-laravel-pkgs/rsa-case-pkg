@@ -161,25 +161,25 @@ class Activity extends Model {
 
 	// Static Funcs --------------------------------------------------------------
 
-	public static function searchMembershipTicket($r) {
-		$key = $r->key;
-		$list = self::select([
-			'activities.id',
-			'cases.number',
-			'asps.asp_code',
-			'service_types.name as service_type',
-		])
-			->join('cases', 'cases.id', 'activities.case_id')
-			->join('asps', 'asps.id', 'activities.asp_id')
-			->join('service_types', 'service_types.id', 'activities.service_type_id')
-			->where(function ($q) use ($key) {
-				$q->where('cases.number', 'like', '%' . $key . '%')
-				;
-			})
-			->where('activities.activity_status_id', '!=', 4) //OTHER THAN CANCELLED
-			->get();
-		return response()->json($list);
-	}
+	// public static function searchMembershipTicket($r) {
+	// 	$key = $r->key;
+	// 	$list = self::select([
+	// 		'activities.id',
+	// 		'cases.number',
+	// 		'asps.asp_code',
+	// 		'service_types.name as service_type',
+	// 	])
+	// 		->join('cases', 'cases.id', 'activities.case_id')
+	// 		->join('asps', 'asps.id', 'activities.asp_id')
+	// 		->join('service_types', 'service_types.id', 'activities.service_type_id')
+	// 		->where(function ($q) use ($key) {
+	// 			$q->where('cases.number', 'like', '%' . $key . '%')
+	// 			;
+	// 		})
+	// 		->where('activities.activity_status_id', '!=', 4) //OTHER THAN CANCELLED
+	// 		->get();
+	// 	return response()->json($list);
+	// }
 
 	public static function getFormData($id = NULL, $for_deffer_activity) {
 		$data = [];

@@ -3,9 +3,11 @@ app.component('newActivity', {
     controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope) {
         var self = this;
         self.hasPermission = HelperService.hasPermission;
+        if (!self.hasPermission('asp-new-activities')) {
+            window.location = "#!/page-permission-denied";
+            return false;
+        }
         self.angular_routes = angular_routes;
-
-
         var form_id = '#ticket_verify_form';
         var v = jQuery(form_id).validate({
             ignore: '',

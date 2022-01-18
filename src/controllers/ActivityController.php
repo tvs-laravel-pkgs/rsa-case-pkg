@@ -993,6 +993,76 @@ class ActivityController extends Controller {
 			$is_case_lapsed = true;
 		}
 
+		$importedAt = "";
+		$importedBy = "";
+		$aspDataFilledAt = "";
+		$aspDataFilledBy = "";
+		$boDefferedAt = "";
+		$boDefferedBy = "";
+		$boApprovedAt = "";
+		$boApprovedBy = "";
+		$invoiceGeneratedAt = "";
+		$invoiceGeneratedBy = "";
+		$axaptaGeneratedAt = "";
+		$axaptaGeneratedBy = "";
+		$paymentCompletedAt = "";
+
+		if ($activity_data->log) {
+			if (!empty($activity_data->log->imported_at)) {
+				$importedAt = $activity_data->log->imported_at;
+			}
+			if (!empty($activity_data->log->imported_by_id)) {
+				$importedBy = $activity_data->log->importedBy ? ($activity_data->log->importedBy->name . ' - ' . $activity_data->log->importedBy->username) : '';
+			}
+			if (!empty($activity_data->log->asp_data_filled_at)) {
+				$aspDataFilledAt = $activity_data->log->asp_data_filled_at;
+			}
+			if (!empty($activity_data->log->asp_data_filled_by_id)) {
+				$aspDataFilledBy = $activity_data->log->aspDataFilledBy ? ($activity_data->log->aspDataFilledBy->name . ' - ' . $activity_data->log->aspDataFilledBy->username) : '';
+			}
+			if (!empty($activity_data->log->bo_deffered_at)) {
+				$boDefferedAt = $activity_data->log->bo_deffered_at;
+			}
+			if (!empty($activity_data->log->bo_deffered_by_id)) {
+				$boDefferedBy = $activity_data->log->boDefferedBy ? ($activity_data->log->boDefferedBy->name . ' - ' . $activity_data->log->boDefferedBy->username) : '';
+			}
+			if (!empty($activity_data->log->bo_approved_at)) {
+				$boApprovedAt = $activity_data->log->bo_approved_at;
+			}
+			if (!empty($activity_data->log->bo_approved_by_id)) {
+				$boApprovedBy = $activity_data->log->boApprovedBy ? ($activity_data->log->boApprovedBy->name . ' - ' . $activity_data->log->boApprovedBy->username) : '';
+			}
+			if (!empty($activity_data->log->invoice_generated_at)) {
+				$invoiceGeneratedAt = $activity_data->log->invoice_generated_at;
+			}
+			if (!empty($activity_data->log->invoice_generated_by_id)) {
+				$invoiceGeneratedBy = $activity_data->log->invoiceGeneratedBy ? ($activity_data->log->invoiceGeneratedBy->name . ' - ' . $activity_data->log->invoiceGeneratedBy->username) : '';
+			}
+			if (!empty($activity_data->log->axapta_generated_at)) {
+				$axaptaGeneratedAt = $activity_data->log->axapta_generated_at;
+			}
+			if (!empty($activity_data->log->axapta_generated_by_id)) {
+				$axaptaGeneratedBy = $activity_data->log->axaptaGeneratedBy ? ($activity_data->log->axaptaGeneratedBy->name . ' - ' . $activity_data->log->axaptaGeneratedBy->username) : '';
+			}
+			if (!empty($activity_data->log->payment_completed_at)) {
+				$paymentCompletedAt = $activity_data->log->payment_completed_at;
+			}
+		}
+
+		$this->data['activities']['importedAt'] = $importedAt;
+		$this->data['activities']['importedBy'] = $importedBy;
+		$this->data['activities']['aspDataFilledAt'] = $aspDataFilledAt;
+		$this->data['activities']['aspDataFilledBy'] = $aspDataFilledBy;
+		$this->data['activities']['boDefferedAt'] = $boDefferedAt;
+		$this->data['activities']['boDefferedBy'] = $boDefferedBy;
+		$this->data['activities']['boApprovedAt'] = $boApprovedAt;
+		$this->data['activities']['boApprovedBy'] = $boApprovedBy;
+		$this->data['activities']['invoiceGeneratedAt'] = $invoiceGeneratedAt;
+		$this->data['activities']['invoiceGeneratedBy'] = $invoiceGeneratedBy;
+		$this->data['activities']['axaptaGeneratedAt'] = $axaptaGeneratedAt;
+		$this->data['activities']['axaptaGeneratedBy'] = $axaptaGeneratedBy;
+		$this->data['activities']['paymentCompletedAt'] = $paymentCompletedAt;
+
 		$this->data['activities']['is_service_type_eligible'] = $is_service_type_eligible;
 		$this->data['activities']['is_km_travelled_eligible'] = $is_km_travelled_eligible;
 		$this->data['activities']['is_not_collected_eligible'] = $is_not_collected_eligible;
@@ -1121,6 +1191,7 @@ class ActivityController extends Controller {
 				'activity_id' => $activity->id,
 			]);
 			$activity_log->bo_approved_at = date('Y-m-d H:i:s');
+			$activity_log->bo_approved_by_id = Auth::id();
 			$activity_log->updated_by_id = Auth::id();
 			$activity_log->save();
 
@@ -1274,6 +1345,7 @@ class ActivityController extends Controller {
 					'activity_id' => $activity->id,
 				]);
 				$activity_log->bo_approved_at = date('Y-m-d H:i:s');
+				$activity_log->bo_approved_by_id = Auth::id();
 				$activity_log->updated_by_id = Auth::id();
 				$activity_log->save();
 
@@ -1326,6 +1398,7 @@ class ActivityController extends Controller {
 				'activity_id' => $activity->id,
 			]);
 			$activity_log->bo_deffered_at = date('Y-m-d H:i:s');
+			$activity_log->bo_deffered_by_id = Auth::id();
 			$activity_log->updated_by_id = Auth::id();
 			$activity_log->save();
 
@@ -1392,6 +1465,7 @@ class ActivityController extends Controller {
 		//CHECK TICKET EXIST WITH DATA ENTRY STATUS & DATE FOR ASP
 		$query = Activity::select([
 			'activities.id as id',
+			'activities.activity_status_id',
 			'cases.created_at as case_created_at',
 			// 'cases.date as case_date',
 			DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y") as case_date'),
@@ -1486,10 +1560,14 @@ class ActivityController extends Controller {
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
 					if ($check_ticket_date) {
+						$checkTicketDateError = "Please contact administrator.";
+						if ($check_ticket_date->activityStatus) {
+							$checkTicketDateError = "Please contact administrator. Activity status : " . $check_ticket_date->activityStatus->name;
+						}
 						return response()->json([
 							'success' => false,
 							'errors' => [
-								"Please contact administrator.",
+								$checkTicketDateError,
 							],
 						]);
 					}
@@ -1505,10 +1583,14 @@ class ActivityController extends Controller {
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
 					if ($activity_on_hold) {
+						$activityOnHoldError = "Ticket On Hold";
+						if ($activity_on_hold->activityStatus) {
+							$activityOnHoldError = "Ticket On Hold. Activity status : " . $activity_on_hold->activityStatus->name;
+						}
 						return response()->json([
 							'success' => false,
 							'errors' => [
-								"Ticket On Hold",
+								$activityOnHoldError,
 							],
 						]);
 					}
@@ -1525,10 +1607,14 @@ class ActivityController extends Controller {
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
 					if ($activity_not_eligible_for_payment) {
+						$activityNotEligibleForPaymentError = 'Ticket not found';
+						if ($activity_not_eligible_for_payment->activityStatus) {
+							$activityNotEligibleForPaymentError = "Ticket not found. Activity status : " . $activity_not_eligible_for_payment->activityStatus->name;
+						}
 						return response()->json([
 							'success' => false,
 							'errors' => [
-								'Ticket not found',
+								$activityNotEligibleForPaymentError,
 							],
 						]);
 					}
@@ -1545,10 +1631,14 @@ class ActivityController extends Controller {
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
 					if ($activity_already_completed) {
+						$activityAlreadyCompletedError = "Ticket already submitted. Case : " . $activity_already_completed->case_number . "(" . $activity_already_completed->case_date . ")";
+						if ($activity_already_completed->activityStatus) {
+							$activityAlreadyCompletedError = "Ticket already submitted. Case : " . $activity_already_completed->case_number . "(" . $activity_already_completed->case_date . "), Activity status : " . $activity_already_completed->activityStatus->name;
+						}
 						return response()->json([
 							'success' => false,
 							'errors' => [
-								"Ticket already submitted. Case : " . $activity_already_completed->case_number . "(" . $activity_already_completed->case_date . ")",
+								$activityAlreadyCompletedError,
 							],
 						]);
 					}
@@ -1565,10 +1655,14 @@ class ActivityController extends Controller {
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
 					if ($case_with_cancelled_status) {
+						$caseWithCancelledStatusError = "Ticket is cancelled";
+						if ($case_with_cancelled_status->activityStatus) {
+							$caseWithCancelledStatusError = "Ticket is cancelled. Activity status : " . $case_with_cancelled_status->activityStatus->name;
+						}
 						return response()->json([
 							'success' => false,
 							'errors' => [
-								"Ticket is cancelled",
+								$caseWithCancelledStatusError,
 							],
 						]);
 					}
@@ -1583,11 +1677,15 @@ class ActivityController extends Controller {
 						})
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
-					if (!$case_with_closed_status) {
+					if ($case_with_closed_status) {
+						$caseWithClosedStatusError = "Ticket is closed";
+						if ($case_with_closed_status->activityStatus) {
+							$caseWithClosedStatusError = "Ticket is closed. Activity status : " . $case_with_closed_status->activityStatus->name;
+						}
 						return response()->json([
 							'success' => false,
 							'errors' => [
-								"Ticket is closed",
+								$caseWithClosedStatusError,
 							],
 						]);
 					}
@@ -2108,6 +2206,7 @@ class ActivityController extends Controller {
 				'activity_id' => $activity->id,
 			]);
 			$activity_log->asp_data_filled_at = date('Y-m-d H:i:s');
+			$activity_log->asp_data_filled_by_id = Auth::id();
 			$activity_log->updated_by_id = Auth::id();
 			$activity_log->save();
 
@@ -3101,16 +3200,22 @@ class ActivityController extends Controller {
 		if (!Entrust::can('export-own-activities')) {
 			$status_headers = [
 				'Imported through MIS Import',
+				'Imported By',
 				'Duration Between Import and ASP Data Filled',
 				'ASP Data Filled',
+				'ASP Data Filled By',
 				'Duration Between ASP Data Filled and BO deffered',
 				'BO Deferred',
+				'BO Deferred By',
 				'Duration Between ASP Data Filled and BO approved',
 				'BO Approved',
+				'BO Approved By',
 				'Duration Between BO approved and Invoice generated',
 				'Invoice Generated',
+				'Invoice Generated By',
 				'Duration Between Invoice generated and Axapta Generated',
 				'Axapta Generated',
+				'Axapta Generated By',
 				'Duration Between Axapta Generated and Payment Completed',
 				'Payment Completed',
 				'Total No. Of Days',
@@ -3283,31 +3388,37 @@ class ActivityController extends Controller {
 				$activity_log = ActivityLog::where('activity_id', $activity->id)->first();
 				if ($activity_log) {
 					$activity_details_data[$activity_key][] = $activity_log->imported_at ? date('d-m-Y H:i:s', strtotime($activity_log->imported_at)) : '';
+					$activity_details_data[$activity_key][] = $activity_log->importedBy ? $activity_log->importedBy->username : '';
 					$tot = ($activity_log->imported_at && $activity_log->asp_data_filled_at) ? $this->findDifference($activity_log->imported_at, $activity_log->asp_data_filled_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
 					$activity_details_data[$activity_key][] = $activity_log->asp_data_filled_at ? date('d-m-Y H:i:s', strtotime($activity_log->asp_data_filled_at)) : '';
+					$activity_details_data[$activity_key][] = $activity_log->aspDataFilledBy ? $activity_log->aspDataFilledBy->username : '';
 					$tot = ($activity_log->asp_data_filled_at && $activity_log->bo_deffered_at) ? $this->findDifference($activity_log->asp_data_filled_at, $activity_log->bo_deffered_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
 					$activity_details_data[$activity_key][] = $activity_log->bo_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_deffered_at)) : '';
+					$activity_details_data[$activity_key][] = $activity_log->boDefferedBy ? $activity_log->boDefferedBy->username : '';
 					$tot = ($activity_log->asp_data_filled_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->asp_data_filled_at, $activity_log->bo_approved_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
 					$activity_details_data[$activity_key][] = $activity_log->bo_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_approved_at)) : '';
+					$activity_details_data[$activity_key][] = $activity_log->boApprovedBy ? $activity_log->boApprovedBy->username : '';
 					$tot = ($activity_log->invoice_generated_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->bo_approved_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
 					$activity_details_data[$activity_key][] = $activity_log->invoice_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->invoice_generated_at)) : '';
+					$activity_details_data[$activity_key][] = $activity_log->invoiceGeneratedBy ? $activity_log->invoiceGeneratedBy->username : '';
 					$tot = ($activity_log->invoice_generated_at && $activity_log->axapta_generated_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->axapta_generated_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
 					$activity_details_data[$activity_key][] = $activity_log->axapta_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->axapta_generated_at)) : '';
+					$activity_details_data[$activity_key][] = $activity_log->axaptaGeneratedBy ? $activity_log->axaptaGeneratedBy->username : '';
 					$tot = ($activity_log->axapta_generated_at && $activity_log->payment_completed_at) ? $this->findDifference($activity_log->axapta_generated_at, $activity_log->payment_completed_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
@@ -3316,6 +3427,12 @@ class ActivityController extends Controller {
 					$activity_details_data[$activity_key][] = $total_days > 1 ? ($total_days . ' Days') : ($total_days . ' Day');
 
 				} else {
+					$activity_details_data[$activity_key][] = '';
+					$activity_details_data[$activity_key][] = '';
+					$activity_details_data[$activity_key][] = '';
+					$activity_details_data[$activity_key][] = '';
+					$activity_details_data[$activity_key][] = '';
+					$activity_details_data[$activity_key][] = '';
 					$activity_details_data[$activity_key][] = '';
 					$activity_details_data[$activity_key][] = '';
 					$activity_details_data[$activity_key][] = '';
@@ -3373,7 +3490,7 @@ class ActivityController extends Controller {
 				$sheet->setAutoSize(false);
 				$sheet->fromArray($activity_details_data, NULL, 'A1');
 				$sheet->row(1, $activity_details_header);
-				$sheet->cells('A1:EA1', function ($cells) {
+				$sheet->cells('A1:EG1', function ($cells) {
 					$cells->setFont(array(
 						'size' => '10',
 						'bold' => true,

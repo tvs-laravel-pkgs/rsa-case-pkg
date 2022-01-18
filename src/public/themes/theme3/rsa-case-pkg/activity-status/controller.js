@@ -4,6 +4,10 @@ app.component('activityStatusList', {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
+        if (!self.hasPermission('activity-status')) {
+            window.location = "#!/page-permission-denied";
+            return false;
+        }
         self.filter_img_url = filter_img_url;
         self.export_activities = export_activities;
         self.releaseOnHold = releaseOnHold;

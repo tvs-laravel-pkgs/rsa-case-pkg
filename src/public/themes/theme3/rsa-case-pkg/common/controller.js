@@ -454,3 +454,20 @@ app.component('billingDetails', {
         };
     }
 });
+//----------------------------------------------------------------------------------------------------------------------------
+
+app.component('activityHistories', {
+    templateUrl: activity_status_view_histories_template_url,
+    bindings: {
+        data: '<',
+    },
+    controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
+        $scope.loading = true;
+        var self = this;
+
+        $scope.formatDate = date => {
+            var dateOut = new Date(date);
+            return dateOut;
+        }
+    }
+});

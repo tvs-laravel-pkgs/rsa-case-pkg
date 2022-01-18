@@ -2,6 +2,7 @@
 
 namespace Abs\RsaCasePkg\Api;
 use Abs\RsaCasePkg\Activity;
+use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\CaseCancelledReason;
 use Abs\RsaCasePkg\CaseStatus;
 use Abs\RsaCasePkg\RsaCase;
@@ -378,10 +379,27 @@ class CaseController extends Controller {
 				}
 			}
 
+			//CLOSED
 			if ($case->status_id == 4) {
-				//CLOSED
-				$case
-					->activities()
+				//UPDATE LOG
+				$invoiceAmountCalculatedActivities = $case->activities()->where(['status_id' => 10])->get();
+				if ($invoiceAmountCalculatedActivities->isNotEmpty()) {
+					foreach ($invoiceAmountCalculatedActivities as $key => $invoiceAmountCalculatedActivity) {
+						$activityLog = ActivityLog::firstOrNew([
+							'activity_id' => $invoiceAmountCalculatedActivity->id,
+						]);
+						//NEW
+						if (!$activityLog->exists) {
+							$activityLog->created_by_id = 72;
+						} else {
+							$activityLog->updated_by_id = 72;
+						}
+						$activityLog->bo_approved_at = date('Y-m-d H:i:s');
+						$activityLog->save();
+					}
+				}
+
+				$case->activities()
 					->where([
 						// Invoice Amount Calculated - Waiting for Case Closure
 						'status_id' => 10,

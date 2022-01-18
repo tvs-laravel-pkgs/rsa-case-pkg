@@ -1299,6 +1299,32 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Export',
 			],
 
+			//DISCOUNT REASONS
+			[
+				'display_order' => 999,
+				'parent' => null,
+				'name' => 'discount-reason',
+				'display_name' => 'Discount Reason',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'discount-reason',
+				'name' => 'add-discount-reason',
+				'display_name' => 'Add',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'discount-reason',
+				'name' => 'edit-discount-reason',
+				'display_name' => 'Edit',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'discount-reason',
+				'name' => 'delete-discount-reason',
+				'display_name' => 'Delete',
+			],
+
 		];
 		Permission::createFromArrays($permissions);
 	}

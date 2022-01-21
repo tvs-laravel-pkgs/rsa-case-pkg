@@ -950,6 +950,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'finance-export-own-dealers-membership-cancellation-invoice',
 				'display_name' => 'Finance Export Own Dealers',
 			],
+			[
+				'display_order' => 7,
+				'parent' => 'membership-cancellation-invoice',
+				'name' => 'download-cancellation-einvoice',
+				'display_name' => 'Download E-Invoice',
+			],
 
 			//MEMBERSHIP MENU
 			[

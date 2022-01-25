@@ -1066,9 +1066,18 @@ class ActivityController extends Controller {
 	}
 
 	public function approveActivity(Request $request) {
-		//dd($request->all());
+		// dd($request->all());
 		DB::beginTransaction();
 		try {
+			if ($request->bo_km_travelled !== '' && $request->bo_km_travelled == 0) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'KM Travelled should be greater than zero',
+					],
+				]);
+			}
+
 			if ($request->bo_km_travelled !== 0 && $request->bo_km_travelled === '') {
 				return response()->json([
 					'success' => false,
@@ -1092,6 +1101,15 @@ class ActivityController extends Controller {
 					'success' => false,
 					'errors' => [
 						'Charges collected is required',
+					],
+				]);
+			}
+
+			if ($request->bo_net_amount == 0) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Payout amount should be greater than zero',
 					],
 				]);
 			}

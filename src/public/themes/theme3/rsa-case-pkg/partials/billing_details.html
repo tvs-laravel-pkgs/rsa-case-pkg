@@ -52,6 +52,7 @@
                                     <td class="" ng-show="$ctrl.data.verification==1" style="text-align:right">
                                         <input style="text-align:right" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" type="text" name="bo_km_travelled" ng-model="$ctrl.data.raw_bo_km_travelled" value="{{$ctrl.data.raw_bo_km_travelled}}" class="km_value" ng-keyup="calculate()"><br>
                                         <span class="color-red" ng-show="$ctrl.data.raw_bo_km_travelled !== 0 && $ctrl.data.raw_bo_km_travelled === ''">KM Travelled is required</span>
+                                        <span class="color-red" ng-show="$ctrl.data.raw_bo_km_travelled !== '' && $ctrl.data.raw_bo_km_travelled == 0">KM Travelled should be greater than zero</span>
                                         <span class="color-red" ng-show="$ctrl.show_km==1">Enter value less than ASP value</span>
                                     </td class="">
                                 </tr>

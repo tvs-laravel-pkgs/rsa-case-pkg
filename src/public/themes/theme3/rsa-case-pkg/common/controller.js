@@ -424,11 +424,13 @@ app.component('billingDetails', {
                         }
                         var amount_wo_deduction = parseFloat(below_amount) + parseFloat(above_amount);
                         var adjustment = 0;
-                        if (parseFloat(self.data.asp_service_type_data.adjustment_type) == 2) {
-                            adjustment = parseFloat(self.data.asp_service_type_data.adjustment);
-                        } else if (self.data.asp_service_type_data.adjustment_type == 1) {
-                            adjustment = parseFloat(parseFloat(amount_wo_deduction) * (parseFloat(self.data.asp_service_type_data.adjustment) / 100));
-                        }
+
+                        //DISABLED AS THERE IS NO ADJUSTMENT TYPE IN FUTURE
+                        // if (parseFloat(self.data.asp_service_type_data.adjustment_type) == 2) {
+                        //     adjustment = parseFloat(self.data.asp_service_type_data.adjustment);
+                        // } else if (self.data.asp_service_type_data.adjustment_type == 1) {
+                        //     adjustment = parseFloat(parseFloat(amount_wo_deduction) * (parseFloat(self.data.asp_service_type_data.adjustment) / 100));
+                        // }
 
                         //FORMULAE DISABLED AS PER CLIENT REQUEST
                         // var amount = parseFloat(amount_wo_deduction) + parseFloat(adjustment);

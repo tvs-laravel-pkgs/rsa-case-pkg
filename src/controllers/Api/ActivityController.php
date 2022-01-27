@@ -183,7 +183,8 @@ class ActivityController extends Controller {
 			$data_src = Config::where([
 				'entity_type_id' => 22,
 				'name' => $request->data_src,
-			])->first();
+			])
+				->first();
 			if (!$data_src) {
 				//SAVE ACTIVITY API LOG
 				$errors[] = 'Invalid Data Source';
@@ -438,7 +439,7 @@ class ActivityController extends Controller {
 				if ($case->status_id == 4) {
 					//IF SERVICE GROUP IS MECHANICAL
 					if ($service_type->service_group_id == 2) {
-						$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km);
+						$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $data_src->id);
 						if ($is_bulk) {
 							//ASP Completed Data Entry - Waiting for BO Bulk Verification
 							$activity->status_id = 5;
@@ -542,7 +543,7 @@ class ActivityController extends Controller {
 
 						//IF MECHANICAL SERVICE GROUP
 						if ($service_type->service_group_id == 2) {
-							$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km);
+							$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id);
 							if ($is_bulk) {
 								//ASP Completed Data Entry - Waiting for BO Bulk Verification
 								$activity->status_id = 5;

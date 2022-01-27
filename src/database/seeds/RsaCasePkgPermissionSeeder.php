@@ -1229,6 +1229,26 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Send Customer Invoice To Customer',
 			],
 
+			//LOCATOR
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'locator',
+				'display_name' => 'Locator',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'locator',
+				'name' => 'own-client-locator',
+				'display_name' => 'Own Client',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'locator',
+				'name' => 'all-locator',
+				'display_name' => 'All',
+			],
+
 			//DISPLAY LATEST UPDATES
 			[
 				'display_order' => 99,
@@ -1272,7 +1292,6 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'last-login-log-export',
 				'display_name' => 'Export',
 			],
-
 		];
 		Permission::createFromArrays($permissions);
 	}

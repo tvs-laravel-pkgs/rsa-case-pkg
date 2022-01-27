@@ -1280,6 +1280,13 @@ class ActivityController extends Controller {
 					$bo_km_collected = $activity->detail(159) ? $activity->detail(159)->value : 0;
 					$bo_km_not_collected = $activity->detail(160) ? $activity->detail(160)->value : 0;
 
+					if (floatval($bo_km_travelled) <= 0) {
+						return response()->json([
+							'success' => false,
+							'error' => 'KM travelled should be greater than zero for the case - ' . $activity->case->number,
+						]);
+					}
+
 					$response = getKMPrices($activity->serviceType, $activity->asp);
 					$price = $response['asp_service_price'];
 
@@ -1300,6 +1307,13 @@ class ActivityController extends Controller {
 					}
 
 					$invoiceAmount = (floatval($km_charge) + floatval($bo_km_not_collected)) - floatval($boDeduction) - floatval($bo_km_collected);
+
+					if (floatval($invoiceAmount) <= 0) {
+						return response()->json([
+							'success' => false,
+							'error' => 'Payout amount should be greater than zero for the case - ' . $activity->case->number,
+						]);
+					}
 
 					$bo_km_charge = ActivityDetail::firstOrNew([
 						'company_id' => 1,
@@ -1756,7 +1770,18 @@ class ActivityController extends Controller {
 			if (!$activity) {
 				return response()->json([
 					'success' => false,
-					'errors' => ['Activity not found'],
+					'errors' => [
+						'Activity not found',
+					],
+				]);
+			}
+
+			if (floatval($request->km_travelled) <= 0) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'KM travelled should be greater than zero',
+					],
 				]);
 			}
 

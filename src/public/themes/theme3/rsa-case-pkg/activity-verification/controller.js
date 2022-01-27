@@ -148,40 +148,16 @@ app.component('activityVerificationList', {
                             $(".loader-type-2").addClass("loader-hide");
                             $('#submit').button('reset');
                             if (!res.success) {
-                                $noty = new Noty({
-                                    type: 'error',
-                                    layout: 'topRight',
-                                    text: res.error,
-                                }).show();
-                                setTimeout(function() {
-                                    $noty.close();
-                                }, 2000);
+                                custom_noty('error', res.error);
                             } else {
-                                $noty = new Noty({
-                                    type: 'success',
-                                    layout: 'topRight',
-                                    text: res.message,
-                                    animation: {
-                                        speed: 500
-                                    }
-                                }).show();
-                                setTimeout(function() {
-                                    $noty.close();
-                                }, 1000);
+                                custom_noty('success', res.message);
                                 $('#below40-table').DataTable().ajax.reload();
                             }
                         })
                         .fail(function(xhr) {
                             $(".loader-type-2").addClass("loader-hide");
                             $('#submit').button('reset');
-                            $noty = new Noty({
-                                type: 'error',
-                                layout: 'topRight',
-                                text: 'Something went wrong at server',
-                            }).show();
-                            setTimeout(function() {
-                                $noty.close();
-                            }, 2000);
+                            custom_noty('error', "Something went wrong at server");
                         });
                 },
             });

@@ -2893,12 +2893,17 @@ class ActivityController extends Controller {
 							$query->whereRaw('DATE(activity_logs.payment_completed_at) between "' . $range1 . '" and "' . $range2 . '"');
 						});
 				});
-		} elseif ($request->filter_by == 'voucher') {
+		} elseif ($request->filter_by == 'invoice') {
 			$activities->join('Invoices', 'Invoices.id', '=', 'activities.invoice_id')
-				->join('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
-				->join('invoice_vouchers', 'invoice_vouchers.invoice_id', 'Invoices.id')
+				->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
+				->leftjoin('invoice_vouchers', 'invoice_vouchers.invoice_id', 'Invoices.id')
 				->where(function ($q) use ($range1, $range2) {
-					$q->whereRaw('DATE(invoice_vouchers.date) between "' . $range1 . '" and "' . $range2 . '"');
+					$q->where(function ($query) use ($range1, $range2) {
+						$query->whereRaw('DATE(Invoices.created_at) between "' . $range1 . '" and "' . $range2 . '"');
+					})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(invoice_vouchers.date) between "' . $range1 . '" and "' . $range2 . '"');
+						});
 				});
 		}
 
@@ -3054,12 +3059,17 @@ class ActivityController extends Controller {
 								$query->whereRaw('DATE(activity_logs.payment_completed_at) between "' . $range1 . '" and "' . $range2 . '"');
 							});
 					});
-			} elseif ($request->filter_by == 'voucher') {
+			} elseif ($request->filter_by == 'invoice') {
 				$count_splitup_query->join('Invoices', 'Invoices.id', '=', 'activities.invoice_id')
-					->join('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
-					->join('invoice_vouchers', 'invoice_vouchers.invoice_id', 'Invoices.id')
+					->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
+					->leftjoin('invoice_vouchers', 'invoice_vouchers.invoice_id', 'Invoices.id')
 					->where(function ($q) use ($range1, $range2) {
-						$q->whereRaw('DATE(invoice_vouchers.date) between "' . $range1 . '" and "' . $range2 . '"');
+						$q->where(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(Invoices.created_at) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+							->orwhere(function ($query) use ($range1, $range2) {
+								$query->whereRaw('DATE(invoice_vouchers.date) between "' . $range1 . '" and "' . $range2 . '"');
+							});
 					});
 			}
 			if (!empty($request->get('asp_id'))) {

@@ -73,8 +73,11 @@
                                     <div class="col-xs-12 col-sm-4">
                                         <ul class="viewData-threeColumn--group">
                                             <li><img src="./resources/assets/images/ic-phone.svg"></li>
-                                            <li>
+                                            <li ng-if="$ctrl.hasPermission('display-asp-number-in-activities')">
                                                 <p><b>{{$ctrl.asp.contact_number1 ? $ctrl.asp.contact_number1 : 'N/A'}}<br><a href="javascript:;">{{$ctrl.asp.email ? $ctrl.asp.email : 'N/A'}}</a></b></p>
+                                            </li>
+                                            <li ng-if="!$ctrl.hasPermission('display-asp-number-in-activities')">
+                                                <p><b>{{$ctrl.asp.contact_number1 ? ($ctrl.asp.contact_number1 | maskPhoneNumber) : 'N/A'}}<br><a href="javascript:;">{{$ctrl.asp.email ? $ctrl.asp.email : 'N/A'}}</a></b></p>
                                             </li>
                                         </ul>
                                     </div>
@@ -99,7 +102,7 @@
                                     <div class="aai-head-left-title">Invoice</div>
                                     <div class="aai-head-left-address">
                                         <p>
-                                            KI MOBILITY SOLUTIONS PRIVATE LIMITED <br/>10, JAWAHAR ROAD,<br/>CHOKKIKULAM,<br/>MADURAI – 625002<br/>CIN - U52590TN2018PTC125028<br/>PAN - AAKCP0950F<br/>GSTIN - 33AAKCP0950F1ZN
+                                            KI MOBILITY SOLUTIONS PRIVATE LIMITED <br />10, JAWAHAR ROAD,<br />CHOKKIKULAM,<br />MADURAI – 625002<br />CIN - U52590TN2018PTC125028<br />PAN - AAKCP0950F<br />GSTIN - 33AAKCP0950F1ZN
                                         </p>
                                     </div>
                                 </div>

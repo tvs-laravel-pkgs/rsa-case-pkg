@@ -1330,7 +1330,6 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'delete-discount-reason',
 				'display_name' => 'Delete',
 			],
-
 		];
 		Permission::createFromArrays($permissions);
 	}

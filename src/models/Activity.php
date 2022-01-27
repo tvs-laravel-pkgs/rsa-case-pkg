@@ -83,6 +83,10 @@ class Activity extends Model {
 		return $this->hasOne('Abs\RsaCasePkg\ActivityDetail', 'activity_id');
 	}
 
+	public function log() {
+		return $this->hasOne('Abs\RsaCasePkg\ActivityLog', 'activity_id');
+	}
+
 	public function asp() {
 		return $this->belongsTo('App\Asp', 'asp_id');
 	}
@@ -180,7 +184,11 @@ class Activity extends Model {
 	public static function getFormData($id = NULL, $for_deffer_activity) {
 		$data = [];
 
-		$data['activity'] = $activity = self::findOrFail($id);
+		$data['activity'] = $activity = self::with([
+			'case',
+			'serviceType',
+		])
+			->findOrFail($id);
 		$data['service_types'] = Asp::where('user_id', Auth::id())
 			->join('asp_service_types', 'asp_service_types.asp_id', '=', 'asps.id')
 			->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')
@@ -257,7 +265,30 @@ class Activity extends Model {
 			->where('entity_id', '=', $activity->id)
 			->select('id', 'attachment_file_name')
 			->get();
+		$data['vehiclePickupAttach'] = Attachment::select([
+			'id',
+			'attachment_file_name',
+		])
+			->where('entity_type', config('constants.entity_types.VEHICLE_PICKUP_ATTACHMENT'))
+			->where('entity_id', $activity->id)
+			->first();
+		$data['vehicleDropAttach'] = Attachment::select([
+			'id',
+			'attachment_file_name',
+		])
+			->where('entity_type', config('constants.entity_types.VEHICLE_DROP_ATTACHMENT'))
+			->where('entity_id', $activity->id)
+			->first();
+		$data['inventoryJobSheetAttach'] = Attachment::select([
+			'id',
+			'attachment_file_name',
+		])
+			->where('entity_type', config('constants.entity_types.INVENTORY_JOB_SHEET_ATTACHMENT'))
+			->where('entity_id', $activity->id)
+			->first();
 		$data['for_deffer_activity'] = $for_deffer_activity;
+		$data['dropDealer'] = $activity->detail(294) ? $activity->detail(294)->value : '';
+		$data['dropLocation'] = $activity->detail(295) ? $activity->detail(295)->value : '';
 		$data['success'] = true;
 		return $data;
 	}
@@ -1111,6 +1142,13 @@ class Activity extends Model {
 							$activity->activity_status_id = $activity_status_id;
 							$activity->data_src_id = 262; //BO MANUAL
 							$activity->save();
+
+							$towingImagesMandatoryEffectiveDate = config('rsa.TOWING_IMAGES_MANDATORY_EFFECTIVE_DATE');
+							if (date('Y-m-d') >= $towingImagesMandatoryEffectiveDate) {
+								$activity->is_towing_attachments_mandatory = 1;
+							} else {
+								$activity->is_towing_attachments_mandatory = 0;
+							}
 							$activity->number = 'ACT' . $activity->id;
 							$activity->save();
 
@@ -1199,6 +1237,32 @@ class Activity extends Model {
 								$activity->save();
 							}
 
+							//RELEASE ONHOLD ACTIVITIES WITH CLOSED OR CANCELLED CASES
+							if ($case->status_id == 4 || $case->status_id == 3) {
+								$caseActivities = $case->activities()->where('status_id', 17)->get();
+								if ($caseActivities->isNotEmpty()) {
+									foreach ($caseActivities as $key => $caseActivity) {
+										//MECHANICAL SERVICE GROUP
+										if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id == 2) {
+											$cc_total_km = $caseActivity->detail(280) ? $caseActivity->detail(280)->value : 0;
+											$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km);
+											if ($isBulk) {
+												//ASP Completed Data Entry - Waiting for BO Bulk Verification
+												$statusId = 5;
+											} else {
+												//ASP Completed Data Entry - Waiting for BO Individual Verification
+												$statusId = 6;
+											}
+										} else {
+											$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+										}
+										$caseActivity->update([
+											'status_id' => $statusId,
+										]);
+									}
+								}
+							}
+
 							//UPDATE LOG ACTIVITY AND LOG MESSAGE
 							logActivity3(config('constants.entity_types.ticket'), $activity->id, [
 								'Status' => 'Imported through MIS Import',
@@ -1209,7 +1273,18 @@ class Activity extends Model {
 								'activity_id' => $activity->id,
 							]);
 							$activity_log->imported_at = date('Y-m-d H:i:s');
-							$activity_log->created_by_id = 72;
+							$activity_log->imported_by_id = $job->created_by_id;
+							$activity_log->asp_data_filled_at = date('Y-m-d H:i:s');
+							if ($record['asp_accepted_cc_details']) {
+								$activity_log->bo_approved_at = date('Y-m-d H:i:s');
+								$activity_log->bo_approved_by_id = $job->created_by_id;
+							}
+							//NEW
+							if (!$activity_log->exists) {
+								$activity_log->created_by_id = 72;
+							} else {
+								$activity_log->updated_by_id = 72;
+							}
 							$activity_log->save();
 						}
 					}

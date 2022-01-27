@@ -103,6 +103,7 @@
     var asp_new_activity_form_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/form.html')}}";
     var asp_new_activity_update_details_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/update-details.html')}}";
     var get_activity_form_data_url = "{{route('activityNewGetFormData')}}";
+    var getActivityServiceTypeDetail = "{{url('rsa-case-pkg/new-activity/get-service-type-detail')}}";
 
     var activity_status_list_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-status/list.html')}}";
     var activity_status_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-status/view.html')}}";
@@ -122,6 +123,7 @@
   var activity_status_view_invoice_details_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/invoice_details.html')}}";
   var activity_status_view_financial_details_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/financial_details.html')}}";
   var activity_status_view_case_details_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/case_details.html')}}";
+  var activity_status_view_histories_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/activity_histories.html')}}";
   var style_dot_image_url = "{{URL::asset('resources/assets/images/oval.svg')}}";
   var style_car_image_url = "{{URL::asset('resources/assets/images/ic-car.svg')}}";
   var style_service_type_image_url = "{{URL::asset('resources/assets/images/ic-servicetype.svg')}}";
@@ -146,12 +148,13 @@
     var canExportActivity = "{{Entrust::can('export-activities')}}";
     var canImportActivity = "{{Entrust::can('import-cron-jobs')}}";
     var activity_back_asp_update = "{{route('activityBackAspUpdate')}}";
+    var activity_towing_images_required_url = "{{route('activityTowingImagesRequiredUpdated')}}";
     var releaseOnHold = "{{route('releaseOnHold')}}";
     //NEW ACTIVITY
 
 </script>
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/common/controller.js?v=5')}}"></script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-status/controller.js?v=4')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-status/controller.js?v=5')}}"></script>
 
 <!-- RSA-NEW-ACTIVITY-PKG -->
 <script type="text/javascript">
@@ -159,7 +162,7 @@
     var asp_new_activity_update_details_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/update-details.html')}}";
     var get_activity_form_data_url = "{{route('activityNewGetFormData')}}";
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/controller.js?v=3')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/controller.js?v=6')}}"></script>
 
 <!-- RSA-DASHBOARD -->
 <script type="text/javascript">
@@ -181,7 +184,7 @@
     var activity_verification_bulk_get_list_url = "{{url('rsa-case-pkg/activity-verification/bulk/get-list/')}}";
     var activity_verification_individual_get_list_url = "{{url('rsa-case-pkg/activity-verification/individual/get-list/')}}";
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-verification/controller.js?v=4')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-verification/controller.js?v=5')}}"></script>
 
 
 <!-- RSA-INVOICE -->
@@ -217,7 +220,7 @@
     var asp_activity_deferred_update_details_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-deferred/update-details.html')}}";
     var get_deferred_activity_form_data_url = "{{route('activityDeferredGetFormData')}}";
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-deferred/controller.js?v=2')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-deferred/controller.js?v=5')}}"></script>
 
 <!-- RSA-ACTIVITY-APPROVED -->
 <script type="text/javascript">
@@ -228,5 +231,5 @@
     var activity_approved_invoice_preview_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-approved/invoice-preview.html')}}";
     var activity_approved_invoice_preview_data_url = "{{url('rsa-case-pkg/activity-approved/get-details/')}}";
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-approved/controller.js?v=4')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-approved/controller.js?v=5')}}"></script>
 

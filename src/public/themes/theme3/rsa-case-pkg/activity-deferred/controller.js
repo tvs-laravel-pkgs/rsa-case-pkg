@@ -3,8 +3,11 @@ app.component('deferredActivityList', {
     controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope, $mdSelect) {
         var self = this;
         self.hasPermission = HelperService.hasPermission;
+        if (!self.hasPermission('asp-deferred-activities')) {
+            window.location = "#!/page-permission-denied";
+            return false;
+        }
         self.angular_routes = angular_routes;
-
         self.filter_img_url = filter_img_url;
         $http.get(
             activity_deferred_filter_url
@@ -104,7 +107,7 @@ app.component('deferredActivityList', {
                 format: 'dd-mm-yyyy',
                 autoclose: true,
             });
-            
+
             $('.filter-content').bind('click', function(event) {
 
                 if ($('.md-select-menu-container').hasClass('md-active')) {
@@ -130,6 +133,9 @@ app.component('deferredActivityUpdate', {
 
         var update_attach_other_id = [];
         var update_attach_km_map_id = [];
+        const vehiclePickupAttachRemovelIds = [];
+        const vehicleDropAttachRemovelIds = [];
+        const inventoryJobSheetAttachRemovelIds = [];
 
         $http.get(
             $form_data_url
@@ -160,6 +166,21 @@ app.component('deferredActivityUpdate', {
             self.other_attachment = response.data.other_attachment;
             self.defer_reason = response.data.activity.defer_reason;
             self.case = response.data.case;
+            self.bd_location = response.data.case.bd_location;
+            self.dropDealer = response.data.dropDealer;
+            self.dropLocation = response.data.dropLocation;
+
+            self.vehiclePickupAttach = response.data.vehiclePickupAttach;
+            self.vehicleDropAttach = response.data.vehicleDropAttach;
+            self.inventoryJobSheetAttach = response.data.inventoryJobSheetAttach;
+            self.towingAttachmentsMandatoryLabel = response.data.towingAttachmentsMandatoryLabel;
+            self.towingAttachmentSamplePhoto = 1;
+            //TOWING GROUP
+            if (self.activity.service_type.service_group_id == 3) {
+                self.showTowingAttachment = true;
+            } else {
+                self.showTowingAttachment = false;
+            }
 
             self.kmTravelledHideShow();
             self.otherChargeHideShow();
@@ -180,6 +201,30 @@ app.component('deferredActivityUpdate', {
                 $('#update_attach_km_map_id').val(JSON.stringify(update_attach_km_map_id));
             }
             self.km_attachment.splice(index, 1);
+        }
+
+        self.closeVehiclePickupAttach = (index, vehiclePickupAttachId) => {
+            if (vehiclePickupAttachId) {
+                vehiclePickupAttachRemovelIds.push(vehiclePickupAttachId);
+                $('#vehiclePickupAttachRemovelIds').val(JSON.stringify(vehiclePickupAttachRemovelIds));
+            }
+            self.vehiclePickupAttach = '';
+        }
+
+        self.closeVehicleDropAttach = (index, vehicleDropAttachId) => {
+            if (vehicleDropAttachId) {
+                vehicleDropAttachRemovelIds.push(vehicleDropAttachId);
+                $('#vehicleDropAttachRemovelIds').val(JSON.stringify(vehicleDropAttachRemovelIds));
+            }
+            self.vehicleDropAttach = '';
+        }
+
+        self.closeInventoryJobSheetAttach = (index, inventoryJobSheetAttachId) => {
+            if (inventoryJobSheetAttachId) {
+                inventoryJobSheetAttachRemovelIds.push(inventoryJobSheetAttachId);
+                $('#inventoryJobSheetAttachRemovelIds').val(JSON.stringify(inventoryJobSheetAttachRemovelIds));
+            }
+            self.inventoryJobSheetAttach = '';
         }
 
         self.kmTravelledHideShow = function() {
@@ -282,6 +327,40 @@ app.component('deferredActivityUpdate', {
             return true;
         }, 'Please attach google map screenshot');
 
+        $scope.getServiceTypeDetail = () => {
+            if (self.service_type_id) {
+                $.ajax({
+                        url: getActivityServiceTypeDetail + '/' + self.service_type_id,
+                        method: "GET",
+                    })
+                    .done(function(res) {
+                        if (!res.success) {
+                            var errors = '';
+                            for (var i in res.errors) {
+                                errors += '<li>' + res.errors[i] + '</li>';
+                            }
+                            custom_noty('error', errors);
+                            return;
+                        } else {
+                            //TOWING
+                            if (res.serviceType.service_group_id == 3) {
+                                self.showTowingAttachment = true;
+                            } else {
+                                self.showTowingAttachment = false;
+                            }
+                            $scope.$apply()
+                        }
+                    })
+                    .fail(function(xhr) {
+                        custom_noty('error', 'Something went wrong at server');
+                        console.log(xhr);
+                    });
+            }
+        }
+
+        $.validator.addMethod('imageFileSize', function(value, element, param) {
+            return this.optional(element) || (element.files[0].size <= param)
+        });
 
         //Jquery Validation
         var form_id = '#activity-deferred-form';
@@ -333,6 +412,24 @@ app.component('deferredActivityUpdate', {
                     check_other_attach: true,
                     extension: "jpg|jpeg|png|gif"
                 },
+                'vehicle_pickup_attachment': {
+                    required: function(element) {
+                        return self.activity.is_towing_attachments_mandatory === 1 && !self.vehiclePickupAttach;
+                    },
+                    imageFileSize: 1048576,
+                },
+                'vehicle_drop_attachment': {
+                    required: function(element) {
+                        return self.activity.is_towing_attachments_mandatory === 1 && !self.vehicleDropAttach;
+                    },
+                    imageFileSize: 1048576,
+                },
+                'inventory_job_sheet_attachment': {
+                    required: function(element) {
+                        return self.activity.is_towing_attachments_mandatory === 1 && !self.inventoryJobSheetAttach;
+                    },
+                    imageFileSize: 1048576,
+                }
             },
             messages: {
                 'km_travelled': {
@@ -350,6 +447,18 @@ app.component('deferredActivityUpdate', {
                 'other_attachment[]': {
                     required: 'Please attach other Attachment',
                 },
+                'vehicle_pickup_attachment': {
+                    required: 'Please Upload Vehicle Pickup image',
+                    imageFileSize: "Vehicle Pickup image size must be less than 1MB",
+                },
+                'vehicle_drop_attachment': {
+                    required: 'Please Upload Vehicle Drop image',
+                    imageFileSize: "Vehicle Drop image size must be less than 1MB",
+                },
+                'inventory_job_sheet_attachment': {
+                    required: 'Please Upload Inventory Job Sheet image',
+                    imageFileSize: "Inventory Job Sheet image size must be less than 1MB",
+                }
             },
             errorPlacement: function(error, element) {
                 if (element.attr("type") == "checkbox") {
@@ -421,12 +530,10 @@ app.component('deferredActivityUpdate', {
                                         text: 'Something went wrong at server',
                                     }).show();
                                 });
-
                         }
                     }
                 });
             }
         });
-
     }
 });

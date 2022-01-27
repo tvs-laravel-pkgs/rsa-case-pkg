@@ -4,12 +4,17 @@ app.component('activityStatusList', {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
+        if (!self.hasPermission('activity-status')) {
+            window.location = "#!/page-permission-denied";
+            return false;
+        }
         self.filter_img_url = filter_img_url;
         self.export_activities = export_activities;
         self.releaseOnHold = releaseOnHold;
         self.canExportActivity = canExportActivity;
         self.canImportActivity = canImportActivity;
         self.activity_back_asp_update_route = activity_back_asp_update;
+        self.activity_towing_images_required_url = activity_towing_images_required_url;
         self.csrf = token;
         $http.get(
             activity_status_filter_url
@@ -85,21 +90,21 @@ app.component('activityStatusList', {
 
             var dataTable = $('#activities_status_table').dataTable();
 
-             $('input[name="date_range_period"]').daterangepicker({
+            $('input[name="date_range_period"]').daterangepicker({
                 autoUpdateInput: false,
                 locale: {
                     cancelLabel: 'Clear',
                     format: "DD-MM-YYYY"
                 }
-             });
+            });
 
-            $('.daterange').on('apply.daterangepicker', function (ev, picker) {
+            $('.daterange').on('apply.daterangepicker', function(ev, picker) {
                 $(this).val(picker.startDate.format('DD-MM-YYYY') + ' to ' + picker.endDate.format('DD-MM-YYYY'));
                 $('#date_range_period').val(picker.startDate.format('DD-MM-YYYY') + ' to ' + picker.endDate.format('DD-MM-YYYY'));
                 dataTable.fnFilter();
             });
 
-            $('.daterange').on('cancel.daterangepicker', function (ev, picker) {
+            $('.daterange').on('cancel.daterangepicker', function(ev, picker) {
                 $(this).val('');
                 $('#date_range_period').val('');
                 dataTable.fnFilter();
@@ -182,7 +187,7 @@ app.component('activityStatusList', {
                 format: 'dd-mm-yyyy',
                 autoclose: true,
             });
-            
+
             $('input[name="period"]').daterangepicker({
                 startDate: moment().startOf('month'),
                 endDate: moment().endOf('month'),
@@ -289,7 +294,6 @@ app.component('activityStatusList', {
                 messages: {
                     case_date: "Please Select Case Date",
                 },
-
                 submitHandler: function(form) {
                     let formData = new FormData($(form_id)[0]);
                     $('#submit_id').button('loading');
@@ -321,16 +325,62 @@ app.component('activityStatusList', {
                         });
                 }
             });
-
         });
+
         $scope.backConfirm = function(activity) {
-            $scope.$apply();
             $("#ticket_back_asp_Modal").modal('toggle');
             setTimeout(function() {
                 self.activity_form_data = activity;
-                console.log(self.activity_form_data);
+                $scope.$apply();
             }, 1000);
         }
+
+        $scope.towingImageRequiredBtn = function(activityId, isTowingAttachmentsMandatory) {
+            self.towingImagesActivityId = activityId;
+            self.isTowingAttachmentsMandatory = isTowingAttachmentsMandatory;
+            $scope.$apply();
+            $("#towingImageRequiredModal").modal('toggle');
+        }
+
+        var form_id = '#tickect-towing-images-required';
+        var v = jQuery(form_id).validate({
+            rules: {
+                isTowingAttachmentsMandatory: {
+                    required: true,
+                },
+            },
+            submitHandler: function(form) {
+                let formData = new FormData($(form_id)[0]);
+                $('#activityTowingImageSubmitId').button('loading');
+                $.ajax({
+                        url: laravel_routes['activityTowingImagesRequiredUpdated'],
+                        method: "POST",
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                    })
+                    .done(function(res) {
+                        if (!res.success) {
+                            $('#activityTowingImageSubmitId').button('reset');
+                            var errors = '';
+                            for (var i in res.errors) {
+                                errors += '<li>' + res.errors[i] + '</li>';
+                            }
+                            custom_noty('error', errors);
+                        } else {
+                            custom_noty('success', res.message);
+                            $('#activityTowingImageSubmitId').button('reset');
+                            $('#towingImageRequiredModal').modal('hide');
+                            $('#activities_status_table').DataTable().ajax.reload();
+                        }
+                    })
+                    .fail(function(xhr) {
+                        $('#activityTowingImageSubmitId').button('reset');
+                        custom_noty('error', 'Something went wrong at server');
+                    });
+            }
+        });
+
         $scope.asp_data_entry_submit = function() {
             var ticket_status_id = $('#ticket_status_id').val(1);
             setTimeout(function() {
@@ -424,7 +474,7 @@ app.component('activityStatusView', {
 
             self.style_modal_close_image_url = style_modal_close_image_url;
             self.closingMinDate = moment();
-                
+
             var form_id = '#case_submission_closing_date_form';
             var v = jQuery(form_id).validate({
                 rules: {

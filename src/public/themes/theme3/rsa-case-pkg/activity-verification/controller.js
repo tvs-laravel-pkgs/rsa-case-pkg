@@ -4,7 +4,10 @@ app.component('activityVerificationList', {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
-
+        if (!self.hasPermission('activity-verification')) {
+            window.location = "#!/page-permission-denied";
+            return false;
+        }
         self.filter_img_url = filter_img_url;
         $http.get(
             activity_status_filter_url
@@ -356,7 +359,7 @@ app.component('activityVerificationView', {
                 for (var i in response.data.errors) {
                     errors += '<li>' + response.data.errors[i] + '</li>';
                 }
-                custom_noty('error', errors);                
+                custom_noty('error', errors);
                 $location.path('/rsa-case-pkg/activity-verification/list');
                 $scope.$apply();
                 return;
@@ -404,10 +407,10 @@ app.component('activityVerificationView', {
                         for (var i in response.data.data.errors) {
                             errors += '<li>' + response.data.errors[i] + '</li>';
                         }
-                        custom_noty('error', errors);                
+                        custom_noty('error', errors);
                         return;
                     }
-                    custom_noty('success', response.data.data.message);                
+                    custom_noty('success', response.data.data.message);
                     item.selected = false;
                 });
             }

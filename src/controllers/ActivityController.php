@@ -569,6 +569,7 @@ class ActivityController extends Controller {
 				'activities.status_id as activity_portal_status_id',
 				'bd_location_type.name as loction_type',
 				'bd_location_category.name as location_category',
+				'activities.data_src_id',
 			])
 			->leftJoin('asps', 'asps.id', 'activities.asp_id')
 			->leftJoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
@@ -825,8 +826,15 @@ class ActivityController extends Controller {
 
 		}
 
+		$isMobile = 0; //WEB
+		//MOBILE APP
+		if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
+			$isMobile = 1;
+		}
+
 		$asp_service_type_data = AspServiceType::where('asp_id', $activity->asp_id)
 			->where('service_type_id', $activity->service_type_id)
+			->where('is_mobile', $isMobile)
 			->first();
 		$casewiseRatecardEffectDatetime = config('rsa.CASEWISE_RATECARD_EFFECT_DATETIME');
 		//Activity creation datetime greater than effective datetime
@@ -895,6 +903,7 @@ class ActivityController extends Controller {
 			if ($service_type) {
 				$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 					->where('service_type_id', $service_type->id)
+					->where('is_mobile', $isMobile)
 					->first();
 				if ($aspServiceType) {
 					$range_limit = $aspServiceType->range_limit;
@@ -1270,8 +1279,15 @@ class ActivityController extends Controller {
 					]);
 				}
 
+				$isMobile = 0; //WEB
+				//MOBILE APP
+				if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
+					$isMobile = 1;
+				}
+
 				$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 					->where('service_type_id', $activity->service_type_id)
+					->where('is_mobile', $isMobile)
 					->first();
 
 				if ($aspServiceType) {
@@ -1287,7 +1303,8 @@ class ActivityController extends Controller {
 						]);
 					}
 
-					$response = getKMPrices($activity->serviceType, $activity->asp);
+					$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id);
+
 					$price = $response['asp_service_price'];
 
 					if ($activity->financeStatus->po_eligibility_type_id == 341) {
@@ -1300,11 +1317,13 @@ class ActivityController extends Controller {
 					$above_range_price = ($bo_km_travelled > $price->range_limit) ? ($bo_km_travelled - $price->range_limit) * $price->above_range_price : 0;
 					$km_charge = $below_range_price + $above_range_price;
 
-					if ($aspServiceType->adjustment_type == 2) {
-						$boDeduction = floatval($aspServiceType->adjustment);
-					} else if ($aspServiceType->adjustment_type == 1) {
-						$boDeduction = floatval($km_charge) * floatval($aspServiceType->adjustment / 100);
-					}
+					$boDeduction = 0;
+					//DISABLED AS THERE IS NO ADJUSTMENT TYPE IN FUTURE
+					// if ($aspServiceType->adjustment_type == 2) {
+					// 	$boDeduction = floatval($aspServiceType->adjustment);
+					// } else if ($aspServiceType->adjustment_type == 1) {
+					// 	$boDeduction = floatval($km_charge) * floatval($aspServiceType->adjustment / 100);
+					// }
 
 					$invoiceAmount = (floatval($km_charge) + floatval($bo_km_not_collected)) - floatval($boDeduction) - floatval($bo_km_collected);
 
@@ -1859,8 +1878,15 @@ class ActivityController extends Controller {
 				->first();
 			$cc_service_type = ServiceType::where('name', $cc_service_type_exist->value)->first();
 
+			$isMobile = 0; //WEB
+			//MOBILE APP
+			if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
+				$isMobile = 1;
+			}
+
 			$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 				->where('service_type_id', $cc_service_type->id)
+				->where('is_mobile', $isMobile)
 				->first();
 			if ($aspServiceType) {
 				$range_limit = $aspServiceType->range_limit;
@@ -2122,7 +2148,7 @@ class ActivityController extends Controller {
 				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $activity->id, 'key_id' => $key_id, 'company_id' => 1], ['value' => $value]);
 			}
 
-			$response = getKMPrices($activity->serviceType, $activity->asp);
+			$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id);
 			if (!$response['success']) {
 				return [
 					'success' => false,
@@ -3272,6 +3298,11 @@ class ActivityController extends Controller {
 				$inv_created_at = '';
 			}
 
+			if (Entrust::can('display-asp-number-in-activities')) {
+				$aspContactNumber = $activity->asp_contact_number1;
+			} else {
+				$aspContactNumber = maskPhoneNumber($activity->asp_contact_number1);
+			}
 			if (Entrust::can('export-own-activities')) {
 				$activity_details_data[] = [
 					$activity->id,
@@ -3284,7 +3315,7 @@ class ActivityController extends Controller {
 					$activity->asp_name,
 					$activity->asp_axpta_code,
 					$activity->asp_code,
-					$activity->asp_contact_number1,
+					$aspContactNumber,
 					$activity->asp_email,
 					$activity->asp_has_gst,
 					$activity->asp_workshop_name,
@@ -3332,7 +3363,7 @@ class ActivityController extends Controller {
 					$activity->asp_name,
 					$activity->asp_axpta_code,
 					$activity->asp_code,
-					$activity->asp_contact_number1,
+					$aspContactNumber,
 					$activity->asp_email,
 					$activity->asp_has_gst,
 					$activity->asp_is_self,
@@ -3557,7 +3588,7 @@ class ActivityController extends Controller {
 				//MECHANICAL SERVICE GROUP
 				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
 					$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
-					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km);
+					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
 					if ($is_bulk) {
 						//ASP Completed Data Entry - Waiting for BO Bulk Verification
 						$status_id = 5;

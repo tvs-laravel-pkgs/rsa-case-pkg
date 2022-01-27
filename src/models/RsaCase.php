@@ -44,9 +44,13 @@ class RsaCase extends Model {
 		'submission_closing_date_remarks',
 	];
 
+	// Attributes --------------------------------------------------------------
+
 	public function getDateAttribute($date) {
 		return empty($date) ? '' : date('d-m-Y', strtotime($date));
 	}
+
+	// Relationships --------------------------------------------------------------
 
 	public function company() {
 		return $this->belongsTo('App\Company', 'company_id');
@@ -110,6 +114,23 @@ class RsaCase extends Model {
 
 	public function bdLocationCategory() {
 		return $this->belongsTo('App\Config', 'bd_location_category_id');
+	}
+
+	// Static Funcs --------------------------------------------------------------
+
+	public static function searchMembershipTicket($r) {
+		$key = $r->key;
+		$list = self::select([
+			'id',
+			'number',
+		])
+			->where(function ($q) use ($key) {
+				$q->where('number', 'like', '%' . $key . '%')
+				;
+			})
+			->where('status_id', '!=', 3) //OTHER THAN CANCELLED
+			->get();
+		return response()->json($list);
 	}
 
 	public static function createFromObject($record_data) {

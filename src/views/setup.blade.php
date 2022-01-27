@@ -155,7 +155,6 @@
 </script>
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/common/controller.js?v=6')}}"></script>
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-status/controller.js?v=5')}}"></script>
-
 <!-- RSA-NEW-ACTIVITY-PKG -->
 <script type="text/javascript">
     var asp_new_activity_form_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/form.html')}}";
@@ -175,7 +174,7 @@
     var dash4 = "{{ asset('resources/assets/images/dash-icon-4.svg') }}";
 
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/dashboard/controller.js?v=2')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/dashboard/controller.js?v=3')}}"></script>
 
 <!-- RSA-ACTIVITY-VERIFICATION-PKG -->
 <script type="text/javascript">
@@ -201,7 +200,7 @@
     var get_invoice_payment_info_url = "{{url('/rsa-case-pkg/invoice/get/payment-info/')}}";
 
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/invoice/controller.js?v=5')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/invoice/controller.js?v=6')}}"></script>
 
 <!-- RSA-BATCH GENEATION -->
 <script type="text/javascript">

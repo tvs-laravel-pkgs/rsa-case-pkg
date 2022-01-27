@@ -1069,7 +1069,7 @@ class ActivityController extends Controller {
 		// dd($request->all());
 		DB::beginTransaction();
 		try {
-			if ($request->bo_km_travelled !== '' && $request->bo_km_travelled == 0) {
+			if ($request->bo_km_travelled !== '' && $request->bo_km_travelled <= 0) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -1105,7 +1105,7 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			if ($request->bo_net_amount == 0) {
+			if ($request->bo_net_amount <= 0) {
 				return response()->json([
 					'success' => false,
 					'errors' => [

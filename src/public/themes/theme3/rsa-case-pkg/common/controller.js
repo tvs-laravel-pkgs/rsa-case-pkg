@@ -288,7 +288,7 @@ app.component('billingDetails', {
                 }
 
                 $scope.approveTicket = function() {
-                    if (self.data.raw_bo_km_travelled !== '' && self.data.raw_bo_km_travelled == 0) {
+                    if (self.data.raw_bo_km_travelled !== '' && self.data.raw_bo_km_travelled <= 0) {
                         custom_noty('error', 'KM Travelled should be greater than zero');
                         return;
                     }
@@ -305,7 +305,7 @@ app.component('billingDetails', {
                         custom_noty('error', 'Enter BO KM less than ASP KM');
                         return;
                     } else {
-                        if (self.data.bo_net_amount == 0) {
+                        if (self.data.bo_net_amount <= 0) {
                             custom_noty('error', 'Payout amount should be greater than zero');
                             return;
                         }

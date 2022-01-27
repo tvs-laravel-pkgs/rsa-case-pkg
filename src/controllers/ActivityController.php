@@ -3254,6 +3254,11 @@ class ActivityController extends Controller {
 				$inv_created_at = '';
 			}
 
+			if (Entrust::can('display-asp-number-in-activities')) {
+				$aspContactNumber = $activity->asp_contact_number1;
+			} else {
+				$aspContactNumber = maskPhoneNumber($activity->asp_contact_number1);
+			}
 			if (Entrust::can('export-own-activities')) {
 				$activity_details_data[] = [
 					$activity->id,
@@ -3266,7 +3271,7 @@ class ActivityController extends Controller {
 					$activity->asp_name,
 					$activity->asp_axpta_code,
 					$activity->asp_code,
-					$activity->asp_contact_number1,
+					$aspContactNumber,
 					$activity->asp_email,
 					$activity->asp_has_gst,
 					$activity->asp_workshop_name,
@@ -3314,7 +3319,7 @@ class ActivityController extends Controller {
 					$activity->asp_name,
 					$activity->asp_axpta_code,
 					$activity->asp_code,
-					$activity->asp_contact_number1,
+					$aspContactNumber,
 					$activity->asp_email,
 					$activity->asp_has_gst,
 					$activity->asp_is_self,

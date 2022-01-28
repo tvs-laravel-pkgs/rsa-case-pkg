@@ -44,6 +44,13 @@ class ActivityController extends Controller {
 			'client_list' => collect(Client::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Client']),
 			'export_client_list' => collect(Client::select('name', 'id')->get()),
 			'asp_list' => collect(Asp::select('name', 'asp_code', 'id')->get()),
+			'exportFilterByList' => [
+				['id' => '', 'name' => 'Select Filter By'],
+				['id' => 'general', 'name' => 'General'],
+				['id' => 'activity', 'name' => 'Activity'],
+				['id' => 'invoiceDate', 'name' => 'Invoice Date'],
+				['id' => 'transactionDate', 'name' => 'Transaction Date'],
+			],
 		];
 		$this->data['auth_user_details'] = Auth::user();
 		return response()->json($this->data);
@@ -2893,17 +2900,19 @@ class ActivityController extends Controller {
 							$query->whereRaw('DATE(activity_logs.payment_completed_at) between "' . $range1 . '" and "' . $range2 . '"');
 						});
 				});
-		} elseif ($request->filter_by == 'invoice') {
+		} elseif ($request->filter_by == 'invoiceDate') {
 			$activities->join('Invoices', 'Invoices.id', '=', 'activities.invoice_id')
 				->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
 				->leftjoin('invoice_vouchers', 'invoice_vouchers.invoice_id', 'Invoices.id')
 				->where(function ($q) use ($range1, $range2) {
-					$q->where(function ($query) use ($range1, $range2) {
-						$query->whereRaw('DATE(Invoices.created_at) between "' . $range1 . '" and "' . $range2 . '"');
-					})
-						->orwhere(function ($query) use ($range1, $range2) {
-							$query->whereRaw('DATE(invoice_vouchers.date) between "' . $range1 . '" and "' . $range2 . '"');
-						});
+					$q->whereRaw('DATE(Invoices.created_at) between "' . $range1 . '" and "' . $range2 . '"');
+				});
+		} elseif ($request->filter_by == 'transactionDate') {
+			$activities->join('Invoices', 'Invoices.id', '=', 'activities.invoice_id')
+				->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
+				->join('invoice_vouchers', 'invoice_vouchers.invoice_id', 'Invoices.id')
+				->where(function ($q) use ($range1, $range2) {
+					$q->whereRaw('DATE(invoice_vouchers.date) between "' . $range1 . '" and "' . $range2 . '"');
 				});
 		}
 
@@ -3006,7 +3015,8 @@ class ActivityController extends Controller {
 				$activities = $activities->whereNotIn('activities.status_id', [2, 4, 15, 16, 17]);
 			}
 		}
-		$total_count = $activities->count('activities.id');
+		$activitesTotalCount = $activities;
+		$total_count = $activitesTotalCount->groupBy('activities.id')->get()->count();
 		if ($total_count == 0) {
 			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
 				'errors' => [
@@ -3020,7 +3030,7 @@ class ActivityController extends Controller {
 		$summary[] = ['Status', 'Count'];
 
 		foreach ($status_ids as $key => $status_id) {
-			$count_splitup_query = Activity::rightJoin('activity_portal_statuses', 'activities.status_id', 'activity_portal_statuses.id')
+			$count_splitup_query = ActivityPortalStatus::join('activities', 'activities.status_id', 'activity_portal_statuses.id')
 				->join('cases', 'cases.id', 'activities.case_id')
 				->select([
 					DB::raw('COUNT(activities.id) as activity_count'),
@@ -3059,19 +3069,19 @@ class ActivityController extends Controller {
 								$query->whereRaw('DATE(activity_logs.payment_completed_at) between "' . $range1 . '" and "' . $range2 . '"');
 							});
 					});
-			} elseif ($request->filter_by == 'invoice') {
+			} elseif ($request->filter_by == 'invoiceDate') {
 				$count_splitup_query->join('Invoices', 'Invoices.id', '=', 'activities.invoice_id')
-					->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
-					->leftjoin('invoice_vouchers', 'invoice_vouchers.invoice_id', 'Invoices.id')
 					->where(function ($q) use ($range1, $range2) {
-						$q->where(function ($query) use ($range1, $range2) {
-							$query->whereRaw('DATE(Invoices.created_at) between "' . $range1 . '" and "' . $range2 . '"');
-						})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(invoice_vouchers.date) between "' . $range1 . '" and "' . $range2 . '"');
-							});
+						$q->whereRaw('DATE(Invoices.created_at) between "' . $range1 . '" and "' . $range2 . '"');
+					});
+			} elseif ($request->filter_by == 'transactionDate') {
+				$count_splitup_query->join('Invoices', 'Invoices.id', '=', 'activities.invoice_id')
+					->join('invoice_vouchers', 'invoice_vouchers.invoice_id', 'Invoices.id')
+					->where(function ($q) use ($range1, $range2) {
+						$q->whereRaw('DATE(invoice_vouchers.date) between "' . $range1 . '" and "' . $range2 . '"');
 					});
 			}
+
 			if (!empty($request->get('asp_id'))) {
 				$count_splitup_query->where('activities.asp_id', $request->get('asp_id'));
 			}
@@ -3082,7 +3092,7 @@ class ActivityController extends Controller {
 				$count_splitup_query->where('cases.number', $request->get('ticket'));
 			}
 
-			$count_splitup_query = $count_splitup_query->first();
+			$count_splitup_query = $count_splitup_query->groupBy('activity_portal_statuses.id')->first();
 			if ($count_splitup_query) {
 				$summary[] = [
 					$count_splitup_query->name,
@@ -3131,6 +3141,10 @@ class ActivityController extends Controller {
 				'Invoice Number',
 				'Invoice Date',
 				'Invoice Status',
+				'Transaction Date',
+				'Voucher',
+				'TDS Amount',
+				'Paid Amount',
 				'BD Latitude',
 				'BD Longitude',
 				'BD Location',
@@ -3315,6 +3329,10 @@ class ActivityController extends Controller {
 					$activity->invoice_no,
 					$inv_created_at,
 					$activity->invoice_status,
+					$activity->transactionDate,
+					$activity->voucher,
+					$activity->tdsAmount,
+					$activity->paidAmount,
 					!empty($activity->bd_lat) ? $activity->bd_lat : '',
 					!empty($activity->bd_long) ? $activity->bd_long : '',
 					!empty($activity->bd_location) ? $activity->bd_location : '',

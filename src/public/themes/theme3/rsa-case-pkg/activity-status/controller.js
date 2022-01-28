@@ -266,17 +266,22 @@ app.component('activityStatusList', {
                 self.status_ids = r_list;
             }
             $("form[name='export_excel_form']").validate({
+                ignore: '',
                 rules: {
                     status_ids: {
                         required: true,
                     },
                     period: {
                         required: true,
+                    },
+                    filter_by: {
+                        required: true,
                     }
                 },
                 messages: {
                     period: "Please Select Period",
                     status_ids: "Please Select Activity Status",
+                    filter_by: "Please Select Filter By",
                 },
 
                 submitHandler: function(form) {

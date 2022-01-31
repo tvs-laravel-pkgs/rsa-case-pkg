@@ -44,6 +44,13 @@ class ActivityController extends Controller {
 			'client_list' => collect(Client::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Client']),
 			'export_client_list' => collect(Client::select('name', 'id')->get()),
 			'asp_list' => collect(Asp::select('name', 'asp_code', 'id')->get()),
+			'exportFilterByList' => [
+				['id' => '', 'name' => 'Select Filter By'],
+				['id' => 'general', 'name' => 'General'],
+				['id' => 'activity', 'name' => 'Activity'],
+				['id' => 'invoiceDate', 'name' => 'Invoice Date'],
+				['id' => 'transactionDate', 'name' => 'Transaction Date'],
+			],
 		];
 		$this->data['auth_user_details'] = Auth::user();
 		return response()->json($this->data);
@@ -2890,8 +2897,6 @@ class ActivityController extends Controller {
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', '=', 'activities.status_id')
 			->leftjoin('asp_activity_rejected_reasons', 'asp_activity_rejected_reasons.id', '=', 'activities.asp_activity_rejected_reason_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', '=', 'activities.activity_status_id')
-			->leftjoin('Invoices', 'Invoices.id', '=', 'activities.invoice_id')
-			->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
 			->leftjoin('case_statuses', 'case_statuses.id', '=', 'cases.status_id')
 			->leftjoin('locations', 'locations.id', '=', 'asps.location_id')
 			->leftjoin('districts', 'districts.id', '=', 'asps.district_id')
@@ -2902,28 +2907,20 @@ class ActivityController extends Controller {
 			->leftjoin('configs as bd_location_category', 'bd_location_category.id', '=', 'cases.bd_location_category_id')
 			->leftjoin('activity_ratecards', 'activity_ratecards.activity_id', 'activities.id')
 			->whereIn('activities.status_id', $status_ids);
-		if ($request->filter_by == 'general') {
-			$activities->where(function ($q) use ($range1, $range2) {
-				$q->whereDate('cases.date', '>=', $range1)
-					->whereDate('cases.date', '<=', $range2);
-			});
-		}
-		if ($request->filter_by == 'activity') {
-			//OLD CODE
-			// $activities->where(function ($q) use ($request, $range1, $range2) {
-			// 	$q->where(function ($query) use ($range1, $range2) {
-			// 		$query->whereDate('activities.created_at', '>=', $range1)
-			// 			->whereDate('activities.created_at', '<=', $range2)
-			// 			->whereNull('activities.updated_at');
-			// 	})
-			// 		->orWhere(function ($query) use ($range1, $range2) {
-			// 			$query->whereDate('activities.updated_at', '>=', $range1)
-			// 				->whereDate('activities.updated_at', '<=', $range2);
-			// 		});
-			// });
 
-			//NEW CODE
-			$activities->join('activity_logs', 'activities.id', '=', 'activity_logs.activity_id')
+		if ($request->filter_by == 'general') {
+			$activities->leftjoin('Invoices', 'Invoices.id', '=', 'activities.invoice_id')
+				->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
+				->leftjoin('invoice_vouchers', 'invoice_vouchers.invoice_id', 'Invoices.id')
+				->where(function ($q) use ($range1, $range2) {
+					$q->whereDate('cases.date', '>=', $range1)
+						->whereDate('cases.date', '<=', $range2);
+				});
+		} elseif ($request->filter_by == 'activity') {
+			$activities->leftjoin('Invoices', 'Invoices.id', '=', 'activities.invoice_id')
+				->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
+				->leftjoin('invoice_vouchers', 'invoice_vouchers.invoice_id', 'Invoices.id')
+				->join('activity_logs', 'activities.id', '=', 'activity_logs.activity_id')
 				->where(function ($q) use ($range1, $range2) {
 					$q->where(function ($query) use ($range1, $range2) {
 						$query->whereRaw('DATE(activity_logs.imported_at) between "' . $range1 . '" and "' . $range2 . '"');
@@ -2946,6 +2943,20 @@ class ActivityController extends Controller {
 						->orwhere(function ($query) use ($range1, $range2) {
 							$query->whereRaw('DATE(activity_logs.payment_completed_at) between "' . $range1 . '" and "' . $range2 . '"');
 						});
+				});
+		} elseif ($request->filter_by == 'invoiceDate') {
+			$activities->join('Invoices', 'Invoices.id', '=', 'activities.invoice_id')
+				->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
+				->leftjoin('invoice_vouchers', 'invoice_vouchers.invoice_id', 'Invoices.id')
+				->where(function ($q) use ($range1, $range2) {
+					$q->whereRaw('DATE(Invoices.created_at) between "' . $range1 . '" and "' . $range2 . '"');
+				});
+		} elseif ($request->filter_by == 'transactionDate') {
+			$activities->join('Invoices', 'Invoices.id', '=', 'activities.invoice_id')
+				->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')
+				->join('invoice_vouchers', 'invoice_vouchers.invoice_id', 'Invoices.id')
+				->where(function ($q) use ($range1, $range2) {
+					$q->whereRaw('DATE(invoice_vouchers.date) between "' . $range1 . '" and "' . $range2 . '"');
 				});
 		}
 
@@ -2997,6 +3008,10 @@ class ActivityController extends Controller {
 			'Invoices.invoice_no',
 			'Invoices.invoice_amount',
 			'invoice_statuses.name as invoice_status',
+			DB::raw('COALESCE(invoice_vouchers.date, "--") as transactionDate'),
+			DB::raw('COALESCE(invoice_vouchers.number, "--") as voucher'),
+			DB::raw('COALESCE(invoice_vouchers.tds, "--") as tdsAmount'),
+			DB::raw('COALESCE(invoice_vouchers.paid_amount, "--") as paidAmount'),
 			'cases.number as case_number',
 			DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y %H:%i:%s") as case_date'),
 			DB::raw('DATE_FORMAT(cases.submission_closing_date, "%d-%m-%Y %H:%i:%s") as case_submission_closing_date'),
@@ -3044,7 +3059,8 @@ class ActivityController extends Controller {
 				$activities = $activities->whereNotIn('activities.status_id', [2, 4, 15, 16, 17]);
 			}
 		}
-		$total_count = $activities->count('activities.id');
+		$activitesTotalCount = $activities;
+		$total_count = $activitesTotalCount->groupBy('activities.id')->get()->count();
 		if ($total_count == 0) {
 			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
 				'errors' => [
@@ -3058,7 +3074,7 @@ class ActivityController extends Controller {
 		$summary[] = ['Status', 'Count'];
 
 		foreach ($status_ids as $key => $status_id) {
-			$count_splitup_query = Activity::rightJoin('activity_portal_statuses', 'activities.status_id', 'activity_portal_statuses.id')
+			$count_splitup_query = ActivityPortalStatus::join('activities', 'activities.status_id', 'activity_portal_statuses.id')
 				->join('cases', 'cases.id', 'activities.case_id')
 				->select([
 					DB::raw('COUNT(activities.id) as activity_count'),
@@ -3072,8 +3088,7 @@ class ActivityController extends Controller {
 					$q->whereDate('cases.date', '>=', $range1)
 						->whereDate('cases.date', '<=', $range2);
 				});
-			}
-			if ($request->filter_by == 'activity') {
+			} elseif ($request->filter_by == 'activity') {
 				$count_splitup_query->join('activity_logs', 'activities.id', '=', 'activity_logs.activity_id')
 					->where(function ($q) use ($range1, $range2) {
 						$q->where(function ($query) use ($range1, $range2) {
@@ -3098,7 +3113,19 @@ class ActivityController extends Controller {
 								$query->whereRaw('DATE(activity_logs.payment_completed_at) between "' . $range1 . '" and "' . $range2 . '"');
 							});
 					});
+			} elseif ($request->filter_by == 'invoiceDate') {
+				$count_splitup_query->join('Invoices', 'Invoices.id', '=', 'activities.invoice_id')
+					->where(function ($q) use ($range1, $range2) {
+						$q->whereRaw('DATE(Invoices.created_at) between "' . $range1 . '" and "' . $range2 . '"');
+					});
+			} elseif ($request->filter_by == 'transactionDate') {
+				$count_splitup_query->join('Invoices', 'Invoices.id', '=', 'activities.invoice_id')
+					->join('invoice_vouchers', 'invoice_vouchers.invoice_id', 'Invoices.id')
+					->where(function ($q) use ($range1, $range2) {
+						$q->whereRaw('DATE(invoice_vouchers.date) between "' . $range1 . '" and "' . $range2 . '"');
+					});
 			}
+
 			if (!empty($request->get('asp_id'))) {
 				$count_splitup_query->where('activities.asp_id', $request->get('asp_id'));
 			}
@@ -3109,7 +3136,7 @@ class ActivityController extends Controller {
 				$count_splitup_query->where('cases.number', $request->get('ticket'));
 			}
 
-			$count_splitup_query = $count_splitup_query->first();
+			$count_splitup_query = $count_splitup_query->groupBy('activity_portal_statuses.id')->first();
 			if ($count_splitup_query) {
 				$summary[] = [
 					$count_splitup_query->name,
@@ -3158,6 +3185,10 @@ class ActivityController extends Controller {
 				'Invoice Number',
 				'Invoice Date',
 				'Invoice Status',
+				'Transaction Date',
+				'Voucher',
+				'TDS Amount',
+				'Paid Amount',
 				'BD Latitude',
 				'BD Longitude',
 				'BD Location',
@@ -3219,9 +3250,10 @@ class ActivityController extends Controller {
 				'Invoice Date',
 				'Invoice Amount',
 				'Invoice Status',
-				// 'Payment Date',
-				// 'Payment Mode',
-				// 'Paid Amount',
+				'Transaction Date',
+				'Voucher',
+				'TDS Amount',
+				'Paid Amount',
 				'BD Latitude',
 				'BD Longitude',
 				'BD Location',
@@ -3341,6 +3373,10 @@ class ActivityController extends Controller {
 					$activity->invoice_no,
 					$inv_created_at,
 					$activity->invoice_status,
+					$activity->transactionDate,
+					$activity->voucher,
+					$activity->tdsAmount,
+					$activity->paidAmount,
 					!empty($activity->bd_lat) ? $activity->bd_lat : '',
 					!empty($activity->bd_long) ? $activity->bd_long : '',
 					!empty($activity->bd_location) ? $activity->bd_location : '',
@@ -3401,9 +3437,10 @@ class ActivityController extends Controller {
 					$inv_created_at,
 					!empty($activity->invoice_amount) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice_amount, 2))) : '',
 					$activity->invoice_status,
-					// '',
-					// '',
-					// '',
+					$activity->transactionDate,
+					$activity->voucher,
+					$activity->tdsAmount,
+					$activity->paidAmount,
 					!empty($activity->bd_lat) ? $activity->bd_lat : '',
 					!empty($activity->bd_long) ? $activity->bd_long : '',
 					!empty($activity->bd_location) ? $activity->bd_location : '',
@@ -3539,7 +3576,7 @@ class ActivityController extends Controller {
 				$sheet->setAutoSize(false);
 				$sheet->fromArray($activity_details_data, NULL, 'A1');
 				$sheet->row(1, $activity_details_header);
-				$sheet->cells('A1:EG1', function ($cells) {
+				$sheet->cells('A1:EO1', function ($cells) {
 					$cells->setFont(array(
 						'size' => '10',
 						'bold' => true,

@@ -382,22 +382,14 @@
                                             </div>
                                         </div>
                                         <div class="col-sm-6" ng-if="!$ctrl.hasPermission('export-own-activities')">
-                                            <div class="input-text form-group">
-                                                <label>Filter By </label>
-                                                <div class="radio-button">
-                                                    <label class="radio-item">
-                                                        General
-                                                        <input type="radio" name="filter_by" value="general" checked />
-                                                        <span class="checkmark"></span>
-                                                    </label>
-                                                    <label class="radio-item">
-                                                        Activity
-                                                        <input type="radio" name="filter_by" value="activity" />
-                                                        <span class="checkmark"></span>
-                                                    </label>
-                                                </div>
-                                            </div><!-- Field -->
-                                        </div><!-- Column -->
+                                            <div class="form-group">
+                                                <label>Filter By<sup class="req" style="color:red">*</sup></label>
+                                                <md-select ng-model="$ctrl.filterBy" placeholder="Select Filter By">
+                                                    <md-option ng-repeat="j in $ctrl.extras.exportFilterByList" value="{{j.id}}">{{j.name}}</md-option>
+                                                </md-select>
+                                                <input type="hidden" name="filter_by" value="{{$ctrl.filterBy}}" id="filterBy" class="required">
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="alert alert-danger">Sometimes Export may take few minutes to export large amount of data. So please be patient.</div>
                                     <div class="approvalModal-btns">

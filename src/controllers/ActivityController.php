@@ -2696,6 +2696,12 @@ class ActivityController extends Controller {
 					}
 				}
 			}
+            if (empty($asp->pan_number)) {
+					return response()->json([
+						'success' => false,
+						'error' => 'Update PAN Card details to raise invoice',
+					]);
+				}
 
 			//SELF INVOICE
 			if ($asp->has_gst && !$asp->is_auto_invoice) {
@@ -2711,14 +2717,13 @@ class ActivityController extends Controller {
 						'error' => 'Invoice date is required',
 					]);
 				}
-
+                    
 				if (Str::length($request->invoice_no) > 20) {
 					return response()->json([
 						'success' => false,
 						'error' => 'The invoice number may not be greater than 20 characters',
 					]);
 				}
-
 				//CHECK IF ZERO AS FIRST LETTER
 				$invoiceNumberfirstLetter = substr(trim($request->invoice_no), 0, 1);
 				if (is_numeric($invoiceNumberfirstLetter)) {

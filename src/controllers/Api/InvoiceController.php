@@ -142,7 +142,8 @@ class InvoiceController extends Controller {
 						],
 					], $this->successStatus);
 				}
-				if (!$request->invoice_date) {
+
+				if (empty($request->invoice_date)) {
 					//CREATE INVOICE API LOG
 					$errors[] = 'Invoice date is required';
 					saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
@@ -153,6 +154,19 @@ class InvoiceController extends Controller {
 						'error' => 'Validation Error',
 						'errors' => [
 							'Invoice date is required',
+						],
+					], $this->successStatus);
+				}  
+				if (empty($asp->pan_number)) {
+					$errors[] = 'Update PAN Card details to raise invoice';
+					saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
+					DB::commit();
+
+					return response()->json([
+						'success' => false,
+						'error' => 'Validation Error',
+						'errors' => [
+							'Update PAN Card details to raise invoice',
 						],
 					], $this->successStatus);
 				}

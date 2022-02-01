@@ -211,6 +211,7 @@ app.component('approvedActivityInvoicePreview', {
                 return;
             }
             self.asp = response.data.asp;
+            console.log(self.asp.pan_number);
             self.activities = response.data.activities;
             self.invoice_amount = response.data.invoice_amount;
             self.invoice_amount_in_word = response.data.invoice_amount_in_word;
@@ -218,7 +219,6 @@ app.component('approvedActivityInvoicePreview', {
             self.inv_date = response.data.inv_date;
             self.signature_attachment = response.data.signature_attachment;
             self.signature_attachment_path = response.data.signature_attachment_path;
-
             if (self.asp.tax_calculation_method == '1') {
                 self.asp.tax_calculation_method = true;
             } else {
@@ -258,6 +258,7 @@ app.component('approvedActivityInvoicePreview', {
                     return false;
                 }
             };
+
 
             $scope.isSystem = function(asp) {
                 if (!asp.has_gst || (asp.has_gst && asp.is_auto_invoice)) {
@@ -304,6 +305,14 @@ app.component('approvedActivityInvoicePreview', {
                         },
                         callback: function(result) {
                             if (result) {
+                                if (self.asp.pan_number == "") {
+                                    $noty = new Noty({
+                                        type: 'error',
+                                        layout: 'topRight',
+                                        text: 'Update PAN Card details to raise invoice',
+                                    }).show();
+                                    return;
+                                }
                                 let formData = new FormData($(form_id)[0]);
                                 $('#submit').button('loading');
                                 if ($(".loader-type-2").hasClass("loader-hide")) {

@@ -3078,75 +3078,87 @@ class ActivityController extends Controller {
 		$summary_period = ['Period', date('d/M/Y', strtotime($range1)) . ' to ' . date('d/M/Y', strtotime($range2))];
 		$summary[] = ['Status', 'Count'];
 
-		foreach ($status_ids as $key => $status_id) {
-			$count_splitup_query = ActivityPortalStatus::join('activities', 'activities.status_id', 'activity_portal_statuses.id')
-				->join('cases', 'cases.id', 'activities.case_id')
-				->select([
-					DB::raw('COUNT(activities.id) as activity_count'),
-					'activity_portal_statuses.id',
-					'activity_portal_statuses.name',
-				])
-				->where('activity_portal_statuses.id', $status_id);
+		if (!empty($status_ids)) {
+			$activityPortalStatuses = ActivityPortalStatus::select([
+				'id',
+				'name',
+			])
+				->get();
+			foreach ($status_ids as $key => $status_id) {
+				$activityPortalStatus = $activityPortalStatuses->where('id', $status_id)->first();
+				if ($activityPortalStatus) {
+					$activitiesSummaryCountQuery = Activity::select([
+						'activities.id',
+					])
+						->join('cases', 'cases.id', 'activities.case_id')
+						->where('activities.status_id', $status_id);
 
-			if ($request->filter_by == 'general') {
-				$count_splitup_query->where(function ($q) use ($range1, $range2) {
-					$q->whereDate('cases.date', '>=', $range1)
-						->whereDate('cases.date', '<=', $range2);
-				});
-			} elseif ($request->filter_by == 'activity') {
-				$count_splitup_query->join('activity_logs', 'activities.id', '=', 'activity_logs.activity_id')
-					->where(function ($q) use ($range1, $range2) {
-						$q->where(function ($query) use ($range1, $range2) {
-							$query->whereRaw('DATE(activity_logs.imported_at) between "' . $range1 . '" and "' . $range2 . '"');
-						})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.asp_data_filled_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.bo_deffered_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.bo_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.invoice_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.axapta_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.payment_completed_at) between "' . $range1 . '" and "' . $range2 . '"');
+					if ($request->filter_by == 'general') {
+						$activitiesSummaryCountQuery->where(function ($q) use ($range1, $range2) {
+							$q->whereDate('cases.date', '>=', $range1)
+								->whereDate('cases.date', '<=', $range2);
+						});
+					} elseif ($request->filter_by == 'activity') {
+						$activitiesSummaryCountQuery->join('activity_logs', 'activities.id', '=', 'activity_logs.activity_id')
+							->where(function ($q) use ($range1, $range2) {
+								$q->where(function ($query) use ($range1, $range2) {
+									$query->whereRaw('DATE(activity_logs.imported_at) between "' . $range1 . '" and "' . $range2 . '"');
+								})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_logs.asp_data_filled_at) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_logs.bo_deffered_at) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_logs.bo_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_logs.invoice_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_logs.axapta_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_logs.payment_completed_at) between "' . $range1 . '" and "' . $range2 . '"');
+									});
 							});
-					});
-			} elseif ($request->filter_by == 'invoiceDate') {
-				$count_splitup_query->join('Invoices', 'Invoices.id', '=', 'activities.invoice_id')
-					->where(function ($q) use ($range1, $range2) {
-						$q->whereRaw('DATE(Invoices.created_at) between "' . $range1 . '" and "' . $range2 . '"');
-					});
-			} elseif ($request->filter_by == 'transactionDate') {
-				$count_splitup_query->join('Invoices', 'Invoices.id', '=', 'activities.invoice_id')
-					->join('invoice_vouchers', 'invoice_vouchers.invoice_id', 'Invoices.id')
-					->where(function ($q) use ($range1, $range2) {
-						$q->whereRaw('DATE(invoice_vouchers.date) between "' . $range1 . '" and "' . $range2 . '"');
-					});
-			}
+					} elseif ($request->filter_by == 'invoiceDate') {
+						$activitiesSummaryCountQuery->join('Invoices', 'Invoices.id', '=', 'activities.invoice_id')
+							->where(function ($q) use ($range1, $range2) {
+								$q->whereRaw('DATE(Invoices.created_at) between "' . $range1 . '" and "' . $range2 . '"');
+							});
+					} elseif ($request->filter_by == 'transactionDate') {
+						$activitiesSummaryCountQuery->join('Invoices', 'Invoices.id', '=', 'activities.invoice_id')
+							->join('invoice_vouchers', 'invoice_vouchers.invoice_id', 'Invoices.id')
+							->where(function ($q) use ($range1, $range2) {
+								$q->whereRaw('DATE(invoice_vouchers.date) between "' . $range1 . '" and "' . $range2 . '"');
+							});
+					}
 
-			if (!empty($request->get('asp_id'))) {
-				$count_splitup_query->where('activities.asp_id', $request->get('asp_id'));
-			}
-			if (!empty($request->get('client_id'))) {
-				$count_splitup_query->where('cases.client_id', $request->get('client_id'));
-			}
-			if (!empty($request->get('ticket'))) {
-				$count_splitup_query->where('cases.number', $request->get('ticket'));
-			}
+					if (!empty($request->get('asp_id'))) {
+						$activitiesSummaryCountQuery->where('activities.asp_id', $request->get('asp_id'));
+					}
+					if (!empty($request->get('client_id'))) {
+						$activitiesSummaryCountQuery->where('cases.client_id', $request->get('client_id'));
+					}
+					if (!empty($request->get('ticket'))) {
+						$activitiesSummaryCountQuery->where('cases.number', $request->get('ticket'));
+					}
+					if (!Entrust::can('view-all-activities')) {
+						if (Entrust::can('view-mapped-state-activities')) {
+							$stateIds = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
+							$activitiesSummaryCountQuery->join('asps', 'activities.asp_id', '=', 'asps.id')
+								->whereIn('asps.state_id', $stateIds);
+						}
+					}
 
-			$count_splitup_query = $count_splitup_query->groupBy('activity_portal_statuses.id')->first();
-			if ($count_splitup_query) {
-				$summary[] = [
-					$count_splitup_query->name,
-					$count_splitup_query->activity_count,
-				];
+					$activitySummaryCount = $activitiesSummaryCountQuery->groupBy('activities.id')->get()->count();
+					$summary[] = [
+						$activityPortalStatus->name,
+						$activitySummaryCount,
+					];
+				}
 			}
 		}
 

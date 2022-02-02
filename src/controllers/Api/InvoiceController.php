@@ -62,7 +62,7 @@ class InvoiceController extends Controller {
 			//GET ASP
 			$asp = ASP::where('asp_code', $request->asp_code)->first();
 
-			if (empty($asp->pan_number) || $asp->pan_number == '0' || Str::lower($asp->pan_number) == 'na') {
+			if (empty($asp->pan_number) || (!empty($asp->pan_number) && ($asp->pan_number == '0' || Str::lower($asp->pan_number) == 'na'))) {
 				$errors[] = 'Update PAN card details to raise invoice';
 				saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
 				DB::commit();

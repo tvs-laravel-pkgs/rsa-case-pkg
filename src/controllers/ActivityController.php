@@ -2675,7 +2675,7 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			if (empty($asp->pan_number) || $asp->pan_number == '0' || Str::lower($asp->pan_number) == 'na') {
+			if (empty($asp->pan_number) || (!empty($asp->pan_number) && ($asp->pan_number == '0' || Str::lower($asp->pan_number) == 'na'))) {
 				return response()->json([
 					'success' => false,
 					'error' => 'Update PAN card details to raise invoice',

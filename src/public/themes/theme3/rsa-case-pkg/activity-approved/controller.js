@@ -292,7 +292,7 @@ app.component('approvedActivityInvoicePreview', {
                         },
                         callback: function(result) {
                             if (result) {
-                                if (self.asp.pan_number == "" || self.asp.pan_number == '0' || self.asp.pan_number.toLowerCase() == 'na') {
+                                if (self.asp.pan_number == "" || (self.asp.pan_number && (self.asp.pan_number == '0' || self.asp.pan_number.toLowerCase() == 'na'))) {
                                     custom_noty('error', "Update PAN card details to raise invoice");
                                     return;
                                 }

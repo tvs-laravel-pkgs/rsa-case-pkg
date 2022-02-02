@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use URL;
 use Validator;
 
@@ -60,6 +61,20 @@ class InvoiceController extends Controller {
 
 			//GET ASP
 			$asp = ASP::where('asp_code', $request->asp_code)->first();
+
+			if (empty($asp->pan_number) || $asp->pan_number == '0' || Str::lower($asp->pan_number) == 'na') {
+				$errors[] = 'Update PAN card details to raise invoice';
+				saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						'Update PAN card details to raise invoice',
+					],
+				], $this->successStatus);
+			}
 
 			$activities = Activity::select(
 				'invoice_id',
@@ -142,7 +157,8 @@ class InvoiceController extends Controller {
 						],
 					], $this->successStatus);
 				}
-				if (!$request->invoice_date) {
+
+				if (empty($request->invoice_date)) {
 					//CREATE INVOICE API LOG
 					$errors[] = 'Invoice date is required';
 					saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
@@ -156,13 +172,6 @@ class InvoiceController extends Controller {
 						],
 					], $this->successStatus);
 				}
-				// if (!$request->invoice_copy) {
-				// 	return response()->json([
-				// 		'success' => false,
-				// 		'error' => 'Validation Error',
-				// 		'errors' => 'Invoice copy is required',
-				// 	], $this->successStatus);
-				// }
 
 				//CHECK IF ZERO AS FIRST LETTER
 				$invoiceNumberfirstLetter = substr(trim($request->invoice_number), 0, 1);

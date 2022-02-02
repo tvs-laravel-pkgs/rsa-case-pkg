@@ -2666,7 +2666,21 @@ class ActivityController extends Controller {
 			}
 
 			//GET ASP
-			$asp = ASP::where('id', $request->asp_id)->first();
+			$asp = ASP::find($request->asp_id);
+
+			if (!$asp) {
+				return response()->json([
+					'success' => false,
+					'error' => 'ASP not found',
+				]);
+			}
+
+			if (empty($asp->pan_number) || $asp->pan_number == '0' || Str::lower($asp->pan_number) == 'na') {
+				return response()->json([
+					'success' => false,
+					'error' => 'Update PAN card details to raise invoice',
+				]);
+			}
 
 			//CHECK IF INVOICE ALREADY CREATED FOR ACTIVITY
 			$activities = Activity::select(
@@ -2718,7 +2732,6 @@ class ActivityController extends Controller {
 						'error' => 'The invoice number may not be greater than 20 characters',
 					]);
 				}
-
 				//CHECK IF ZERO AS FIRST LETTER
 				$invoiceNumberfirstLetter = substr(trim($request->invoice_no), 0, 1);
 				if (is_numeric($invoiceNumberfirstLetter)) {

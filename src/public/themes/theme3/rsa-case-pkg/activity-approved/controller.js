@@ -156,11 +156,7 @@ app.component('approvedActivityList', {
                             if (!res.success) {
                                 $(".loader-type-2").addClass("loader-hide");
                                 $('#submit').button('reset');
-                                $noty = new Noty({
-                                    type: 'error',
-                                    layout: 'topRight',
-                                    text: res.error,
-                                }).show();
+                                custom_noty('error', res.error);
                             } else {
                                 $location.path('/rsa-case-pkg/approved-activity/invoice/preview/' + res.encryption_key);
                                 $scope.$apply();
@@ -169,11 +165,7 @@ app.component('approvedActivityList', {
                         .fail(function(xhr) {
                             $(".loader-type-2").addClass("loader-hide");
                             $('#submit').button('reset');
-                            $noty = new Noty({
-                                type: 'error',
-                                layout: 'topRight',
-                                text: 'Something went wrong at server',
-                            }).show();
+                            custom_noty('error', 'Something went wrong at server');
                         });
                 },
             });
@@ -201,11 +193,7 @@ app.component('approvedActivityInvoicePreview', {
                 for (var i in response.data.errors) {
                     errors += '<li>' + response.data.errors[i] + '</li>';
                 }
-                $noty = new Noty({
-                    type: 'error',
-                    layout: 'topRight',
-                    text: errors,
-                }).show();
+                custom_noty('error', errors);
                 $location.path('/rsa-case-pkg/approved-activity/list');
                 $scope.$apply();
                 return;
@@ -218,7 +206,6 @@ app.component('approvedActivityInvoicePreview', {
             self.inv_date = response.data.inv_date;
             self.signature_attachment = response.data.signature_attachment;
             self.signature_attachment_path = response.data.signature_attachment_path;
-
             if (self.asp.tax_calculation_method == '1') {
                 self.asp.tax_calculation_method = true;
             } else {
@@ -258,6 +245,7 @@ app.component('approvedActivityInvoicePreview', {
                     return false;
                 }
             };
+
 
             $scope.isSystem = function(asp) {
                 if (!asp.has_gst || (asp.has_gst && asp.is_auto_invoice)) {
@@ -304,6 +292,10 @@ app.component('approvedActivityInvoicePreview', {
                         },
                         callback: function(result) {
                             if (result) {
+                                if (self.asp.pan_number == "" || self.asp.pan_number == '0' || self.asp.pan_number.toLowerCase() == 'na') {
+                                    custom_noty('error', "Update PAN card details to raise invoice");
+                                    return;
+                                }
                                 let formData = new FormData($(form_id)[0]);
                                 $('#submit').button('loading');
                                 if ($(".loader-type-2").hasClass("loader-hide")) {
@@ -321,26 +313,9 @@ app.component('approvedActivityInvoicePreview', {
                                         if (!res.success) {
                                             $(".loader-type-2").addClass("loader-hide");
                                             $('#submit').button('reset');
-                                            $noty = new Noty({
-                                                type: 'error',
-                                                layout: 'topRight',
-                                                text: res.error,
-                                            }).show();
-                                            setTimeout(function() {
-                                                $noty.close();
-                                            }, 5000);
+                                            custom_noty('error', res.error);
                                         } else {
-                                            $noty = new Noty({
-                                                type: 'success',
-                                                layout: 'topRight',
-                                                text: res.message,
-                                                animation: {
-                                                    speed: 500
-                                                }
-                                            }).show();
-                                            setTimeout(function() {
-                                                $noty.close();
-                                            }, 1000);
+                                            custom_noty('success', res.message);
                                             setTimeout(function() {
                                                 $location.path('/rsa-case-pkg/approved-activity/list');
                                                 $scope.$apply();
@@ -350,14 +325,7 @@ app.component('approvedActivityInvoicePreview', {
                                     .fail(function(xhr) {
                                         $(".loader-type-2").addClass("loader-hide");
                                         $('#submit').button('reset');
-                                        $noty = new Noty({
-                                            type: 'error',
-                                            layout: 'topRight',
-                                            text: 'Something went wrong at server',
-                                        }).show();
-                                        setTimeout(function() {
-                                            $noty.close();
-                                        }, 5000);
+                                        custom_noty('error', "Something went wrong at server");
                                     });
                             }
                         }

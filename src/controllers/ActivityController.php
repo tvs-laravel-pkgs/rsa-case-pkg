@@ -2666,7 +2666,21 @@ class ActivityController extends Controller {
 			}
 
 			//GET ASP
-			$asp = ASP::where('id', $request->asp_id)->first();
+			$asp = ASP::find($request->asp_id);
+
+			if (!$asp) {
+				return response()->json([
+					'success' => false,
+					'error' => 'ASP not found',
+				]);
+			}
+
+			if (empty($asp->pan_number) || $asp->pan_number == '0' || Str::lower($asp->pan_number) == 'na') {
+				return response()->json([
+					'success' => false,
+					'error' => 'Update PAN card details to raise invoice',
+				]);
+			}
 
 			//CHECK IF INVOICE ALREADY CREATED FOR ACTIVITY
 			$activities = Activity::select(
@@ -2696,12 +2710,6 @@ class ActivityController extends Controller {
 					}
 				}
 			}
-            if (empty($asp->pan_number)) {
-					return response()->json([
-						'success' => false,
-						'error' => 'Update PAN Card details to raise invoice',
-					]);
-				}
 
 			//SELF INVOICE
 			if ($asp->has_gst && !$asp->is_auto_invoice) {
@@ -2717,7 +2725,7 @@ class ActivityController extends Controller {
 						'error' => 'Invoice date is required',
 					]);
 				}
-                    
+
 				if (Str::length($request->invoice_no) > 20) {
 					return response()->json([
 						'success' => false,

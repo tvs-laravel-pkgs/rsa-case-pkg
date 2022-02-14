@@ -1816,65 +1816,75 @@ class ActivityController extends Controller {
 			Storage::makeDirectory($destination, 0777);
 
 			//MAP ATTACHMENTS REMOVAL
-			if (!empty($request->update_attach_map_id)) {
+			if (isset($request->update_attach_km_map_id) && !empty($request->update_attach_km_map_id)) {
 				$update_attach_km_map_ids = json_decode($request->update_attach_km_map_id, true);
 				$removeMapAttachments = Attachment::whereIn('id', $update_attach_km_map_ids)
 					->get();
 				if ($removeMapAttachments->isNotEmpty()) {
 					foreach ($removeMapAttachments as $removeMapAttachmentKey => $removeMapAttachment) {
-						unlink(storage_path('app/' . $destination . '/' . $removeMapAttachment->attachment_file_name));
+						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeMapAttachment->attachment_file_name)) {
+							unlink(storage_path('app/' . $destination . '/' . $removeMapAttachment->attachment_file_name));
+						}
 						$removeMapAttachment->delete();
 					}
 				}
 			}
 
 			//OTHER ATTACHMENTS REMOVAL
-			if (!empty($request->update_attach_other_id)) {
+			if (isset($request->update_attach_other_id) && !empty($request->update_attach_other_id)) {
 				$update_attach_other_ids = json_decode($request->update_attach_other_id, true);
 				$removeOtherAttachments = Attachment::whereIn('id', $update_attach_other_ids)
 					->get();
 				if ($removeOtherAttachments->isNotEmpty()) {
 					foreach ($removeOtherAttachments as $removeOtherAttachmentKey => $removeOtherAttachment) {
-						unlink(storage_path('app/' . $destination . '/' . $removeOtherAttachment->attachment_file_name));
+						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeOtherAttachment->attachment_file_name)) {
+							unlink(storage_path('app/' . $destination . '/' . $removeOtherAttachment->attachment_file_name));
+						}
 						$removeOtherAttachment->delete();
 					}
 				}
 			}
 
 			//VEHICLE PICKUP ATTACHMENTS REMOVAL
-			if (!empty($request->vehiclePickupAttachRemovelIds)) {
+			if (isset($request->vehiclePickupAttachRemovelIds) && !empty($request->vehiclePickupAttachRemovelIds)) {
 				$vehiclePickupAttachRemovelIds = json_decode($request->vehiclePickupAttachRemovelIds, true);
 				$removeVehiclePickupAttachments = Attachment::whereIn('id', $vehiclePickupAttachRemovelIds)
 					->get();
 				if ($removeVehiclePickupAttachments->isNotEmpty()) {
 					foreach ($removeVehiclePickupAttachments as $removeVehiclePickupAttachmentKey => $removeVehiclePickupAttachment) {
-						unlink(storage_path('app/' . $destination . '/' . $removeVehiclePickupAttachment->attachment_file_name));
+						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeVehiclePickupAttachment->attachment_file_name)) {
+							unlink(storage_path('app/' . $destination . '/' . $removeVehiclePickupAttachment->attachment_file_name));
+						}
 						$removeVehiclePickupAttachment->delete();
 					}
 				}
 			}
 
 			//VEHICLE DROP ATTACHMENTS REMOVAL
-			if (!empty($request->vehicleDropAttachRemovelIds)) {
+			if (isset($request->vehicleDropAttachRemovelIds) && !empty($request->vehicleDropAttachRemovelIds)) {
 				$vehicleDropAttachRemovelIds = json_decode($request->vehicleDropAttachRemovelIds, true);
 				$removeVehicleDropAttachments = Attachment::whereIn('id', $vehicleDropAttachRemovelIds)
 					->get();
 				if ($removeVehicleDropAttachments->isNotEmpty()) {
 					foreach ($removeVehicleDropAttachments as $removeVehicleDropAttachmentKey => $removeVehicleDropAttachment) {
-						unlink(storage_path('app/' . $destination . '/' . $removeVehicleDropAttachment->attachment_file_name));
+						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeVehicleDropAttachment->attachment_file_name)) {
+							unlink(storage_path('app/' . $destination . '/' . $removeVehicleDropAttachment->attachment_file_name));
+						}
 						$removeVehicleDropAttachment->delete();
 					}
 				}
 			}
 
 			//INVENTORY JOB SHEET ATTACHMENTS REMOVAL
-			if (!empty($request->inventoryJobSheetAttachRemovelIds)) {
+			if (isset($request->inventoryJobSheetAttachRemovelIds) && !empty($request->inventoryJobSheetAttachRemovelIds)) {
 				$inventoryJobSheetAttachRemovelIds = json_decode($request->inventoryJobSheetAttachRemovelIds, true);
 				$removeInventoryJobSheetAttachments = Attachment::whereIn('id', $inventoryJobSheetAttachRemovelIds)
 					->get();
 				if ($removeInventoryJobSheetAttachments->isNotEmpty()) {
 					foreach ($removeInventoryJobSheetAttachments as $removeInventoryJobSheetAttachmentKey => $removeInventoryJobSheetAttachment) {
-						unlink(storage_path('app/' . $destination . '/' . $removeInventoryJobSheetAttachment->attachment_file_name));
+						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeInventoryJobSheetAttachment->attachment_file_name)) {
+							unlink(storage_path('app/' . $destination . '/' . $removeInventoryJobSheetAttachment->attachment_file_name));
+						}
 						$removeInventoryJobSheetAttachment->delete();
 					}
 				}
@@ -1910,7 +1920,9 @@ class ActivityController extends Controller {
 					->get();
 				if ($getOtherAttachments->isNotEmpty()) {
 					foreach ($getOtherAttachments as $getOtherAttachmentKey => $getOtherAttachment) {
-						unlink(storage_path('app/' . $destination . '/' . $getOtherAttachment->attachment_file_name));
+						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $getOtherAttachment->attachment_file_name)) {
+							unlink(storage_path('app/' . $destination . '/' . $getOtherAttachment->attachment_file_name));
+						}
 						$getOtherAttachment->delete();
 					}
 				}
@@ -1937,7 +1949,9 @@ class ActivityController extends Controller {
 					->get();
 				if ($getMapAttachments->isNotEmpty()) {
 					foreach ($getMapAttachments as $getMapAttachmentKey => $getMapAttachment) {
-						unlink(storage_path('app/' . $destination . '/' . $getMapAttachment->attachment_file_name));
+						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $getMapAttachment->attachment_file_name)) {
+							unlink(storage_path('app/' . $destination . '/' . $getMapAttachment->attachment_file_name));
+						}
 						$getMapAttachment->delete();
 					}
 				}
@@ -1964,7 +1978,9 @@ class ActivityController extends Controller {
 					->where('entity_type', config('constants.entity_types.VEHICLE_PICKUP_ATTACHMENT'))
 					->first();
 				if ($getVehiclePickupAttach) {
-					unlink(storage_path('app/' . $destination . '/' . $getVehiclePickupAttach->attachment_file_name));
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $getVehiclePickupAttach->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $getVehiclePickupAttach->attachment_file_name));
+					}
 					$getVehiclePickupAttach->delete();
 				}
 
@@ -1986,7 +2002,9 @@ class ActivityController extends Controller {
 					->where('entity_type', config('constants.entity_types.VEHICLE_DROP_ATTACHMENT'))
 					->first();
 				if ($getVehicleDropAttach) {
-					unlink(storage_path('app/' . $destination . '/' . $getVehicleDropAttach->attachment_file_name));
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $getVehicleDropAttach->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $getVehicleDropAttach->attachment_file_name));
+					}
 					$getVehicleDropAttach->delete();
 				}
 
@@ -2008,7 +2026,9 @@ class ActivityController extends Controller {
 					->where('entity_type', config('constants.entity_types.INVENTORY_JOB_SHEET_ATTACHMENT'))
 					->first();
 				if ($getInventoryJobSheetAttach) {
-					unlink(storage_path('app/' . $destination . '/' . $getInventoryJobSheetAttach->attachment_file_name));
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $getInventoryJobSheetAttach->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $getInventoryJobSheetAttach->attachment_file_name));
+					}
 					$getInventoryJobSheetAttach->delete();
 				}
 

@@ -560,6 +560,25 @@ class ActivityController extends Controller {
 				}
 			}
 
+			//RELEASE ONHOLD ACTIVITIES WITH CLOSED OR CANCELLED CASES
+			if (($case->status_id == 4 || $case->status_id == 3) && $activity->status_id == 17) {
+				//MECHANICAL SERVICE GROUP
+				if ($service_type->service_group_id == 2) {
+					$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id);
+					if ($is_bulk) {
+						//ASP Completed Data Entry - Waiting for BO Bulk Verification
+						$statusId = 5;
+					} else {
+						//ASP Completed Data Entry - Waiting for BO Individual Verification
+						$statusId = 6;
+					}
+				} else {
+					$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+				}
+				$activity->status_id = $statusId;
+				$activity->save();
+			}
+
 			//MARKING AS OWN PATROL ACTIVITY
 			if ($activity->asp->workshop_type == 1) {
 				//Own Patrol Activity - Not Eligible for Payout

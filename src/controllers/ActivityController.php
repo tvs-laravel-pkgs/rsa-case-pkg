@@ -307,7 +307,7 @@ class ActivityController extends Controller {
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 		// ->where('activities.asp_accepted_cc_details', '!=', 1)
-			->whereIn('activities.status_id', [5, 8])
+		// ->whereIn('activities.status_id', [5, 8])
 			->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
 		;
@@ -346,6 +346,28 @@ class ActivityController extends Controller {
 				$activities->whereIn('asps.state_id', $states);
 			}
 		}
+
+		if (Auth::check()) {
+			if (!empty(Auth::user()->activity_approval_level_id)) {
+				//L1
+				if (Auth::user()->activity_approval_level_id == 1) {
+					$activities->whereIn('activities.status_id', [5, 8]);
+				} elseif (Auth::user()->activity_approval_level_id == 2) {
+					// L2
+					$activities->where('activities.status_id', 18);
+				} elseif (Auth::user()->activity_approval_level_id == 3) {
+					// L3
+					$activities->where('activities.status_id', 21);
+				} else {
+					$activities = collect();
+				}
+			} else {
+				$activities = collect();
+			}
+		} else {
+			$activities = collect();
+		}
+
 		return Datatables::of($activities)
 			->filterColumn('asp', function ($query, $keyword) {
 				$sql = "CONCAT(asps.asp_code,' / ',asps.workshop_name)  like ?";

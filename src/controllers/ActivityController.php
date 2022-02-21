@@ -2453,7 +2453,7 @@ class ActivityController extends Controller {
 				$join->on('bo_invoice_amount.activity_id', 'activities.id')
 					->where('bo_invoice_amount.key_id', 182); //BO INVOICE AMOUNT
 			})
-			->orderBy('cases.date', 'DESC')
+			->orderBy('cases.date', 'ASC')
 			->groupBy('activities.id')
 			->where('users.id', Auth::id())
 			->whereIn('activities.status_id', [11, 1]) //BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
@@ -2707,10 +2707,15 @@ class ActivityController extends Controller {
 				'invoice_id',
 				'crm_activity_id',
 				'number',
-				'asp_id'
+				'asp_id',
+				'case_id'
 			)
 				->whereIn('crm_activity_id', $request->crm_activity_ids)
 				->get();
+
+			//CUSTOM VALIDATION SAID BY BUSINESS TEAM
+			$aug21ToNov21caseExist = false;
+			$afterDec21caseExist = false;
 
 			if (!empty($activities)) {
 				foreach ($activities as $key => $activity) {
@@ -2728,7 +2733,32 @@ class ActivityController extends Controller {
 							'error' => 'Invoice already created for activity ' . $activity->crm_activity_id,
 						]);
 					}
+
+					//CUSTOM VALIDATION SAID BY BUSINESS TEAM
+					if (!$aug21ToNov21caseExist) {
+						if ($activity->case && ((date('Y-m-d', strtotime($activity->case->date)) >= "2021-08-01") && (date('Y-m-d', strtotime($activity->case->date)) <= "2021-11-31"))) {
+							$aug21ToNov21caseExist = true;
+						}
+					}
+
+					if (!$afterDec21caseExist) {
+						if ($activity->case && (date('Y-m-d', strtotime($activity->case->date)) >= "2021-12-01")) {
+							$afterDec21caseExist = true;
+						}
+					}
 				}
+			} else {
+				return response()->json([
+					'success' => false,
+					'error' => 'Activity not found',
+				]);
+			}
+
+			if ($aug21ToNov21caseExist && $afterDec21caseExist) {
+				return response()->json([
+					'success' => false,
+					'error' => 'August to November cases should be separate invoices and need to raise a separate invoice for the cases which were created after December',
+				]);
 			}
 
 			//SELF INVOICE

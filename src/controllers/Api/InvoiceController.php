@@ -136,7 +136,7 @@ class InvoiceController extends Controller {
 
 			if ($aug21ToNov21caseExist && $afterDec21caseExist) {
 				//CREATE INVOICE API LOG
-				$errors[] = 'August to November cases should be separate invoices and need to raise a separate invoice for the cases which were created after December';
+				$errors[] = "August'21 to November'21 cases should be separately invoiced. Cases done from 1st December 2021 should be invoiced separately for INP Payment";
 				saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
@@ -144,7 +144,7 @@ class InvoiceController extends Controller {
 					'success' => false,
 					'error' => 'Validation Error',
 					'errors' => [
-						'August to November cases should be separate invoices and need to raise a separate invoice for the cases which were created after December',
+						"August'21 to November'21 cases should be separately invoiced. Cases done from 1st December 2021 should be invoiced separately for INP Payment",
 					],
 				], $this->successStatus);
 			}

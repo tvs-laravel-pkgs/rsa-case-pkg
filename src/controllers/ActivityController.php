@@ -2743,7 +2743,7 @@ class ActivityController extends Controller {
 			if ($aug21ToNov21caseExist && $afterDec21caseExist) {
 				return response()->json([
 					'success' => false,
-					'error' => 'August to November cases should be separate invoices and need to raise a separate invoice for the cases which were created after December',
+					'error' => "August'21 to November'21 cases should be separately invoiced. Cases done from 1st December 2021 should be invoiced separately for INP Payment",
 				]);
 			}
 

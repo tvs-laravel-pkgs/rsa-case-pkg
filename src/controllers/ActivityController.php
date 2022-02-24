@@ -3728,7 +3728,7 @@ class ActivityController extends Controller {
 	}
 
 	public function searchAsps(Request $request) {
-		return Asp::searchAsps($request);
+		return Asp::searchAllAsps($request);
 	}
 
 	public function searchClients(Request $request) {

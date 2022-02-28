@@ -468,6 +468,11 @@ app.component('deferredActivityUpdate', {
                 }
             },
             submitHandler: function(form) {
+                if (self.asp_km_travelled <= 0) {
+                    custom_noty('error', 'KM travelled should be greater than zero');
+                    return;
+                }
+
                 bootbox.confirm({
                     message: 'Do you want to save activity details?',
                     className: 'action-confirm-modal',

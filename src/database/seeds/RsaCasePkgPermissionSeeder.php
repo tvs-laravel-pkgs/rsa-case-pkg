@@ -92,6 +92,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'towing-images-required-for-activities',
 				'display_name' => 'Towing Images Required Option',
 			],
+			[
+				'display_order' => 12,
+				'parent' => 'activity-status',
+				'name' => 'display-asp-number-in-activities',
+				'display_name' => 'Display ASP Number',
+			],
 
 			//ACTIVITIES VERIFICATION
 			[
@@ -950,6 +956,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'finance-export-own-dealers-membership-cancellation-invoice',
 				'display_name' => 'Finance Export Own Dealers',
 			],
+			[
+				'display_order' => 7,
+				'parent' => 'membership-cancellation-invoice',
+				'name' => 'download-cancellation-einvoice',
+				'display_name' => 'Download E-Invoice',
+			],
 
 			//MEMBERSHIP MENU
 			[
@@ -1229,6 +1241,26 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Send Customer Invoice To Customer',
 			],
 
+			//LOCATOR
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'locator',
+				'display_name' => 'Locator',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'locator',
+				'name' => 'own-client-locator',
+				'display_name' => 'Own Client',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'locator',
+				'name' => 'all-locator',
+				'display_name' => 'All',
+			],
+
 			//DISPLAY LATEST UPDATES
 			[
 				'display_order' => 99,
@@ -1272,7 +1304,31 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'last-login-log-export',
 				'display_name' => 'Export',
 			],
-
+			//DISCOUNT REASONS
+			[
+				'display_order' => 999,
+				'parent' => null,
+				'name' => 'discount-reason',
+				'display_name' => 'Discount Reason',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'discount-reason',
+				'name' => 'add-discount-reason',
+				'display_name' => 'Add',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'discount-reason',
+				'name' => 'edit-discount-reason',
+				'display_name' => 'Edit',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'discount-reason',
+				'name' => 'delete-discount-reason',
+				'display_name' => 'Delete',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

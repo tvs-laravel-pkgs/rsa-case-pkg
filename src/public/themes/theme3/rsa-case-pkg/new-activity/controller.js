@@ -17,7 +17,7 @@ app.component('newActivity', {
                 },
             },
             submitHandler: function(form) {
-                console.log(self.user);
+                // console.log(self.user);
                 let formData = new FormData($(form_id)[0]);
                 $('#submit').button('loading');
                 if ($(".loader-type-2").hasClass("loader-hide")) {
@@ -31,7 +31,7 @@ app.component('newActivity', {
                         contentType: false,
                     })
                     .done(function(res) {
-                        console.log(res);
+                        // console.log(res);
                         if (!res.success) {
                             $(".loader-type-2").addClass("loader-hide");
                             $('#submit').button('reset');
@@ -39,12 +39,7 @@ app.component('newActivity', {
                             for (var i in res.errors) {
                                 errors += '<li>' + res.errors[i] + '</li>';
                             }
-                            console.log(errors);
-                            $noty = new Noty({
-                                type: 'error',
-                                layout: 'topRight',
-                                text: errors,
-                            }).show();
+                            custom_noty('error', errors);
                         } else {
                             $location.path('/rsa-case-pkg/new-activity/update-details/' + res.activity_id)
                             $scope.$apply()
@@ -53,11 +48,7 @@ app.component('newActivity', {
                     .fail(function(xhr) {
                         $(".loader-type-2").addClass("loader-hide");
                         $('#submit').button('reset');
-                        $noty = new Noty({
-                            type: 'error',
-                            layout: 'topRight',
-                            text: 'Something went wrong at server',
-                        }).show();
+                        custom_noty('error', 'Something went wrong at server');
                     });
             },
         });
@@ -338,6 +329,10 @@ app.component('newActivityUpdateDetails', {
                 }
             },
             submitHandler: function(form) {
+                if (self.km_travelled <= 0) {
+                    custom_noty('error', 'KM travelled should be greater than zero');
+                    return;
+                }
                 bootbox.confirm({
                     message: 'Do you want to save activity details?',
                     className: 'action-confirm-modal',
@@ -353,7 +348,6 @@ app.component('newActivityUpdateDetails', {
                     },
                     callback: function(result) {
                         if (result) {
-
                             let formData = new FormData($(form_id)[0]);
                             $('#submit').button('loading');
                             if ($(".loader-type-2").hasClass("loader-hide")) {
@@ -374,17 +368,9 @@ app.component('newActivityUpdateDetails', {
                                         for (var i in res.errors) {
                                             errors += '<li>' + res.errors[i] + '</li>';
                                         }
-                                        $noty = new Noty({
-                                            type: 'error',
-                                            layout: 'topRight',
-                                            text: errors,
-                                        }).show();
+                                        custom_noty('error', errors);
                                     } else {
-                                        $noty = new Noty({
-                                            type: 'success',
-                                            layout: 'topRight',
-                                            text: 'Activity informations saved successfully',
-                                        }).show();
+                                        custom_noty('success', "Activity informations saved successfully");
                                         $location.path('/rsa-case-pkg/new-activity');
                                         $scope.$apply();
                                     }
@@ -392,11 +378,7 @@ app.component('newActivityUpdateDetails', {
                                 .fail(function(xhr) {
                                     $(".loader-type-2").addClass("loader-hide");
                                     $('#submit').button('reset');
-                                    $noty = new Noty({
-                                        type: 'error',
-                                        layout: 'topRight',
-                                        text: 'Something went wrong at server',
-                                    }).show();
+                                    custom_noty('error', "Something went wrong at server");
                                 });
                         }
                     }

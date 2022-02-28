@@ -4,6 +4,11 @@ app.component('invoiceList', {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
+        if (!self.hasPermission('asp-invoices')) {
+            window.location = "#!/page-permission-denied";
+            return false;
+        }
+
         self.filter_img_url = filter_img_url;
         if (typeof($routeParams.type_id) == 'undefined') {
             $location.path('/page-not-found');
@@ -264,7 +269,7 @@ app.component('invoiceView', {
                 }
             }, 1500);
 
-            if(self.hasPermission('view-invoice-payment-info')){
+            if (self.hasPermission('view-invoice-payment-info')) {
                 setTimeout(function() {
                     $scope.getPaymenyInfo();
                 }, 2000);

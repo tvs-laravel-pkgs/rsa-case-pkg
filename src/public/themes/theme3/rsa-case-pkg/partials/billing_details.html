@@ -52,6 +52,7 @@
                                     <td class="" ng-show="$ctrl.data.verification==1" style="text-align:right">
                                         <input style="text-align:right" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" type="text" name="bo_km_travelled" ng-model="$ctrl.data.raw_bo_km_travelled" value="{{$ctrl.data.raw_bo_km_travelled}}" class="km_value" ng-keyup="calculate()"><br>
                                         <span class="color-red" ng-show="$ctrl.data.raw_bo_km_travelled !== 0 && $ctrl.data.raw_bo_km_travelled === ''">KM Travelled is required</span>
+                                        <span class="color-red" ng-show="$ctrl.data.raw_bo_km_travelled !== '' && $ctrl.data.raw_bo_km_travelled <= 0">KM Travelled should be greater than zero</span>
                                         <span class="color-red" ng-show="$ctrl.show_km==1">Enter value less than ASP value</span>
                                     </td class="">
                                 </tr>
@@ -138,13 +139,11 @@
                                         Below {{ $ctrl.data.asp_service_type_data.range_limit | number }}
                                     </th>
                                     <th>
-                                        Above {{ $ctrl.data.asp_service_type_data.range_limit | number }} <br />(for every KM)
+                                        Above {{ $ctrl.data.asp_service_type_data.range_limit | number }} (for every KM)
                                     </th>
                                     <th>
                                         Empty Return Charge
                                     </th>
-                                    <th>Adjustment Type</th>
-                                    <th>Adjustment</th>
                                     <th>Waiting Charge</th>     
                                 </tr>
                             </thead>
@@ -163,14 +162,6 @@
                                         {{$ctrl.data.asp_service_type_data.empty_return_range_price }}
                                         <input class="form-control viewData-input mt_return_price hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.empty_return_range_price}}">
                                              </td>
-                                    <td>
-                                        {{$ctrl.data.asp_service_type_data.adjustment_type == 1 ? 'Percentage' : 'Amount'}}
-                                        <input class="form-control viewData-input adjustment_type hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.adjustment_type == 1 ? 'Percentage' : 'Amount'}}">
-                                    </td>
-                                    <td>
-                                        {{$ctrl.data.asp_service_type_data.adjustment}}
-                                        <input class="form-control viewData-input adjustment hide_temp" disabled="disabled" type="text" value="{{ $ctrl.data.asp_service_type_data.adjustment }}">
-                                    </td>
                                     <td style="text-align: left;">
                                         {{$ctrl.data.asp_service_type_data.waiting_charge_per_hour}}
                                         <input class="form-control viewData-input waiting_charge hide_temp" disabled="disabled" type="text" value="{{$ctrl.data.asp_service_type_data.waiting_charge_per_hour}}">

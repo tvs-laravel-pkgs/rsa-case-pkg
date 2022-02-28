@@ -32,6 +32,7 @@ app.component('aspDetails', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
+        self.hasPermission = HelperService.hasPermission;
     }
 });
 //----------------------------------------------------------------------------------------------------------------------------
@@ -290,13 +291,26 @@ app.component('billingDetails', {
                 $scope.approveTicket = function() {
                     if (self.data.raw_bo_km_travelled !== 0 && self.data.raw_bo_km_travelled === '') {
                         custom_noty('error', 'KM Travelled is required');
+                        return;
                     } else if (self.data.raw_bo_not_collected !== 0 && self.data.raw_bo_not_collected === '') {
                         custom_noty('error', 'Charges not collected is required');
+                        return;
                     } else if (self.data.raw_bo_collected !== 0 && self.data.raw_bo_collected === '') {
                         custom_noty('error', 'Charges collected is required');
+                        return;
                     } else if (self.show_km == 1) {
                         custom_noty('error', 'Enter BO KM less than ASP KM');
+                        return;
                     } else {
+                        if (self.data.raw_bo_km_travelled !== '' && self.data.raw_bo_km_travelled <= 0) {
+                            custom_noty('error', 'KM Travelled should be greater than zero');
+                            return;
+                        }
+
+                        if (self.data.bo_net_amount <= 0) {
+                            custom_noty('error', 'Payout amount should be greater than zero');
+                            return;
+                        }
                         $("#confirm-ticket-modal").modal();
                     }
                 }
@@ -406,9 +420,9 @@ app.component('billingDetails', {
                         self.data.bo_net_amount = self.data.raw_bo_amount;
                     } else {
                         if (self.data.finance_status.po_eligibility_type_id == 341) {
-                            var below_amount = parseInt(self.data.raw_bo_km_travelled) == 0 ? 0 : parseFloat(self.data.asp_service_type_data.empty_return_range_price);
+                            var below_amount = parseFloat(self.data.raw_bo_km_travelled) == 0 ? 0 : parseFloat(self.data.asp_service_type_data.empty_return_range_price);
                         } else {
-                            var below_amount = parseInt(self.data.raw_bo_km_travelled) == 0 ? 0 : parseFloat(self.data.asp_service_type_data.below_range_price);
+                            var below_amount = parseFloat(self.data.raw_bo_km_travelled) == 0 ? 0 : parseFloat(self.data.asp_service_type_data.below_range_price);
                         }
                         if (parseFloat(self.data.raw_bo_km_travelled) > parseFloat(self.data.asp_km_travelled)) {
                             self.show_km = 1;
@@ -424,11 +438,13 @@ app.component('billingDetails', {
                         }
                         var amount_wo_deduction = parseFloat(below_amount) + parseFloat(above_amount);
                         var adjustment = 0;
-                        if (parseFloat(self.data.asp_service_type_data.adjustment_type) == 2) {
-                            adjustment = parseFloat(self.data.asp_service_type_data.adjustment);
-                        } else if (self.data.asp_service_type_data.adjustment_type == 1) {
-                            adjustment = parseFloat(parseFloat(amount_wo_deduction) * (parseFloat(self.data.asp_service_type_data.adjustment) / 100));
-                        }
+
+                        //DISABLED AS THERE IS NO ADJUSTMENT TYPE IN FUTURE
+                        // if (parseFloat(self.data.asp_service_type_data.adjustment_type) == 2) {
+                        //     adjustment = parseFloat(self.data.asp_service_type_data.adjustment);
+                        // } else if (self.data.asp_service_type_data.adjustment_type == 1) {
+                        //     adjustment = parseFloat(parseFloat(amount_wo_deduction) * (parseFloat(self.data.asp_service_type_data.adjustment) / 100));
+                        // }
 
                         //FORMULAE DISABLED AS PER CLIENT REQUEST
                         // var amount = parseFloat(amount_wo_deduction) + parseFloat(adjustment);

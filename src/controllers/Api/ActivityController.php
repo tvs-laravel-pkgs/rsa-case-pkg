@@ -183,7 +183,8 @@ class ActivityController extends Controller {
 			$data_src = Config::where([
 				'entity_type_id' => 22,
 				'name' => $request->data_src,
-			])->first();
+			])
+				->first();
 			if (!$data_src) {
 				//SAVE ACTIVITY API LOG
 				$errors[] = 'Invalid Data Source';
@@ -438,7 +439,7 @@ class ActivityController extends Controller {
 				if ($case->status_id == 4) {
 					//IF SERVICE GROUP IS MECHANICAL
 					if ($service_type->service_group_id == 2) {
-						$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km);
+						$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $data_src->id);
 						if ($is_bulk) {
 							//ASP Completed Data Entry - Waiting for BO Bulk Verification
 							$activity->status_id = 5;
@@ -542,7 +543,7 @@ class ActivityController extends Controller {
 
 						//IF MECHANICAL SERVICE GROUP
 						if ($service_type->service_group_id == 2) {
-							$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km);
+							$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id);
 							if ($is_bulk) {
 								//ASP Completed Data Entry - Waiting for BO Bulk Verification
 								$activity->status_id = 5;
@@ -557,6 +558,25 @@ class ActivityController extends Controller {
 					}
 					$activity->save();
 				}
+			}
+
+			//RELEASE ONHOLD ACTIVITIES WITH CLOSED OR CANCELLED CASES
+			if (($case->status_id == 4 || $case->status_id == 3) && $activity->status_id == 17) {
+				//MECHANICAL SERVICE GROUP
+				if ($service_type->service_group_id == 2) {
+					$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id);
+					if ($is_bulk) {
+						//ASP Completed Data Entry - Waiting for BO Bulk Verification
+						$statusId = 5;
+					} else {
+						//ASP Completed Data Entry - Waiting for BO Individual Verification
+						$statusId = 6;
+					}
+				} else {
+					$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+				}
+				$activity->status_id = $statusId;
+				$activity->save();
 			}
 
 			//MARKING AS OWN PATROL ACTIVITY

@@ -64,11 +64,15 @@ class InvoiceController extends Controller {
 			$activities = Activity::select(
 				'invoice_id',
 				'crm_activity_id',
-				'asp_id'
+				'asp_id',
+				'case_id'
 			)
 				->whereIn('crm_activity_id', $request->activity_id)
 				->get();
 
+			//CUSTOM VALIDATION SAID BY BUSINESS TEAM
+			$aug21ToNov21caseExist = false;
+			$afterDec21caseExist = false;
 			if (!empty($activities)) {
 				foreach ($activities as $key => $activity) {
 					//CHECK ASP MATCHES WITH ACTIVITY ASP
@@ -101,7 +105,48 @@ class InvoiceController extends Controller {
 							],
 						], $this->successStatus);
 					}
+
+					//CUSTOM VALIDATION SAID BY BUSINESS TEAM
+					if (!$aug21ToNov21caseExist) {
+						if ($activity->case && ((date('Y-m-d', strtotime($activity->case->date)) >= "2021-08-01") && (date('Y-m-d', strtotime($activity->case->date)) <= "2021-11-31"))) {
+							$aug21ToNov21caseExist = true;
+						}
+					}
+
+					if (!$afterDec21caseExist) {
+						if ($activity->case && (date('Y-m-d', strtotime($activity->case->date)) >= "2021-12-01")) {
+							$afterDec21caseExist = true;
+						}
+					}
 				}
+			} else {
+				//CREATE INVOICE API LOG
+				$errors[] = 'Activity not found';
+				saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						'Activity not found',
+					],
+				], $this->successStatus);
+			}
+
+			if ($aug21ToNov21caseExist && $afterDec21caseExist) {
+				//CREATE INVOICE API LOG
+				$errors[] = "August'21 to November'21 cases should be separately invoiced. Cases done from 1st December 2021 should be invoiced separately for INP Payment";
+				saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						"August'21 to November'21 cases should be separately invoiced. Cases done from 1st December 2021 should be invoiced separately for INP Payment",
+					],
+				], $this->successStatus);
 			}
 
 			//CHECK ACTIVITY IS ACCEPTED OR NOT

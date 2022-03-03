@@ -12,11 +12,6 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 	 */
 	public function run() {
 
-		// 1,	13|4,	14,
-		// 2, 	5,	11|7,	13,	14,
-		// 4,	5,	11,	13,	14
-		// 5,	7,	5
-		// 6,	11|7,
 		$activity_portal_statuses = [
 			1 => [
 				'name' => 'Case Closed - Waiting for ASP to Generate Invoice',

@@ -472,8 +472,30 @@ class ActivityController extends Controller {
 		$activity_data = Activity::findOrFail($activity_status_id);
 		if ($view_type_id == 2) {
 			if (!($activity_data && ($activity_data->status_id == 5 || $activity_data->status_id == 6 || $activity_data->status_id == 9 || $activity_data->status_id == 8))) {
-				$errors[0] = "Activity is not valid for Verification!!!";
-				return response()->json(['success' => false, 'errors' => $errors]);
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Activity is not valid for Verification',
+					],
+				]);
+			}
+
+			if (Auth::check()) {
+				if (empty(Auth::user()->activity_approval_level_id)) {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'User is not valid for Verification',
+						],
+					]);
+				}
+			} else {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'User is not valid for Verification',
+					],
+				]);
 			}
 		}
 		$this->data['activities'] = $activity = Activity::with([
@@ -1078,6 +1100,25 @@ class ActivityController extends Controller {
 			}
 		}
 
+		$serviceTypes = AspServiceType::select([
+			'service_types.id',
+			'service_types.name',
+		])
+			->join('service_types', 'service_types.id', 'asp_service_types.service_type_id')
+			->where('asp_service_types.asp_id', $activity->asp_id)
+			->groupBy('asp_service_types.service_type_id')
+			->get();
+		$boServiceTypeId = '';
+		$boServiceTypeData = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', 161)->first();
+		if ($boServiceTypeData) {
+			$boServiceType = ServiceType::where('name', $boServiceTypeData->value)->first();
+			if ($boServiceType) {
+				$boServiceTypeId = $boServiceType->id;
+			}
+		}
+
+		$this->data['activities']['serviceTypes'] = $serviceTypes;
+		$this->data['activities']['boServiceTypeId'] = $boServiceTypeId;
 		$this->data['activities']['importedAt'] = $importedAt;
 		$this->data['activities']['importedBy'] = $importedBy;
 		$this->data['activities']['aspDataFilledAt'] = $aspDataFilledAt;

@@ -289,6 +289,12 @@ app.component('billingDetails', {
                 }
 
                 $scope.approveTicket = function() {
+
+                    if (self.data.boServiceTypeId == '') {
+                        custom_noty('error', 'Service is required');
+                        return;
+                    }
+
                     if (self.data.raw_bo_km_travelled !== 0 && self.data.raw_bo_km_travelled === '') {
                         custom_noty('error', 'KM Travelled is required');
                         return;
@@ -400,6 +406,41 @@ app.component('billingDetails', {
 
                             }
                         });
+                    }
+                }
+
+                $scope.getServiceTypeRateCardDetail = () => {
+                    if (self.data.boServiceTypeId && self.data.asp_id) {
+                        $.ajax({
+                                url: getServiceTypeRateCardDetail,
+                                method: "POST",
+                                data: {
+                                    service_type_id: self.data.boServiceTypeId,
+                                    asp_id: self.data.asp_id,
+                                },
+                            })
+                            .done(function(res) {
+                                if (!res.success) {
+                                    var errors = '';
+                                    for (var i in res.errors) {
+                                        errors += '<li>' + res.errors[i] + '</li>';
+                                    }
+                                    custom_noty('error', errors);
+                                    return;
+                                } else {
+                                    //TOWING
+                                    if (res.serviceType.service_group_id == 3) {
+                                        self.showTowingAttachment = true;
+                                    } else {
+                                        self.showTowingAttachment = false;
+                                    }
+                                    $scope.$apply()
+                                }
+                            })
+                            .fail(function(xhr) {
+                                custom_noty('error', 'Something went wrong at server');
+                                console.log(xhr);
+                            });
                     }
                 }
 

@@ -415,6 +415,7 @@ app.component('billingDetails', {
                                 url: getServiceTypeRateCardDetail,
                                 method: "POST",
                                 data: {
+                                    activity_id: self.data.id,
                                     service_type_id: self.data.boServiceTypeId,
                                     asp_id: self.data.asp_id,
                                 },

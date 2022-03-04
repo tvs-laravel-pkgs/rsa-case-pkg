@@ -469,6 +469,7 @@ class ActivityController extends Controller {
 
 	public function viewActivityStatus($view_type_id = NULL, $activity_status_id) {
 		try {
+			$activityApprovalLevel = '';
 			$activity_data = Activity::findOrFail($activity_status_id);
 			if ($view_type_id == 2) {
 				if (!($activity_data && ($activity_data->status_id == 5 || $activity_data->status_id == 6 || $activity_data->status_id == 9 || $activity_data->status_id == 8))) {
@@ -488,6 +489,8 @@ class ActivityController extends Controller {
 								'User is not valid for Verification',
 							],
 						]);
+					} else {
+						$activityApprovalLevel = Auth::user()->activity_approval_level_id;
 					}
 				} else {
 					return response()->json([
@@ -703,6 +706,7 @@ class ActivityController extends Controller {
 			}
 			$this->data['activities']['km_travelled_attachment_url'] = $km_travelled_attachment_url;
 			$this->data['activities']['other_charges_attachment_url'] = $other_charges_attachment_url;
+			$this->data['activities']['activityApprovalLevel'] = $activityApprovalLevel;
 
 			$vehiclePickupAttachment = Attachment::where([
 				['entity_id', '=', $activity_status_id],
@@ -1177,6 +1181,7 @@ class ActivityController extends Controller {
 					'errors' => $validator->errors()->all(),
 				]);
 			}
+			$serviceType = ServiceType::find($request->service_type_id);
 
 			$activity = Activity::find($request->activity_id);
 
@@ -1193,6 +1198,7 @@ class ActivityController extends Controller {
 
 			return response()->json([
 				'success' => true,
+				'service' => $serviceType->name,
 				'asp_service_type_data' => $asp_service_type_data,
 			]);
 
@@ -1210,6 +1216,33 @@ class ActivityController extends Controller {
 		// dd($request->all());
 		DB::beginTransaction();
 		try {
+			if (Auth::check()) {
+				if (empty(Auth::user()->activity_approval_level_id)) {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'User is not valid for Verification',
+						],
+					]);
+				}
+			} else {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'User is not valid for Verification',
+					],
+				]);
+			}
+
+			if ($request->boServiceTypeId == '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Service is required',
+					],
+				]);
+			}
+
 			if ($request->bo_km_travelled !== '' && $request->bo_km_travelled <= 0) {
 				return response()->json([
 					'success' => false,
@@ -1284,7 +1317,7 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
-			$key_list = [158, 159, 160, 176, 172, 173, 179, 182];
+			$key_list = [158, 159, 160, 161, 176, 172, 173, 179, 182];
 			foreach ($key_list as $keyw) {
 				$var_key = Config::where('id', $keyw)->first();
 				$key_name = str_replace(" ", "_", strtolower($var_key->name));
@@ -1297,16 +1330,6 @@ class ActivityController extends Controller {
 				]);
 				$activityDetail->value = $value;
 				$activityDetail->save();
-				//OLD
-				// $var_key_val = DB::table('activity_details')->updateOrInsert(
-				// 	[
-				// 		'activity_id' => $request->activity_id,
-				// 		'key_id' => $keyw, 'company_id' => 1,
-				// 	],
-				// 	[
-				// 		'value' => $value,
-				// 	]
-				// );
 			}
 			if (isset($request->is_exceptional_check)) {
 				$activity->is_exceptional_check = $request->is_exceptional_check;
@@ -1314,9 +1337,10 @@ class ActivityController extends Controller {
 					$activity->exceptional_reason = isset($request->exceptional_reason) ? $request->exceptional_reason : NULL;
 				}
 			}
+
 			$activity->bo_comments = isset($request->bo_comments) ? $request->bo_comments : NULL;
 			$activity->deduction_reason = isset($request->deduction_reason) ? $request->deduction_reason : NULL;
-			$activity->status_id = 11;
+			$activity->service_type_id = $request->boServiceTypeId;
 			$activity->updated_by_id = Auth::user()->id;
 			$activity->save();
 
@@ -1330,36 +1354,87 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_DEFERRED');
-			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_APPROVED');
-			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
-				'Status' => $log_status,
-				'Waiting for' => $log_waiting,
-			], 361);
+			$isActivityBulk = $this->isActivityBulkOnApproval($activity);
+			$isApproved = false;
+			$approver = '';
+			//GREATER THAN 10000
+			if (floatval($request->bo_net_amount) > 10000) {
+				//L1
+				if (Auth::user()->activity_approval_level_id == 1) {
+					if ($isActivityBulk) {
+						$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+					} else {
+						$activityStatusId = 19; //L1 Approved - Waiting for L2 Individual Verification
+					}
+				} elseif (Auth::user()->activity_approval_level_id == 2) {
+					// L2
+					if ($isActivityBulk) {
+						$activityStatusId = 21; //L2 Approved - Waiting for L3 Bulk Verification
+					} else {
+						$activityStatusId = 22; //L2 Approved - Waiting for L3 Individual Verification
+					}
+				} elseif (Auth::user()->activity_approval_level_id == 3) {
+					// L3
+					$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
+					$isApproved = true;
+					$approver = '3';
+				}
+			} elseif (floatval($request->bo_net_amount) > 4000 && floatval($request->bo_net_amount) <= 10000) {
+				//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 10000
+				//L1
+				if (Auth::user()->activity_approval_level_id == 1) {
+					if ($isActivityBulk) {
+						$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+					} else {
+						$activityStatusId = 19; //L1 Approved - Waiting for L2 Individual Verification
+					}
+				} elseif (Auth::user()->activity_approval_level_id == 2) {
+					// L2
+					$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
+					$isApproved = true;
+					$approver = '2';
+				} elseif (Auth::user()->activity_approval_level_id == 2) {
+					// L3
+					$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
+					$isApproved = true;
+					$approver = '3';
+				}
+			} else {
+				//LESSER THAN OR EQUAL TO 4000
+				//L1
+				if (Auth::user()->activity_approval_level_id == 1) {
+					$isL2ApprovalRequired = $this->isL2ApprovalRequired($activity);
+					if ($isL2ApprovalRequired) {
+						if ($isActivityBulk) {
+							$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+						} else {
+							$activityStatusId = 19; //L1 Approved - Waiting for L2 Individual Verification
+						}
+					} else {
+						$activityStatusId = 11; //L1 Approved - Waiting for Invoice Generation by ASP
+						$isApproved = true;
+						$approver = '1';
+					}
+				} elseif (Auth::user()->activity_approval_level_id == 2) {
+					// L2
+					$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
+					$isApproved = true;
+					$approver = '2';
+				} elseif (Auth::user()->activity_approval_level_id == 2) {
+					// L3
+					$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
+					$isApproved = true;
+					$approver = '3';
+				}
+			}
 
-			$activity_log = ActivityLog::firstOrNew([
-				'activity_id' => $activity->id,
-			]);
-			$activity_log->bo_approved_at = date('Y-m-d H:i:s');
-			$activity_log->bo_approved_by_id = Auth::id();
-			$activity_log->updated_by_id = Auth::id();
-			$activity_log->save();
+			$activity->status_id = $activityStatusId;
+			$activity->updated_at = Carbon::now();
+			$activity->save();
 
-			//sending confirmation SMS to ASP
-			// $mobile_number = $activity->asp->contact_number1;
-			// $sms_message = 'Tkt waiting for Invoice';
-			// sendSMS2($sms_message,$mobile_number,$activity->number, NULL);
-
-			$mobile_number = $activity->asp->contact_number1;
-			$sms_message = 'Tkt waiting for Invoice';
-			$array = [$request->case_number];
-			sendSMS2($sms_message, $mobile_number, $array, NULL);
-
-			//sending notification to all BO users
-			$asp_user = $activity->asp->user_id;
-			$noty_message_template = 'BO_APPROVED';
-			$number = [$request->case_number];
-			notify2($noty_message_template, $asp_user, config('constants.alert_type.blue'), $number);
+			if ($isApproved && !empty($approver)) {
+				$this->updateActivityApprovalLog($activity, $approver, $request->case_number, 1);
+			}
 
 			DB::commit();
 			return response()->json([
@@ -1376,6 +1451,97 @@ class ActivityController extends Controller {
 				],
 			]);
 		}
+	}
+
+	public function isL2ApprovalRequired($activity) {
+		$ccKmTravelled = $activity->detail(280) ? $activity->detail(280)->value : 0;
+		$ccServiceTypeVal = $activity->detail(153) ? $activity->detail(153)->value : '';
+
+		$boKmTravelled = $activity->detail(158) ? $activity->detail(158)->value : 0;
+		$boServiceTypeVal = $activity->detail(161) ? $activity->detail(161)->value : '';
+
+		$l2ApprovalRequired = false;
+		if (!empty($ccServiceTypeVal) && !empty($boServiceTypeVal)) {
+			$ccServiceType = ServiceType::where('name', $ccServiceTypeVal)->first();
+			$boServiceType = ServiceType::where('name', $boServiceTypeVal)->first();
+			if ($ccServiceType && $boServiceType && ($ccServiceType->id != $boServiceType->id)) {
+				$l2ApprovalRequired = true;
+			}
+		}
+
+		if ($boKmTravelled > $ccKmTravelled) {
+			$l2ApprovalRequired = true;
+		}
+
+		return $l2ApprovalRequired;
+	}
+
+	public function isActivityBulkOnApproval($activity) {
+		$isMobile = 0; //WEB
+		//MOBILE APP
+		if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
+			$isMobile = 1;
+		}
+
+		$aspRateCard = AspServiceType::where('asp_id', $activity->asp_id)
+			->where('service_type_id', $activity->service_type_id)
+			->where('is_mobile', $isMobile)
+			->first();
+		if ($aspRateCard) {
+			$rangeLimit = $aspRateCard->range_limit;
+		}
+
+		$ccKmTravelled = $activity->detail(280) ? $activity->detail(280)->value : 0;
+		$ccCollected = $activity->detail(281) ? $activity->detail(281)->value : 0;
+		$ccNotCollected = $activity->detail(282) ? $activity->detail(282)->value : 0;
+		$ccServiceTypeVal = $activity->detail(153) ? $activity->detail(153)->value : '';
+
+		$boKmTravelled = $activity->detail(158) ? $activity->detail(158)->value : 0;
+		$boCollected = $activity->detail(159) ? $activity->detail(159)->value : 0;
+		$boNotCollected = $activity->detail(160) ? $activity->detail(160)->value : 0;
+		$boServiceTypeVal = $activity->detail(161) ? $activity->detail(161)->value : '';
+
+		$isBulk = true;
+		//1. checking CC and BO Service
+		if (!empty($ccServiceTypeVal) && !empty($boServiceTypeVal)) {
+			$ccServiceType = ServiceType::where('name', $ccServiceTypeVal)->first();
+			$boServiceType = ServiceType::where('name', $boServiceTypeVal)->first();
+			if ($ccServiceType && $boServiceType && ($ccServiceType->id != $boServiceType->id)) {
+				$isBulk = false;
+			}
+		}
+
+		//2. checking CC and BO KMs
+		$allowed_variation = 0.5;
+		$five_percentage_difference = $ccKmTravelled * $allowed_variation / 100;
+		if (($boKmTravelled > $rangeLimit) || $rangeLimit == 0) {
+			if ($boKmTravelled > $ccKmTravelled) {
+				$kmDifference = $boKmTravelled - $ccKmTravelled;
+				if ($kmDifference > $five_percentage_difference) {
+					$isBulk = false;
+				}
+			}
+		}
+
+		//checking BO KMs exceed ASP rate card range limit
+		if ($boKmTravelled > $rangeLimit) {
+			$isBulk = false;
+		}
+
+		//checking CC and BO not collected
+		if ($boNotCollected > $ccNotCollected) {
+			$isBulk = false;
+		}
+
+		//checking CC and BO collected
+		if ($boCollected < $ccCollected) {
+			$isBulk = false;
+		}
+
+		if (floatval($boKmTravelled == 0)) {
+			$isBulk = false;
+		}
+		return $isBulk;
 	}
 
 	public function bulkApproveActivity(Request $request) {
@@ -1398,10 +1564,6 @@ class ActivityController extends Controller {
 			}
 
 			foreach ($activities as $key => $activity) {
-
-				$activity->status_id = 11;
-				$activity->updated_by_id = Auth::user()->id;
-				$activity->save();
 
 				$saveActivityRatecardResponse = $activity->saveActivityRatecard();
 				if (!$saveActivityRatecardResponse['success']) {
@@ -1497,33 +1659,77 @@ class ActivityController extends Controller {
 					]);
 					$bo_invoice_amount->value = $invoiceAmount;
 					$bo_invoice_amount->save();
+
+					$isApproved = false;
+					$approver = '';
+					//GREATER THAN 10000
+					if (floatval($request->bo_net_amount) > 10000) {
+						//L1
+						if (Auth::user()->activity_approval_level_id == 1) {
+							$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+						} elseif (Auth::user()->activity_approval_level_id == 2) {
+							// L2
+							$activityStatusId = 21; //L2 Approved - Waiting for L3 Bulk Verification
+						} elseif (Auth::user()->activity_approval_level_id == 3) {
+							// L3
+							$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
+							$isApproved = true;
+							$approver = '3';
+						}
+					} elseif (floatval($request->bo_net_amount) > 4000 && floatval($request->bo_net_amount) <= 10000) {
+						//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 10000
+						//L1
+						if (Auth::user()->activity_approval_level_id == 1) {
+							$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+						} elseif (Auth::user()->activity_approval_level_id == 2) {
+							// L2
+							$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
+							$isApproved = true;
+							$approver = '2';
+						} elseif (Auth::user()->activity_approval_level_id == 2) {
+							// L3
+							$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
+							$isApproved = true;
+							$approver = '3';
+						}
+					} else {
+						//LESSER THAN OR EQUAL TO 4000
+						//L1
+						if (Auth::user()->activity_approval_level_id == 1) {
+							$isL2ApprovalRequired = $this->isL2ApprovalRequired($activity);
+							if ($isL2ApprovalRequired) {
+								$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+							} else {
+								$activityStatusId = 11; //L1 Approved - Waiting for Invoice Generation by ASP
+								$isApproved = true;
+								$approver = '1';
+							}
+						} elseif (Auth::user()->activity_approval_level_id == 2) {
+							// L2
+							$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
+							$isApproved = true;
+							$approver = '2';
+						} elseif (Auth::user()->activity_approval_level_id == 2) {
+							// L3
+							$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
+							$isApproved = true;
+							$approver = '3';
+						}
+					}
+
+					$activity->status_id = $activityStatusId;
+					$activity->updated_at = Carbon::now();
+					$activity->save();
+
+					if ($isApproved && !empty($approver)) {
+						$this->updateActivityApprovalLog($activity, $approver, $activity->case->number, 2);
+					}
+				} else {
+					return response()->json([
+						'success' => false,
+						'error' => "ASP Rate card not available for the case : " . $activity->case->number,
+					]);
 				}
-
-				$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_BULK');
-				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_APPROVED');
-				logActivity3(config('constants.entity_types.ticket'), $activity->id, [
-					'Status' => $log_status,
-					'Waiting for' => $log_waiting,
-				], 361);
-
-				$activity_log = ActivityLog::firstOrNew([
-					'activity_id' => $activity->id,
-				]);
-				$activity_log->bo_approved_at = date('Y-m-d H:i:s');
-				$activity_log->bo_approved_by_id = Auth::id();
-				$activity_log->updated_by_id = Auth::id();
-				$activity_log->save();
-
-				$mobile_number = $activity->asp->contact_number1;
-				$sms_message = 'Tkt waiting for Invoice';
-				$array = [$activity->case->number];
-				sendSMS2($sms_message, $mobile_number, $array, NULL);
-
-				//sending notification to all BO users
-				$asp_user = $activity->asp->user_id;
-				$noty_message_template = 'BO_APPROVED';
-				$number = [$activity->case->number];
-				notify2($noty_message_template, $asp_user, config('constants.alert_type.blue'), $number);
 			}
 
 			DB::commit();
@@ -1534,7 +1740,55 @@ class ActivityController extends Controller {
 
 		} catch (\Exception $e) {
 			DB::rollBack();
-			return response()->json(['success' => false, 'errors' => ['Exception Error' => $e->getMessage()]]);
+			return response()->json([
+				'success' => false,
+				'error' => $e->getMessage(),
+			]);
+		}
+	}
+
+	public function updateActivityApprovalLog($activity, $approver, $caseNumber, $type) {
+
+		//INDIVIDUAL
+		if ($type == 1) {
+			$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_DEFERRED');
+		} else {
+			//BULK
+			$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_BULK');
+		}
+		$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_APPROVED');
+		logActivity3(config('constants.entity_types.ticket'), $activity->id, [
+			'Status' => $log_status,
+			'Waiting for' => $log_waiting,
+		], 361);
+
+		$activityLog = ActivityLog::firstOrNew([
+			'activity_id' => $activity->id,
+		]);
+		//L1
+		if ($approver == '1') {
+			$activityLog->bo_approved_at = Carbon::now();
+			$activityLog->bo_approved_by_id = Auth::id();
+		} elseif ($approver == '2') {
+			//L2
+			$activityLog->l2_approved_at = Carbon::now();
+			$activityLog->l2_approved_by_id = Auth::id();
+		} elseif ($approver == '3') {
+			//L3
+			$activityLog->l3_approved_at = Carbon::now();
+			$activityLog->l3_approved_by_id = Auth::id();
+		}
+		$activityLog->updated_by_id = Auth::id();
+		$activityLog->updated_at = Carbon::now();
+		$activityLog->save();
+
+		if ($activity->asp && !empty($activity->asp->contact_number1)) {
+			sendSMS2("Tkt waiting for Invoice", $activity->asp->contact_number1, [$caseNumber], NULL);
+		}
+
+		//sending notification to all BO users
+		if ($activity->asp && !empty($activity->asp->user_id)) {
+			notify2('BO_APPROVED', $activity->asp->user_id, config('constants.alert_type.blue'), [$caseNumber]);
 		}
 	}
 

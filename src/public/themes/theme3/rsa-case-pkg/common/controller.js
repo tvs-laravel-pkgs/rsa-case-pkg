@@ -290,7 +290,7 @@ app.component('billingDetails', {
 
                 $scope.approveTicket = function() {
 
-                    if (self.data.boServiceTypeId == '') {
+                    if (self.data.verification == 1 && self.data.boServiceTypeId == '') {
                         custom_noty('error', 'Service is required');
                         return;
                     }
@@ -342,6 +342,8 @@ app.component('billingDetails', {
                                 deduction_reason: self.data.deduction_reason,
                                 exceptional_reason: self.exceptional_reason,
                                 is_exceptional_check: self.is_exceptional_check,
+                                bo_service_type: self.data.bo_service_type,
+                                boServiceTypeId: self.data.boServiceTypeId,
                             }
                         ).then(function(response) {
                             $(".loader-type-2").addClass("loader-hide");
@@ -429,12 +431,9 @@ app.component('billingDetails', {
                                     custom_noty('error', errors);
                                     return;
                                 } else {
-                                    //TOWING
-                                    if (res.serviceType.service_group_id == 3) {
-                                        self.showTowingAttachment = true;
-                                    } else {
-                                        self.showTowingAttachment = false;
-                                    }
+                                    self.data.bo_service_type = self.data.service = res.service;
+                                    self.data.asp_service_type_data = res.asp_service_type_data;
+                                    $scope.calculate();
                                     $scope.$apply()
                                 }
                             })

@@ -1323,6 +1323,44 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'delete-discount-reason',
 				'display_name' => 'Delete',
 			],
+
+			//TDS LOGS
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'tds-log',
+				'display_name' => 'TDS',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'tds-log',
+				'name' => 'add-tds-log',
+				'display_name' => 'Add',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'tds-log',
+				'name' => 'edit-tds-log',
+				'display_name' => 'Edit',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'tds-log',
+				'name' => 'download-tds-log-attachment',
+				'display_name' => 'Download Attachment',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'tds-log',
+				'name' => 'approve-tds-log',
+				'display_name' => 'Approve',
+			],
+			[
+				'display_order' => 5,
+				'parent' => 'tds-log',
+				'name' => 'reject-tds-log',
+				'display_name' => 'Reject',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

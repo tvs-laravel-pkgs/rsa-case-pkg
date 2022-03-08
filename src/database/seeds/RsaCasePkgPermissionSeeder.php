@@ -1374,6 +1374,60 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'reject-tds-log',
 				'display_name' => 'Reject',
 			],
+			[
+				'display_order' => 6,
+				'parent' => 'tds-log',
+				'name' => 'own-tds-log',
+				'display_name' => 'Own Only',
+			],
+			[
+				'display_order' => 7,
+				'parent' => 'tds-log',
+				'name' => 'own-dealers-tds-log',
+				'display_name' => 'Own Dealers',
+			],
+			[
+				'display_order' => 8,
+				'parent' => 'tds-log',
+				'name' => 'all-finance-tds-log',
+				'display_name' => 'Finance All',
+			],
+			[
+				'display_order' => 9,
+				'parent' => 'tds-log',
+				'name' => 'all-admin-tds-log',
+				'display_name' => 'Admin All',
+			],
+			[
+				'display_order' => 10,
+				'parent' => 'tds-log',
+				'name' => 'view-tds-log',
+				'display_name' => 'View',
+			],
+			[
+				'display_order' => 11,
+				'parent' => 'tds-log',
+				'name' => 'export-own-tds-log',
+				'display_name' => 'Finance Export Own',
+			],
+			[
+				'display_order' => 12,
+				'parent' => 'tds-log',
+				'name' => 'export-own-dealers-tds-log',
+				'display_name' => 'Finance Export Own Dealers',
+			],
+			[
+				'display_order' => 13,
+				'parent' => 'tds-log',
+				'name' => 'export-all-finance-tds-log',
+				'display_name' => 'Finance Export All',
+			],
+			[
+				'display_order' => 14,
+				'parent' => 'tds-log',
+				'name' => 'export-all-admin-tds-log',
+				'display_name' => 'Admin Export All',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

@@ -36,7 +36,7 @@
                                     <p class="date"><span>{{ formatDate($ctrl.data.boDefferedAt) | date: 'd-M' }} <br>{{ formatDate($ctrl.data.boDefferedAt) | date: 'y' }}</span></p>
                                 </div>
                                 <div class="customStatus-list-child">
-                                    <h3 class="title">BO Deferred</h3>
+                                    <h3 class="title">L1 Deferred</h3>
                                     <p ng-if="$ctrl.data.boDefferedBy != ''">By : {{ $ctrl.data.boDefferedBy }}</p>
                                     <span>{{ formatDate($ctrl.data.boDefferedAt) | date: 'h:mm a' }}</span>
                                 </div>
@@ -48,9 +48,33 @@
                                     <p class="date"><span>{{ formatDate($ctrl.data.boApprovedAt) | date: 'd-M' }} <br>{{ formatDate($ctrl.data.boApprovedAt) | date: 'y' }}</span></p>
                                 </div>
                                 <div class="customStatus-list-child">
-                                    <h3 class="title">BO Approved</h3>
+                                    <h3 class="title">L1 Approved</h3>
                                     <p ng-if="$ctrl.data.boApprovedBy != ''">By : {{ $ctrl.data.boApprovedBy }}</p>
                                     <span>{{ formatDate($ctrl.data.boApprovedAt) | date: 'h:mm a' }}</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li ng-if="$ctrl.data.l2ApprovedAt != ''">
+                            <div class="customStatus-list-item">
+                                <div class="customStatus-list-child left">
+                                    <p class="date"><span>{{ formatDate($ctrl.data.l2ApprovedAt) | date: 'd-M' }} <br>{{ formatDate($ctrl.data.l2ApprovedAt) | date: 'y' }}</span></p>
+                                </div>
+                                <div class="customStatus-list-child">
+                                    <h3 class="title">L2 Approved</h3>
+                                    <p ng-if="$ctrl.data.l2ApprovedBy != ''">By : {{ $ctrl.data.l2ApprovedBy }}</p>
+                                    <span>{{ formatDate($ctrl.data.l2ApprovedAt) | date: 'h:mm a' }}</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li ng-if="$ctrl.data.l3ApprovedAt != ''">
+                            <div class="customStatus-list-item">
+                                <div class="customStatus-list-child left">
+                                    <p class="date"><span>{{ formatDate($ctrl.data.l3ApprovedAt) | date: 'd-M' }} <br>{{ formatDate($ctrl.data.l3ApprovedAt) | date: 'y' }}</span></p>
+                                </div>
+                                <div class="customStatus-list-child">
+                                    <h3 class="title">L3 Approved</h3>
+                                    <p ng-if="$ctrl.data.l3ApprovedBy != ''">By : {{ $ctrl.data.l3ApprovedBy }}</p>
+                                    <span>{{ formatDate($ctrl.data.l3ApprovedAt) | date: 'h:mm a' }}</span>
                                 </div>
                             </div>
                         </li>

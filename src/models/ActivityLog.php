@@ -37,6 +37,14 @@ class ActivityLog extends Model {
 		return $this->belongsTo('App\User', 'bo_approved_by_id');
 	}
 
+	public function l2ApprovedBy() {
+		return $this->belongsTo('App\User', 'l2_approved_by_id');
+	}
+
+	public function l3ApprovedBy() {
+		return $this->belongsTo('App\User', 'l3_approved_by_id');
+	}
+
 	public function invoiceGeneratedBy() {
 		return $this->belongsTo('App\User', 'invoice_generated_by_id');
 	}

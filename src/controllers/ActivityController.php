@@ -1056,6 +1056,10 @@ class ActivityController extends Controller {
 			$boDefferedBy = "";
 			$boApprovedAt = "";
 			$boApprovedBy = "";
+			$l2ApprovedAt = "";
+			$l2ApprovedBy = "";
+			$l3ApprovedAt = "";
+			$l3ApprovedBy = "";
 			$invoiceGeneratedAt = "";
 			$invoiceGeneratedBy = "";
 			$axaptaGeneratedAt = "";
@@ -1086,6 +1090,18 @@ class ActivityController extends Controller {
 				}
 				if (!empty($activity_data->log->bo_approved_by_id)) {
 					$boApprovedBy = $activity_data->log->boApprovedBy ? ($activity_data->log->boApprovedBy->name . ' - ' . $activity_data->log->boApprovedBy->username) : '';
+				}
+				if (!empty($activity_data->log->l2_approved_at)) {
+					$l2ApprovedAt = $activity_data->log->l2_approved_at;
+				}
+				if (!empty($activity_data->log->l2_approved_by_id)) {
+					$l2ApprovedBy = $activity_data->log->l2ApprovedBy ? ($activity_data->log->l2ApprovedBy->name . ' - ' . $activity_data->log->l2ApprovedBy->username) : '';
+				}
+				if (!empty($activity_data->log->l3_approved_at)) {
+					$l3ApprovedAt = $activity_data->log->l3_approved_at;
+				}
+				if (!empty($activity_data->log->l3_approved_by_id)) {
+					$l3ApprovedBy = $activity_data->log->l3ApprovedBy ? ($activity_data->log->l3ApprovedBy->name . ' - ' . $activity_data->log->l3ApprovedBy->username) : '';
 				}
 				if (!empty($activity_data->log->invoice_generated_at)) {
 					$invoiceGeneratedAt = $activity_data->log->invoice_generated_at;
@@ -1131,6 +1147,10 @@ class ActivityController extends Controller {
 			$this->data['activities']['boDefferedBy'] = $boDefferedBy;
 			$this->data['activities']['boApprovedAt'] = $boApprovedAt;
 			$this->data['activities']['boApprovedBy'] = $boApprovedBy;
+			$this->data['activities']['l2ApprovedAt'] = $l2ApprovedAt;
+			$this->data['activities']['l2ApprovedBy'] = $l2ApprovedBy;
+			$this->data['activities']['l3ApprovedAt'] = $l3ApprovedAt;
+			$this->data['activities']['l3ApprovedBy'] = $l3ApprovedBy;
 			$this->data['activities']['invoiceGeneratedAt'] = $invoiceGeneratedAt;
 			$this->data['activities']['invoiceGeneratedBy'] = $invoiceGeneratedBy;
 			$this->data['activities']['axaptaGeneratedAt'] = $axaptaGeneratedAt;
@@ -1393,7 +1413,7 @@ class ActivityController extends Controller {
 					$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
 					$isApproved = true;
 					$approver = '2';
-				} elseif (Auth::user()->activity_approval_level_id == 2) {
+				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
 					$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
 					$isApproved = true;
@@ -1420,7 +1440,7 @@ class ActivityController extends Controller {
 					$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
 					$isApproved = true;
 					$approver = '2';
-				} elseif (Auth::user()->activity_approval_level_id == 2) {
+				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
 					$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
 					$isApproved = true;
@@ -1686,7 +1706,7 @@ class ActivityController extends Controller {
 							$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
 							$isApproved = true;
 							$approver = '2';
-						} elseif (Auth::user()->activity_approval_level_id == 2) {
+						} elseif (Auth::user()->activity_approval_level_id == 3) {
 							// L3
 							$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
 							$isApproved = true;
@@ -1709,7 +1729,7 @@ class ActivityController extends Controller {
 							$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
 							$isApproved = true;
 							$approver = '2';
-						} elseif (Auth::user()->activity_approval_level_id == 2) {
+						} elseif (Auth::user()->activity_approval_level_id == 3) {
 							// L3
 							$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
 							$isApproved = true;
@@ -2835,7 +2855,7 @@ class ActivityController extends Controller {
 			->orderBy('cases.date', 'ASC')
 			->groupBy('activities.id')
 			->where('users.id', Auth::id())
-			->whereIn('activities.status_id', [11, 1]) //BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
+			->whereIn('activities.status_id', [11, 1, 20, 23]) //BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice OR L2 Approved - Waiting for Invoice Generation by ASP OR L3 Approved - Waiting for Invoice Generation by ASP
 		;
 
 		if ($request->get('ticket_date')) {
@@ -3364,6 +3384,12 @@ class ActivityController extends Controller {
 							$query->whereRaw('DATE(activity_logs.bo_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
 						})
 						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_logs.l2_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_logs.l3_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
 							$query->whereRaw('DATE(activity_logs.invoice_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
 						})
 						->orwhere(function ($query) use ($range1, $range2) {
@@ -3536,6 +3562,12 @@ class ActivityController extends Controller {
 									})
 									->orwhere(function ($query) use ($range1, $range2) {
 										$query->whereRaw('DATE(activity_logs.bo_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_logs.l2_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_logs.l3_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
 									})
 									->orwhere(function ($query) use ($range1, $range2) {
 										$query->whereRaw('DATE(activity_logs.invoice_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
@@ -3721,13 +3753,21 @@ class ActivityController extends Controller {
 				'Duration Between Import and ASP Data Filled',
 				'ASP Data Filled',
 				'ASP Data Filled By',
-				'Duration Between ASP Data Filled and BO deffered',
-				'BO Deferred',
-				'BO Deferred By',
-				'Duration Between ASP Data Filled and BO approved',
-				'BO Approved',
-				'BO Approved By',
-				'Duration Between BO approved and Invoice generated',
+				'Duration Between ASP Data Filled and L1 deffered',
+				'L1 Deferred',
+				'L1 Deferred By',
+				'Duration Between ASP Data Filled and L1 approved',
+				'L1 Approved',
+				'L1 Approved By',
+				'Duration Between L1 approved and Invoice generated',
+				'Duration Between L1 approved and L2 approved',
+				'L2 Approved',
+				'L2 Approved By',
+				'Duration Between L2 approved and Invoice generated',
+				'Duration Between L2 approved and L3 approved',
+				'L3 Approved',
+				'L3 Approved By',
+				'Duration Between L3 approved and Invoice generated',
 				'Invoice Generated',
 				'Invoice Generated By',
 				'Duration Between Invoice generated and Axapta Generated',
@@ -3916,36 +3956,64 @@ class ActivityController extends Controller {
 				if ($activity_log) {
 					$activity_details_data[$activity_key][] = $activity_log->imported_at ? date('d-m-Y H:i:s', strtotime($activity_log->imported_at)) : '';
 					$activity_details_data[$activity_key][] = $activity_log->importedBy ? $activity_log->importedBy->username : '';
+					// 'Duration Between Import and ASP Data Filled',
 					$tot = ($activity_log->imported_at && $activity_log->asp_data_filled_at) ? $this->findDifference($activity_log->imported_at, $activity_log->asp_data_filled_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
 					$activity_details_data[$activity_key][] = $activity_log->asp_data_filled_at ? date('d-m-Y H:i:s', strtotime($activity_log->asp_data_filled_at)) : '';
 					$activity_details_data[$activity_key][] = $activity_log->aspDataFilledBy ? $activity_log->aspDataFilledBy->username : '';
+					// 'Duration Between ASP Data Filled and L1 deffered',
 					$tot = ($activity_log->asp_data_filled_at && $activity_log->bo_deffered_at) ? $this->findDifference($activity_log->asp_data_filled_at, $activity_log->bo_deffered_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
 					$activity_details_data[$activity_key][] = $activity_log->bo_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_deffered_at)) : '';
 					$activity_details_data[$activity_key][] = $activity_log->boDefferedBy ? $activity_log->boDefferedBy->username : '';
+					// 'Duration Between ASP Data Filled and L1 approved',
 					$tot = ($activity_log->asp_data_filled_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->asp_data_filled_at, $activity_log->bo_approved_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
 					$activity_details_data[$activity_key][] = $activity_log->bo_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_approved_at)) : '';
 					$activity_details_data[$activity_key][] = $activity_log->boApprovedBy ? $activity_log->boApprovedBy->username : '';
+					// 'Duration Between L1 approved and Invoice generated',
 					$tot = ($activity_log->invoice_generated_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->bo_approved_at) : '';
+					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+					// 'Duration Between L1 approved and L2 approved',
+					$tot = ($activity_log->l2_approved_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->l2_approved_at, $activity_log->bo_approved_at) : '';
+					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+
+					$activity_details_data[$activity_key][] = $activity_log->l2_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->l2_approved_at)) : '';
+					$activity_details_data[$activity_key][] = $activity_log->l2ApprovedBy ? $activity_log->l2ApprovedBy->username : '';
+					// 'Duration Between L2 approved and Invoice generated',
+					$tot = ($activity_log->invoice_generated_at && $activity_log->l2_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->l2_approved_at) : '';
+					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+					// 'Duration Between L2 approved and L3 approved',
+					$tot = ($activity_log->l3_approved_at && $activity_log->l2_approved_at) ? $this->findDifference($activity_log->l3_approved_at, $activity_log->l2_approved_at) : '';
+					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+
+					$activity_details_data[$activity_key][] = $activity_log->l3_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->l3_approved_at)) : '';
+					$activity_details_data[$activity_key][] = $activity_log->l3ApprovedBy ? $activity_log->l3ApprovedBy->username : '';
+					// 'Duration Between L3 approved and Invoice generated',
+					$tot = ($activity_log->invoice_generated_at && $activity_log->l3_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->l3_approved_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
 					$activity_details_data[$activity_key][] = $activity_log->invoice_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->invoice_generated_at)) : '';
 					$activity_details_data[$activity_key][] = $activity_log->invoiceGeneratedBy ? $activity_log->invoiceGeneratedBy->username : '';
+					// 'Duration Between Invoice generated and Axapta Generated',
 					$tot = ($activity_log->invoice_generated_at && $activity_log->axapta_generated_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->axapta_generated_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
 					$activity_details_data[$activity_key][] = $activity_log->axapta_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->axapta_generated_at)) : '';
 					$activity_details_data[$activity_key][] = $activity_log->axaptaGeneratedBy ? $activity_log->axaptaGeneratedBy->username : '';
+					// 'Duration Between Axapta Generated and Payment Completed',
 					$tot = ($activity_log->axapta_generated_at && $activity_log->payment_completed_at) ? $this->findDifference($activity_log->axapta_generated_at, $activity_log->payment_completed_at) : '';
 					$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 					$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';

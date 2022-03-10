@@ -692,7 +692,7 @@ class ActivityController extends Controller {
 					$join->on('bo_po_amount.activity_id', 'activities.id')
 						->where('bo_po_amount.key_id', 182); //BO INVOICE AMOUNT
 				})
-				->whereIn('activities.status_id', [11, 1]) //BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
+				->whereIn('activities.status_id', [11, 1, 20, 23]) //BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice OR L2 Approved - Waiting for Invoice Generation by ASP OR L3 Approved - Waiting for Invoice Generation by ASP
 				->where('cases.status_id', 4) //case closed
 				->where('activities.data_src_id', '!=', 262) //NOT BO MANUAL
 				->where('activities.asp_id', $asp->id)
@@ -752,8 +752,8 @@ class ActivityController extends Controller {
 				'crm_activity_id' => $request->crm_activity_id,
 			])->first();
 
-			//ALLOW REJECTION ONLY FOR (BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice)
-			if ($activity->status_id != 1 && $activity->status_id != 11) {
+			//ALLOW REJECTION ONLY FOR (BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice OR L2 Approved - Waiting for Invoice Generation by ASP OR L3 Approved - Waiting for Invoice Generation by ASP)
+			if ($activity->status_id != 1 && $activity->status_id != 11 && $activity->status_id != 20 && $activity->status_id != 23) {
 				//SAVE REJECT ACTIVITY API LOG
 				$errors[] = 'Rejection not allowed';
 				saveApiLog(104, NULL, $request->all(), $errors, NULL, 121);

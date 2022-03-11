@@ -1703,7 +1703,7 @@ class ActivityController extends Controller {
 					$isApproved = false;
 					$approver = '';
 					//GREATER THAN 10000
-					if (floatval($request->bo_net_amount) > 10000) {
+					if (floatval($invoiceAmount) > 10000) {
 						//L1
 						if (Auth::user()->activity_approval_level_id == 1) {
 							$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
@@ -1716,7 +1716,7 @@ class ActivityController extends Controller {
 							$isApproved = true;
 							$approver = '3';
 						}
-					} elseif (floatval($request->bo_net_amount) > 4000 && floatval($request->bo_net_amount) <= 10000) {
+					} elseif (floatval($invoiceAmount) > 4000 && floatval($invoiceAmount) <= 10000) {
 						//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 10000
 						//L1
 						if (Auth::user()->activity_approval_level_id == 1) {

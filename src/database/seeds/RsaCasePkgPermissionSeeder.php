@@ -1323,6 +1323,98 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'delete-discount-reason',
 				'display_name' => 'Delete',
 			],
+
+			//TDS LOGS
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'tds-log',
+				'display_name' => 'TDS',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'tds-log',
+				'name' => 'add-tds-log',
+				'display_name' => 'Add',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'tds-log',
+				'name' => 'edit-tds-log',
+				'display_name' => 'Edit',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'tds-log',
+				'name' => 'download-tds-log-attachment',
+				'display_name' => 'Download Attachment',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'tds-log',
+				'name' => 'approve-tds-log',
+				'display_name' => 'Approve',
+			],
+			[
+				'display_order' => 5,
+				'parent' => 'tds-log',
+				'name' => 'reject-tds-log',
+				'display_name' => 'Reject',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'tds-log',
+				'name' => 'own-tds-log',
+				'display_name' => 'Own Only',
+			],
+			[
+				'display_order' => 7,
+				'parent' => 'tds-log',
+				'name' => 'own-dealers-tds-log',
+				'display_name' => 'Own Dealers',
+			],
+			[
+				'display_order' => 8,
+				'parent' => 'tds-log',
+				'name' => 'all-finance-tds-log',
+				'display_name' => 'Finance All',
+			],
+			[
+				'display_order' => 9,
+				'parent' => 'tds-log',
+				'name' => 'all-admin-tds-log',
+				'display_name' => 'Admin All',
+			],
+			[
+				'display_order' => 10,
+				'parent' => 'tds-log',
+				'name' => 'view-tds-log',
+				'display_name' => 'View',
+			],
+			[
+				'display_order' => 11,
+				'parent' => 'tds-log',
+				'name' => 'export-own-tds-log',
+				'display_name' => 'Finance Export Own',
+			],
+			[
+				'display_order' => 12,
+				'parent' => 'tds-log',
+				'name' => 'export-own-dealers-tds-log',
+				'display_name' => 'Finance Export Own Dealers',
+			],
+			[
+				'display_order' => 13,
+				'parent' => 'tds-log',
+				'name' => 'export-all-finance-tds-log',
+				'display_name' => 'Finance Export All',
+			],
+			[
+				'display_order' => 14,
+				'parent' => 'tds-log',
+				'name' => 'export-all-admin-tds-log',
+				'display_name' => 'Admin Export All',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

@@ -441,10 +441,10 @@ class ActivityController extends Controller {
 					if ($service_type->service_group_id == 2) {
 						$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $data_src->id);
 						if ($is_bulk) {
-							//ASP Completed Data Entry - Waiting for BO Bulk Verification
+							//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 							$activity->status_id = 5;
 						} else {
-							//ASP Completed Data Entry - Waiting for BO Individual Verification
+							//ASP Completed Data Entry - Waiting for L1 Individual Verification
 							$activity->status_id = 6;
 						}
 					} else {
@@ -545,10 +545,10 @@ class ActivityController extends Controller {
 						if ($service_type->service_group_id == 2) {
 							$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id);
 							if ($is_bulk) {
-								//ASP Completed Data Entry - Waiting for BO Bulk Verification
+								//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 								$activity->status_id = 5;
 							} else {
-								//ASP Completed Data Entry - Waiting for BO Individual Verification
+								//ASP Completed Data Entry - Waiting for L1 Individual Verification
 								$activity->status_id = 6;
 							}
 						}
@@ -566,10 +566,10 @@ class ActivityController extends Controller {
 				if ($service_type->service_group_id == 2) {
 					$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id);
 					if ($is_bulk) {
-						//ASP Completed Data Entry - Waiting for BO Bulk Verification
+						//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 						$statusId = 5;
 					} else {
-						//ASP Completed Data Entry - Waiting for BO Individual Verification
+						//ASP Completed Data Entry - Waiting for L1 Individual Verification
 						$statusId = 6;
 					}
 				} else {

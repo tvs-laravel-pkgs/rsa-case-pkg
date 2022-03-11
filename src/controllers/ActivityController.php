@@ -307,7 +307,6 @@ class ActivityController extends Controller {
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 		// ->where('activities.asp_accepted_cc_details', '!=', 1)
-		// ->whereIn('activities.status_id', [5, 8])
 			->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
 		;
@@ -351,13 +350,13 @@ class ActivityController extends Controller {
 			if (!empty(Auth::user()->activity_approval_level_id)) {
 				//L1
 				if (Auth::user()->activity_approval_level_id == 1) {
-					$activities->whereIn('activities.status_id', [5, 8]);
+					$activities->whereIn('activities.status_id', [5, 8]); //ASP Completed Data Entry - Waiting for L1 Bulk Verification AND ASP Data Re-Entry Completed - Waiting for L1 Bulk Verification
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
-					$activities->where('activities.status_id', 18);
+					$activities->where('activities.status_id', 18); //L1 Approved - Waiting for L2 Bulk Verification
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
-					$activities->where('activities.status_id', 21);
+					$activities->where('activities.status_id', 21); //L2 Approved - Waiting for L3 Bulk Verification
 				} else {
 					$activities = collect();
 				}
@@ -415,7 +414,6 @@ class ActivityController extends Controller {
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 		// ->where('activities.asp_accepted_cc_details', '!=', 1)
-			->whereIn('activities.status_id', [6, 9])
 			->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
 		;
@@ -454,6 +452,28 @@ class ActivityController extends Controller {
 				$activities->whereIn('asps.state_id', $states);
 			}
 		}
+
+		if (Auth::check()) {
+			if (!empty(Auth::user()->activity_approval_level_id)) {
+				//L1
+				if (Auth::user()->activity_approval_level_id == 1) {
+					$activities->whereIn('activities.status_id', [6, 9]); //ASP Completed Data Entry - Waiting for L1 Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Individual Verification
+				} elseif (Auth::user()->activity_approval_level_id == 2) {
+					// L2
+					$activities->where('activities.status_id', 19); //L1 Approved - Waiting for L2 Individual Verification
+				} elseif (Auth::user()->activity_approval_level_id == 3) {
+					// L3
+					$activities->where('activities.status_id', 22); //L2 Approved - Waiting for L3 Individual Verification
+				} else {
+					$activities = collect();
+				}
+			} else {
+				$activities = collect();
+			}
+		} else {
+			$activities = collect();
+		}
+
 		return Datatables::of($activities)
 			->filterColumn('asp', function ($query, $keyword) {
 				$sql = "CONCAT(asps.asp_code,' / ',asps.workshop_name)  like ?";
@@ -472,7 +492,7 @@ class ActivityController extends Controller {
 			$activityApprovalLevel = '';
 			$activity_data = Activity::findOrFail($activity_status_id);
 			if ($view_type_id == 2) {
-				if (!($activity_data && ($activity_data->status_id == 5 || $activity_data->status_id == 6 || $activity_data->status_id == 9 || $activity_data->status_id == 8))) {
+				if (!$activity_data || ($activity_data && $activity_data->status_id != 5 && $activity_data->status_id != 6 && $activity_data->status_id != 8 && $activity_data->status_id != 9 && $activity_data->status_id != 18 && $activity_data->status_id != 19 && $activity_data->status_id != 21 && $activity_data->status_id != 22)) {
 					return response()->json([
 						'success' => false,
 						'errors' => [

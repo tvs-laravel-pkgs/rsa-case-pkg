@@ -1427,6 +1427,7 @@ class ActivityController extends Controller {
 					} else {
 						$activityStatusId = 19; //L1 Approved - Waiting for L2 Individual Verification
 					}
+					$approver = '1';
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
 					if ($isActivityBulk) {
@@ -1434,6 +1435,7 @@ class ActivityController extends Controller {
 					} else {
 						$activityStatusId = 22; //L2 Approved - Waiting for L3 Individual Verification
 					}
+					$approver = '2';
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
 					$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
@@ -1449,6 +1451,7 @@ class ActivityController extends Controller {
 					} else {
 						$activityStatusId = 19; //L1 Approved - Waiting for L2 Individual Verification
 					}
+					$approver = '1';
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
 					$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
@@ -1474,8 +1477,8 @@ class ActivityController extends Controller {
 					} else {
 						$activityStatusId = 11; //L1 Approved - Waiting for Invoice Generation by ASP
 						$isApproved = true;
-						$approver = '1';
 					}
+					$approver = '1';
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
 					$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
@@ -1517,8 +1520,8 @@ class ActivityController extends Controller {
 			$activityLog->updated_at = Carbon::now();
 			$activityLog->save();
 
-			if ($isApproved && !empty($approver)) {
-				$this->updateActivityApprovalLog($activity, $approver, $request->case_number, 1);
+			if ($isApproved) {
+				$this->updateActivityApprovalLog($activity, $request->case_number, 1);
 			}
 
 			DB::commit();
@@ -1752,9 +1755,11 @@ class ActivityController extends Controller {
 						//L1
 						if (Auth::user()->activity_approval_level_id == 1) {
 							$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+							$approver = '1';
 						} elseif (Auth::user()->activity_approval_level_id == 2) {
 							// L2
 							$activityStatusId = 21; //L2 Approved - Waiting for L3 Bulk Verification
+							$approver = '2';
 						} elseif (Auth::user()->activity_approval_level_id == 3) {
 							// L3
 							$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
@@ -1766,6 +1771,7 @@ class ActivityController extends Controller {
 						//L1
 						if (Auth::user()->activity_approval_level_id == 1) {
 							$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+							$approver = '1';
 						} elseif (Auth::user()->activity_approval_level_id == 2) {
 							// L2
 							$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
@@ -1787,8 +1793,8 @@ class ActivityController extends Controller {
 							} else {
 								$activityStatusId = 11; //L1 Approved - Waiting for Invoice Generation by ASP
 								$isApproved = true;
-								$approver = '1';
 							}
+							$approver = '1';
 						} elseif (Auth::user()->activity_approval_level_id == 2) {
 							// L2
 							$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
@@ -1830,8 +1836,8 @@ class ActivityController extends Controller {
 					$activityLog->updated_at = Carbon::now();
 					$activityLog->save();
 
-					if ($isApproved && !empty($approver)) {
-						$this->updateActivityApprovalLog($activity, $approver, $activity->case->number, 2);
+					if ($isApproved) {
+						$this->updateActivityApprovalLog($activity, $activity->case->number, 2);
 					}
 				} else {
 					return response()->json([
@@ -1856,7 +1862,7 @@ class ActivityController extends Controller {
 		}
 	}
 
-	public function updateActivityApprovalLog($activity, $approver, $caseNumber, $type) {
+	public function updateActivityApprovalLog($activity, $caseNumber, $type) {
 
 		//INDIVIDUAL
 		if ($type == 1) {

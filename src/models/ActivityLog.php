@@ -37,8 +37,16 @@ class ActivityLog extends Model {
 		return $this->belongsTo('App\User', 'bo_approved_by_id');
 	}
 
+	public function l2DefferedBy() {
+		return $this->belongsTo('App\User', 'l2_deffered_by_id');
+	}
+
 	public function l2ApprovedBy() {
 		return $this->belongsTo('App\User', 'l2_approved_by_id');
+	}
+
+	public function l3DefferedBy() {
+		return $this->belongsTo('App\User', 'l3_deffered_by_id');
 	}
 
 	public function l3ApprovedBy() {

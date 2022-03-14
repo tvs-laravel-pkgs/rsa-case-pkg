@@ -101,6 +101,14 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 				'name' => 'L3 Approved - Waiting for Invoice Generation by ASP',
 				'company_id' => 1,
 			],
+			24 => [
+				'name' => 'L2 Rejected - Waiting for L1 Individual Verification',
+				'company_id' => 1,
+			],
+			25 => [
+				'name' => 'L3 Rejected - Waiting for L1 Individual Verification',
+				'company_id' => 1,
+			],
 		];
 
 		foreach ($activity_portal_statuses as $id => $activity_portal_status_val) {

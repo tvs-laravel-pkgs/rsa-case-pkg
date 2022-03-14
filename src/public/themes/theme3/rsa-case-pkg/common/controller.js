@@ -405,7 +405,6 @@ app.component('billingDetails', {
                                     $location.path('/rsa-case-pkg/activity-verification/list');
                                     $scope.$apply();
                                 }, 1500);
-
                             }
                         });
                     }

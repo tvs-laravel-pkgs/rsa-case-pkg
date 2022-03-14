@@ -54,6 +54,18 @@
                                 </div>
                             </div>
                         </li>
+                        <li ng-if="$ctrl.data.l2DefferedAt != ''">
+                            <div class="customStatus-list-item">
+                                <div class="customStatus-list-child left">
+                                    <p class="date"><span>{{ formatDate($ctrl.data.l2DefferedAt) | date: 'd-M' }} <br>{{ formatDate($ctrl.data.l2DefferedAt) | date: 'y' }}</span></p>
+                                </div>
+                                <div class="customStatus-list-child">
+                                    <h3 class="title">L2 Deferred</h3>
+                                    <p ng-if="$ctrl.data.l2DefferedBy != ''">By : {{ $ctrl.data.l2DefferedBy }}</p>
+                                    <span>{{ formatDate($ctrl.data.l2DefferedAt) | date: 'h:mm a' }}</span>
+                                </div>
+                            </div>
+                        </li>
                         <li ng-if="$ctrl.data.l2ApprovedAt != ''">
                             <div class="customStatus-list-item">
                                 <div class="customStatus-list-child left">
@@ -63,6 +75,18 @@
                                     <h3 class="title">L2 Approved</h3>
                                     <p ng-if="$ctrl.data.l2ApprovedBy != ''">By : {{ $ctrl.data.l2ApprovedBy }}</p>
                                     <span>{{ formatDate($ctrl.data.l2ApprovedAt) | date: 'h:mm a' }}</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li ng-if="$ctrl.data.l3DefferedAt != ''">
+                            <div class="customStatus-list-item">
+                                <div class="customStatus-list-child left">
+                                    <p class="date"><span>{{ formatDate($ctrl.data.l3DefferedAt) | date: 'd-M' }} <br>{{ formatDate($ctrl.data.l3DefferedAt) | date: 'y' }}</span></p>
+                                </div>
+                                <div class="customStatus-list-child">
+                                    <h3 class="title">L3 Deferred</h3>
+                                    <p ng-if="$ctrl.data.l3DefferedBy != ''">By : {{ $ctrl.data.l3DefferedBy }}</p>
+                                    <span>{{ formatDate($ctrl.data.l3DefferedAt) | date: 'h:mm a' }}</span>
                                 </div>
                             </div>
                         </li>

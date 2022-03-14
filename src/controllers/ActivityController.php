@@ -915,7 +915,7 @@ class ActivityController extends Controller {
 			//Activity creation datetime greater than effective datetime
 			if (date('Y-m-d H:i:s', strtotime($activity->activity_date)) > $casewiseRatecardEffectDatetime) {
 				//Activity that is initiated for payment process & not eligible
-				if ($activity->activity_portal_status_id == 1 || $activity->activity_portal_status_id == 10 || $activity->activity_portal_status_id == 11 || $activity->activity_portal_status_id == 12 || $activity->activity_portal_status_id == 13 || $activity->activity_portal_status_id == 14 || $activity->activity_portal_status_id == 15 || $activity->activity_portal_status_id == 16 || $activity->activity_portal_status_id == 17) {
+				if ($activity->activity_portal_status_id == 1 || $activity->activity_portal_status_id == 10 || $activity->activity_portal_status_id == 11 || $activity->activity_portal_status_id == 12 || $activity->activity_portal_status_id == 13 || $activity->activity_portal_status_id == 14 || $activity->activity_portal_status_id == 15 || $activity->activity_portal_status_id == 16 || $activity->activity_portal_status_id == 17 || $activity->activity_portal_status_id == 20 || $activity->activity_portal_status_id == 23) {
 					$activityRatecard = ActivityRatecard::select([
 						'range_limit',
 						'below_range_price',
@@ -1468,7 +1468,9 @@ class ActivityController extends Controller {
 				}
 			}
 
-			$activity->status_id = $activityStatusId;
+			if (isset($activityStatusId) && !empty($activityStatusId)) {
+				$activity->status_id = $activityStatusId;
+			}
 			$activity->updated_at = Carbon::now();
 			$activity->save();
 
@@ -1554,7 +1556,7 @@ class ActivityController extends Controller {
 		//2. checking CC and BO KMs
 		$allowed_variation = 0.5;
 		$five_percentage_difference = $ccKmTravelled * $allowed_variation / 100;
-		if (($boKmTravelled > $rangeLimit) || $rangeLimit == 0) {
+		if (($boKmTravelled > $rangeLimit) || floatval($rangeLimit) == 0) {
 			if ($boKmTravelled > $ccKmTravelled) {
 				$kmDifference = $boKmTravelled - $ccKmTravelled;
 				if ($kmDifference > $five_percentage_difference) {
@@ -1578,7 +1580,7 @@ class ActivityController extends Controller {
 			$isBulk = false;
 		}
 
-		if (floatval($boKmTravelled == 0)) {
+		if (floatval($boKmTravelled) == 0) {
 			$isBulk = false;
 		}
 		return $isBulk;
@@ -1757,7 +1759,9 @@ class ActivityController extends Controller {
 						}
 					}
 
-					$activity->status_id = $activityStatusId;
+					if (isset($activityStatusId) && !empty($activityStatusId)) {
+						$activity->status_id = $activityStatusId;
+					}
 					$activity->updated_at = Carbon::now();
 					$activity->save();
 

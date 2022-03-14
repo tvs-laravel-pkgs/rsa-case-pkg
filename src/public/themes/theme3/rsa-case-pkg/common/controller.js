@@ -454,7 +454,7 @@ app.component('billingDetails', {
 
                 $scope.calculate = function() {
                     //If view page and activity has been initiated for payment process
-                    if (self.data.verification == 0 && (self.data.activity_portal_status_id == 1 || self.data.activity_portal_status_id == 10 || self.data.activity_portal_status_id == 11 || self.data.activity_portal_status_id == 12 || self.data.activity_portal_status_id == 13 || self.data.activity_portal_status_id == 14)) {
+                    if (self.data.verification == 0 && (self.data.activity_portal_status_id == 1 || self.data.activity_portal_status_id == 10 || self.data.activity_portal_status_id == 11 || self.data.activity_portal_status_id == 12 || self.data.activity_portal_status_id == 13 || self.data.activity_portal_status_id == 14 || self.data.activity_portal_status_id == 20 || self.data.activity_portal_status_id == 23)) {
                         self.show_km = 0;
                         self.data.bo_po_amount = self.data.raw_bo_po_amount;
                         self.data.bo_deduction = self.data.raw_bo_deduction;
@@ -478,9 +478,9 @@ app.component('billingDetails', {
                             var above_amount = (parseFloat(excess) * parseFloat(self.data.asp_service_type_data.above_range_price));
                         }
                         var amount_wo_deduction = parseFloat(below_amount) + parseFloat(above_amount);
-                        var adjustment = 0;
 
                         //DISABLED AS THERE IS NO ADJUSTMENT TYPE IN FUTURE
+                        // var adjustment = 0;
                         // if (parseFloat(self.data.asp_service_type_data.adjustment_type) == 2) {
                         //     adjustment = parseFloat(self.data.asp_service_type_data.adjustment);
                         // } else if (self.data.asp_service_type_data.adjustment_type == 1) {
@@ -497,7 +497,12 @@ app.component('billingDetails', {
                         // if (self.data.asp.app_user == 0) {
                         //     adjustment = 0;
                         // }
-                        self.data.bo_deduction = parseFloat(adjustment);
+                        let boDeduction = 0;
+                        if (self.data.bo_deduction != '') {
+                            boDeduction = self.data.bo_deduction;
+                        }
+                        // self.data.bo_deduction = parseFloat(adjustment);
+                        self.data.bo_deduction = parseFloat(boDeduction);
                         var total = (parseFloat(amount) + parseFloat(self.data.raw_bo_not_collected)) - parseFloat(self.data.raw_bo_collected) - parseFloat(self.data.bo_deduction);
 
                         self.data.bo_net_amount = self.data.bo_amount = total;

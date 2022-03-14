@@ -1496,6 +1496,27 @@ class ActivityController extends Controller {
 			$activity->updated_at = Carbon::now();
 			$activity->save();
 
+			//LOG SAVE
+			$activityLog = ActivityLog::firstOrNew([
+				'activity_id' => $activity->id,
+			]);
+			//L1
+			if ($approver == '1') {
+				$activityLog->bo_approved_at = Carbon::now();
+				$activityLog->bo_approved_by_id = Auth::id();
+			} elseif ($approver == '2') {
+				//L2
+				$activityLog->l2_approved_at = Carbon::now();
+				$activityLog->l2_approved_by_id = Auth::id();
+			} elseif ($approver == '3') {
+				//L3
+				$activityLog->l3_approved_at = Carbon::now();
+				$activityLog->l3_approved_by_id = Auth::id();
+			}
+			$activityLog->updated_by_id = Auth::id();
+			$activityLog->updated_at = Carbon::now();
+			$activityLog->save();
+
 			if ($isApproved && !empty($approver)) {
 				$this->updateActivityApprovalLog($activity, $approver, $request->case_number, 1);
 			}
@@ -1788,6 +1809,27 @@ class ActivityController extends Controller {
 					$activity->updated_at = Carbon::now();
 					$activity->save();
 
+					//LOG SAVE
+					$activityLog = ActivityLog::firstOrNew([
+						'activity_id' => $activity->id,
+					]);
+					//L1
+					if ($approver == '1') {
+						$activityLog->bo_approved_at = Carbon::now();
+						$activityLog->bo_approved_by_id = Auth::id();
+					} elseif ($approver == '2') {
+						//L2
+						$activityLog->l2_approved_at = Carbon::now();
+						$activityLog->l2_approved_by_id = Auth::id();
+					} elseif ($approver == '3') {
+						//L3
+						$activityLog->l3_approved_at = Carbon::now();
+						$activityLog->l3_approved_by_id = Auth::id();
+					}
+					$activityLog->updated_by_id = Auth::id();
+					$activityLog->updated_at = Carbon::now();
+					$activityLog->save();
+
 					if ($isApproved && !empty($approver)) {
 						$this->updateActivityApprovalLog($activity, $approver, $activity->case->number, 2);
 					}
@@ -1828,26 +1870,6 @@ class ActivityController extends Controller {
 			'Status' => $log_status,
 			'Waiting for' => $log_waiting,
 		], 361);
-
-		$activityLog = ActivityLog::firstOrNew([
-			'activity_id' => $activity->id,
-		]);
-		//L1
-		if ($approver == '1') {
-			$activityLog->bo_approved_at = Carbon::now();
-			$activityLog->bo_approved_by_id = Auth::id();
-		} elseif ($approver == '2') {
-			//L2
-			$activityLog->l2_approved_at = Carbon::now();
-			$activityLog->l2_approved_by_id = Auth::id();
-		} elseif ($approver == '3') {
-			//L3
-			$activityLog->l3_approved_at = Carbon::now();
-			$activityLog->l3_approved_by_id = Auth::id();
-		}
-		$activityLog->updated_by_id = Auth::id();
-		$activityLog->updated_at = Carbon::now();
-		$activityLog->save();
 
 		if ($activity->asp && !empty($activity->asp->contact_number1)) {
 			sendSMS2("Tkt waiting for Invoice", $activity->asp->contact_number1, [$caseNumber], NULL);

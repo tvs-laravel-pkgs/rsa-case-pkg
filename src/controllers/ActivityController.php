@@ -3112,13 +3112,14 @@ class ActivityController extends Controller {
 			$asp = ASP::where('id', $request->asp_id)->first();
 
 			//CHECK IF INVOICE ALREADY CREATED FOR ACTIVITY
-			$activities = Activity::select(
+			$activities = Activity::select([
 				'invoice_id',
 				'crm_activity_id',
 				'number',
 				'asp_id',
-				'case_id'
-			)
+				'case_id',
+				'status_id',
+			])
 				->whereIn('crm_activity_id', $request->crm_activity_ids)
 				->get();
 
@@ -3140,6 +3141,14 @@ class ActivityController extends Controller {
 						return response()->json([
 							'success' => false,
 							'error' => 'Invoice already created for activity ' . $activity->crm_activity_id,
+						]);
+					}
+
+					//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND BO Approved - Waiting for Invoice Generation by ASP AND L2 Approved - Waiting for Invoice Generation by ASP AND L3 Approved - Waiting for Invoice Generation by ASP)
+					if ($activity->status_id != 1 && $activity->status_id != 11 && $activity->status_id != 20 && $activity->status_id != 23) {
+						return response()->json([
+							'success' => false,
+							'error' => 'ASP not accepted / case not closed for activity ID ' . $activity->crm_activity_id,
 						]);
 					}
 

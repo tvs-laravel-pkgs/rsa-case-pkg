@@ -457,7 +457,7 @@ class ActivityController extends Controller {
 			if (!empty(Auth::user()->activity_approval_level_id)) {
 				//L1
 				if (Auth::user()->activity_approval_level_id == 1) {
-					$activities->whereIn('activities.status_id', [6, 9]); //ASP Completed Data Entry - Waiting for L1 Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Individual Verification
+					$activities->whereIn('activities.status_id', [6, 9, 24, 25]); //ASP Completed Data Entry - Waiting for L1 Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Individual Verification AND L2 Rejected - Waiting for L1 Individual Verification AND L3 Rejected - Waiting for L1 Individual Verification
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
 					$activities->where('activities.status_id', 19); //L1 Approved - Waiting for L2 Individual Verification
@@ -492,7 +492,7 @@ class ActivityController extends Controller {
 			$activityApprovalLevel = '';
 			$activity_data = Activity::findOrFail($activity_status_id);
 			if ($view_type_id == 2) {
-				if (!$activity_data || ($activity_data && $activity_data->status_id != 5 && $activity_data->status_id != 6 && $activity_data->status_id != 8 && $activity_data->status_id != 9 && $activity_data->status_id != 18 && $activity_data->status_id != 19 && $activity_data->status_id != 21 && $activity_data->status_id != 22)) {
+				if (!$activity_data || ($activity_data && $activity_data->status_id != 5 && $activity_data->status_id != 6 && $activity_data->status_id != 8 && $activity_data->status_id != 9 && $activity_data->status_id != 18 && $activity_data->status_id != 19 && $activity_data->status_id != 21 && $activity_data->status_id != 22 && $activity_data->status_id != 24 && $activity_data->status_id != 25)) {
 					return response()->json([
 						'success' => false,
 						'errors' => [
@@ -556,6 +556,7 @@ class ActivityController extends Controller {
 					'activities.number as activity_number',
 					'activities.asp_po_accepted as asp_po_accepted',
 					'activities.defer_reason as defer_reason',
+					'activities.approval_level_defer_reason',
 					'activities.is_exceptional_check as is_exceptional_check',
 					DB::raw('CASE
 				    	WHEN (activities.is_exceptional_check = 1)
@@ -1880,21 +1881,24 @@ class ActivityController extends Controller {
 				]);
 			}
 
+			$activity = Activity::findOrFail($request->activity_id);
+
 			$eligleForAspRentry = false;
 			//L1
 			if (Auth::user()->activity_approval_level_id == 1) {
 				$activityStatusId = 7; //L1 Rejected - Waiting for ASP Data Re-Entry
 				$eligleForAspRentry = true;
+				$activity->defer_reason = isset($request->defer_reason) ? $request->defer_reason : NULL;
 			} elseif (Auth::user()->activity_approval_level_id == 2) {
 				// L2
 				$activityStatusId = 24; //L2 Rejected - Waiting for L1 Individual Verification
+				$activity->approval_level_defer_reason = isset($request->defer_reason) ? $request->defer_reason : NULL;
 			} elseif (Auth::user()->activity_approval_level_id == 3) {
 				// L3
 				$activityStatusId = 25; //L3 Rejected - Waiting for L1 Individual Verification
+				$activity->approval_level_defer_reason = isset($request->defer_reason) ? $request->defer_reason : NULL;
 			}
 
-			$activity = Activity::findOrFail($request->activity_id);
-			$activity->defer_reason = isset($request->defer_reason) ? $request->defer_reason : NULL;
 			$activity->bo_comments = isset($request->bo_comments) ? $request->bo_comments : NULL;
 			$activity->deduction_reason = isset($request->deduction_reason) ? $request->deduction_reason : NULL;
 			if (isset($activityStatusId)) {

@@ -132,6 +132,12 @@
                                         {{ $ctrl.data.remarks }}
                                     </td>
                                 </tr>
+                                <tr ng-show="$ctrl.data.activityApprovalLevel == 1 && $ctrl.data.approval_level_defer_reason != null">
+                                    <th scope="row">L2 / L3 Approver Defer Reason</th>
+                                    <td colspan="{{$ctrl.data.span_value}}">
+                                        {{ $ctrl.data.approval_level_defer_reason }}
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>

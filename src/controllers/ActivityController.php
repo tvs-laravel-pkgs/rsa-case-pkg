@@ -304,7 +304,7 @@ class ActivityController extends Controller {
 			->leftjoin('configs', 'configs.id', 'activities.data_src_id')
 		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
-			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 		// ->where('activities.asp_accepted_cc_details', '!=', 1)
 			->orderBy('cases.date', 'DESC')
@@ -358,13 +358,13 @@ class ActivityController extends Controller {
 					// L3
 					$activities->where('activities.status_id', 21); //L2 Approved - Waiting for L3 Bulk Verification
 				} else {
-					$activities = collect();
+					$activities->whereNull('activities.status_id');
 				}
 			} else {
-				$activities = collect();
+				$activities->whereNull('activities.status_id');
 			}
 		} else {
-			$activities = collect();
+			$activities->whereNull('activities.status_id');
 		}
 
 		return Datatables::of($activities)
@@ -411,7 +411,7 @@ class ActivityController extends Controller {
 			->leftjoin('configs', 'configs.id', 'activities.data_src_id')
 		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
-			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 		// ->where('activities.asp_accepted_cc_details', '!=', 1)
 			->orderBy('cases.date', 'DESC')
@@ -465,13 +465,13 @@ class ActivityController extends Controller {
 					// L3
 					$activities->where('activities.status_id', 22); //L2 Approved - Waiting for L3 Individual Verification
 				} else {
-					$activities = collect();
+					$activities->whereNull('activities.status_id');
 				}
 			} else {
-				$activities = collect();
+				$activities->whereNull('activities.status_id');
 			}
 		} else {
-			$activities = collect();
+			$activities->whereNull('activities.status_id');
 		}
 
 		return Datatables::of($activities)

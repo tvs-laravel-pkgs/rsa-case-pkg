@@ -158,7 +158,7 @@ class ActivityController extends Controller {
 			})
 			->addColumn('action', function ($activity) {
 				$status_id = 1;
-				$return_status_ids = [5, 6, 8, 9, 11, 1, 7];
+				$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24, 25];
 
 				$action = '<div class="dataTable-actions">
 				<a href="#!/rsa-case-pkg/activity-status/' . $status_id . '/view/' . $activity->id . '">
@@ -195,21 +195,27 @@ class ActivityController extends Controller {
 	public function activityBackAsp(Request $request) {
 		//	dd($request->all());
 		$activity = Activity::findOrFail($request->activty_id);
-		$return_status_ids = [5, 6, 8, 9, 11, 1, 7];
+		$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24, 25];
 
 		if (!$activity) {
-			return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['error' => 'Activity not found']);
+			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+				'error' => 'Activity not found',
+			]);
 		}
 
 		if (!in_array($activity->status_id, $return_status_ids)) {
-			return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['error' => 'Activity Cannot able move to asp']);
+			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+				'error' => 'Activity not eligible for back step',
+			]);
 		}
 
 		if (!Entrust::can('backstep-activity')) {
-			return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['error' => 'Admin only have authorized to move asp']);
+			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+				'error' => 'User not eligible to back step',
+			]);
 		}
 
-		//WAITING FOR ASP DATA ENTRY
+		//ASP Rejected CC Details - Waiting for ASP Data Entry
 		if ($request->ticket_status_id == '1') {
 			$activity->status_id = 2;
 			$activity->updated_at = new Carbon();
@@ -230,12 +236,16 @@ class ActivityController extends Controller {
 				$number = [$activity->number];
 				notify2($noty_message_template, $user_id, config('constants.alert_type.blue'), $number);
 
-				return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['success' => 'Activity status moved to ASP data entry']);
+				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+					'success' => 'Activity status moved to ASP data entry',
+				]);
 			} else {
-				return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['error' => 'Activity status not moved to ASP data entry']);
+				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+					'error' => 'Activity status not moved to ASP data entry',
+				]);
 			}
 		} elseif ($request->ticket_status_id == '2') {
-			//WAITING FOR ASP - BO DEFERRED
+			//L1 Rejected - Waiting for ASP Data Re-Entry
 			$activity->status_id = 7;
 			$activity->updated_at = new Carbon();
 			$activity->updated_by_id = Auth::user()->id;
@@ -255,9 +265,13 @@ class ActivityController extends Controller {
 				$number = [$activity->number];
 				notify2($noty_message_template, $user_id, config('constants.alert_type.blue'), $number);
 
-				return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['success' => 'Activity status moved to ASP L1 deferred']);
+				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+					'success' => 'Activity status moved to ASP L1 deferred',
+				]);
 			} else {
-				return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['error' => 'Activity status not moved to ASP L1 deferred']);
+				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+					'error' => 'Activity status not moved to ASP L1 deferred',
+				]);
 			}
 		}
 	}

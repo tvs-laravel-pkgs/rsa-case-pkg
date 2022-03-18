@@ -572,6 +572,10 @@ class ActivityController extends Controller {
 					'activities.defer_reason as defer_reason',
 					'activities.approval_level_defer_reason',
 					'activities.is_exceptional_check as is_exceptional_check',
+					'activities.service_type_changed_on_level',
+					'activities.km_changed_on_level',
+					'activities.not_collected_amount_changed_on_level',
+					'activities.collected_amount_changed_on_level',
 					DB::raw('CASE
 				    	WHEN (activities.is_exceptional_check = 1)
 			    		THEN
@@ -1392,6 +1396,29 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
+
+			$isServiceTypeChanged = false;
+			$isKmTravelledChanged = false;
+			$isNotCollectedChanged = false;
+			$isCollectedChanged = false;
+
+			$kmTravelled = $activity->detail(158) ? floatval($activity->detail(158)->value) : 0;
+			$notCollected = $activity->detail(160) ? floatval($activity->detail(160)->value) : 0;
+			$collected = $activity->detail(159) ? floatval($activity->detail(159)->value) : 0;
+
+			if ($request->boServiceTypeId != $activity->service_type_id) {
+				$isServiceTypeChanged = true;
+			}
+			if (floatval($request->bo_km_travelled) != $kmTravelled) {
+				$isKmTravelledChanged = true;
+			}
+			if (floatval($request->bo_not_collected) != $notCollected) {
+				$isNotCollectedChanged = true;
+			}
+			if (floatval($request->bo_collected) != $collected) {
+				$isCollectedChanged = true;
+			}
+
 			$key_list = [158, 159, 160, 161, 176, 172, 173, 179, 182];
 			foreach ($key_list as $keyw) {
 				$var_key = Config::where('id', $keyw)->first();
@@ -1442,6 +1469,18 @@ class ActivityController extends Controller {
 						$activityStatusId = 19; //L1 Approved - Waiting for L2 Individual Verification
 					}
 					$approver = '1';
+					if ($isServiceTypeChanged) {
+						$activity->service_type_changed_on_level = 1;
+					}
+					if ($isKmTravelledChanged) {
+						$activity->km_changed_on_level = 1;
+					}
+					if ($isNotCollectedChanged) {
+						$activity->not_collected_amount_changed_on_level = 1;
+					}
+					if ($isCollectedChanged) {
+						$activity->collected_amount_changed_on_level = 1;
+					}
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
 					if ($isActivityBulk) {
@@ -1450,6 +1489,18 @@ class ActivityController extends Controller {
 						$activityStatusId = 22; //L2 Approved - Waiting for L3 Individual Verification
 					}
 					$approver = '2';
+					if ($isServiceTypeChanged) {
+						$activity->service_type_changed_on_level = 2;
+					}
+					if ($isKmTravelledChanged) {
+						$activity->km_changed_on_level = 2;
+					}
+					if ($isNotCollectedChanged) {
+						$activity->not_collected_amount_changed_on_level = 2;
+					}
+					if ($isCollectedChanged) {
+						$activity->collected_amount_changed_on_level = 2;
+					}
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
 					$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
@@ -1466,11 +1517,35 @@ class ActivityController extends Controller {
 						$activityStatusId = 19; //L1 Approved - Waiting for L2 Individual Verification
 					}
 					$approver = '1';
+					if ($isServiceTypeChanged) {
+						$activity->service_type_changed_on_level = 1;
+					}
+					if ($isKmTravelledChanged) {
+						$activity->km_changed_on_level = 1;
+					}
+					if ($isNotCollectedChanged) {
+						$activity->not_collected_amount_changed_on_level = 1;
+					}
+					if ($isCollectedChanged) {
+						$activity->collected_amount_changed_on_level = 1;
+					}
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
 					$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
 					$isApproved = true;
 					$approver = '2';
+					if ($isServiceTypeChanged) {
+						$activity->service_type_changed_on_level = 2;
+					}
+					if ($isKmTravelledChanged) {
+						$activity->km_changed_on_level = 2;
+					}
+					if ($isNotCollectedChanged) {
+						$activity->not_collected_amount_changed_on_level = 2;
+					}
+					if ($isCollectedChanged) {
+						$activity->collected_amount_changed_on_level = 2;
+					}
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
 					$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
@@ -1493,11 +1568,35 @@ class ActivityController extends Controller {
 						$isApproved = true;
 					}
 					$approver = '1';
+					if ($isServiceTypeChanged) {
+						$activity->service_type_changed_on_level = 1;
+					}
+					if ($isKmTravelledChanged) {
+						$activity->km_changed_on_level = 1;
+					}
+					if ($isNotCollectedChanged) {
+						$activity->not_collected_amount_changed_on_level = 1;
+					}
+					if ($isCollectedChanged) {
+						$activity->collected_amount_changed_on_level = 1;
+					}
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
 					$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
 					$isApproved = true;
 					$approver = '2';
+					if ($isServiceTypeChanged) {
+						$activity->service_type_changed_on_level = 2;
+					}
+					if ($isKmTravelledChanged) {
+						$activity->km_changed_on_level = 2;
+					}
+					if ($isNotCollectedChanged) {
+						$activity->not_collected_amount_changed_on_level = 2;
+					}
+					if ($isCollectedChanged) {
+						$activity->collected_amount_changed_on_level = 2;
+					}
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
 					$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
@@ -1556,10 +1655,10 @@ class ActivityController extends Controller {
 	}
 
 	public function isL2ApprovalRequired($activity) {
-		$ccKmTravelled = $activity->detail(280) ? $activity->detail(280)->value : 0;
+		$ccKmTravelled = $activity->detail(280) ? floatval($activity->detail(280)->value) : 0;
 		$ccServiceTypeVal = $activity->detail(153) ? $activity->detail(153)->value : '';
 
-		$boKmTravelled = $activity->detail(158) ? $activity->detail(158)->value : 0;
+		$boKmTravelled = $activity->detail(158) ? floatval($activity->detail(158)->value) : 0;
 		$boServiceTypeVal = $activity->detail(161) ? $activity->detail(161)->value : '';
 
 		$l2ApprovalRequired = false;
@@ -1590,17 +1689,17 @@ class ActivityController extends Controller {
 			->where('is_mobile', $isMobile)
 			->first();
 		if ($aspRateCard) {
-			$rangeLimit = $aspRateCard->range_limit;
+			$rangeLimit = floatval($aspRateCard->range_limit);
 		}
 
-		$ccKmTravelled = $activity->detail(280) ? $activity->detail(280)->value : 0;
-		$ccCollected = $activity->detail(281) ? $activity->detail(281)->value : 0;
-		$ccNotCollected = $activity->detail(282) ? $activity->detail(282)->value : 0;
+		$ccKmTravelled = $activity->detail(280) ? floatval($activity->detail(280)->value) : 0;
+		$ccCollected = $activity->detail(281) ? floatval($activity->detail(281)->value) : 0;
+		$ccNotCollected = $activity->detail(282) ? floatval($activity->detail(282)->value) : 0;
 		$ccServiceTypeVal = $activity->detail(153) ? $activity->detail(153)->value : '';
 
-		$boKmTravelled = $activity->detail(158) ? $activity->detail(158)->value : 0;
-		$boCollected = $activity->detail(159) ? $activity->detail(159)->value : 0;
-		$boNotCollected = $activity->detail(160) ? $activity->detail(160)->value : 0;
+		$boKmTravelled = $activity->detail(158) ? floatval($activity->detail(158)->value) : 0;
+		$boCollected = $activity->detail(159) ? floatval($activity->detail(159)->value) : 0;
+		$boNotCollected = $activity->detail(160) ? floatval($activity->detail(160)->value) : 0;
 		$boServiceTypeVal = $activity->detail(161) ? $activity->detail(161)->value : '';
 
 		$isBulk = true;
@@ -1640,7 +1739,7 @@ class ActivityController extends Controller {
 			$isBulk = false;
 		}
 
-		if (floatval($boKmTravelled) == 0) {
+		if ($boKmTravelled == 0) {
 			$isBulk = false;
 		}
 		return $isBulk;
@@ -1925,12 +2024,16 @@ class ActivityController extends Controller {
 
 			$activity = Activity::findOrFail($request->activity_id);
 
-			$eligleForAspRentry = false;
+			$eligleForAspReEntry = false;
 			//L1
 			if (Auth::user()->activity_approval_level_id == 1) {
 				$activityStatusId = 7; //L1 Rejected - Waiting for ASP Data Re-Entry
-				$eligleForAspRentry = true;
+				$eligleForAspReEntry = true;
 				$activity->defer_reason = isset($request->defer_reason) ? $request->defer_reason : NULL;
+				$activity->service_type_changed_on_level = NULL;
+				$activity->km_changed_on_level = NULL;
+				$activity->not_collected_amount_changed_on_level = NULL;
+				$activity->collected_amount_changed_on_level = NULL;
 			} elseif (Auth::user()->activity_approval_level_id == 2) {
 				// L2
 				$activityStatusId = 24; //L2 Rejected - Waiting for L1 Individual Verification
@@ -1971,7 +2074,7 @@ class ActivityController extends Controller {
 			$activityLog->save();
 
 			//Saving log record
-			if ($eligleForAspRentry) {
+			if ($eligleForAspReEntry) {
 				$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_DEFERED_DONE');
 				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_DEFERRED');
 				logActivity3(config('constants.entity_types.ticket'), $activity->id, [

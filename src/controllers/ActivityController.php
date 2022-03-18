@@ -2024,12 +2024,16 @@ class ActivityController extends Controller {
 
 			$activity = Activity::findOrFail($request->activity_id);
 
-			$eligleForAspRentry = false;
+			$eligleForAspReEntry = false;
 			//L1
 			if (Auth::user()->activity_approval_level_id == 1) {
 				$activityStatusId = 7; //L1 Rejected - Waiting for ASP Data Re-Entry
-				$eligleForAspRentry = true;
+				$eligleForAspReEntry = true;
 				$activity->defer_reason = isset($request->defer_reason) ? $request->defer_reason : NULL;
+				$activity->service_type_changed_on_level = NULL;
+				$activity->km_changed_on_level = NULL;
+				$activity->not_collected_amount_changed_on_level = NULL;
+				$activity->collected_amount_changed_on_level = NULL;
 			} elseif (Auth::user()->activity_approval_level_id == 2) {
 				// L2
 				$activityStatusId = 24; //L2 Rejected - Waiting for L1 Individual Verification
@@ -2070,7 +2074,7 @@ class ActivityController extends Controller {
 			$activityLog->save();
 
 			//Saving log record
-			if ($eligleForAspRentry) {
+			if ($eligleForAspReEntry) {
 				$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_DEFERED_DONE');
 				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.BO_DEFERRED');
 				logActivity3(config('constants.entity_types.ticket'), $activity->id, [

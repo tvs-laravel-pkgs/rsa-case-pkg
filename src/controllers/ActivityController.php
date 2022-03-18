@@ -1409,13 +1409,13 @@ class ActivityController extends Controller {
 			if ($request->boServiceTypeId != $activity->service_type_id) {
 				$isServiceTypeChanged = true;
 			}
-			if ($request->bo_km_travelled != $kmTravelled) {
+			if (floatval($request->bo_km_travelled) != $kmTravelled) {
 				$isKmTravelledChanged = true;
 			}
-			if ($request->bo_not_collected != $notCollected) {
+			if (floatval($request->bo_not_collected) != $notCollected) {
 				$isNotCollectedChanged = true;
 			}
-			if ($request->bo_collected != $collected) {
+			if (floatval($request->bo_collected) != $collected) {
 				$isCollectedChanged = true;
 			}
 

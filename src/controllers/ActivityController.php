@@ -833,6 +833,13 @@ class ActivityController extends Controller {
 
 		}
 
+		if (!$this->case->vehicleModel) {
+			// NEED TO CONFIRM WITH CLIENT
+		}
+		if (!$this->case->vehicleModel->vehiclecategory) {
+			// NEED TO CONFIRM WITH CLIENT
+		}
+
 		$isMobile = 0; //WEB
 		//MOBILE APP
 		if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
@@ -841,6 +848,7 @@ class ActivityController extends Controller {
 
 		$asp_service_type_data = AspServiceType::where('asp_id', $activity->asp_id)
 			->where('service_type_id', $activity->service_type_id)
+			->where('vehicle_category_id', $this->case->vehicleModel->vehiclecategory->id)
 			->where('is_mobile', $isMobile)
 			->first();
 		$casewiseRatecardEffectDatetime = config('rsa.CASEWISE_RATECARD_EFFECT_DATETIME');
@@ -1310,8 +1318,13 @@ class ActivityController extends Controller {
 						]);
 					}
 
-					$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id);
-
+					$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id, $activity->case);
+					if (!$response['success']) {
+						return response()->json([
+							'success' => false,
+							'error' => $response['error'],
+						]);
+					}
 					$price = $response['asp_service_price'];
 
 					if ($activity->financeStatus->po_eligibility_type_id == 341) {
@@ -2175,7 +2188,7 @@ class ActivityController extends Controller {
 				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $activity->id, 'key_id' => $key_id, 'company_id' => 1], ['value' => $value]);
 			}
 
-			$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id);
+			$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id, $activity->case);
 			if (!$response['success']) {
 				return [
 					'success' => false,

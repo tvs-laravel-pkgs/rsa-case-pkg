@@ -105,7 +105,7 @@ class CaseController extends Controller {
 						}),
 				],
 				'vehicle_model' => [
-					'nullable',
+					'required',
 					'string',
 					'max:191',
 					Rule::exists('vehicle_models', 'name')

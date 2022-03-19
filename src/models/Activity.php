@@ -338,6 +338,21 @@ class Activity extends Model {
 	}
 
 	public function saveActivityRatecard() {
+
+		if (!$this->case->vehicleModel) {
+			return [
+				'success' => false,
+				'error' => "Vehicle model is required",
+			];
+		}
+
+		if (!$this->case->vehicleModel->vehiclecategory) {
+			return [
+				'success' => false,
+				'error' => "Vehicle category is required",
+			];
+		}
+
 		$isMobile = 0; //WEB
 		//MOBILE APP
 		if ($this->data_src_id == 260 || $this->data_src_id == 263) {
@@ -359,6 +374,7 @@ class Activity extends Model {
 		])
 			->where('asp_id', $this->asp->id)
 			->where('service_type_id', $this->serviceType->id)
+			->where('vehicle_category_id', $this->case->vehicleModel->vehiclecategory->id)
 			->where('is_mobile', $isMobile)
 			->first();
 
@@ -378,6 +394,7 @@ class Activity extends Model {
 			$activityRateCard->updated_by_id = Auth::check() ? Auth::user()->id : 72;
 		}
 		$activityRateCard->range_limit = $aspServiceTypeRateCard->range_limit;
+		$activityRateCard->vehicle_category_id = $this->case->vehicleModel->vehiclecategory->id;
 		$activityRateCard->below_range_price = $aspServiceTypeRateCard->below_range_price;
 		$activityRateCard->above_range_price = $aspServiceTypeRateCard->above_range_price;
 		$activityRateCard->waiting_charge_per_hour = $aspServiceTypeRateCard->waiting_charge_per_hour;
@@ -405,7 +422,7 @@ class Activity extends Model {
 		}
 
 		if ($data_src == 'CC') {
-			$response = getActivityKMPrices($this->serviceType, $this->asp, $this->data_src_id);
+			$response = getActivityKMPrices($this->serviceType, $this->asp, $this->data_src_id, $this->case);
 			if (!$response['success']) {
 				return [
 					'success' => false,
@@ -675,7 +692,7 @@ class Activity extends Model {
 								}),
 						],
 						'vehicle_model' => [
-							'nullable',
+							'required',
 							// 'regex:/^[\s\w-]*$/', //alpha_num with spaces
 							'max:191',
 							Rule::exists('vehicle_models', 'name')

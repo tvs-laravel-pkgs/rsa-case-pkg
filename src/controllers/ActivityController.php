@@ -1294,6 +1294,24 @@ class ActivityController extends Controller {
 
 			$activity = Activity::find($request->activity_id);
 
+			if (!$activity->case->vehicleModel) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						"Vehicle model is required",
+					],
+				]);
+			}
+
+			if (!$activity->case->vehicleModel->vehiclecategory) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						"Vehicle category not mapped for the vehicle model",
+					],
+				]);
+			}
+
 			$isMobile = 0; //WEB
 			//MOBILE APP
 			if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
@@ -1302,8 +1320,18 @@ class ActivityController extends Controller {
 
 			$asp_service_type_data = AspServiceType::where('asp_id', $request->asp_id)
 				->where('service_type_id', $request->service_type_id)
+				->where('vehicle_category_id', $activity->case->vehicleModel->vehiclecategory->id)
 				->where('is_mobile', $isMobile)
 				->first();
+
+			if (!$asp_service_type_data) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Service (' . $serviceType->name . ') not enabled for the ASP (' . $activity->asp->asp_code . ')',
+					],
+				]);
+			}
 
 			return response()->json([
 				'success' => true,
@@ -1716,6 +1744,7 @@ class ActivityController extends Controller {
 
 		$aspRateCard = AspServiceType::where('asp_id', $activity->asp_id)
 			->where('service_type_id', $activity->service_type_id)
+			->where('vehicle_category_id', $activity->case->vehicleModel->vehiclecategory->id)
 			->where('is_mobile', $isMobile)
 			->first();
 		if ($aspRateCard) {

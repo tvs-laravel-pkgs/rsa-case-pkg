@@ -451,9 +451,51 @@ class ActivityController extends Controller {
 		if ($view_type_id == 2) {
 			if (!($activity_data && ($activity_data->status_id == 5 || $activity_data->status_id == 6 || $activity_data->status_id == 9 || $activity_data->status_id == 8))) {
 				$errors[0] = "Activity is not valid for Verification!!!";
-				return response()->json(['success' => false, 'errors' => $errors]);
+				return response()->json([
+					'success' => false,
+					'errors' => $errors,
+				]);
 			}
 		}
+		if (!$activity_data->case->vehicleModel) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Vehicle model is required',
+				],
+			]);
+		}
+
+		if (!$activity_data->case->vehicleModel->vehiclecategory) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Vehicle category not mapped for the vehicle model',
+				],
+			]);
+		}
+
+		$isMobile = 0; //WEB
+		//MOBILE APP
+		if ($activity_data->data_src_id == 260 || $activity_data->data_src_id == 263) {
+			$isMobile = 1;
+		}
+
+		$asp_service_type_data = AspServiceType::where('asp_id', $activity_data->asp_id)
+			->where('service_type_id', $activity_data->service_type_id)
+			->where('vehicle_category_id', $activity_data->case->vehicleModel->vehiclecategory->id)
+			->where('is_mobile', $isMobile)
+			->first();
+
+		if (!$asp_service_type_data) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					"Service (" . $activity_data->serviceType->name . ") not enabled for the ASP (" . $activity_data->asp->asp_code . ")",
+				],
+			]);
+		}
+
 		$this->data['activities'] = $activity = Activity::with([
 			'invoice',
 			'asp',
@@ -833,24 +875,6 @@ class ActivityController extends Controller {
 
 		}
 
-		if (!$this->case->vehicleModel) {
-			// NEED TO CONFIRM WITH CLIENT
-		}
-		if (!$this->case->vehicleModel->vehiclecategory) {
-			// NEED TO CONFIRM WITH CLIENT
-		}
-
-		$isMobile = 0; //WEB
-		//MOBILE APP
-		if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
-			$isMobile = 1;
-		}
-
-		$asp_service_type_data = AspServiceType::where('asp_id', $activity->asp_id)
-			->where('service_type_id', $activity->service_type_id)
-			->where('vehicle_category_id', $this->case->vehicleModel->vehiclecategory->id)
-			->where('is_mobile', $isMobile)
-			->first();
 		$casewiseRatecardEffectDatetime = config('rsa.CASEWISE_RATECARD_EFFECT_DATETIME');
 		//Activity creation datetime greater than effective datetime
 		if (date('Y-m-d H:i:s', strtotime($activity->activity_date)) > $casewiseRatecardEffectDatetime) {
@@ -917,6 +941,7 @@ class ActivityController extends Controller {
 			$service_type = ServiceType::where('name', $cc_service_type->value)->first();
 			if ($service_type) {
 				$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
+					->where('vehicle_category_id', $activity_data->case->vehicleModel->vehiclecategory->id)
 					->where('service_type_id', $service_type->id)
 					->where('is_mobile', $isMobile)
 					->first();
@@ -1290,7 +1315,7 @@ class ActivityController extends Controller {
 				if (!$saveActivityRatecardResponse['success']) {
 					return response()->json([
 						'success' => false,
-						'error' => $saveActivityRatecardResponse['error'],
+						'error' => $saveActivityRatecardResponse['error'] . ' Case Number: ' . $activity->case->number,
 					]);
 				}
 
@@ -1302,6 +1327,7 @@ class ActivityController extends Controller {
 
 				$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 					->where('service_type_id', $activity->service_type_id)
+					->where('vehicle_category_id', $activity->case->vehicleModel->vehiclecategory->id)
 					->where('is_mobile', $isMobile)
 					->first();
 
@@ -1385,6 +1411,11 @@ class ActivityController extends Controller {
 					]);
 					$bo_invoice_amount->value = $invoiceAmount;
 					$bo_invoice_amount->save();
+				} else {
+					return response()->json([
+						'success' => false,
+						'error' => "Service (" . $activity->serviceType->name . ") not enabled for the ASP (" . $activity->asp->asp_code . ")  Case Number: " . $activity->case->number,
+					]);
 				}
 
 				$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_APPROVED_BULK');
@@ -1757,6 +1788,12 @@ class ActivityController extends Controller {
 	public function activityNewGetFormData($id = NULL) {
 		$for_deffer_activity = 0;
 		$this->data = Activity::getFormData($id, $for_deffer_activity);
+		if (!$this->data['success']) {
+			return response()->json([
+				'success' => false,
+				'error' => $this->data['error'],
+			]);
+		}
 		$this->data['case_details'] = $this->data['activity']->case;
 		if (date('Y-m-d') > "2022-01-01") {
 			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st February onwards)';
@@ -1811,6 +1848,24 @@ class ActivityController extends Controller {
 					'success' => false,
 					'errors' => [
 						'Activity not found',
+					],
+				]);
+			}
+
+			if (!$activity->case->vehicleModel) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Vehicle model is required',
+					],
+				]);
+			}
+
+			if (!$activity->case->vehicleModel->vehiclecategory) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Vehicle category not mapped for the vehicle model',
 					],
 				]);
 			}
@@ -1916,11 +1971,20 @@ class ActivityController extends Controller {
 
 			$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 				->where('service_type_id', $cc_service_type->id)
+				->where('vehicle_category_id', $activity->case->vehicleModel->vehiclecategory->id)
 				->where('is_mobile', $isMobile)
 				->first();
-			if ($aspServiceType) {
-				$range_limit = $aspServiceType->range_limit;
+
+			if (!$aspServiceType) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						"Service (" . $cc_service_type->name . ") not enabled for ASP (" . $activity->asp->asp_code . ")",
+					],
+				]);
 			}
+
+			$range_limit = $aspServiceType->range_limit;
 
 			if (!empty($request->comments)) {
 				$activity->asp_resolve_comments = $request->comments;
@@ -2406,6 +2470,12 @@ class ActivityController extends Controller {
 	public function activityDeferredGetFormData($id = NULL) {
 		$for_deffer_activity = 1;
 		$this->data = Activity::getFormData($id, $for_deffer_activity);
+		if (!$this->data['success']) {
+			return response()->json([
+				'success' => false,
+				'error' => $this->data['error'],
+			]);
+		}
 		$this->data['case'] = $this->data['activity']->case;
 		if (date('Y-m-d') > "2022-01-01") {
 			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st February onwards)';

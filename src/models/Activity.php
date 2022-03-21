@@ -190,18 +190,45 @@ class Activity extends Model {
 		])
 			->findOrFail($id);
 
+		if (!$activity->case->vehicleModel) {
+			return [
+				'success' => false,
+				'error' => "Vehicle model is required",
+			];
+		}
+
+		if (!$activity->case->vehicleModel->vehiclecategory) {
+			return [
+				'success' => false,
+				'error' => "Vehicle category not mapped for the vehicle model",
+			];
+		}
+
 		$isMobile = 0; //WEB
 		//MOBILE APP
 		if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
 			$isMobile = 1;
 		}
 
-		$data['service_types'] = Asp::where('asps.user_id', Auth::id())
-			->where('asp_service_types.is_mobile', $isMobile)
+		$serviceTypes = Asp::select([
+			'service_types.name',
+			'service_types.id',
+		])
 			->join('asp_service_types', 'asp_service_types.asp_id', '=', 'asps.id')
 			->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')
-			->select('service_types.name', 'asp_service_types.service_type_id as id')
+			->where('asp_service_types.is_mobile', $isMobile)
+			->where('asp_service_types.vehicle_category_id', $activity->case->vehicleModel->vehiclecategory->id)
+			->where('asps.user_id', Auth::id())
+			->groupBy('asp_service_types.service_type_id')
 			->get();
+		if ($serviceTypes->isEmpty()) {
+			return [
+				'success' => false,
+				'error' => "Services not mapped for the ASP",
+			];
+		}
+		$data['service_types'] = $serviceTypes;
+
 		if ($for_deffer_activity) {
 			$asp_km_travelled = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 154]])->first();
 			if (!$asp_km_travelled) {
@@ -260,11 +287,17 @@ class Activity extends Model {
 		$range_limit = "";
 		$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 			->where('service_type_id', $activity->service_type_id)
+			->where('vehicle_category_id', $activity->case->vehicleModel->vehiclecategory->id)
 			->where('is_mobile', $isMobile)
 			->first();
-		if ($aspServiceType) {
-			$range_limit = $aspServiceType->range_limit;
+		if (!$aspServiceType) {
+			return [
+				'success' => false,
+				'error' => "Service (" . $activity->serviceType->name . ") not enabled for the ASP (" . $activity->asp->asp_code . ")",
+			];
 		}
+
+		$range_limit = $aspServiceType->range_limit;
 		$data['range_limit'] = $range_limit;
 		$data['km_attachment'] = Attachment::where('entity_type', '=', config('constants.entity_types.ASP_KM_ATTACHMENT'))
 			->where('entity_id', '=', $activity->id)
@@ -349,7 +382,7 @@ class Activity extends Model {
 		if (!$this->case->vehicleModel->vehiclecategory) {
 			return [
 				'success' => false,
-				'error' => "Vehicle category is required",
+				'error' => "Vehicle category not mapped for the vehicle model",
 			];
 		}
 
@@ -381,7 +414,7 @@ class Activity extends Model {
 		if (!$aspServiceTypeRateCard) {
 			return [
 				'success' => false,
-				'error' => 'Service (' . $this->serviceType->name . ') not enabled for ASP (' . $this->asp->asp_code . ')',
+				'error' => 'Service (' . $this->serviceType->name . ') not enabled for the ASP (' . $this->asp->asp_code . ')',
 			];
 		}
 

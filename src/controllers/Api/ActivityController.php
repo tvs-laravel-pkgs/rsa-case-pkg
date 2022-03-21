@@ -441,10 +441,10 @@ class ActivityController extends Controller {
 					if ($service_type->service_group_id == 2) {
 						$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $data_src->id);
 						if ($is_bulk) {
-							//ASP Completed Data Entry - Waiting for BO Bulk Verification
+							//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 							$activity->status_id = 5;
 						} else {
-							//ASP Completed Data Entry - Waiting for BO Individual Verification
+							//ASP Completed Data Entry - Waiting for L1 Individual Verification
 							$activity->status_id = 6;
 						}
 					} else {
@@ -545,10 +545,10 @@ class ActivityController extends Controller {
 						if ($service_type->service_group_id == 2) {
 							$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id);
 							if ($is_bulk) {
-								//ASP Completed Data Entry - Waiting for BO Bulk Verification
+								//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 								$activity->status_id = 5;
 							} else {
-								//ASP Completed Data Entry - Waiting for BO Individual Verification
+								//ASP Completed Data Entry - Waiting for L1 Individual Verification
 								$activity->status_id = 6;
 							}
 						}
@@ -566,10 +566,10 @@ class ActivityController extends Controller {
 				if ($service_type->service_group_id == 2) {
 					$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id);
 					if ($is_bulk) {
-						//ASP Completed Data Entry - Waiting for BO Bulk Verification
+						//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 						$statusId = 5;
 					} else {
-						//ASP Completed Data Entry - Waiting for BO Individual Verification
+						//ASP Completed Data Entry - Waiting for L1 Individual Verification
 						$statusId = 6;
 					}
 				} else {
@@ -692,7 +692,7 @@ class ActivityController extends Controller {
 					$join->on('bo_po_amount.activity_id', 'activities.id')
 						->where('bo_po_amount.key_id', 182); //BO INVOICE AMOUNT
 				})
-				->whereIn('activities.status_id', [11, 1]) //BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
+				->whereIn('activities.status_id', [11, 1, 20, 23]) //BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice OR L2 Approved - Waiting for Invoice Generation by ASP OR L3 Approved - Waiting for Invoice Generation by ASP
 				->where('cases.status_id', 4) //case closed
 				->where('activities.data_src_id', '!=', 262) //NOT BO MANUAL
 				->where('activities.asp_id', $asp->id)
@@ -752,8 +752,8 @@ class ActivityController extends Controller {
 				'crm_activity_id' => $request->crm_activity_id,
 			])->first();
 
-			//ALLOW REJECTION ONLY FOR (BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice)
-			if ($activity->status_id != 1 && $activity->status_id != 11) {
+			//ALLOW REJECTION ONLY FOR (BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice OR L2 Approved - Waiting for Invoice Generation by ASP OR L3 Approved - Waiting for Invoice Generation by ASP)
+			if ($activity->status_id != 1 && $activity->status_id != 11 && $activity->status_id != 20 && $activity->status_id != 23) {
 				//SAVE REJECT ACTIVITY API LOG
 				$errors[] = 'Rejection not allowed';
 				saveApiLog(104, NULL, $request->all(), $errors, NULL, 121);

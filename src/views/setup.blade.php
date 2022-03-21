@@ -118,21 +118,21 @@
     var activity_status_view_billing_details_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/billing_details.html')}}";
     var view_cc_details = "{{Entrust::can('view-cc-details')}}";
 
-  var activity_status_view_location_details_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/location_details.html')}}";
-  var activity_status_view_km_details_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/km_details.html')}}";
-  var activity_status_view_invoice_details_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/invoice_details.html')}}";
-  var activity_status_view_financial_details_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/financial_details.html')}}";
-  var activity_status_view_case_details_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/case_details.html')}}";
-  var activity_status_view_histories_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/activity_histories.html')}}";
-  var style_dot_image_url = "{{URL::asset('resources/assets/images/oval.svg')}}";
-  var style_car_image_url = "{{URL::asset('resources/assets/images/ic-car.svg')}}";
-  var style_service_type_image_url = "{{URL::asset('resources/assets/images/ic-servicetype.svg')}}";
-  var style_location_image_url = "{{URL::asset('resources/assets/images/ic-location.svg')}}";
-  var style_profile_image_url = "{{URL::asset('resources/assets/images/ic-profile.svg')}}";
-  var style_phone_image_url = "{{URL::asset('resources/assets/images/ic-phone.svg')}}";
-  var style_modal_close_image_url = "{{URL::asset('resources/assets/images/modal-close.svg')}}";
-  var style_question_image_url = "{{URL::asset('resources/assets/images/question.svg')}}";
-  var style_checked_image_url = "{{URL::asset('resources/assets/images/checked.svg')}}";
+	var activity_status_view_location_details_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/location_details.html')}}";
+ 	var activity_status_view_km_details_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/km_details.html')}}";
+	var activity_status_view_invoice_details_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/invoice_details.html')}}";
+	var activity_status_view_financial_details_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/financial_details.html')}}";
+	var activity_status_view_case_details_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/case_details.html')}}";
+	var activity_status_view_histories_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/activity_histories.html')}}";
+	var style_dot_image_url = "{{URL::asset('resources/assets/images/oval.svg')}}";
+	var style_car_image_url = "{{URL::asset('resources/assets/images/ic-car.svg')}}";
+	var style_service_type_image_url = "{{URL::asset('resources/assets/images/ic-servicetype.svg')}}";
+	var style_location_image_url = "{{URL::asset('resources/assets/images/ic-location.svg')}}";
+	var style_profile_image_url = "{{URL::asset('resources/assets/images/ic-profile.svg')}}";
+	var style_phone_image_url = "{{URL::asset('resources/assets/images/ic-phone.svg')}}";
+	var style_modal_close_image_url = "{{URL::asset('resources/assets/images/modal-close.svg')}}";
+	var style_question_image_url = "{{URL::asset('resources/assets/images/question.svg')}}";
+	var style_checked_image_url = "{{URL::asset('resources/assets/images/checked.svg')}}";
     var activity_status_view_ticket_total_summary_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/ticket_total_summary.html')}}";
     var activity_status_view_ticket_total_summary_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/ticket_total_summary_view.html')}}";
     var activity_status_view_asp_details_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/asp_details.html')}}";
@@ -150,10 +150,11 @@
     var activity_back_asp_update = "{{route('activityBackAspUpdate')}}";
     var activity_towing_images_required_url = "{{route('activityTowingImagesRequiredUpdated')}}";
     var releaseOnHold = "{{route('releaseOnHold')}}";
-    //NEW ACTIVITY
+
+    var getServiceTypeRateCardDetail = "{{route('getActivityServiceTypeRateCardDetail')}}";
 
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/common/controller.js?v=6')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/common/controller.js?v=7')}}"></script>
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-status/controller.js?v=6')}}"></script>
 <!-- RSA-NEW-ACTIVITY-PKG -->
 <script type="text/javascript">

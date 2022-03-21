@@ -502,93 +502,120 @@ class ActivityController extends Controller {
 	}
 
 	public function viewActivityStatus($view_type_id = NULL, $activity_status_id) {
-		//dd($view_type_id);
-		$activity_data = Activity::findOrFail($activity_status_id);
-		if ($view_type_id == 2) {
-			if (!($activity_data && ($activity_data->status_id == 5 || $activity_data->status_id == 6 || $activity_data->status_id == 9 || $activity_data->status_id == 8))) {
-				$errors[0] = "Activity is not valid for Verification!!!";
+		try {
+			$activityApprovalLevel = '';
+			$activity_data = Activity::findOrFail($activity_status_id);
+			if ($view_type_id == 2) {
+				if (!$activity_data || ($activity_data && $activity_data->status_id != 5 && $activity_data->status_id != 6 && $activity_data->status_id != 8 && $activity_data->status_id != 9 && $activity_data->status_id != 18 && $activity_data->status_id != 19 && $activity_data->status_id != 21 && $activity_data->status_id != 22 && $activity_data->status_id != 24 && $activity_data->status_id != 25)) {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'Activity is not valid for Verification',
+						],
+					]);
+				}
+
+				if (Auth::check()) {
+					if (empty(Auth::user()->activity_approval_level_id)) {
+						return response()->json([
+							'success' => false,
+							'errors' => [
+								'User is not valid for Verification',
+							],
+						]);
+					} else {
+						$activityApprovalLevel = Auth::user()->activity_approval_level_id;
+					}
+				} else {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'User is not valid for Verification',
+						],
+					]);
+				}
+			}
+
+			if (!$activity_data->case->vehicleModel) {
 				return response()->json([
 					'success' => false,
-					'errors' => $errors,
+					'errors' => [
+						'Vehicle model is required',
+					],
 				]);
 			}
-		}
-		if (!$activity_data->case->vehicleModel) {
-			return response()->json([
-				'success' => false,
-				'errors' => [
-					'Vehicle model is required',
-				],
-			]);
-		}
 
-		if (!$activity_data->case->vehicleModel->vehiclecategory) {
-			return response()->json([
-				'success' => false,
-				'errors' => [
-					'Vehicle category not mapped for the vehicle model',
-				],
-			]);
-		}
+			if (!$activity_data->case->vehicleModel->vehiclecategory) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Vehicle category not mapped for the vehicle model',
+					],
+				]);
+			}
 
-		$isMobile = 0; //WEB
-		//MOBILE APP
-		if ($activity_data->data_src_id == 260 || $activity_data->data_src_id == 263) {
-			$isMobile = 1;
-		}
+			$isMobile = 0; //WEB
+			//MOBILE APP
+			if ($activity_data->data_src_id == 260 || $activity_data->data_src_id == 263) {
+				$isMobile = 1;
+			}
 
-		$asp_service_type_data = AspServiceType::where('asp_id', $activity_data->asp_id)
-			->where('service_type_id', $activity_data->service_type_id)
-			->where('vehicle_category_id', $activity_data->case->vehicleModel->vehiclecategory->id)
-			->where('is_mobile', $isMobile)
-			->first();
+			$asp_service_type_data = AspServiceType::where('asp_id', $activity_data->asp_id)
+				->where('service_type_id', $activity_data->service_type_id)
+				->where('vehicle_category_id', $activity_data->case->vehicleModel->vehiclecategory->id)
+				->where('is_mobile', $isMobile)
+				->first();
 
-		if (!$asp_service_type_data) {
-			return response()->json([
-				'success' => false,
-				'errors' => [
-					"Service (" . $activity_data->serviceType->name . ") not enabled for the ASP (" . $activity_data->asp->asp_code . ")",
-				],
-			]);
-		}
-
-		$this->data['activities'] = $activity = Activity::with([
-			'invoice',
-			'asp',
-			'asp.rms',
-			'asp.state',
-			'asp.district',
-			'asp.location',
-			'asp.taxGroup',
-			'asp.taxGroup.taxes',
-			'serviceType',
-			'case',
-			'case.callcenter',
-			'financeStatus',
-		])
-			->select([
-				// 'activities.id as activity_id',
-				'activities.id',
-				DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
-				DB::raw('DATE_FORMAT(activities.created_at,"%d-%m-%Y %H:%i:%s") as activity_date'),
-				DB::raw('IF(activities.deduction_reason IS NULL,"-",deduction_reason) as deduction_reason'),
-				DB::raw('IF(activities.bo_comments IS NULL,"-",bo_comments) as bo_comments'),
-				DB::raw('IF(activities.defer_reason IS NULL,"-",defer_reason) as defer_reason'),
-				'cases.number',
-				'cases.customer_name as customer_name',
-				'cases.vin_no',
-				'cases.km_during_breakdown',
-				'cases.customer_contact_number',
-				'cases.bd_lat',
-				'cases.bd_long',
-				'cases.bd_location',
-				'cases.bd_city',
-				'cases.bd_state',
-				'activities.number as activity_number',
-				'activities.asp_po_accepted as asp_po_accepted',
-				'activities.defer_reason as defer_reason',
-				'activities.is_exceptional_check as is_exceptional_check',
-				DB::raw('CASE
+			if (!$asp_service_type_data) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						"Service (" . $activity_data->serviceType->name . ") not enabled for the ASP (" . $activity_data->asp->asp_code . ")",
+					],
+				]);
+			}
+			$this->data['activities'] = $activity = Activity::with([
+				'invoice',
+				'asp',
+				'asp.rms',
+				'asp.state',
+				'asp.district',
+				'asp.location',
+				'asp.taxGroup',
+				'asp.taxGroup.taxes',
+				'serviceType',
+				'case',
+				'case.callcenter',
+				'financeStatus',
+			])
+				->select([
+					// 'activities.id as activity_id',
+					'activities.id',
+					DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+					DB::raw('DATE_FORMAT(activities.created_at,"%d-%m-%Y %H:%i:%s") as activity_date'),
+					DB::raw('IF(activities.deduction_reason IS NULL,"-",deduction_reason) as deduction_reason'),
+					DB::raw('IF(activities.bo_comments IS NULL,"-",bo_comments) as bo_comments'),
+					DB::raw('IF(activities.defer_reason IS NULL,"-",defer_reason) as defer_reason'),
+					'cases.number',
+					'cases.customer_name as customer_name',
+					'cases.vin_no',
+					'cases.km_during_breakdown',
+					'cases.customer_contact_number',
+					'cases.bd_lat',
+					'cases.bd_long',
+					'cases.bd_location',
+					'cases.bd_city',
+					'cases.bd_state',
+					'activities.number as activity_number',
+					'activities.asp_po_accepted as asp_po_accepted',
+					'activities.defer_reason as defer_reason',
+					'activities.approval_level_defer_reason',
+					'activities.is_exceptional_check as is_exceptional_check',
+					'activities.service_type_changed_on_level',
+					'activities.km_changed_on_level',
+					'activities.not_collected_amount_changed_on_level',
+					'activities.collected_amount_changed_on_level',
+					DB::raw('CASE
 				    	WHEN (activities.is_exceptional_check = 1)
 			    		THEN
 			    			CASE
@@ -932,77 +959,40 @@ class ActivityController extends Controller {
 
 			}
 
-		$casewiseRatecardEffectDatetime = config('rsa.CASEWISE_RATECARD_EFFECT_DATETIME');
-		//Activity creation datetime greater than effective datetime
-		if (date('Y-m-d H:i:s', strtotime($activity->activity_date)) > $casewiseRatecardEffectDatetime) {
-			//Activity that is initiated for payment process & not eligible
-			if ($activity->activity_portal_status_id == 1 || $activity->activity_portal_status_id == 10 || $activity->activity_portal_status_id == 11 || $activity->activity_portal_status_id == 12 || $activity->activity_portal_status_id == 13 || $activity->activity_portal_status_id == 14 || $activity->activity_portal_status_id == 15 || $activity->activity_portal_status_id == 16 || $activity->activity_portal_status_id == 17) {
-				$activityRatecard = ActivityRatecard::select([
-					'range_limit',
-					'below_range_price',
-					'above_range_price',
-					'waiting_charge_per_hour',
-					'empty_return_range_price',
-					'adjustment_type',
-					'adjustment',
-				])
-					->where('activity_id', $activity_status_id)
-					->first();
-				if ($activityRatecard) {
-					$asp_service_type_data = $activityRatecard;
+			$casewiseRatecardEffectDatetime = config('rsa.CASEWISE_RATECARD_EFFECT_DATETIME');
+			//Activity creation datetime greater than effective datetime
+			if (date('Y-m-d H:i:s', strtotime($activity->activity_date)) > $casewiseRatecardEffectDatetime) {
+				//Activity that is initiated for payment process & not eligible
+				if ($activity->activity_portal_status_id == 1 || $activity->activity_portal_status_id == 10 || $activity->activity_portal_status_id == 11 || $activity->activity_portal_status_id == 12 || $activity->activity_portal_status_id == 13 || $activity->activity_portal_status_id == 14 || $activity->activity_portal_status_id == 15 || $activity->activity_portal_status_id == 16 || $activity->activity_portal_status_id == 17 || $activity->activity_portal_status_id == 20 || $activity->activity_portal_status_id == 23) {
+					$activityRatecard = ActivityRatecard::select([
+						'range_limit',
+						'below_range_price',
+						'above_range_price',
+						'waiting_charge_per_hour',
+						'empty_return_range_price',
+						'adjustment_type',
+						'adjustment',
+					])
+						->where('activity_id', $activity_status_id)
+						->first();
+					if ($activityRatecard) {
+						$asp_service_type_data = $activityRatecard;
+					}
 				}
 			}
 
 			$this->data['activities']['asp_service_type_data'] = $asp_service_type_data;
 
-		$configs = Config::where('entity_type_id', 23)->get();
-		foreach ($configs as $config) {
-			$detail = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $config->id)->first();
-			if (strpos($config->name, '_charges') || strpos($config->name, '_amount')) {
+			$configs = Config::where('entity_type_id', 23)->get();
+			foreach ($configs as $config) {
+				$detail = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $config->id)->first();
+				if (strpos($config->name, '_charges') || strpos($config->name, '_amount')) {
 
-				$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '-') : '-';
-				$raw_key_name = 'raw_' . $config->name;
-				$this->data['activities'][$raw_key_name] = $detail ? (!empty($detail->value) ? $detail->value : '-') : '-';
-			} elseif (strpos($config->name, 'date')) {
-				$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? date("d-m-Y H:i:s", strtotime($detail->value)) : '-') : '-';
-			} else {
-				$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? $detail->value : '-') : '-';
-			}
-			//dump($config->name,$this->data['activities'][$config->name]);
-		}
-		/*if ($this->data['activities']['asp_service_type_data']->adjustment_type == 1) {
-				$this->data['activities']['bo_deduction'] = ($this->data['activities']['raw_bo_po_amount'] * $this->data['activities']['asp_service_type_data']->adjustment) / 100;
-			} elseif ($this->data['activities']['asp_service_type_data']->adjustment_type == 2) {
-				//AMOUNT
-				$this->data['activities']['bo_deduction'] = $this->data['activities']['asp_service_type_data']->adjustment;
-		*/
-
-		//FOR DIFFERENCE HIGHLIGHT
-		$is_service_type_eligible = true;
-		$is_km_travelled_eligible = true;
-		$is_not_collected_eligible = true;
-		$is_collected_eligible = true;
-		$cc_service_type = ActivityDetail::where('activity_id', $activity_status_id)
-			->where('key_id', 153)
-			->first();
-		$asp_service_type = ActivityDetail::where('activity_id', $activity_status_id)
-			->where('key_id', 157)
-			->first();
-		if ($cc_service_type && $asp_service_type) {
-			//Service Type
-			if ($cc_service_type->value != $asp_service_type->value) {
-				$is_service_type_eligible = false;
-			}
-			//KM Travelled
-			$service_type = ServiceType::where('name', $cc_service_type->value)->first();
-			if ($service_type) {
-				$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
-					->where('vehicle_category_id', $activity_data->case->vehicleModel->vehiclecategory->id)
-					->where('service_type_id', $service_type->id)
-					->where('is_mobile', $isMobile)
-					->first();
-				if ($aspServiceType) {
-					$range_limit = $aspServiceType->range_limit;
+					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '-') : '-';
+					$raw_key_name = 'raw_' . $config->name;
+					$this->data['activities'][$raw_key_name] = $detail ? (!empty($detail->value) ? $detail->value : '-') : '-';
+				} elseif (strpos($config->name, 'date')) {
+					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? date("d-m-Y H:i:s", strtotime($detail->value)) : '-') : '-';
 				} else {
 					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? $detail->value : '-') : '-';
 				}
@@ -1036,6 +1026,7 @@ class ActivityController extends Controller {
 				if ($service_type) {
 					$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 						->where('service_type_id', $service_type->id)
+						->where('vehicle_category_id', $activity_data->case->vehicleModel->vehiclecategory->id)
 						->where('is_mobile', $isMobile)
 						->first();
 					if ($aspServiceType) {
@@ -1796,7 +1787,7 @@ class ActivityController extends Controller {
 			}
 
 			$activities = Activity::whereIn('id', $request->activity_ids)->get();
-			if (count($activities) == 0) {
+			if ($activities->isEmpty()) {
 				return response()->json([
 					'success' => false,
 					'error' => 'Activities not found',
@@ -1905,12 +1896,6 @@ class ActivityController extends Controller {
 					]);
 					$bo_invoice_amount->value = $invoiceAmount;
 					$bo_invoice_amount->save();
-				} else {
-					return response()->json([
-						'success' => false,
-						'error' => "Service (" . $activity->serviceType->name . ") not enabled for the ASP (" . $activity->asp->asp_code . ")  Case Number: " . $activity->case->number,
-					]);
-				}
 
 					$isApproved = false;
 					$approver = '';
@@ -2006,7 +1991,7 @@ class ActivityController extends Controller {
 				} else {
 					return response()->json([
 						'success' => false,
-						'error' => "ASP Rate card not available for the case : " . $activity->case->number,
+						'error' => "Service (" . $activity->serviceType->name . ") not enabled for the ASP (" . $activity->asp->asp_code . ")  Case Number: " . $activity->case->number,
 					]);
 				}
 			}

@@ -191,14 +191,14 @@ class Activity extends Model {
 			->findOrFail($id);
 
 		if (!$activity->case->vehicleModel) {
-			return [
+			return $data = [
 				'success' => false,
 				'error' => "Vehicle model is required",
 			];
 		}
 
 		if (!$activity->case->vehicleModel->vehiclecategory) {
-			return [
+			return $data = [
 				'success' => false,
 				'error' => "Vehicle category not mapped for the vehicle model",
 			];
@@ -222,9 +222,9 @@ class Activity extends Model {
 			->groupBy('asp_service_types.service_type_id')
 			->get();
 		if ($serviceTypes->isEmpty()) {
-			return [
+			return $data = [
 				'success' => false,
-				'error' => "Services not mapped for the ASP",
+				'error' => "Service not mapped for the ASP",
 			];
 		}
 		$data['service_types'] = $serviceTypes;

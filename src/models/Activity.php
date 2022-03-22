@@ -965,7 +965,7 @@ class Activity extends Model {
 						$save_eligible = false;
 					}
 
-					if (!empty($vehicle_model_by_make->vehicle_category_id)) {
+					if (empty($vehicle_model_by_make->vehicle_category_id)) {
 						$status['errors'][] = 'Vehicle category not mapped for the vehicle model';
 						$save_eligible = false;
 					}

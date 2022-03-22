@@ -265,7 +265,7 @@ class CaseController extends Controller {
 				], $this->successStatus);
 			}
 
-			if (!empty($vehicle_model_by_make->vehicle_category_id)) {
+			if (empty($vehicle_model_by_make->vehicle_category_id)) {
 				//SAVE CASE API LOG
 				$errors[] = "Vehicle category not mapped for the vehicle model";
 				saveApiLog(102, $request->number, $request->all(), $errors, NULL, 121);

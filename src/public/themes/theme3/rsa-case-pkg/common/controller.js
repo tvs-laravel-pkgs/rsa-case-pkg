@@ -341,7 +341,8 @@ app.component('billingDetails', {
                                 bo_comments: self.data.bo_comments,
                                 deduction_reason: self.data.deduction_reason,
                                 exceptional_reason: self.exceptional_reason,
-                                is_exceptional_check: self.is_exceptional_check,
+                                // is_exceptional_check: self.is_exceptional_check,
+                                is_exceptional_check: 1,
                                 bo_service_type: self.data.bo_service_type,
                                 boServiceTypeId: self.data.boServiceTypeId,
                             }

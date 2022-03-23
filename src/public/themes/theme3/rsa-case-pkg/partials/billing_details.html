@@ -245,10 +245,9 @@
                                         Comments : {{$ctrl.data.bo_comments ? $ctrl.data.bo_comments : 'N/A'}}
                                     </td>
                                 </tr>
-                                <tr ng-show="$ctrl.data.is_exceptional_check == 1 && !$ctrl.hasPermission('export-own-activities')">
+                                <tr ng-show="!$ctrl.hasPermission('view-own-activities')">
                                     <td colspan="2" class="text-left">
                                         Exceptional Reason : {{$ctrl.data.exceptional_reason ? $ctrl.data.exceptional_reason : 'N/A'}}
-                                        <!-- <textarea name="exceptional_reason" ng-disabled="true" ng-model="$ctrl.data.exceptional_reason" class="form-control" value="{{$ctrl.data.exceptional_reason}}" rows="3"></textarea> -->
                                     </td>
                                 </tr>
                                 <tr class="warning" ng-show="$ctrl.data.verification==0">
@@ -332,13 +331,13 @@
                     <h2 class="uploadMsg-title">
                         Approve this Activity
                     </h2>
-                    <div class="form-group">
+                    <!--                     <div class="form-group">
                         <div class="col-xs-12">
                             <label>
                                 <input type="checkbox" ng-model="$ctrl.is_exceptional_check" name="is_exceptional_check" ng-true-value=1 ng-false-value=0> Mark this Approval as Exceptional</label>
                         </div>
-                    </div>
-                    <textarea name="exceptional_reason" ng-model="$ctrl.exceptional_reason" value="{{$ctrl.exceptional_reason}}" rows="5" class="form-control" autocomplete="off" placeholder="Reason for Exceptional" id='exceptional_reason' ng-required="$ctrl.is_exceptional_check==1"></textarea>
+                    </div> -->
+                    <textarea name="exceptional_reason" ng-model="$ctrl.exceptional_reason" value="{{$ctrl.exceptional_reason}}" rows="5" class="form-control" autocomplete="off" placeholder="Reason for Exceptional" id='exceptional_reason' required></textarea>
                     <div ng-show="myForm.$submitted || myForm.exceptional_reason.$touched">
                         <span style="color:red" ng-show="myForm.exceptional_reason.$error.required">Exceptional reason is required.</span>
                     </div>

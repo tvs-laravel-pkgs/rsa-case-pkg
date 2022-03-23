@@ -1465,6 +1465,14 @@ class ActivityController extends Controller {
 				]);
 			}
 
+			$l2Approvers = DB::table('state_user')->join('users', 'users.id', 'state_user.user_id')
+				->where('users.activity_approval_level_id', 2) //L2
+				->pluck('state_user.user_id');
+
+			$l3Approvers = DB::table('state_user')->join('users', 'users.id', 'state_user.user_id')
+				->where('users.activity_approval_level_id', 3) //L3
+				->pluck('state_user.user_id');
+
 			$isActivityBulk = $this->isActivityBulkOnApproval($activity);
 			$isApproved = false;
 			$approver = '';
@@ -1490,6 +1498,7 @@ class ActivityController extends Controller {
 					if ($isCollectedChanged) {
 						$activity->collected_amount_changed_on_level = 1;
 					}
+					$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
 					if ($isActivityBulk) {
@@ -1510,6 +1519,7 @@ class ActivityController extends Controller {
 					if ($isCollectedChanged) {
 						$activity->collected_amount_changed_on_level = 2;
 					}
+					$this->sendApprovalNoty($l3Approvers, $activity->case->number, "L3_APPROVAL");
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
 					$activityStatusId = 11; //Waiting for Invoice Generation by ASP
@@ -1538,6 +1548,7 @@ class ActivityController extends Controller {
 					if ($isCollectedChanged) {
 						$activity->collected_amount_changed_on_level = 1;
 					}
+					$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
 					$activityStatusId = 11; //Waiting for Invoice Generation by ASP
@@ -1572,6 +1583,7 @@ class ActivityController extends Controller {
 						} else {
 							$activityStatusId = 19; //Waiting for L2 Individual Verification
 						}
+						$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
 					} else {
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 						$isApproved = true;
@@ -1660,6 +1672,14 @@ class ActivityController extends Controller {
 					'Exception Error' => $e->getMessage(),
 				],
 			]);
+		}
+	}
+
+	public function sendApprovalNoty($approvers, $caseNumber, $notyMessageTemplate) {
+		if (!empty($approvers)) {
+			foreach ($approvers as $approverId) {
+				notify2($notyMessageTemplate, $approverId, config('constants.alert_type.blue'), $caseNumber);
+			}
 		}
 	}
 
@@ -1773,6 +1793,14 @@ class ActivityController extends Controller {
 				]);
 			}
 
+			$l2Approvers = DB::table('state_user')->join('users', 'users.id', 'state_user.user_id')
+				->where('users.activity_approval_level_id', 2) //L2
+				->pluck('state_user.user_id');
+
+			$l3Approvers = DB::table('state_user')->join('users', 'users.id', 'state_user.user_id')
+				->where('users.activity_approval_level_id', 3) //L3
+				->pluck('state_user.user_id');
+
 			foreach ($activities as $key => $activity) {
 
 				$saveActivityRatecardResponse = $activity->saveActivityRatecard();
@@ -1878,10 +1906,12 @@ class ActivityController extends Controller {
 						if (Auth::user()->activity_approval_level_id == 1) {
 							$activityStatusId = 18; //Waiting for L2 Bulk Verification
 							$approver = '1';
+							$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
 						} elseif (Auth::user()->activity_approval_level_id == 2) {
 							// L2
 							$activityStatusId = 20; //Waiting for L3 Bulk Verification
 							$approver = '2';
+							$this->sendApprovalNoty($l3Approvers, $activity->case->number, "L3_APPROVAL");
 						} elseif (Auth::user()->activity_approval_level_id == 3) {
 							// L3
 							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
@@ -1894,6 +1924,7 @@ class ActivityController extends Controller {
 						if (Auth::user()->activity_approval_level_id == 1) {
 							$activityStatusId = 18; //Waiting for L2 Bulk Verification
 							$approver = '1';
+							$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
 						} elseif (Auth::user()->activity_approval_level_id == 2) {
 							// L2
 							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
@@ -1912,6 +1943,7 @@ class ActivityController extends Controller {
 							$isL2ApprovalRequired = $this->isL2ApprovalRequired($activity);
 							if ($isL2ApprovalRequired) {
 								$activityStatusId = 18; //Waiting for L2 Bulk Verification
+								$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
 							} else {
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;

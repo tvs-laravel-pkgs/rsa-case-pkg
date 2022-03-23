@@ -267,11 +267,11 @@ class ActivityController extends Controller {
 				notify2($noty_message_template, $user_id, config('constants.alert_type.blue'), $number);
 
 				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-					'success' => 'Activity status moved to ASP L1 deferred',
+					'success' => 'Activity status moved to ASP Data Re-Entry',
 				]);
 			} else {
 				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-					'error' => 'Activity status not moved to ASP L1 deferred',
+					'error' => 'Activity status not moved to ASP Data Re-Entry',
 				]);
 			}
 		}

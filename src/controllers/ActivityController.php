@@ -4526,10 +4526,29 @@ class ActivityController extends Controller {
 			}
 
 			foreach ($activities as $key => $activity) {
+
+				if (!$activity->case->vehicleModel) {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'Vehicle model is required. Case Number: ' . $activity->case->number,
+						],
+					]);
+				}
+
+				if (!$activity->case->vehicleModel->vehiclecategory) {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'Vehicle category not mapped for the vehicle model. Case Number: ' . $activity->case->number,
+						],
+					]);
+				}
+
 				//MECHANICAL SERVICE GROUP
 				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
 					$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
-					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->vehicleModel->vehiclecategory->id);
 					if ($is_bulk) {
 						//ASP Completed Data Entry - Waiting for BO Bulk Verification
 						$status_id = 5;

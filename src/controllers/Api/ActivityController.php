@@ -342,6 +342,36 @@ class ActivityController extends Controller {
 				], $this->successStatus);
 			}
 
+			if (!$case->vehicleModel) {
+				//SAVE ACTIVITY API LOG
+				$errors[] = 'Vehicle model is required';
+				saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						'Vehicle model is required',
+					],
+				], $this->successStatus);
+			}
+
+			if (!$case->vehicleModel->vehiclecategory) {
+				//SAVE ACTIVITY API LOG
+				$errors[] = 'Vehicle category not mapped for the vehicle model';
+				saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						'Vehicle category not mapped for the vehicle model',
+					],
+				], $this->successStatus);
+			}
+
 			//CHECK CASE IS CLOSED
 			// if ($case->status_id == 4) {
 			// 	return response()->json([
@@ -419,7 +449,8 @@ class ActivityController extends Controller {
 			$finance_status = ActivityFinanceStatus::where([
 				'company_id' => 1,
 				'name' => $request->finance_status,
-			])->first();
+			])
+				->first();
 			$activity->finance_status_id = $finance_status->id;
 
 			$activity->asp_id = $asp->id;
@@ -439,7 +470,7 @@ class ActivityController extends Controller {
 				if ($case->status_id == 4) {
 					//IF SERVICE GROUP IS MECHANICAL
 					if ($service_type->service_group_id == 2) {
-						$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $data_src->id);
+						$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $data_src->id, $case->vehicleModel->vehiclecategory->id);
 						if ($is_bulk) {
 							//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 							$activity->status_id = 5;
@@ -543,7 +574,7 @@ class ActivityController extends Controller {
 
 						//IF MECHANICAL SERVICE GROUP
 						if ($service_type->service_group_id == 2) {
-							$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id);
+							$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id, $case->vehicleModel->vehiclecategory->id);
 							if ($is_bulk) {
 								//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 								$activity->status_id = 5;
@@ -564,7 +595,7 @@ class ActivityController extends Controller {
 			if (($case->status_id == 4 || $case->status_id == 3) && $activity->status_id == 17) {
 				//MECHANICAL SERVICE GROUP
 				if ($service_type->service_group_id == 2) {
-					$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id);
+					$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id, $case->vehicleModel->vehiclecategory->id);
 					if ($is_bulk) {
 						//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 						$statusId = 5;

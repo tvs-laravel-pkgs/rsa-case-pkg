@@ -191,14 +191,14 @@ class Activity extends Model {
 			->findOrFail($id);
 
 		if (!$activity->case->vehicleModel) {
-			return [
+			return $data = [
 				'success' => false,
 				'error' => "Vehicle model is required",
 			];
 		}
 
 		if (!$activity->case->vehicleModel->vehiclecategory) {
-			return [
+			return $data = [
 				'success' => false,
 				'error' => "Vehicle category not mapped for the vehicle model",
 			];
@@ -222,9 +222,9 @@ class Activity extends Model {
 			->groupBy('asp_service_types.service_type_id')
 			->get();
 		if ($serviceTypes->isEmpty()) {
-			return [
+			return $data = [
 				'success' => false,
-				'error' => "Services not mapped for the ASP",
+				'error' => "Service not mapped for the ASP",
 			];
 		}
 		$data['service_types'] = $serviceTypes;
@@ -957,9 +957,16 @@ class Activity extends Model {
 						}
 					}
 					//VEHICLE MODEL GOT BY VEHICLE MAKE
-					$vehicle_model_by_make = VehicleModel::where('name', $record['vehicle_model'])->where('vehicle_make_id', $vehicle_make_id)->first();
+					$vehicle_model_by_make = VehicleModel::where('name', $record['vehicle_model'])
+						->where('vehicle_make_id', $vehicle_make_id)
+						->first();
 					if (!$vehicle_model_by_make) {
 						$status['errors'][] = 'Selected vehicle make doesn"t matches with vehicle model';
+						$save_eligible = false;
+					}
+
+					if (empty($vehicle_model_by_make->vehicle_category_id)) {
+						$status['errors'][] = 'Vehicle category not mapped for the vehicle model';
 						$save_eligible = false;
 					}
 
@@ -1213,7 +1220,7 @@ class Activity extends Model {
 								if ($case->status_id == 4) {
 									//IF MECHANICAL SERVICE GROUP
 									if ($service_type->service_group_id == 2) {
-										$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $dataSourceId);
+										$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $dataSourceId, $vehicle_model_by_make->vehicle_category_id);
 										if ($is_bulk) {
 											//ASP Completed Data Entry - Waiting for BO Bulk Verification
 											$activity->status_id = 5;
@@ -1305,7 +1312,7 @@ class Activity extends Model {
 
 										//IF MECHANICAL
 										if ($service_type->service_group_id == 2) {
-											$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $activity->data_src_id);
+											$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $activity->data_src_id, $vehicle_model_by_make->vehicle_category_id);
 											if ($is_bulk) {
 												//ASP Completed Data Entry - Waiting for BO Bulk Verification
 												$activity->status_id = 5;
@@ -1337,7 +1344,7 @@ class Activity extends Model {
 										//MECHANICAL SERVICE GROUP
 										if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id == 2) {
 											$cc_total_km = $caseActivity->detail(280) ? $caseActivity->detail(280)->value : 0;
-											$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id);
+											$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id, $vehicle_model_by_make->vehicle_category_id);
 											if ($isBulk) {
 												//ASP Completed Data Entry - Waiting for BO Bulk Verification
 												$statusId = 5;
@@ -1451,7 +1458,7 @@ class Activity extends Model {
 		return $km_charge;
 	}
 
-	public static function checkTicketIsBulk($asp_id, $service_type_id, $asp_km, $dataSourceId) {
+	public static function checkTicketIsBulk($asp_id, $service_type_id, $asp_km, $dataSourceId, $vehicleCategoryId) {
 		$isMobile = 0; //WEB
 		//MOBILE APP
 		if ($dataSourceId == 260 || $dataSourceId == 263) {
@@ -1462,6 +1469,7 @@ class Activity extends Model {
 		$range_limit = 0;
 		$aspServiceType = AspServiceType::where('asp_id', $asp_id)
 			->where('service_type_id', $service_type_id)
+			->where('vehicle_category_id', $vehicleCategoryId)
 			->where('is_mobile', $isMobile)
 			->first();
 		if ($aspServiceType) {

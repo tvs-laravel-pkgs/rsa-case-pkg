@@ -190,18 +190,45 @@ class Activity extends Model {
 		])
 			->findOrFail($id);
 
+		if (!$activity->case->vehicleModel) {
+			return $data = [
+				'success' => false,
+				'error' => "Vehicle model is required",
+			];
+		}
+
+		if (!$activity->case->vehicleModel->vehiclecategory) {
+			return $data = [
+				'success' => false,
+				'error' => "Vehicle category not mapped for the vehicle model",
+			];
+		}
+
 		$isMobile = 0; //WEB
 		//MOBILE APP
 		if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
 			$isMobile = 1;
 		}
 
-		$data['service_types'] = Asp::where('asps.user_id', Auth::id())
-			->where('asp_service_types.is_mobile', $isMobile)
+		$serviceTypes = Asp::select([
+			'service_types.name',
+			'service_types.id',
+		])
 			->join('asp_service_types', 'asp_service_types.asp_id', '=', 'asps.id')
 			->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')
-			->select('service_types.name', 'asp_service_types.service_type_id as id')
+			->where('asp_service_types.is_mobile', $isMobile)
+			->where('asp_service_types.vehicle_category_id', $activity->case->vehicleModel->vehiclecategory->id)
+			->where('asps.user_id', Auth::id())
+			->groupBy('asp_service_types.service_type_id')
 			->get();
+		if ($serviceTypes->isEmpty()) {
+			return $data = [
+				'success' => false,
+				'error' => "Service not mapped for the ASP",
+			];
+		}
+		$data['service_types'] = $serviceTypes;
+
 		if ($for_deffer_activity) {
 			$asp_km_travelled = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 154]])->first();
 			if (!$asp_km_travelled) {
@@ -260,11 +287,17 @@ class Activity extends Model {
 		$range_limit = "";
 		$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 			->where('service_type_id', $activity->service_type_id)
+			->where('vehicle_category_id', $activity->case->vehicleModel->vehiclecategory->id)
 			->where('is_mobile', $isMobile)
 			->first();
-		if ($aspServiceType) {
-			$range_limit = $aspServiceType->range_limit;
+		if (!$aspServiceType) {
+			return [
+				'success' => false,
+				'error' => "Service (" . $activity->serviceType->name . ") not enabled for the ASP (" . $activity->asp->asp_code . ")",
+			];
 		}
+
+		$range_limit = $aspServiceType->range_limit;
 		$data['range_limit'] = $range_limit;
 		$data['km_attachment'] = Attachment::where('entity_type', '=', config('constants.entity_types.ASP_KM_ATTACHMENT'))
 			->where('entity_id', '=', $activity->id)
@@ -338,6 +371,21 @@ class Activity extends Model {
 	}
 
 	public function saveActivityRatecard() {
+
+		if (!$this->case->vehicleModel) {
+			return [
+				'success' => false,
+				'error' => "Vehicle model is required",
+			];
+		}
+
+		if (!$this->case->vehicleModel->vehiclecategory) {
+			return [
+				'success' => false,
+				'error' => "Vehicle category not mapped for the vehicle model",
+			];
+		}
+
 		$isMobile = 0; //WEB
 		//MOBILE APP
 		if ($this->data_src_id == 260 || $this->data_src_id == 263) {
@@ -359,13 +407,14 @@ class Activity extends Model {
 		])
 			->where('asp_id', $this->asp->id)
 			->where('service_type_id', $this->serviceType->id)
+			->where('vehicle_category_id', $this->case->vehicleModel->vehiclecategory->id)
 			->where('is_mobile', $isMobile)
 			->first();
 
 		if (!$aspServiceTypeRateCard) {
 			return [
 				'success' => false,
-				'error' => 'Service (' . $this->serviceType->name . ') not enabled for ASP (' . $this->asp->asp_code . ')',
+				'error' => 'Service (' . $this->serviceType->name . ') not enabled for the ASP (' . $this->asp->asp_code . ')',
 			];
 		}
 
@@ -378,6 +427,7 @@ class Activity extends Model {
 			$activityRateCard->updated_by_id = Auth::check() ? Auth::user()->id : 72;
 		}
 		$activityRateCard->range_limit = $aspServiceTypeRateCard->range_limit;
+		$activityRateCard->vehicle_category_id = $this->case->vehicleModel->vehiclecategory->id;
 		$activityRateCard->below_range_price = $aspServiceTypeRateCard->below_range_price;
 		$activityRateCard->above_range_price = $aspServiceTypeRateCard->above_range_price;
 		$activityRateCard->waiting_charge_per_hour = $aspServiceTypeRateCard->waiting_charge_per_hour;
@@ -405,7 +455,7 @@ class Activity extends Model {
 		}
 
 		if ($data_src == 'CC') {
-			$response = getActivityKMPrices($this->serviceType, $this->asp, $this->data_src_id);
+			$response = getActivityKMPrices($this->serviceType, $this->asp, $this->data_src_id, $this->case);
 			if (!$response['success']) {
 				return [
 					'success' => false,
@@ -675,7 +725,7 @@ class Activity extends Model {
 								}),
 						],
 						'vehicle_model' => [
-							'nullable',
+							'required',
 							// 'regex:/^[\s\w-]*$/', //alpha_num with spaces
 							'max:191',
 							Rule::exists('vehicle_models', 'name')
@@ -907,9 +957,16 @@ class Activity extends Model {
 						}
 					}
 					//VEHICLE MODEL GOT BY VEHICLE MAKE
-					$vehicle_model_by_make = VehicleModel::where('name', $record['vehicle_model'])->where('vehicle_make_id', $vehicle_make_id)->first();
+					$vehicle_model_by_make = VehicleModel::where('name', $record['vehicle_model'])
+						->where('vehicle_make_id', $vehicle_make_id)
+						->first();
 					if (!$vehicle_model_by_make) {
 						$status['errors'][] = 'Selected vehicle make doesn"t matches with vehicle model';
+						$save_eligible = false;
+					}
+
+					if (empty($vehicle_model_by_make->vehicle_category_id)) {
+						$status['errors'][] = 'Vehicle category not mapped for the vehicle model';
 						$save_eligible = false;
 					}
 
@@ -1163,7 +1220,7 @@ class Activity extends Model {
 								if ($case->status_id == 4) {
 									//IF MECHANICAL SERVICE GROUP
 									if ($service_type->service_group_id == 2) {
-										$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $dataSourceId);
+										$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $dataSourceId, $vehicle_model_by_make->vehicle_category_id);
 										if ($is_bulk) {
 											//ASP Completed Data Entry - Waiting for BO Bulk Verification
 											$activity->status_id = 5;
@@ -1255,7 +1312,7 @@ class Activity extends Model {
 
 										//IF MECHANICAL
 										if ($service_type->service_group_id == 2) {
-											$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $activity->data_src_id);
+											$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $activity->data_src_id, $vehicle_model_by_make->vehicle_category_id);
 											if ($is_bulk) {
 												//ASP Completed Data Entry - Waiting for BO Bulk Verification
 												$activity->status_id = 5;
@@ -1287,7 +1344,7 @@ class Activity extends Model {
 										//MECHANICAL SERVICE GROUP
 										if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id == 2) {
 											$cc_total_km = $caseActivity->detail(280) ? $caseActivity->detail(280)->value : 0;
-											$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id);
+											$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id, $vehicle_model_by_make->vehicle_category_id);
 											if ($isBulk) {
 												//ASP Completed Data Entry - Waiting for BO Bulk Verification
 												$statusId = 5;
@@ -1401,7 +1458,7 @@ class Activity extends Model {
 		return $km_charge;
 	}
 
-	public static function checkTicketIsBulk($asp_id, $service_type_id, $asp_km, $dataSourceId) {
+	public static function checkTicketIsBulk($asp_id, $service_type_id, $asp_km, $dataSourceId, $vehicleCategoryId) {
 		$isMobile = 0; //WEB
 		//MOBILE APP
 		if ($dataSourceId == 260 || $dataSourceId == 263) {
@@ -1412,6 +1469,7 @@ class Activity extends Model {
 		$range_limit = 0;
 		$aspServiceType = AspServiceType::where('asp_id', $asp_id)
 			->where('service_type_id', $service_type_id)
+			->where('vehicle_category_id', $vehicleCategoryId)
 			->where('is_mobile', $isMobile)
 			->first();
 		if ($aspServiceType) {

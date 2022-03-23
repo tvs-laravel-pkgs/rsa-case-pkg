@@ -158,7 +158,7 @@ class ActivityController extends Controller {
 			})
 			->addColumn('action', function ($activity) {
 				$status_id = 1;
-				$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24, 25];
+				$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22];
 
 				$action = '<div class="dataTable-actions">
 				<a href="#!/rsa-case-pkg/activity-status/' . $status_id . '/view/' . $activity->id . '">
@@ -195,7 +195,7 @@ class ActivityController extends Controller {
 	public function activityBackAsp(Request $request) {
 		//	dd($request->all());
 		$activity = Activity::findOrFail($request->activty_id);
-		$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24, 25];
+		$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22];
 
 		if (!$activity) {
 			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
@@ -245,7 +245,7 @@ class ActivityController extends Controller {
 				]);
 			}
 		} elseif ($request->ticket_status_id == '2') {
-			//L1 Rejected - Waiting for ASP Data Re-Entry
+			//BO Rejected - Waiting for ASP Data Re-Entry
 			$activity->status_id = 7;
 			$activity->updated_at = new Carbon();
 			$activity->updated_by_id = Auth::user()->id;
@@ -367,10 +367,10 @@ class ActivityController extends Controller {
 					$activities->whereIn('activities.status_id', [5, 8]); //ASP Completed Data Entry - Waiting for L1 Bulk Verification AND ASP Data Re-Entry Completed - Waiting for L1 Bulk Verification
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
-					$activities->where('activities.status_id', 18); //L1 Approved - Waiting for L2 Bulk Verification
+					$activities->where('activities.status_id', 18); //Waiting for L2 Bulk Verification
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
-					$activities->where('activities.status_id', 21); //L2 Approved - Waiting for L3 Bulk Verification
+					$activities->where('activities.status_id', 20); //Waiting for L3 Bulk Verification
 				} else {
 					$activities->whereNull('activities.status_id');
 				}
@@ -471,13 +471,13 @@ class ActivityController extends Controller {
 			if (!empty(Auth::user()->activity_approval_level_id)) {
 				//L1
 				if (Auth::user()->activity_approval_level_id == 1) {
-					$activities->whereIn('activities.status_id', [6, 9, 24, 25]); //ASP Completed Data Entry - Waiting for L1 Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Individual Verification AND L2 Rejected - Waiting for L1 Individual Verification AND L3 Rejected - Waiting for L1 Individual Verification
+					$activities->whereIn('activities.status_id', [6, 9, 22]); //ASP Completed Data Entry - Waiting for L1 Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Individual Verification AND BO Rejected - Waiting for L1 Individual Verification
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
-					$activities->where('activities.status_id', 19); //L1 Approved - Waiting for L2 Individual Verification
+					$activities->where('activities.status_id', 19); //Waiting for L2 Individual Verification
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
-					$activities->where('activities.status_id', 22); //L2 Approved - Waiting for L3 Individual Verification
+					$activities->where('activities.status_id', 21); //Waiting for L3 Individual Verification
 				} else {
 					$activities->whereNull('activities.status_id');
 				}
@@ -506,7 +506,7 @@ class ActivityController extends Controller {
 			$activityApprovalLevel = '';
 			$activity_data = Activity::findOrFail($activity_status_id);
 			if ($view_type_id == 2) {
-				if (!$activity_data || ($activity_data && $activity_data->status_id != 5 && $activity_data->status_id != 6 && $activity_data->status_id != 8 && $activity_data->status_id != 9 && $activity_data->status_id != 18 && $activity_data->status_id != 19 && $activity_data->status_id != 21 && $activity_data->status_id != 22 && $activity_data->status_id != 24 && $activity_data->status_id != 25)) {
+				if (!$activity_data || ($activity_data && $activity_data->status_id != 5 && $activity_data->status_id != 6 && $activity_data->status_id != 8 && $activity_data->status_id != 9 && $activity_data->status_id != 18 && $activity_data->status_id != 19 && $activity_data->status_id != 20 && $activity_data->status_id != 21 && $activity_data->status_id != 22)) {
 					return response()->json([
 						'success' => false,
 						'errors' => [
@@ -534,6 +534,45 @@ class ActivityController extends Controller {
 						],
 					]);
 				}
+			}
+
+			if (!$activity_data->case->vehicleModel) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Vehicle model is required',
+					],
+				]);
+			}
+
+			if (!$activity_data->case->vehicleModel->vehiclecategory) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Vehicle category not mapped for the vehicle model',
+					],
+				]);
+			}
+
+			$isMobile = 0; //WEB
+			//MOBILE APP
+			if ($activity_data->data_src_id == 260 || $activity_data->data_src_id == 263) {
+				$isMobile = 1;
+			}
+
+			$asp_service_type_data = AspServiceType::where('asp_id', $activity_data->asp_id)
+				->where('service_type_id', $activity_data->service_type_id)
+				->where('vehicle_category_id', $activity_data->case->vehicleModel->vehiclecategory->id)
+				->where('is_mobile', $isMobile)
+				->first();
+
+			if (!$asp_service_type_data) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						"Service (" . $activity_data->serviceType->name . ") not enabled for the ASP (" . $activity_data->asp->asp_code . ")",
+					],
+				]);
 			}
 			$this->data['activities'] = $activity = Activity::with([
 				'invoice',
@@ -920,21 +959,11 @@ class ActivityController extends Controller {
 
 			}
 
-			$isMobile = 0; //WEB
-			//MOBILE APP
-			if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
-				$isMobile = 1;
-			}
-
-			$asp_service_type_data = AspServiceType::where('asp_id', $activity->asp_id)
-				->where('service_type_id', $activity->service_type_id)
-				->where('is_mobile', $isMobile)
-				->first();
 			$casewiseRatecardEffectDatetime = config('rsa.CASEWISE_RATECARD_EFFECT_DATETIME');
 			//Activity creation datetime greater than effective datetime
 			if (date('Y-m-d H:i:s', strtotime($activity->activity_date)) > $casewiseRatecardEffectDatetime) {
 				//Activity that is initiated for payment process & not eligible
-				if ($activity->activity_portal_status_id == 1 || $activity->activity_portal_status_id == 10 || $activity->activity_portal_status_id == 11 || $activity->activity_portal_status_id == 12 || $activity->activity_portal_status_id == 13 || $activity->activity_portal_status_id == 14 || $activity->activity_portal_status_id == 15 || $activity->activity_portal_status_id == 16 || $activity->activity_portal_status_id == 17 || $activity->activity_portal_status_id == 20 || $activity->activity_portal_status_id == 23) {
+				if ($activity->activity_portal_status_id == 1 || $activity->activity_portal_status_id == 10 || $activity->activity_portal_status_id == 11 || $activity->activity_portal_status_id == 12 || $activity->activity_portal_status_id == 13 || $activity->activity_portal_status_id == 14 || $activity->activity_portal_status_id == 15 || $activity->activity_portal_status_id == 16 || $activity->activity_portal_status_id == 17) {
 					$activityRatecard = ActivityRatecard::select([
 						'range_limit',
 						'below_range_price',
@@ -997,6 +1026,7 @@ class ActivityController extends Controller {
 				if ($service_type) {
 					$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 						->where('service_type_id', $service_type->id)
+						->where('vehicle_category_id', $activity_data->case->vehicleModel->vehiclecategory->id)
 						->where('is_mobile', $isMobile)
 						->first();
 					if ($aspServiceType) {
@@ -1264,6 +1294,24 @@ class ActivityController extends Controller {
 
 			$activity = Activity::find($request->activity_id);
 
+			if (!$activity->case->vehicleModel) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						"Vehicle model is required",
+					],
+				]);
+			}
+
+			if (!$activity->case->vehicleModel->vehiclecategory) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						"Vehicle category not mapped for the vehicle model",
+					],
+				]);
+			}
+
 			$isMobile = 0; //WEB
 			//MOBILE APP
 			if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
@@ -1272,8 +1320,18 @@ class ActivityController extends Controller {
 
 			$asp_service_type_data = AspServiceType::where('asp_id', $request->asp_id)
 				->where('service_type_id', $request->service_type_id)
+				->where('vehicle_category_id', $activity->case->vehicleModel->vehiclecategory->id)
 				->where('is_mobile', $isMobile)
 				->first();
+
+			if (!$asp_service_type_data) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Service (' . $serviceType->name . ') not enabled for the ASP (' . $activity->asp->asp_code . ')',
+					],
+				]);
+			}
 
 			return response()->json([
 				'success' => true,
@@ -1309,6 +1367,15 @@ class ActivityController extends Controller {
 					'success' => false,
 					'errors' => [
 						'User is not valid for Verification',
+					],
+				]);
+			}
+
+			if (empty($request->exceptional_reason)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Exceptional reason is required',
 					],
 				]);
 			}
@@ -1435,8 +1502,8 @@ class ActivityController extends Controller {
 			}
 			if (isset($request->is_exceptional_check)) {
 				$activity->is_exceptional_check = $request->is_exceptional_check;
-				if ($request->is_exceptional_check) {
-					$activity->exceptional_reason = isset($request->exceptional_reason) ? $request->exceptional_reason : NULL;
+				if (!empty($request->exceptional_reason)) {
+					$activity->exceptional_reason = $request->exceptional_reason;
 				}
 			}
 
@@ -1464,9 +1531,9 @@ class ActivityController extends Controller {
 				//L1
 				if (Auth::user()->activity_approval_level_id == 1) {
 					if ($isActivityBulk) {
-						$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+						$activityStatusId = 18; //Waiting for L2 Bulk Verification
 					} else {
-						$activityStatusId = 19; //L1 Approved - Waiting for L2 Individual Verification
+						$activityStatusId = 19; //Waiting for L2 Individual Verification
 					}
 					$approver = '1';
 					if ($isServiceTypeChanged) {
@@ -1484,9 +1551,9 @@ class ActivityController extends Controller {
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
 					if ($isActivityBulk) {
-						$activityStatusId = 21; //L2 Approved - Waiting for L3 Bulk Verification
+						$activityStatusId = 20; //Waiting for L3 Bulk Verification
 					} else {
-						$activityStatusId = 22; //L2 Approved - Waiting for L3 Individual Verification
+						$activityStatusId = 21; //Waiting for L3 Individual Verification
 					}
 					$approver = '2';
 					if ($isServiceTypeChanged) {
@@ -1503,7 +1570,7 @@ class ActivityController extends Controller {
 					}
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
-					$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
+					$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 					$isApproved = true;
 					$approver = '3';
 				}
@@ -1512,9 +1579,9 @@ class ActivityController extends Controller {
 				//L1
 				if (Auth::user()->activity_approval_level_id == 1) {
 					if ($isActivityBulk) {
-						$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+						$activityStatusId = 18; //Waiting for L2 Bulk Verification
 					} else {
-						$activityStatusId = 19; //L1 Approved - Waiting for L2 Individual Verification
+						$activityStatusId = 19; //Waiting for L2 Individual Verification
 					}
 					$approver = '1';
 					if ($isServiceTypeChanged) {
@@ -1531,7 +1598,7 @@ class ActivityController extends Controller {
 					}
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
-					$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
+					$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 					$isApproved = true;
 					$approver = '2';
 					if ($isServiceTypeChanged) {
@@ -1548,7 +1615,7 @@ class ActivityController extends Controller {
 					}
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
-					$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
+					$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 					$isApproved = true;
 					$approver = '3';
 				}
@@ -1559,12 +1626,12 @@ class ActivityController extends Controller {
 					$isL2ApprovalRequired = $this->isL2ApprovalRequired($activity);
 					if ($isL2ApprovalRequired) {
 						if ($isActivityBulk) {
-							$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+							$activityStatusId = 18; //Waiting for L2 Bulk Verification
 						} else {
-							$activityStatusId = 19; //L1 Approved - Waiting for L2 Individual Verification
+							$activityStatusId = 19; //Waiting for L2 Individual Verification
 						}
 					} else {
-						$activityStatusId = 11; //L1 Approved - Waiting for Invoice Generation by ASP
+						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 						$isApproved = true;
 					}
 					$approver = '1';
@@ -1582,7 +1649,7 @@ class ActivityController extends Controller {
 					}
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
-					$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
+					$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 					$isApproved = true;
 					$approver = '2';
 					if ($isServiceTypeChanged) {
@@ -1599,7 +1666,7 @@ class ActivityController extends Controller {
 					}
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
-					$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
+					$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 					$isApproved = true;
 					$approver = '3';
 				}
@@ -1686,6 +1753,7 @@ class ActivityController extends Controller {
 
 		$aspRateCard = AspServiceType::where('asp_id', $activity->asp_id)
 			->where('service_type_id', $activity->service_type_id)
+			->where('vehicle_category_id', $activity->case->vehicleModel->vehiclecategory->id)
 			->where('is_mobile', $isMobile)
 			->first();
 		if ($aspRateCard) {
@@ -1757,7 +1825,7 @@ class ActivityController extends Controller {
 			}
 
 			$activities = Activity::whereIn('id', $request->activity_ids)->get();
-			if (count($activities) == 0) {
+			if ($activities->isEmpty()) {
 				return response()->json([
 					'success' => false,
 					'error' => 'Activities not found',
@@ -1770,7 +1838,7 @@ class ActivityController extends Controller {
 				if (!$saveActivityRatecardResponse['success']) {
 					return response()->json([
 						'success' => false,
-						'error' => $saveActivityRatecardResponse['error'],
+						'error' => $saveActivityRatecardResponse['error'] . ' Case Number: ' . $activity->case->number,
 					]);
 				}
 
@@ -1782,6 +1850,7 @@ class ActivityController extends Controller {
 
 				$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 					->where('service_type_id', $activity->service_type_id)
+					->where('vehicle_category_id', $activity->case->vehicleModel->vehiclecategory->id)
 					->where('is_mobile', $isMobile)
 					->first();
 
@@ -1798,8 +1867,13 @@ class ActivityController extends Controller {
 						]);
 					}
 
-					$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id);
-
+					$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id, $activity->case);
+					if (!$response['success']) {
+						return response()->json([
+							'success' => false,
+							'error' => $response['error'],
+						]);
+					}
 					$price = $response['asp_service_price'];
 
 					if ($activity->financeStatus->po_eligibility_type_id == 341) {
@@ -1867,15 +1941,15 @@ class ActivityController extends Controller {
 					if (floatval($invoiceAmount) > 10000) {
 						//L1
 						if (Auth::user()->activity_approval_level_id == 1) {
-							$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+							$activityStatusId = 18; //Waiting for L2 Bulk Verification
 							$approver = '1';
 						} elseif (Auth::user()->activity_approval_level_id == 2) {
 							// L2
-							$activityStatusId = 21; //L2 Approved - Waiting for L3 Bulk Verification
+							$activityStatusId = 20; //Waiting for L3 Bulk Verification
 							$approver = '2';
 						} elseif (Auth::user()->activity_approval_level_id == 3) {
 							// L3
-							$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
+							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 							$isApproved = true;
 							$approver = '3';
 						}
@@ -1883,16 +1957,16 @@ class ActivityController extends Controller {
 						//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 10000
 						//L1
 						if (Auth::user()->activity_approval_level_id == 1) {
-							$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+							$activityStatusId = 18; //Waiting for L2 Bulk Verification
 							$approver = '1';
 						} elseif (Auth::user()->activity_approval_level_id == 2) {
 							// L2
-							$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
+							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 							$isApproved = true;
 							$approver = '2';
 						} elseif (Auth::user()->activity_approval_level_id == 3) {
 							// L3
-							$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
+							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 							$isApproved = true;
 							$approver = '3';
 						}
@@ -1902,20 +1976,20 @@ class ActivityController extends Controller {
 						if (Auth::user()->activity_approval_level_id == 1) {
 							$isL2ApprovalRequired = $this->isL2ApprovalRequired($activity);
 							if ($isL2ApprovalRequired) {
-								$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+								$activityStatusId = 18; //Waiting for L2 Bulk Verification
 							} else {
-								$activityStatusId = 11; //L1 Approved - Waiting for Invoice Generation by ASP
+								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 							}
 							$approver = '1';
 						} elseif (Auth::user()->activity_approval_level_id == 2) {
 							// L2
-							$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
+							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 							$isApproved = true;
 							$approver = '2';
 						} elseif (Auth::user()->activity_approval_level_id == 3) {
 							// L3
-							$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
+							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 							$isApproved = true;
 							$approver = '3';
 						}
@@ -1955,7 +2029,7 @@ class ActivityController extends Controller {
 				} else {
 					return response()->json([
 						'success' => false,
-						'error' => "ASP Rate card not available for the case : " . $activity->case->number,
+						'error' => "Service (" . $activity->serviceType->name . ") not enabled for the ASP (" . $activity->asp->asp_code . ")  Case Number: " . $activity->case->number,
 					]);
 				}
 			}
@@ -2027,7 +2101,7 @@ class ActivityController extends Controller {
 			$eligleForAspReEntry = false;
 			//L1
 			if (Auth::user()->activity_approval_level_id == 1) {
-				$activityStatusId = 7; //L1 Rejected - Waiting for ASP Data Re-Entry
+				$activityStatusId = 7; //BO Rejected - Waiting for ASP Data Re-Entry
 				$eligleForAspReEntry = true;
 				$activity->defer_reason = isset($request->defer_reason) ? $request->defer_reason : NULL;
 				$activity->service_type_changed_on_level = NULL;
@@ -2036,11 +2110,11 @@ class ActivityController extends Controller {
 				$activity->collected_amount_changed_on_level = NULL;
 			} elseif (Auth::user()->activity_approval_level_id == 2) {
 				// L2
-				$activityStatusId = 24; //L2 Rejected - Waiting for L1 Individual Verification
+				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
 				$activity->approval_level_defer_reason = isset($request->defer_reason) ? $request->defer_reason : NULL;
 			} elseif (Auth::user()->activity_approval_level_id == 3) {
 				// L3
-				$activityStatusId = 25; //L3 Rejected - Waiting for L1 Individual Verification
+				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
 				$activity->approval_level_defer_reason = isset($request->defer_reason) ? $request->defer_reason : NULL;
 			}
 
@@ -2307,7 +2381,7 @@ class ActivityController extends Controller {
 							$q->where('cases.created_at', '>=', $threeMonthsBefore);
 						}
 					})
-						->whereIn('activities.status_id', [5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
+						->whereIn('activities.status_id', [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 18, 19, 20, 21, 22])
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
 					if ($activity_already_completed) {
@@ -2384,6 +2458,12 @@ class ActivityController extends Controller {
 	public function activityNewGetFormData($id = NULL) {
 		$for_deffer_activity = 0;
 		$this->data = Activity::getFormData($id, $for_deffer_activity);
+		if (!$this->data['success']) {
+			return response()->json([
+				'success' => false,
+				'error' => $this->data['error'],
+			]);
+		}
 		$this->data['case_details'] = $this->data['activity']->case;
 		if (date('Y-m-d') > "2022-01-01") {
 			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st February onwards)';
@@ -2438,6 +2518,24 @@ class ActivityController extends Controller {
 					'success' => false,
 					'errors' => [
 						'Activity not found',
+					],
+				]);
+			}
+
+			if (!$activity->case->vehicleModel) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Vehicle model is required',
+					],
+				]);
+			}
+
+			if (!$activity->case->vehicleModel->vehiclecategory) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Vehicle category not mapped for the vehicle model',
 					],
 				]);
 			}
@@ -2543,11 +2641,20 @@ class ActivityController extends Controller {
 
 			$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 				->where('service_type_id', $cc_service_type->id)
+				->where('vehicle_category_id', $activity->case->vehicleModel->vehiclecategory->id)
 				->where('is_mobile', $isMobile)
 				->first();
-			if ($aspServiceType) {
-				$range_limit = $aspServiceType->range_limit;
+
+			if (!$aspServiceType) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						"Service (" . $cc_service_type->name . ") not enabled for ASP (" . $activity->asp->asp_code . ")",
+					],
+				]);
 			}
+
+			$range_limit = $aspServiceType->range_limit;
 
 			if (!empty($request->comments)) {
 				$activity->asp_resolve_comments = $request->comments;
@@ -2815,7 +2922,7 @@ class ActivityController extends Controller {
 				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $activity->id, 'key_id' => $key_id, 'company_id' => 1], ['value' => $value]);
 			}
 
-			$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id);
+			$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id, $activity->case);
 			if (!$response['success']) {
 				return [
 					'success' => false,
@@ -3033,6 +3140,12 @@ class ActivityController extends Controller {
 	public function activityDeferredGetFormData($id = NULL) {
 		$for_deffer_activity = 1;
 		$this->data = Activity::getFormData($id, $for_deffer_activity);
+		if (!$this->data['success']) {
+			return response()->json([
+				'success' => false,
+				'error' => $this->data['error'],
+			]);
+		}
 		$this->data['case'] = $this->data['activity']->case;
 		if (date('Y-m-d') > "2022-01-01") {
 			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st February onwards)';
@@ -3096,7 +3209,7 @@ class ActivityController extends Controller {
 			->orderBy('cases.date', 'ASC')
 			->groupBy('activities.id')
 			->where('users.id', Auth::id())
-			->whereIn('activities.status_id', [11, 1, 20, 23]) //BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice OR L2 Approved - Waiting for Invoice Generation by ASP OR L3 Approved - Waiting for Invoice Generation by ASP
+			->whereIn('activities.status_id', [11, 1]) //Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
 		;
 
 		if ($request->get('ticket_date')) {
@@ -3375,8 +3488,8 @@ class ActivityController extends Controller {
 						]);
 					}
 
-					//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND BO Approved - Waiting for Invoice Generation by ASP AND L2 Approved - Waiting for Invoice Generation by ASP AND L3 Approved - Waiting for Invoice Generation by ASP)
-					if ($activity->status_id != 1 && $activity->status_id != 11 && $activity->status_id != 20 && $activity->status_id != 23) {
+					//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND Waiting for Invoice Generation by ASP)
+					if ($activity->status_id != 1 && $activity->status_id != 11) {
 						return response()->json([
 							'success' => false,
 							'error' => 'ASP not accepted / case not closed for activity ID ' . $activity->crm_activity_id,
@@ -4435,10 +4548,29 @@ class ActivityController extends Controller {
 			}
 
 			foreach ($activities as $key => $activity) {
+
+				if (!$activity->case->vehicleModel) {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'Vehicle model is required. Case Number: ' . $activity->case->number,
+						],
+					]);
+				}
+
+				if (!$activity->case->vehicleModel->vehiclecategory) {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'Vehicle category not mapped for the vehicle model. Case Number: ' . $activity->case->number,
+						],
+					]);
+				}
+
 				//MECHANICAL SERVICE GROUP
 				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
 					$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
-					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->vehicleModel->vehiclecategory->id);
 					if ($is_bulk) {
 						//ASP Completed Data Entry - Waiting for BO Bulk Verification
 						$status_id = 5;

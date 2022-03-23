@@ -105,7 +105,7 @@ class CaseController extends Controller {
 						}),
 				],
 				'vehicle_model' => [
-					'nullable',
+					'required',
 					'string',
 					'max:191',
 					Rule::exists('vehicle_models', 'name')
@@ -247,7 +247,9 @@ class CaseController extends Controller {
 			// 	}
 			// }
 			//VEHICLE MODEL GOT BY VEHICLE MAKE
-			$vehicle_model_by_make = VehicleModel::where('name', $request->vehicle_model)->where('vehicle_make_id', $vehicle_make->id)->first();
+			$vehicle_model_by_make = VehicleModel::where('name', $request->vehicle_model)
+				->where('vehicle_make_id', $vehicle_make->id)
+				->first();
 			if (!$vehicle_model_by_make) {
 				//SAVE CASE API LOG
 				$errors[] = "Selected vehicle make doesn't matches with vehicle model";
@@ -259,6 +261,21 @@ class CaseController extends Controller {
 					'error' => 'Validation Error',
 					'errors' => [
 						"Selected vehicle make doesn't matches with vehicle model",
+					],
+				], $this->successStatus);
+			}
+
+			if (empty($vehicle_model_by_make->vehicle_category_id)) {
+				//SAVE CASE API LOG
+				$errors[] = "Vehicle category not mapped for the vehicle model";
+				saveApiLog(102, $request->number, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						"Vehicle category not mapped for the vehicle model",
 					],
 				], $this->successStatus);
 			}
@@ -418,7 +435,7 @@ class CaseController extends Controller {
 						//MECHANICAL SERVICE GROUP
 						if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
 							$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
-							$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+							$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $case->vehicleModel->vehiclecategory->id);
 							if ($is_bulk) {
 								//ASP Completed Data Entry - Waiting for BO Bulk Verification
 								$status_id = 5;

@@ -70,13 +70,8 @@ app.component('newActivityUpdateDetails', {
             $form_data_url
         ).then(function(response) {
             if (!response.data.success) {
-                $noty = new Noty({
-                    type: 'error',
-                    layout: 'topRight',
-                    text: response.data.error,
-                }).show();
+                custom_noty('error', response.data.error);
                 $location.path('/rsa-case-pkg/new-activity')
-                $scope.$apply()
                 return;
             }
             self.service_types_list = response.data.service_types;

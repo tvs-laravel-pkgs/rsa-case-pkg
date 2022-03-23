@@ -1428,6 +1428,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'export-all-admin-tds-log',
 				'display_name' => 'Admin Export All',
 			],
+			[
+				'display_order' => 15,
+				'parent' => 'tds-log',
+				'name' => 'delete-tds-log',
+				'display_name' => 'Delete',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

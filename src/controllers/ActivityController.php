@@ -1313,6 +1313,15 @@ class ActivityController extends Controller {
 				]);
 			}
 
+			if (empty($request->exceptional_reason)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Exceptional reason is required',
+					],
+				]);
+			}
+
 			if ($request->boServiceTypeId == '') {
 				return response()->json([
 					'success' => false,
@@ -1435,8 +1444,8 @@ class ActivityController extends Controller {
 			}
 			if (isset($request->is_exceptional_check)) {
 				$activity->is_exceptional_check = $request->is_exceptional_check;
-				if ($request->is_exceptional_check) {
-					$activity->exceptional_reason = isset($request->exceptional_reason) ? $request->exceptional_reason : NULL;
+				if (!empty($request->exceptional_reason)) {
+					$activity->exceptional_reason = $request->exceptional_reason;
 				}
 			}
 

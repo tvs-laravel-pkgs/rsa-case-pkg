@@ -19,6 +19,7 @@ use App\Http\Controllers\Controller;
 use App\Invoices;
 use App\ServiceType;
 use App\StateUser;
+use App\User;
 use Auth;
 use Carbon\Carbon;
 use DB;
@@ -1523,13 +1524,8 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$l2Approvers = DB::table('state_user')->join('users', 'users.id', 'state_user.user_id')
-				->where('users.activity_approval_level_id', 2) //L2
-				->pluck('state_user.user_id');
-
-			$l3Approvers = DB::table('state_user')->join('users', 'users.id', 'state_user.user_id')
-				->where('users.activity_approval_level_id', 3) //L3
-				->pluck('state_user.user_id');
+			$l2Approvers = User::where('activity_approval_level_id', 2)->pluck('id');
+			$l3Approvers = User::where('activity_approval_level_id', 3)->pluck('id');
 
 			$isActivityBulk = $this->isActivityBulkOnApproval($activity);
 			$isApproved = false;
@@ -1852,13 +1848,8 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$l2Approvers = DB::table('state_user')->join('users', 'users.id', 'state_user.user_id')
-				->where('users.activity_approval_level_id', 2) //L2
-				->pluck('state_user.user_id');
-
-			$l3Approvers = DB::table('state_user')->join('users', 'users.id', 'state_user.user_id')
-				->where('users.activity_approval_level_id', 3) //L3
-				->pluck('state_user.user_id');
+			$l2Approvers = User::where('activity_approval_level_id', 2)->pluck('id');
+			$l3Approvers = User::where('activity_approval_level_id', 3)->pluck('id');
 
 			foreach ($activities as $key => $activity) {
 

@@ -34,7 +34,7 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 				'company_id' => 1,
 			],
 			7 => [
-				'name' => 'L1 Rejected - Waiting for ASP Data Re-Entry',
+				'name' => 'Waiting for ASP Data Re-Entry',
 				'company_id' => 1,
 			],
 			8 => [
@@ -50,7 +50,7 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 				'company_id' => 1,
 			],
 			11 => [
-				'name' => 'L1 Approved - Waiting for Invoice Generation by ASP',
+				'name' => 'Waiting for Invoice Generation by ASP',
 				'company_id' => 1,
 			],
 			12 => [
@@ -78,35 +78,23 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 				'company_id' => 1,
 			],
 			18 => [
-				'name' => 'L1 Approved - Waiting for L2 Bulk Verification',
+				'name' => 'Waiting for L2 Bulk Verification',
 				'company_id' => 1,
 			],
 			19 => [
-				'name' => 'L1 Approved - Waiting for L2 Individual Verification',
+				'name' => 'Waiting for L2 Individual Verification',
 				'company_id' => 1,
 			],
 			20 => [
-				'name' => 'L2 Approved - Waiting for Invoice Generation by ASP',
+				'name' => 'Waiting for L3 Bulk Verification',
 				'company_id' => 1,
 			],
 			21 => [
-				'name' => 'L2 Approved - Waiting for L3 Bulk Verification',
+				'name' => 'Waiting for L3 Individual Verification',
 				'company_id' => 1,
 			],
 			22 => [
-				'name' => 'L2 Approved - Waiting for L3 Individual Verification',
-				'company_id' => 1,
-			],
-			23 => [
-				'name' => 'L3 Approved - Waiting for Invoice Generation by ASP',
-				'company_id' => 1,
-			],
-			24 => [
-				'name' => 'L2 Rejected - Waiting for L1 Individual Verification',
-				'company_id' => 1,
-			],
-			25 => [
-				'name' => 'L3 Rejected - Waiting for L1 Individual Verification',
+				'name' => 'Rejected - Waiting for L1 Individual Verification',
 				'company_id' => 1,
 			],
 		];

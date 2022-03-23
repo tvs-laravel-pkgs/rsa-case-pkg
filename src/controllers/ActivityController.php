@@ -2944,6 +2944,7 @@ class ActivityController extends Controller {
 				->join('users', 'users.id', 'state_user.user_id')
 				->where('state_user.state_id', $state_id)
 				->where('users.role_id', 6) //BO
+				->where('users.activity_approval_level_id', 1) //L1
 				->pluck('state_user.user_id');
 
 			if ($activity->status_id == 5) {
@@ -2951,7 +2952,7 @@ class ActivityController extends Controller {
 			} else {
 				$noty_message_template = 'ASP_DATA_ENTRY_DONE_DEFFERED';
 			}
-			$ticket_number = [$activity->ticket_number];
+			$ticket_number = [$activity->case->number];
 			if (!empty($bo_users)) {
 				foreach ($bo_users as $bo_user_id) {
 					notify2($noty_message_template, $bo_user_id, config('constants.alert_type.blue'), $ticket_number);

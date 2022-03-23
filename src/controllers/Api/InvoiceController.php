@@ -153,8 +153,8 @@ class InvoiceController extends Controller {
 			$activities_with_accepted = Activity::select('crm_activity_id', 'status_id')->whereIn('crm_activity_id', $request->activity_id)->get();
 			if (!empty($activities_with_accepted)) {
 				foreach ($activities_with_accepted as $key => $activity_accepted) {
-					//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND BO Approved - Waiting for Invoice Generation by ASP AND L2 Approved - Waiting for Invoice Generation by ASP AND L3 Approved - Waiting for Invoice Generation by ASP)
-					if ($activity_accepted->status_id != 1 && $activity_accepted->status_id != 11 && $activity_accepted->status_id != 20 && $activity_accepted->status_id != 23) {
+					//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND Waiting for Invoice Generation by ASP)
+					if ($activity_accepted->status_id != 1 && $activity_accepted->status_id != 11) {
 						//CREATE INVOICE API LOG
 						$errors[] = 'ASP not accepted / case not closed for activity ID ' . $activity_accepted->crm_activity_id;
 						saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);

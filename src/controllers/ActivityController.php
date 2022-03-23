@@ -158,7 +158,7 @@ class ActivityController extends Controller {
 			})
 			->addColumn('action', function ($activity) {
 				$status_id = 1;
-				$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24, 25];
+				$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22];
 
 				$action = '<div class="dataTable-actions">
 				<a href="#!/rsa-case-pkg/activity-status/' . $status_id . '/view/' . $activity->id . '">
@@ -195,7 +195,7 @@ class ActivityController extends Controller {
 	public function activityBackAsp(Request $request) {
 		//	dd($request->all());
 		$activity = Activity::findOrFail($request->activty_id);
-		$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24, 25];
+		$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22];
 
 		if (!$activity) {
 			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
@@ -245,7 +245,7 @@ class ActivityController extends Controller {
 				]);
 			}
 		} elseif ($request->ticket_status_id == '2') {
-			//L1 Rejected - Waiting for ASP Data Re-Entry
+			//BO Rejected - Waiting for ASP Data Re-Entry
 			$activity->status_id = 7;
 			$activity->updated_at = new Carbon();
 			$activity->updated_by_id = Auth::user()->id;
@@ -367,10 +367,10 @@ class ActivityController extends Controller {
 					$activities->whereIn('activities.status_id', [5, 8]); //ASP Completed Data Entry - Waiting for L1 Bulk Verification AND ASP Data Re-Entry Completed - Waiting for L1 Bulk Verification
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
-					$activities->where('activities.status_id', 18); //L1 Approved - Waiting for L2 Bulk Verification
+					$activities->where('activities.status_id', 18); //Waiting for L2 Bulk Verification
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
-					$activities->where('activities.status_id', 21); //L2 Approved - Waiting for L3 Bulk Verification
+					$activities->where('activities.status_id', 20); //Waiting for L3 Bulk Verification
 				} else {
 					$activities->whereNull('activities.status_id');
 				}
@@ -471,13 +471,13 @@ class ActivityController extends Controller {
 			if (!empty(Auth::user()->activity_approval_level_id)) {
 				//L1
 				if (Auth::user()->activity_approval_level_id == 1) {
-					$activities->whereIn('activities.status_id', [6, 9, 24, 25]); //ASP Completed Data Entry - Waiting for L1 Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Individual Verification AND L2 Rejected - Waiting for L1 Individual Verification AND L3 Rejected - Waiting for L1 Individual Verification
+					$activities->whereIn('activities.status_id', [6, 9, 22]); //ASP Completed Data Entry - Waiting for L1 Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Individual Verification AND BO Rejected - Waiting for L1 Individual Verification
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
-					$activities->where('activities.status_id', 19); //L1 Approved - Waiting for L2 Individual Verification
+					$activities->where('activities.status_id', 19); //Waiting for L2 Individual Verification
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
-					$activities->where('activities.status_id', 22); //L2 Approved - Waiting for L3 Individual Verification
+					$activities->where('activities.status_id', 21); //Waiting for L3 Individual Verification
 				} else {
 					$activities->whereNull('activities.status_id');
 				}
@@ -506,7 +506,7 @@ class ActivityController extends Controller {
 			$activityApprovalLevel = '';
 			$activity_data = Activity::findOrFail($activity_status_id);
 			if ($view_type_id == 2) {
-				if (!$activity_data || ($activity_data && $activity_data->status_id != 5 && $activity_data->status_id != 6 && $activity_data->status_id != 8 && $activity_data->status_id != 9 && $activity_data->status_id != 18 && $activity_data->status_id != 19 && $activity_data->status_id != 21 && $activity_data->status_id != 22 && $activity_data->status_id != 24 && $activity_data->status_id != 25)) {
+				if (!$activity_data || ($activity_data && $activity_data->status_id != 5 && $activity_data->status_id != 6 && $activity_data->status_id != 8 && $activity_data->status_id != 9 && $activity_data->status_id != 18 && $activity_data->status_id != 19 && $activity_data->status_id != 20 && $activity_data->status_id != 21 && $activity_data->status_id != 22)) {
 					return response()->json([
 						'success' => false,
 						'errors' => [
@@ -963,7 +963,7 @@ class ActivityController extends Controller {
 			//Activity creation datetime greater than effective datetime
 			if (date('Y-m-d H:i:s', strtotime($activity->activity_date)) > $casewiseRatecardEffectDatetime) {
 				//Activity that is initiated for payment process & not eligible
-				if ($activity->activity_portal_status_id == 1 || $activity->activity_portal_status_id == 10 || $activity->activity_portal_status_id == 11 || $activity->activity_portal_status_id == 12 || $activity->activity_portal_status_id == 13 || $activity->activity_portal_status_id == 14 || $activity->activity_portal_status_id == 15 || $activity->activity_portal_status_id == 16 || $activity->activity_portal_status_id == 17 || $activity->activity_portal_status_id == 20 || $activity->activity_portal_status_id == 23) {
+				if ($activity->activity_portal_status_id == 1 || $activity->activity_portal_status_id == 10 || $activity->activity_portal_status_id == 11 || $activity->activity_portal_status_id == 12 || $activity->activity_portal_status_id == 13 || $activity->activity_portal_status_id == 14 || $activity->activity_portal_status_id == 15 || $activity->activity_portal_status_id == 16 || $activity->activity_portal_status_id == 17) {
 					$activityRatecard = ActivityRatecard::select([
 						'range_limit',
 						'below_range_price',
@@ -1522,9 +1522,9 @@ class ActivityController extends Controller {
 				//L1
 				if (Auth::user()->activity_approval_level_id == 1) {
 					if ($isActivityBulk) {
-						$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+						$activityStatusId = 18; //Waiting for L2 Bulk Verification
 					} else {
-						$activityStatusId = 19; //L1 Approved - Waiting for L2 Individual Verification
+						$activityStatusId = 19; //Waiting for L2 Individual Verification
 					}
 					$approver = '1';
 					if ($isServiceTypeChanged) {
@@ -1542,9 +1542,9 @@ class ActivityController extends Controller {
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
 					if ($isActivityBulk) {
-						$activityStatusId = 21; //L2 Approved - Waiting for L3 Bulk Verification
+						$activityStatusId = 20; //Waiting for L3 Bulk Verification
 					} else {
-						$activityStatusId = 22; //L2 Approved - Waiting for L3 Individual Verification
+						$activityStatusId = 21; //Waiting for L3 Individual Verification
 					}
 					$approver = '2';
 					if ($isServiceTypeChanged) {
@@ -1561,7 +1561,7 @@ class ActivityController extends Controller {
 					}
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
-					$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
+					$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 					$isApproved = true;
 					$approver = '3';
 				}
@@ -1570,9 +1570,9 @@ class ActivityController extends Controller {
 				//L1
 				if (Auth::user()->activity_approval_level_id == 1) {
 					if ($isActivityBulk) {
-						$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+						$activityStatusId = 18; //Waiting for L2 Bulk Verification
 					} else {
-						$activityStatusId = 19; //L1 Approved - Waiting for L2 Individual Verification
+						$activityStatusId = 19; //Waiting for L2 Individual Verification
 					}
 					$approver = '1';
 					if ($isServiceTypeChanged) {
@@ -1589,7 +1589,7 @@ class ActivityController extends Controller {
 					}
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
-					$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
+					$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 					$isApproved = true;
 					$approver = '2';
 					if ($isServiceTypeChanged) {
@@ -1606,7 +1606,7 @@ class ActivityController extends Controller {
 					}
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
-					$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
+					$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 					$isApproved = true;
 					$approver = '3';
 				}
@@ -1617,12 +1617,12 @@ class ActivityController extends Controller {
 					$isL2ApprovalRequired = $this->isL2ApprovalRequired($activity);
 					if ($isL2ApprovalRequired) {
 						if ($isActivityBulk) {
-							$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+							$activityStatusId = 18; //Waiting for L2 Bulk Verification
 						} else {
-							$activityStatusId = 19; //L1 Approved - Waiting for L2 Individual Verification
+							$activityStatusId = 19; //Waiting for L2 Individual Verification
 						}
 					} else {
-						$activityStatusId = 11; //L1 Approved - Waiting for Invoice Generation by ASP
+						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 						$isApproved = true;
 					}
 					$approver = '1';
@@ -1640,7 +1640,7 @@ class ActivityController extends Controller {
 					}
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
-					$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
+					$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 					$isApproved = true;
 					$approver = '2';
 					if ($isServiceTypeChanged) {
@@ -1657,7 +1657,7 @@ class ActivityController extends Controller {
 					}
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
-					$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
+					$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 					$isApproved = true;
 					$approver = '3';
 				}
@@ -1932,15 +1932,15 @@ class ActivityController extends Controller {
 					if (floatval($invoiceAmount) > 10000) {
 						//L1
 						if (Auth::user()->activity_approval_level_id == 1) {
-							$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+							$activityStatusId = 18; //Waiting for L2 Bulk Verification
 							$approver = '1';
 						} elseif (Auth::user()->activity_approval_level_id == 2) {
 							// L2
-							$activityStatusId = 21; //L2 Approved - Waiting for L3 Bulk Verification
+							$activityStatusId = 20; //Waiting for L3 Bulk Verification
 							$approver = '2';
 						} elseif (Auth::user()->activity_approval_level_id == 3) {
 							// L3
-							$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
+							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 							$isApproved = true;
 							$approver = '3';
 						}
@@ -1948,16 +1948,16 @@ class ActivityController extends Controller {
 						//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 10000
 						//L1
 						if (Auth::user()->activity_approval_level_id == 1) {
-							$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+							$activityStatusId = 18; //Waiting for L2 Bulk Verification
 							$approver = '1';
 						} elseif (Auth::user()->activity_approval_level_id == 2) {
 							// L2
-							$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
+							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 							$isApproved = true;
 							$approver = '2';
 						} elseif (Auth::user()->activity_approval_level_id == 3) {
 							// L3
-							$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
+							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 							$isApproved = true;
 							$approver = '3';
 						}
@@ -1967,20 +1967,20 @@ class ActivityController extends Controller {
 						if (Auth::user()->activity_approval_level_id == 1) {
 							$isL2ApprovalRequired = $this->isL2ApprovalRequired($activity);
 							if ($isL2ApprovalRequired) {
-								$activityStatusId = 18; //L1 Approved - Waiting for L2 Bulk Verification
+								$activityStatusId = 18; //Waiting for L2 Bulk Verification
 							} else {
-								$activityStatusId = 11; //L1 Approved - Waiting for Invoice Generation by ASP
+								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 							}
 							$approver = '1';
 						} elseif (Auth::user()->activity_approval_level_id == 2) {
 							// L2
-							$activityStatusId = 20; //L2 Approved - Waiting for Invoice Generation by ASP
+							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 							$isApproved = true;
 							$approver = '2';
 						} elseif (Auth::user()->activity_approval_level_id == 3) {
 							// L3
-							$activityStatusId = 23; //L3 Approved - Waiting for Invoice Generation by ASP
+							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 							$isApproved = true;
 							$approver = '3';
 						}
@@ -2092,7 +2092,7 @@ class ActivityController extends Controller {
 			$eligleForAspReEntry = false;
 			//L1
 			if (Auth::user()->activity_approval_level_id == 1) {
-				$activityStatusId = 7; //L1 Rejected - Waiting for ASP Data Re-Entry
+				$activityStatusId = 7; //BO Rejected - Waiting for ASP Data Re-Entry
 				$eligleForAspReEntry = true;
 				$activity->defer_reason = isset($request->defer_reason) ? $request->defer_reason : NULL;
 				$activity->service_type_changed_on_level = NULL;
@@ -2101,11 +2101,11 @@ class ActivityController extends Controller {
 				$activity->collected_amount_changed_on_level = NULL;
 			} elseif (Auth::user()->activity_approval_level_id == 2) {
 				// L2
-				$activityStatusId = 24; //L2 Rejected - Waiting for L1 Individual Verification
+				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
 				$activity->approval_level_defer_reason = isset($request->defer_reason) ? $request->defer_reason : NULL;
 			} elseif (Auth::user()->activity_approval_level_id == 3) {
 				// L3
-				$activityStatusId = 25; //L3 Rejected - Waiting for L1 Individual Verification
+				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
 				$activity->approval_level_defer_reason = isset($request->defer_reason) ? $request->defer_reason : NULL;
 			}
 
@@ -2372,7 +2372,7 @@ class ActivityController extends Controller {
 							$q->where('cases.created_at', '>=', $threeMonthsBefore);
 						}
 					})
-						->whereIn('activities.status_id', [5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
+						->whereIn('activities.status_id', [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 18, 19, 20, 21, 22])
 						->where('activities.asp_id', Auth::user()->asp->id)
 						->first();
 					if ($activity_already_completed) {
@@ -3200,7 +3200,7 @@ class ActivityController extends Controller {
 			->orderBy('cases.date', 'ASC')
 			->groupBy('activities.id')
 			->where('users.id', Auth::id())
-			->whereIn('activities.status_id', [11, 1, 20, 23]) //BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice OR L2 Approved - Waiting for Invoice Generation by ASP OR L3 Approved - Waiting for Invoice Generation by ASP
+			->whereIn('activities.status_id', [11, 1]) //Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
 		;
 
 		if ($request->get('ticket_date')) {
@@ -3465,8 +3465,8 @@ class ActivityController extends Controller {
 						]);
 					}
 
-					//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND BO Approved - Waiting for Invoice Generation by ASP AND L2 Approved - Waiting for Invoice Generation by ASP AND L3 Approved - Waiting for Invoice Generation by ASP)
-					if ($activity->status_id != 1 && $activity->status_id != 11 && $activity->status_id != 20 && $activity->status_id != 23) {
+					//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND Waiting for Invoice Generation by ASP)
+					if ($activity->status_id != 1 && $activity->status_id != 11) {
 						return response()->json([
 							'success' => false,
 							'error' => 'ASP not accepted / case not closed for activity ID ' . $activity->crm_activity_id,

@@ -34,7 +34,7 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 				'company_id' => 1,
 			],
 			7 => [
-				'name' => 'Waiting for ASP Data Re-Entry',
+				'name' => 'BO Rejected - Waiting for ASP Data Re-Entry',
 				'company_id' => 1,
 			],
 			8 => [
@@ -94,7 +94,7 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 				'company_id' => 1,
 			],
 			22 => [
-				'name' => 'Rejected - Waiting for L1 Individual Verification',
+				'name' => 'BO Rejected - Waiting for L1 Individual Verification',
 				'company_id' => 1,
 			],
 		];

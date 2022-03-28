@@ -1446,7 +1446,15 @@ class ActivityController extends Controller {
 			if (isset($request->is_exceptional_check)) {
 				$activity->is_exceptional_check = $request->is_exceptional_check;
 				if (!empty($request->exceptional_reason)) {
-					$activity->exceptional_reason = $request->exceptional_reason;
+					$exceptionalReason = $activity->exceptional_reason;
+					if (Auth::user()->activity_approval_level_id == 1) {
+						$exceptionalReason = 'L1 Approver : ' . $request->exceptional_reason;
+					} elseif (Auth::user()->activity_approval_level_id == 2) {
+						$exceptionalReason .= 'L2 Approver : ' . $request->exceptional_reason;
+					} elseif (Auth::user()->activity_approval_level_id == 3) {
+						$exceptionalReason .= 'L3 Approver : ' . $request->exceptional_reason;
+					}
+					$activity->exceptional_reason = $exceptionalReason;
 				}
 			}
 

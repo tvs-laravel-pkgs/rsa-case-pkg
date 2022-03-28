@@ -610,7 +610,8 @@ class ActivityController extends Controller {
 					'activities.number as activity_number',
 					'activities.asp_po_accepted as asp_po_accepted',
 					'activities.defer_reason as defer_reason',
-					'activities.approval_level_defer_reason',
+					'activities.general_remarks',
+					'activities.asp_resolve_comments',
 					'activities.is_exceptional_check as is_exceptional_check',
 					'activities.service_type_changed_on_level',
 					'activities.km_changed_on_level',
@@ -1504,7 +1505,27 @@ class ActivityController extends Controller {
 			if (isset($request->is_exceptional_check)) {
 				$activity->is_exceptional_check = $request->is_exceptional_check;
 				if (!empty($request->exceptional_reason)) {
-					$activity->exceptional_reason = $request->exceptional_reason;
+					$exceptionalReason = $activity->exceptional_reason;
+					if (Auth::user()->activity_approval_level_id == 1) {
+						if (!empty($exceptionalReason)) {
+							$exceptionalReason .= nl2br("\n L1 Approver : " . $request->exceptional_reason);
+						} else {
+							$exceptionalReason = 'L1 Approver : ' . $request->exceptional_reason;
+						}
+					} elseif (Auth::user()->activity_approval_level_id == 2) {
+						if (!empty($exceptionalReason)) {
+							$exceptionalReason .= nl2br("\n L2 Approver : " . $request->exceptional_reason);
+						} else {
+							$exceptionalReason = 'L2 Approver : ' . $request->exceptional_reason;
+						}
+					} elseif (Auth::user()->activity_approval_level_id == 3) {
+						if (!empty($exceptionalReason)) {
+							$exceptionalReason .= nl2br("\n L3 Approver : " . $request->exceptional_reason);
+						} else {
+							$exceptionalReason = 'L3 Approver : ' . $request->exceptional_reason;
+						}
+					}
+					$activity->exceptional_reason = $exceptionalReason;
 				}
 			}
 
@@ -2122,11 +2143,16 @@ class ActivityController extends Controller {
 			$activity = Activity::findOrFail($request->activity_id);
 
 			$eligleForAspReEntry = false;
+			$deferReason = $activity->defer_reason;
 			//L1
 			if (Auth::user()->activity_approval_level_id == 1) {
 				$activityStatusId = 7; //BO Rejected - Waiting for ASP Data Re-Entry
 				$eligleForAspReEntry = true;
-				$activity->defer_reason = isset($request->defer_reason) ? $request->defer_reason : NULL;
+				if (!empty($deferReason)) {
+					$deferReason .= nl2br("\n L1 Approver : " . $request->defer_reason);
+				} else {
+					$deferReason = "L1 Approver : " . $request->defer_reason;
+				}
 				$activity->service_type_changed_on_level = NULL;
 				$activity->km_changed_on_level = NULL;
 				$activity->not_collected_amount_changed_on_level = NULL;
@@ -2134,13 +2160,22 @@ class ActivityController extends Controller {
 			} elseif (Auth::user()->activity_approval_level_id == 2) {
 				// L2
 				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
-				$activity->approval_level_defer_reason = isset($request->defer_reason) ? $request->defer_reason : NULL;
+				if (!empty($deferReason)) {
+					$deferReason .= nl2br("\n L2 Approver : " . $request->defer_reason);
+				} else {
+					$deferReason = "L2 Approver : " . $request->defer_reason;
+				}
 			} elseif (Auth::user()->activity_approval_level_id == 3) {
 				// L3
 				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
-				$activity->approval_level_defer_reason = isset($request->defer_reason) ? $request->defer_reason : NULL;
+				if (!empty($deferReason)) {
+					$deferReason .= nl2br("\n L3 Approver : " . $request->defer_reason);
+				} else {
+					$deferReason = "L3 Approver : " . $request->defer_reason;
+				}
 			}
 
+			$activity->defer_reason = $deferReason;
 			$activity->bo_comments = isset($request->bo_comments) ? $request->bo_comments : NULL;
 			$activity->deduction_reason = isset($request->deduction_reason) ? $request->deduction_reason : NULL;
 			if (isset($activityStatusId)) {

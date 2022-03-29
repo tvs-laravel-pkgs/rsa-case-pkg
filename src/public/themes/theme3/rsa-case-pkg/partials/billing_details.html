@@ -132,11 +132,25 @@
                                         {{ $ctrl.data.remarks }}
                                     </td>
                                 </tr>
-                                <tr ng-show="$ctrl.data.activityApprovalLevel == 1 && $ctrl.data.approval_level_defer_reason != null">
-                                    <th scope="row">L2 / L3 Approver Defer Reason</th>
+                                <tr ng-show="!$ctrl.hasPermission('view-own-activities') && $ctrl.data.general_remarks != null">
+                                    <th scope="row">ASP General Remarks</th>
                                     <td colspan="{{$ctrl.data.span_value}}">
-                                        {{ $ctrl.data.approval_level_defer_reason }}
+                                        {{ $ctrl.data.general_remarks }}
                                     </td>
+                                </tr>
+                                <tr ng-show="!$ctrl.hasPermission('view-own-activities') && $ctrl.data.defer_reason != null">
+                                    <th scope="row">BO Defer Reason</th>
+                                    <td colspan="{{$ctrl.data.span_value}}" ng-bind-html="$ctrl.data.defer_reason"></td>
+                                </tr>
+                                <tr ng-show="!$ctrl.hasPermission('view-own-activities') && $ctrl.data.asp_resolve_comments != null">
+                                    <th scope="row">ASP Resolve Comments</th>
+                                    <td colspan="{{$ctrl.data.span_value}}">
+                                        {{ $ctrl.data.asp_resolve_comments }}
+                                    </td>
+                                </tr>
+                                <tr ng-show="!$ctrl.hasPermission('view-own-activities') && $ctrl.data.exceptional_reason != null">
+                                    <th scope="row">Exceptional Reason</th>
+                                    <td colspan="{{$ctrl.data.span_value}}" ng-bind-html="$ctrl.data.exceptional_reason"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -243,11 +257,6 @@
                                 <tr ng-if="$ctrl.data.verification==0">
                                     <td colspan="2" class="text-left">
                                         Comments : {{$ctrl.data.bo_comments ? $ctrl.data.bo_comments : 'N/A'}}
-                                    </td>
-                                </tr>
-                                <tr ng-show="!$ctrl.hasPermission('view-own-activities')">
-                                    <td colspan="2" class="text-left">
-                                        Exceptional Reason : {{$ctrl.data.exceptional_reason ? $ctrl.data.exceptional_reason : 'N/A'}}
                                     </td>
                                 </tr>
                                 <tr class="warning" ng-show="$ctrl.data.verification==0">

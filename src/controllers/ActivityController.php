@@ -19,6 +19,7 @@ use App\Http\Controllers\Controller;
 use App\Invoices;
 use App\ServiceType;
 use App\StateUser;
+use App\User;
 use Auth;
 use Carbon\Carbon;
 use DB;
@@ -266,11 +267,11 @@ class ActivityController extends Controller {
 				notify2($noty_message_template, $user_id, config('constants.alert_type.blue'), $number);
 
 				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-					'success' => 'Activity status moved to ASP L1 deferred',
+					'success' => 'Activity status moved to ASP Data Re-Entry',
 				]);
 			} else {
 				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-					'error' => 'Activity status not moved to ASP L1 deferred',
+					'error' => 'Activity status not moved to ASP Data Re-Entry',
 				]);
 			}
 		}
@@ -609,7 +610,8 @@ class ActivityController extends Controller {
 					'activities.number as activity_number',
 					'activities.asp_po_accepted as asp_po_accepted',
 					'activities.defer_reason as defer_reason',
-					'activities.approval_level_defer_reason',
+					'activities.general_remarks',
+					'activities.asp_resolve_comments',
 					'activities.is_exceptional_check as is_exceptional_check',
 					'activities.service_type_changed_on_level',
 					'activities.km_changed_on_level',
@@ -1521,7 +1523,27 @@ class ActivityController extends Controller {
 			if (isset($request->is_exceptional_check)) {
 				$activity->is_exceptional_check = $request->is_exceptional_check;
 				if (!empty($request->exceptional_reason)) {
-					$activity->exceptional_reason = $request->exceptional_reason;
+					$exceptionalReason = $activity->exceptional_reason;
+					if (Auth::user()->activity_approval_level_id == 1) {
+						if (!empty($exceptionalReason)) {
+							$exceptionalReason .= nl2br("\n L1 Approver : " . $request->exceptional_reason);
+						} else {
+							$exceptionalReason = 'L1 Approver : ' . $request->exceptional_reason;
+						}
+					} elseif (Auth::user()->activity_approval_level_id == 2) {
+						if (!empty($exceptionalReason)) {
+							$exceptionalReason .= nl2br("\n L2 Approver : " . $request->exceptional_reason);
+						} else {
+							$exceptionalReason = 'L2 Approver : ' . $request->exceptional_reason;
+						}
+					} elseif (Auth::user()->activity_approval_level_id == 3) {
+						if (!empty($exceptionalReason)) {
+							$exceptionalReason .= nl2br("\n L3 Approver : " . $request->exceptional_reason);
+						} else {
+							$exceptionalReason = 'L3 Approver : ' . $request->exceptional_reason;
+						}
+					}
+					$activity->exceptional_reason = $exceptionalReason;
 				}
 			}
 
@@ -1540,6 +1562,9 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
+
+			$l2Approvers = User::where('activity_approval_level_id', 2)->pluck('id');
+			$l3Approvers = User::where('activity_approval_level_id', 3)->pluck('id');
 
 			$isActivityBulk = $this->isActivityBulkOnApproval($activity);
 			$isApproved = false;
@@ -1566,6 +1591,7 @@ class ActivityController extends Controller {
 					if ($isCollectedChanged) {
 						$activity->collected_amount_changed_on_level = 1;
 					}
+					$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
 					if ($isActivityBulk) {
@@ -1586,6 +1612,7 @@ class ActivityController extends Controller {
 					if ($isCollectedChanged) {
 						$activity->collected_amount_changed_on_level = 2;
 					}
+					$this->sendApprovalNoty($l3Approvers, $activity->case->number, "L3_APPROVAL");
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
 					$activityStatusId = 11; //Waiting for Invoice Generation by ASP
@@ -1614,6 +1641,7 @@ class ActivityController extends Controller {
 					if ($isCollectedChanged) {
 						$activity->collected_amount_changed_on_level = 1;
 					}
+					$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
 					$activityStatusId = 11; //Waiting for Invoice Generation by ASP
@@ -1648,6 +1676,7 @@ class ActivityController extends Controller {
 						} else {
 							$activityStatusId = 19; //Waiting for L2 Individual Verification
 						}
+						$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
 					} else {
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 						$isApproved = true;
@@ -1736,6 +1765,14 @@ class ActivityController extends Controller {
 					'Exception Error' => $e->getMessage(),
 				],
 			]);
+		}
+	}
+
+	public function sendApprovalNoty($approvers, $caseNumber, $notyMessageTemplate) {
+		if (!empty($approvers)) {
+			foreach ($approvers as $approverId) {
+				notify2($notyMessageTemplate, $approverId, config('constants.alert_type.blue'), $caseNumber);
+			}
 		}
 	}
 
@@ -1850,6 +1887,9 @@ class ActivityController extends Controller {
 				]);
 			}
 
+			$l2Approvers = User::where('activity_approval_level_id', 2)->pluck('id');
+			$l3Approvers = User::where('activity_approval_level_id', 3)->pluck('id');
+
 			foreach ($activities as $key => $activity) {
 
 				$saveActivityRatecardResponse = $activity->saveActivityRatecard();
@@ -1961,10 +2001,12 @@ class ActivityController extends Controller {
 						if (Auth::user()->activity_approval_level_id == 1) {
 							$activityStatusId = 18; //Waiting for L2 Bulk Verification
 							$approver = '1';
+							$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
 						} elseif (Auth::user()->activity_approval_level_id == 2) {
 							// L2
 							$activityStatusId = 20; //Waiting for L3 Bulk Verification
 							$approver = '2';
+							$this->sendApprovalNoty($l3Approvers, $activity->case->number, "L3_APPROVAL");
 						} elseif (Auth::user()->activity_approval_level_id == 3) {
 							// L3
 							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
@@ -1977,6 +2019,7 @@ class ActivityController extends Controller {
 						if (Auth::user()->activity_approval_level_id == 1) {
 							$activityStatusId = 18; //Waiting for L2 Bulk Verification
 							$approver = '1';
+							$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
 						} elseif (Auth::user()->activity_approval_level_id == 2) {
 							// L2
 							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
@@ -1995,6 +2038,7 @@ class ActivityController extends Controller {
 							$isL2ApprovalRequired = $this->isL2ApprovalRequired($activity);
 							if ($isL2ApprovalRequired) {
 								$activityStatusId = 18; //Waiting for L2 Bulk Verification
+								$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
 							} else {
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
@@ -2117,11 +2161,16 @@ class ActivityController extends Controller {
 			$activity = Activity::findOrFail($request->activity_id);
 
 			$eligleForAspReEntry = false;
+			$deferReason = $activity->defer_reason;
 			//L1
 			if (Auth::user()->activity_approval_level_id == 1) {
 				$activityStatusId = 7; //BO Rejected - Waiting for ASP Data Re-Entry
 				$eligleForAspReEntry = true;
-				$activity->defer_reason = isset($request->defer_reason) ? $request->defer_reason : NULL;
+				if (!empty($deferReason)) {
+					$deferReason .= nl2br("\n L1 Approver : " . $request->defer_reason);
+				} else {
+					$deferReason = "L1 Approver : " . $request->defer_reason;
+				}
 				$activity->service_type_changed_on_level = NULL;
 				$activity->km_changed_on_level = NULL;
 				$activity->not_collected_amount_changed_on_level = NULL;
@@ -2129,13 +2178,22 @@ class ActivityController extends Controller {
 			} elseif (Auth::user()->activity_approval_level_id == 2) {
 				// L2
 				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
-				$activity->approval_level_defer_reason = isset($request->defer_reason) ? $request->defer_reason : NULL;
+				if (!empty($deferReason)) {
+					$deferReason .= nl2br("\n L2 Approver : " . $request->defer_reason);
+				} else {
+					$deferReason = "L2 Approver : " . $request->defer_reason;
+				}
 			} elseif (Auth::user()->activity_approval_level_id == 3) {
 				// L3
 				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
-				$activity->approval_level_defer_reason = isset($request->defer_reason) ? $request->defer_reason : NULL;
+				if (!empty($deferReason)) {
+					$deferReason .= nl2br("\n L3 Approver : " . $request->defer_reason);
+				} else {
+					$deferReason = "L3 Approver : " . $request->defer_reason;
+				}
 			}
 
+			$activity->defer_reason = $deferReason;
 			$activity->bo_comments = isset($request->bo_comments) ? $request->bo_comments : NULL;
 			$activity->deduction_reason = isset($request->deduction_reason) ? $request->deduction_reason : NULL;
 			if (isset($activityStatusId)) {
@@ -3060,6 +3118,7 @@ class ActivityController extends Controller {
 				->join('users', 'users.id', 'state_user.user_id')
 				->where('state_user.state_id', $state_id)
 				->where('users.role_id', 6) //BO
+				->where('users.activity_approval_level_id', 1) //L1
 				->pluck('state_user.user_id');
 
 			if ($activity->status_id == 5) {
@@ -3067,7 +3126,7 @@ class ActivityController extends Controller {
 			} else {
 				$noty_message_template = 'ASP_DATA_ENTRY_DONE_DEFFERED';
 			}
-			$ticket_number = [$activity->ticket_number];
+			$ticket_number = [$activity->case->number];
 			if (!empty($bo_users)) {
 				foreach ($bo_users as $bo_user_id) {
 					notify2($noty_message_template, $bo_user_id, config('constants.alert_type.blue'), $ticket_number);

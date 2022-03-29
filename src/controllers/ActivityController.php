@@ -617,19 +617,7 @@ class ActivityController extends Controller {
 					'activities.km_changed_on_level',
 					'activities.not_collected_amount_changed_on_level',
 					'activities.collected_amount_changed_on_level',
-					DB::raw('CASE
-				    	WHEN (activities.is_exceptional_check = 1)
-			    		THEN
-			    			CASE
-			    				WHEN (activities.exceptional_reason IS NULL)
-			   					THEN
-			    					"-"
-			    				ELSE
-			    					activities.exceptional_reason
-			    			END
-			    		ELSE
-			    			"-"
-					END as exceptional_reason'),
+					'activities.exceptional_reason',
 					//'activities.bo_comments as bo_comments',
 					'cases.vehicle_registration_number',
 					'case_statuses.name as case_status',

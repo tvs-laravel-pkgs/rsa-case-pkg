@@ -1444,6 +1444,24 @@ class ActivityController extends Controller {
 				]);
 			}
 
+			if (!$activity->case->vehicleModel) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						"Vehicle model is required",
+					],
+				]);
+			}
+
+			if (!$activity->case->vehicleModel->vehiclecategory) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						"Vehicle category not mapped for the vehicle model",
+					],
+				]);
+			}
+
 			$asp_km_travelled = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 154]])->first();
 			if (!$asp_km_travelled) {
 				return response()->json([

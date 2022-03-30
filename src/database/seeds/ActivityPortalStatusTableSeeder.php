@@ -94,7 +94,7 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 				'company_id' => 1,
 			],
 			22 => [
-				'name' => 'BO Rejected - Waiting for L1 Individual Verification',
+				'name' => 'Rejected - Waiting for L1 Individual Verification',
 				'company_id' => 1,
 			],
 		];

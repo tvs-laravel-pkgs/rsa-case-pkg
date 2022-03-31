@@ -139,6 +139,10 @@ class Activity extends Model {
 		return $this->belongsTo('App\Config', 'paid_to_id');
 	}
 
+	public function towingAttachmentMandatoryBy() {
+		return $this->belongsTo('App\User', 'towing_attachments_mandatory_by_id');
+	}
+
 	public function createdBy() {
 		return $this->belongsTo('App\User', 'created_by_id');
 	}
@@ -1242,11 +1246,13 @@ class Activity extends Model {
 							$activity->data_src_id = $dataSourceId; //BO MANUAL
 							$activity->save();
 
-							$towingImagesMandatoryEffectiveDate = config('rsa.TOWING_IMAGES_MANDATORY_EFFECTIVE_DATE');
-							if (date('Y-m-d') >= $towingImagesMandatoryEffectiveDate) {
-								$activity->is_towing_attachments_mandatory = 1;
-							} else {
-								$activity->is_towing_attachments_mandatory = 0;
+							$activity->is_towing_attachments_mandatory = 0;
+							//TOWING GROUP
+							if ($service_type->service_group_id == 3) {
+								$towingImagesMandatoryEffectiveDate = config('rsa.TOWING_IMAGES_MANDATORY_EFFECTIVE_DATE');
+								if (date('Y-m-d', strtotime($case->date)) >= $towingImagesMandatoryEffectiveDate) {
+									$activity->is_towing_attachments_mandatory = 1;
+								}
 							}
 							$activity->number = 'ACT' . $activity->id;
 							$activity->save();

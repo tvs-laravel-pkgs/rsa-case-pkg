@@ -460,11 +460,13 @@ class ActivityController extends Controller {
 			$activity->data_src_id = $data_src->id;
 			$activity->save();
 
-			$towingImagesMandatoryEffectiveDate = config('rsa.TOWING_IMAGES_MANDATORY_EFFECTIVE_DATE');
-			if (date('Y-m-d') >= $towingImagesMandatoryEffectiveDate) {
-				$activity->is_towing_attachments_mandatory = 1;
-			} else {
-				$activity->is_towing_attachments_mandatory = 0;
+			$activity->is_towing_attachments_mandatory = 0;
+			//TOWING GROUP
+			if ($service_type->service_group_id == 3) {
+				$towingImagesMandatoryEffectiveDate = config('rsa.TOWING_IMAGES_MANDATORY_EFFECTIVE_DATE');
+				if (date('Y-m-d', strtotime($case->date)) >= $towingImagesMandatoryEffectiveDate) {
+					$activity->is_towing_attachments_mandatory = 1;
+				}
 			}
 			$activity->number = 'ACT' . $activity->id;
 			$activity->save();

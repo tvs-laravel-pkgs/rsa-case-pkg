@@ -1745,12 +1745,12 @@ class ActivityController extends Controller {
 		$for_deffer_activity = 0;
 		$this->data = Activity::getFormData($id, $for_deffer_activity);
 		$this->data['case_details'] = $this->data['activity']->case;
-		if (date('Y-m-d') > "2022-01-01") {
-			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st February onwards)';
+		if (date('Y-m-d') >= "2022-04-01") {
+			$towingAttachmentsMandatoryLabel = '';
 		} elseif (date('Y-m-d') > "2022-02-01") {
 			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st April onwards)';
-		} elseif (date('Y-m-d') >= "2022-04-01") {
-			$towingAttachmentsMandatoryLabel = '';
+		} elseif (date('Y-m-d') > "2022-01-01") {
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st February onwards)';
 		} else {
 			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st January onwards)';
 		}
@@ -2394,12 +2394,12 @@ class ActivityController extends Controller {
 		$for_deffer_activity = 1;
 		$this->data = Activity::getFormData($id, $for_deffer_activity);
 		$this->data['case'] = $this->data['activity']->case;
-		if (date('Y-m-d') > "2022-01-01") {
-			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st February onwards)';
+		if (date('Y-m-d') >= "2022-04-01") {
+			$towingAttachmentsMandatoryLabel = '';
 		} elseif (date('Y-m-d') > "2022-02-01") {
 			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st April onwards)';
-		} elseif (date('Y-m-d') >= "2022-04-01") {
-			$towingAttachmentsMandatoryLabel = '';
+		} elseif (date('Y-m-d') > "2022-01-01") {
+			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st February onwards)';
 		} else {
 			$towingAttachmentsMandatoryLabel = '(This field is mandatory from 1st January onwards)';
 		}
@@ -2869,11 +2869,11 @@ class ActivityController extends Controller {
 		}
 	}
 
-	public function towingImagesRequiredUpdated(Request $r) {
-		// dd($r->all());
+	public function towingImagesRequiredUpdated(Request $request) {
+		// dd($request->all());
 		DB::beginTransaction();
 		try {
-			$validator = Validator::make($r->all(), [
+			$validator = Validator::make($request->all(), [
 				'activity_id' => [
 					'required:true',
 					'integer',
@@ -2892,8 +2892,9 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$activity = Activity::find($r->activity_id);
-			$activity->is_towing_attachments_mandatory = $r->isTowingAttachmentsMandatory;
+			$activity = Activity::find($request->activity_id);
+			$activity->is_towing_attachments_mandatory = $request->isTowingAttachmentsMandatory;
+			$activity->towing_attachments_mandatory_by_id = Auth::user()->id;
 			$activity->save();
 			DB::commit();
 			return response()->json([
@@ -3035,6 +3036,8 @@ class ActivityController extends Controller {
 			'service_types.name as service_type',
 			'activity_portal_statuses.name as activity_portal_status',
 			'activity_statuses.name as activity_status',
+			DB::raw('IF(activities.is_towing_attachments_mandatory = 1, "Yes", "No") as is_towing_attachments_mandatory'),
+			'activities.towing_attachments_mandatory_by_id',
 			'asp_activity_rejected_reasons.name as asp_activity_rejected_reason',
 			'asps.name as asp_name',
 			'asps.axpta_code as asp_axpta_code',
@@ -3299,6 +3302,8 @@ class ActivityController extends Controller {
 				'Portal Status',
 				'Activity Status',
 				'Activity Description',
+				'Is Towing Attachment Mandatory',
+				'Towing Attachment Mandatory By',
 				'Remarks',
 				'Manual Uploading Remarks',
 				'General Remarks',
@@ -3485,6 +3490,8 @@ class ActivityController extends Controller {
 					$activity->activity_portal_status,
 					$activity->activity_status,
 					$activity->description != NULL ? $activity->description : '',
+					$activity->is_towing_attachments_mandatory,
+					$activity->towingAttachmentMandatoryBy ? $activity->towingAttachmentMandatoryBy->name : '',
 					$activity->remarks != NULL ? $activity->remarks : '',
 					$activity->manual_uploading_remarks != NULL ? $activity->manual_uploading_remarks : '',
 					$activity->general_remarks != NULL ? $activity->general_remarks : '',

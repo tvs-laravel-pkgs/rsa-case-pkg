@@ -261,7 +261,7 @@ app.component('approvedActivityInvoicePreview', {
                 rules: {
                     invoice_no: {
                         required: true,
-                        minlength: 3,
+                        // minlength: 3,
                         maxlength: 20,
                     },
                     inv_date: {

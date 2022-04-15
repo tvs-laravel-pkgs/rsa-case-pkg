@@ -2310,10 +2310,20 @@ class ActivityController extends Controller {
 			->first();
 
 		if ($ticket) {
-			return response()->json([
-				'success' => true,
-				'activity_id' => $ticket->id,
-			]);
+			//IF CASE DATE BELOW OR EQUAL TO 30 NOV 2021 THEN TICKET IS LAPSED - SAID BY CLIENT
+			if (date('Y-m-d', strtotime($ticket->case_date)) <= "2021-11-30") {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						"Ticket lapsed",
+					],
+				]);
+			} else {
+				return response()->json([
+					'success' => true,
+					'activity_id' => $ticket->id,
+				]);
+			}
 		} else {
 			//CHECK TICKET EXIST
 			$query2 = clone $query;
@@ -2334,6 +2344,16 @@ class ActivityController extends Controller {
 						],
 					]);
 				} else {
+
+					//IF CASE DATE BELOW OR EQUAL TO 30 NOV 2021 THEN TICKET IS LAPSED - SAID BY CLIENT
+					if (date('Y-m-d', strtotime($ticket_exist->case_date)) <= "2021-11-30") {
+						return response()->json([
+							'success' => false,
+							'errors' => [
+								"Ticket lapsed",
+							],
+						]);
+					}
 
 					//Restriction disable - temporarily for June 2020 & July 2020 tickets
 					$sub_query = clone $query;

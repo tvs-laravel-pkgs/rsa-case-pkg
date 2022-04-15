@@ -26,7 +26,7 @@ class InvoiceController extends Controller {
 			$validator = Validator::make($request->all(), [
 				'activity_id.*' => 'required|numeric|exists:activities,crm_activity_id',
 				'asp_code' => 'required|string|exists:asps,asp_code',
-				'invoice_number' => 'nullable|string|min:3|max:20',
+				'invoice_number' => 'nullable|string|max:20',
 				'invoice_date' => 'nullable|string|date_format:"Y-m-d"',
 				'invoice_copy' => 'nullable',
 			]);

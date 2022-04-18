@@ -16,6 +16,7 @@ use Entrust;
 use Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
+use Redirect;
 use Yajra\Datatables\Datatables;
 
 class InvoiceController extends Controller {
@@ -320,15 +321,13 @@ class InvoiceController extends Controller {
 	}
 
 	public function export(Request $request) {
-		// dd($request->all());
-		try
-		{
+		try {
 			ini_set('max_execution_time', 0);
 			ini_set('display_errors', 1);
 			ini_set('memory_limit', '5000M');
 
 			if (empty($request->invoice_ids)) {
-				return redirect()->route('angular') . '/#!/rsa-case-pkg/invoice/list/1';
+				return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/1')->with('error', 'Please select atleast one invoice');
 			}
 
 			$invoice_ids = $request->invoice_ids;
@@ -416,12 +415,10 @@ class InvoiceController extends Controller {
 			$exportSheet2Info = $this->getaxapta->startSheet2ExportInvoice($invoice_ids, $activities);
 
 			if (!$exportInfo) {
-				// return back()->withErrors(['exportError', $exportInfo]);
-				return redirect()->route('angular') . '/#!/rsa-case-pkg/invoice/list/1';
+				return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/1')->with('error', 'Invoice not found');
 			}
 			if (!$exportSheet2Info) {
-				// return back()->withErrors(['exportError', $exportSheet2Info]);
-				return redirect()->route('angular') . '/#!/rsa-case-pkg/invoice/list/1';
+				return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/1')->with('error', 'Invoice not found');
 			}
 
 			Excel::create('Axapta_export_' . date('Y-m-d H:i:s'), function ($axaptaInfo) use ($exportInfo, $exportSheet2Info) {
@@ -437,13 +434,9 @@ class InvoiceController extends Controller {
 					});
 					$sheet->fromArray($exportSheet2Info);
 				});
-
-			})->export('xls');
-
+			})->export('xlsx');
 		} catch (\Exception $e) {
-			dd($e);
-			$message = ['error' => $e->getMessage()];
-			return redirect()->back()->with($message)->withInput();
+			return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/1')->with('error', $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile());
 		}
 	}
 

@@ -12,11 +12,6 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 	 */
 	public function run() {
 
-		// 1,	13|4,	14,
-		// 2, 	5,	11|7,	13,	14,
-		// 4,	5,	11,	13,	14
-		// 5,	7,	5
-		// 6,	11|7,
 		$activity_portal_statuses = [
 			1 => [
 				'name' => 'Case Closed - Waiting for ASP to Generate Invoice',
@@ -31,11 +26,11 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 				'company_id' => 1,
 			],
 			5 => [
-				'name' => 'ASP Completed Data Entry - Waiting for BO Bulk Verification',
+				'name' => 'ASP Completed Data Entry - Waiting for L1 Bulk Verification',
 				'company_id' => 1,
 			],
 			6 => [
-				'name' => 'ASP Completed Data Entry - Waiting for BO Individual Verification',
+				'name' => 'ASP Completed Data Entry - Waiting for L1 Individual Verification',
 				'company_id' => 1,
 			],
 			7 => [
@@ -43,11 +38,11 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 				'company_id' => 1,
 			],
 			8 => [
-				'name' => 'ASP Data Re-Entry Completed - Waiting for BO Bulk Verification',
+				'name' => 'ASP Data Re-Entry Completed - Waiting for L1 Bulk Verification',
 				'company_id' => 1,
 			],
 			9 => [
-				'name' => 'ASP Data Re-Entry Completed - Waiting for BO Individual Verification',
+				'name' => 'ASP Data Re-Entry Completed - Waiting for L1 Individual Verification',
 				'company_id' => 1,
 			],
 			10 => [
@@ -55,7 +50,7 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 				'company_id' => 1,
 			],
 			11 => [
-				'name' => 'BO Approved - Waiting for Invoice Generation by ASP',
+				'name' => 'Waiting for Invoice Generation by ASP',
 				'company_id' => 1,
 			],
 			12 => [
@@ -80,6 +75,26 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 			],
 			17 => [
 				'name' => 'On Hold',
+				'company_id' => 1,
+			],
+			18 => [
+				'name' => 'Waiting for L2 Bulk Verification',
+				'company_id' => 1,
+			],
+			19 => [
+				'name' => 'Waiting for L2 Individual Verification',
+				'company_id' => 1,
+			],
+			20 => [
+				'name' => 'Waiting for L3 Bulk Verification',
+				'company_id' => 1,
+			],
+			21 => [
+				'name' => 'Waiting for L3 Individual Verification',
+				'company_id' => 1,
+			],
+			22 => [
+				'name' => 'Rejected - Waiting for L1 Individual Verification',
 				'company_id' => 1,
 			],
 		];

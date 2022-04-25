@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class ActivitiesU6 extends Migration {
+class AddBoDeferReasonInActivities extends Migration {
 	/**
 	 * Run the migrations.
 	 *
@@ -12,7 +12,7 @@ class ActivitiesU6 extends Migration {
 	 */
 	public function up() {
 		Schema::table('activities', function (Blueprint $table) {
-			$table->text('general_remarks')->nullable()->after('exceptional_reason');
+			$table->text('approval_level_defer_reason')->nullable()->after('defer_reason');
 		});
 	}
 
@@ -23,7 +23,7 @@ class ActivitiesU6 extends Migration {
 	 */
 	public function down() {
 		Schema::table('activities', function (Blueprint $table) {
-			$table->dropColumn('general_remarks');
+			$table->dropColumn('approval_level_defer_reason');
 		});
 	}
 }

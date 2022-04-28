@@ -1438,19 +1438,19 @@ class ActivityController extends Controller {
 					$exceptionalReason = $activity->exceptional_reason;
 					if (Auth::user()->activity_approval_level_id == 1) {
 						if (!empty($exceptionalReason)) {
-							$exceptionalReason .= nl2br("\n L1 Approver : " . $request->exceptional_reason);
+							$exceptionalReason .= nl2br("\n <hr> L1 Approver : " . $request->exceptional_reason);
 						} else {
 							$exceptionalReason = 'L1 Approver : ' . $request->exceptional_reason;
 						}
 					} elseif (Auth::user()->activity_approval_level_id == 2) {
 						if (!empty($exceptionalReason)) {
-							$exceptionalReason .= nl2br("\n L2 Approver : " . $request->exceptional_reason);
+							$exceptionalReason .= nl2br("\n <hr> L2 Approver : " . $request->exceptional_reason);
 						} else {
 							$exceptionalReason = 'L2 Approver : ' . $request->exceptional_reason;
 						}
 					} elseif (Auth::user()->activity_approval_level_id == 3) {
 						if (!empty($exceptionalReason)) {
-							$exceptionalReason .= nl2br("\n L3 Approver : " . $request->exceptional_reason);
+							$exceptionalReason .= nl2br("\n <hr> L3 Approver : " . $request->exceptional_reason);
 						} else {
 							$exceptionalReason = 'L3 Approver : ' . $request->exceptional_reason;
 						}
@@ -2072,7 +2072,7 @@ class ActivityController extends Controller {
 				$activityStatusId = 7; //BO Rejected - Waiting for ASP Data Re-Entry
 				$eligleForAspReEntry = true;
 				if (!empty($deferReason)) {
-					$deferReason .= nl2br("\n L1 Approver : " . $request->defer_reason);
+					$deferReason .= nl2br("\n <hr> L1 Approver : " . $request->defer_reason);
 				} else {
 					$deferReason = "L1 Approver : " . $request->defer_reason;
 				}
@@ -2084,7 +2084,7 @@ class ActivityController extends Controller {
 				// L2
 				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
 				if (!empty($deferReason)) {
-					$deferReason .= nl2br("\n L2 Approver : " . $request->defer_reason);
+					$deferReason .= nl2br("\n <hr> L2 Approver : " . $request->defer_reason);
 				} else {
 					$deferReason = "L2 Approver : " . $request->defer_reason;
 				}
@@ -2092,7 +2092,7 @@ class ActivityController extends Controller {
 				// L3
 				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
 				if (!empty($deferReason)) {
-					$deferReason .= nl2br("\n L3 Approver : " . $request->defer_reason);
+					$deferReason .= nl2br("\n <hr> L3 Approver : " . $request->defer_reason);
 				} else {
 					$deferReason = "L3 Approver : " . $request->defer_reason;
 				}

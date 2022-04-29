@@ -1550,159 +1550,172 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
+			//L2 and L3 approver flow should be effective from April 2022 cases not for all the cases - By Sundhar / Hyder
+			if (date('Y-m-d', strtotime($activity->case->date)) >= "2022-04-01") {
+				$l2Approvers = User::where('activity_approval_level_id', 2)->pluck('id');
+				$l3Approvers = User::where('activity_approval_level_id', 3)->pluck('id');
 
-			$l2Approvers = User::where('activity_approval_level_id', 2)->pluck('id');
-			$l3Approvers = User::where('activity_approval_level_id', 3)->pluck('id');
-
-			$isActivityBulk = $this->isActivityBulkOnApproval($activity);
-			$isApproved = false;
-			$approver = '';
-			//GREATER THAN 10000
-			if (floatval($request->bo_net_amount) > 10000) {
-				//L1
-				if (Auth::user()->activity_approval_level_id == 1) {
-					if ($isActivityBulk) {
-						$activityStatusId = 18; //Waiting for L2 Bulk Verification
-					} else {
-						$activityStatusId = 19; //Waiting for L2 Individual Verification
-					}
-					$approver = '1';
-					if ($isServiceTypeChanged) {
-						$activity->service_type_changed_on_level = 1;
-					}
-					if ($isKmTravelledChanged) {
-						$activity->km_changed_on_level = 1;
-					}
-					if ($isNotCollectedChanged) {
-						$activity->not_collected_amount_changed_on_level = 1;
-					}
-					if ($isCollectedChanged) {
-						$activity->collected_amount_changed_on_level = 1;
-					}
-					$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
-				} elseif (Auth::user()->activity_approval_level_id == 2) {
-					// L2
-					if ($isActivityBulk) {
-						$activityStatusId = 20; //Waiting for L3 Bulk Verification
-					} else {
-						$activityStatusId = 21; //Waiting for L3 Individual Verification
-					}
-					$approver = '2';
-					if ($isServiceTypeChanged) {
-						$activity->service_type_changed_on_level = 2;
-					}
-					if ($isKmTravelledChanged) {
-						$activity->km_changed_on_level = 2;
-					}
-					if ($isNotCollectedChanged) {
-						$activity->not_collected_amount_changed_on_level = 2;
-					}
-					if ($isCollectedChanged) {
-						$activity->collected_amount_changed_on_level = 2;
-					}
-					$this->sendApprovalNoty($l3Approvers, $activity->case->number, "L3_APPROVAL");
-				} elseif (Auth::user()->activity_approval_level_id == 3) {
-					// L3
-					$activityStatusId = 11; //Waiting for Invoice Generation by ASP
-					$isApproved = true;
-					$approver = '3';
-				}
-			} elseif (floatval($request->bo_net_amount) > 4000 && floatval($request->bo_net_amount) <= 10000) {
-				//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 10000
-				//L1
-				if (Auth::user()->activity_approval_level_id == 1) {
-					if ($isActivityBulk) {
-						$activityStatusId = 18; //Waiting for L2 Bulk Verification
-					} else {
-						$activityStatusId = 19; //Waiting for L2 Individual Verification
-					}
-					$approver = '1';
-					if ($isServiceTypeChanged) {
-						$activity->service_type_changed_on_level = 1;
-					}
-					if ($isKmTravelledChanged) {
-						$activity->km_changed_on_level = 1;
-					}
-					if ($isNotCollectedChanged) {
-						$activity->not_collected_amount_changed_on_level = 1;
-					}
-					if ($isCollectedChanged) {
-						$activity->collected_amount_changed_on_level = 1;
-					}
-					$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
-				} elseif (Auth::user()->activity_approval_level_id == 2) {
-					// L2
-					$activityStatusId = 11; //Waiting for Invoice Generation by ASP
-					$isApproved = true;
-					$approver = '2';
-					if ($isServiceTypeChanged) {
-						$activity->service_type_changed_on_level = 2;
-					}
-					if ($isKmTravelledChanged) {
-						$activity->km_changed_on_level = 2;
-					}
-					if ($isNotCollectedChanged) {
-						$activity->not_collected_amount_changed_on_level = 2;
-					}
-					if ($isCollectedChanged) {
-						$activity->collected_amount_changed_on_level = 2;
-					}
-				} elseif (Auth::user()->activity_approval_level_id == 3) {
-					// L3
-					$activityStatusId = 11; //Waiting for Invoice Generation by ASP
-					$isApproved = true;
-					$approver = '3';
-				}
-			} else {
-				//LESSER THAN OR EQUAL TO 4000
-				//L1
-				if (Auth::user()->activity_approval_level_id == 1) {
-					$isL2ApprovalRequired = $this->isL2ApprovalRequired($activity);
-					if ($isL2ApprovalRequired) {
+				$isActivityBulk = $this->isActivityBulkOnApproval($activity);
+				$isApproved = false;
+				$approver = '';
+				//GREATER THAN 10000
+				if (floatval($request->bo_net_amount) > 10000) {
+					//L1
+					if (Auth::user()->activity_approval_level_id == 1) {
 						if ($isActivityBulk) {
 							$activityStatusId = 18; //Waiting for L2 Bulk Verification
 						} else {
 							$activityStatusId = 19; //Waiting for L2 Individual Verification
 						}
+						$approver = '1';
+						if ($isServiceTypeChanged) {
+							$activity->service_type_changed_on_level = 1;
+						}
+						if ($isKmTravelledChanged) {
+							$activity->km_changed_on_level = 1;
+						}
+						if ($isNotCollectedChanged) {
+							$activity->not_collected_amount_changed_on_level = 1;
+						}
+						if ($isCollectedChanged) {
+							$activity->collected_amount_changed_on_level = 1;
+						}
 						$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
-					} else {
+					} elseif (Auth::user()->activity_approval_level_id == 2) {
+						// L2
+						if ($isActivityBulk) {
+							$activityStatusId = 20; //Waiting for L3 Bulk Verification
+						} else {
+							$activityStatusId = 21; //Waiting for L3 Individual Verification
+						}
+						$approver = '2';
+						if ($isServiceTypeChanged) {
+							$activity->service_type_changed_on_level = 2;
+						}
+						if ($isKmTravelledChanged) {
+							$activity->km_changed_on_level = 2;
+						}
+						if ($isNotCollectedChanged) {
+							$activity->not_collected_amount_changed_on_level = 2;
+						}
+						if ($isCollectedChanged) {
+							$activity->collected_amount_changed_on_level = 2;
+						}
+						$this->sendApprovalNoty($l3Approvers, $activity->case->number, "L3_APPROVAL");
+					} elseif (Auth::user()->activity_approval_level_id == 3) {
+						// L3
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 						$isApproved = true;
+						$approver = '3';
 					}
+				} elseif (floatval($request->bo_net_amount) > 4000 && floatval($request->bo_net_amount) <= 10000) {
+					//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 10000
+					//L1
+					if (Auth::user()->activity_approval_level_id == 1) {
+						if ($isActivityBulk) {
+							$activityStatusId = 18; //Waiting for L2 Bulk Verification
+						} else {
+							$activityStatusId = 19; //Waiting for L2 Individual Verification
+						}
+						$approver = '1';
+						if ($isServiceTypeChanged) {
+							$activity->service_type_changed_on_level = 1;
+						}
+						if ($isKmTravelledChanged) {
+							$activity->km_changed_on_level = 1;
+						}
+						if ($isNotCollectedChanged) {
+							$activity->not_collected_amount_changed_on_level = 1;
+						}
+						if ($isCollectedChanged) {
+							$activity->collected_amount_changed_on_level = 1;
+						}
+						$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
+					} elseif (Auth::user()->activity_approval_level_id == 2) {
+						// L2
+						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+						$isApproved = true;
+						$approver = '2';
+						if ($isServiceTypeChanged) {
+							$activity->service_type_changed_on_level = 2;
+						}
+						if ($isKmTravelledChanged) {
+							$activity->km_changed_on_level = 2;
+						}
+						if ($isNotCollectedChanged) {
+							$activity->not_collected_amount_changed_on_level = 2;
+						}
+						if ($isCollectedChanged) {
+							$activity->collected_amount_changed_on_level = 2;
+						}
+					} elseif (Auth::user()->activity_approval_level_id == 3) {
+						// L3
+						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+						$isApproved = true;
+						$approver = '3';
+					}
+				} else {
+					//LESSER THAN OR EQUAL TO 4000
+					//L1
+					if (Auth::user()->activity_approval_level_id == 1) {
+						$isL2ApprovalRequired = $this->isL2ApprovalRequired($activity);
+						if ($isL2ApprovalRequired) {
+							if ($isActivityBulk) {
+								$activityStatusId = 18; //Waiting for L2 Bulk Verification
+							} else {
+								$activityStatusId = 19; //Waiting for L2 Individual Verification
+							}
+							$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
+						} else {
+							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+							$isApproved = true;
+						}
+						$approver = '1';
+						if ($isServiceTypeChanged) {
+							$activity->service_type_changed_on_level = 1;
+						}
+						if ($isKmTravelledChanged) {
+							$activity->km_changed_on_level = 1;
+						}
+						if ($isNotCollectedChanged) {
+							$activity->not_collected_amount_changed_on_level = 1;
+						}
+						if ($isCollectedChanged) {
+							$activity->collected_amount_changed_on_level = 1;
+						}
+					} elseif (Auth::user()->activity_approval_level_id == 2) {
+						// L2
+						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+						$isApproved = true;
+						$approver = '2';
+						if ($isServiceTypeChanged) {
+							$activity->service_type_changed_on_level = 2;
+						}
+						if ($isKmTravelledChanged) {
+							$activity->km_changed_on_level = 2;
+						}
+						if ($isNotCollectedChanged) {
+							$activity->not_collected_amount_changed_on_level = 2;
+						}
+						if ($isCollectedChanged) {
+							$activity->collected_amount_changed_on_level = 2;
+						}
+					} elseif (Auth::user()->activity_approval_level_id == 3) {
+						// L3
+						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+						$isApproved = true;
+						$approver = '3';
+					}
+				}
+			} else {
+				$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+				$isApproved = true;
+				$approver = '1';
+				if (Auth::user()->activity_approval_level_id == 1) {
 					$approver = '1';
-					if ($isServiceTypeChanged) {
-						$activity->service_type_changed_on_level = 1;
-					}
-					if ($isKmTravelledChanged) {
-						$activity->km_changed_on_level = 1;
-					}
-					if ($isNotCollectedChanged) {
-						$activity->not_collected_amount_changed_on_level = 1;
-					}
-					if ($isCollectedChanged) {
-						$activity->collected_amount_changed_on_level = 1;
-					}
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
-					// L2
-					$activityStatusId = 11; //Waiting for Invoice Generation by ASP
-					$isApproved = true;
 					$approver = '2';
-					if ($isServiceTypeChanged) {
-						$activity->service_type_changed_on_level = 2;
-					}
-					if ($isKmTravelledChanged) {
-						$activity->km_changed_on_level = 2;
-					}
-					if ($isNotCollectedChanged) {
-						$activity->not_collected_amount_changed_on_level = 2;
-					}
-					if ($isCollectedChanged) {
-						$activity->collected_amount_changed_on_level = 2;
-					}
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
-					// L3
-					$activityStatusId = 11; //Waiting for Invoice Generation by ASP
-					$isApproved = true;
 					$approver = '3';
 				}
 			}
@@ -1981,66 +1994,80 @@ class ActivityController extends Controller {
 					$bo_invoice_amount->value = $invoiceAmount;
 					$bo_invoice_amount->save();
 
-					$isApproved = false;
-					$approver = '';
-					//GREATER THAN 10000
-					if (floatval($invoiceAmount) > 10000) {
-						//L1
-						if (Auth::user()->activity_approval_level_id == 1) {
-							$activityStatusId = 18; //Waiting for L2 Bulk Verification
-							$approver = '1';
-							$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
-						} elseif (Auth::user()->activity_approval_level_id == 2) {
-							// L2
-							$activityStatusId = 20; //Waiting for L3 Bulk Verification
-							$approver = '2';
-							$this->sendApprovalNoty($l3Approvers, $activity->case->number, "L3_APPROVAL");
-						} elseif (Auth::user()->activity_approval_level_id == 3) {
-							// L3
-							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
-							$isApproved = true;
-							$approver = '3';
-						}
-					} elseif (floatval($invoiceAmount) > 4000 && floatval($invoiceAmount) <= 10000) {
-						//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 10000
-						//L1
-						if (Auth::user()->activity_approval_level_id == 1) {
-							$activityStatusId = 18; //Waiting for L2 Bulk Verification
-							$approver = '1';
-							$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
-						} elseif (Auth::user()->activity_approval_level_id == 2) {
-							// L2
-							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
-							$isApproved = true;
-							$approver = '2';
-						} elseif (Auth::user()->activity_approval_level_id == 3) {
-							// L3
-							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
-							$isApproved = true;
-							$approver = '3';
-						}
-					} else {
-						//LESSER THAN OR EQUAL TO 4000
-						//L1
-						if (Auth::user()->activity_approval_level_id == 1) {
-							$isL2ApprovalRequired = $this->isL2ApprovalRequired($activity);
-							if ($isL2ApprovalRequired) {
+					//L2 and L3 approver flow should be effective from April 2022 cases not for all the cases - By Sundhar / Hyder
+					if (date('Y-m-d', strtotime($activity->case->date)) >= "2022-04-01") {
+						$isApproved = false;
+						$approver = '';
+						//GREATER THAN 10000
+						if (floatval($invoiceAmount) > 10000) {
+							//L1
+							if (Auth::user()->activity_approval_level_id == 1) {
 								$activityStatusId = 18; //Waiting for L2 Bulk Verification
+								$approver = '1';
 								$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
-							} else {
+							} elseif (Auth::user()->activity_approval_level_id == 2) {
+								// L2
+								$activityStatusId = 20; //Waiting for L3 Bulk Verification
+								$approver = '2';
+								$this->sendApprovalNoty($l3Approvers, $activity->case->number, "L3_APPROVAL");
+							} elseif (Auth::user()->activity_approval_level_id == 3) {
+								// L3
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
+								$approver = '3';
 							}
+						} elseif (floatval($invoiceAmount) > 4000 && floatval($invoiceAmount) <= 10000) {
+							//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 10000
+							//L1
+							if (Auth::user()->activity_approval_level_id == 1) {
+								$activityStatusId = 18; //Waiting for L2 Bulk Verification
+								$approver = '1';
+								$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
+							} elseif (Auth::user()->activity_approval_level_id == 2) {
+								// L2
+								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+								$isApproved = true;
+								$approver = '2';
+							} elseif (Auth::user()->activity_approval_level_id == 3) {
+								// L3
+								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+								$isApproved = true;
+								$approver = '3';
+							}
+						} else {
+							//LESSER THAN OR EQUAL TO 4000
+							//L1
+							if (Auth::user()->activity_approval_level_id == 1) {
+								$isL2ApprovalRequired = $this->isL2ApprovalRequired($activity);
+								if ($isL2ApprovalRequired) {
+									$activityStatusId = 18; //Waiting for L2 Bulk Verification
+									$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
+								} else {
+									$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+									$isApproved = true;
+								}
+								$approver = '1';
+							} elseif (Auth::user()->activity_approval_level_id == 2) {
+								// L2
+								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+								$isApproved = true;
+								$approver = '2';
+							} elseif (Auth::user()->activity_approval_level_id == 3) {
+								// L3
+								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+								$isApproved = true;
+								$approver = '3';
+							}
+						}
+					} else {
+						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+						$isApproved = true;
+						$approver = '1';
+						if (Auth::user()->activity_approval_level_id == 1) {
 							$approver = '1';
 						} elseif (Auth::user()->activity_approval_level_id == 2) {
-							// L2
-							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
-							$isApproved = true;
 							$approver = '2';
 						} elseif (Auth::user()->activity_approval_level_id == 3) {
-							// L3
-							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
-							$isApproved = true;
 							$approver = '3';
 						}
 					}

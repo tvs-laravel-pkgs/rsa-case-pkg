@@ -353,6 +353,24 @@ class ActivityController extends Controller {
 			// 	], $this->successStatus);
 			// }
 
+			//ALLOW ACTIVITY CREATION OR UPDATION ONLY BEFORE 90 DAYS OF THE CASE DATE
+			$caseDate = Carbon::parse($case_date);
+			$caseDateAfter90Days = date('Y-m-d', strtotime($caseDate->addDays(90)));
+			if (date('Y-m-d') > $caseDateAfter90Days) {
+				//SAVE ACTIVITY API LOG
+				$errors[] = 'Activity creation or updation will not be allowed after 90 days of the case date';
+				saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						'Activity creation or updation will not be allowed after 90 days of the case date',
+					],
+				], $this->successStatus);
+			}
+
 			$activityExist = Activity::withTrashed()->where('crm_activity_id', $request->crm_activity_id)
 				->first();
 			if (!$activityExist) {
@@ -364,26 +382,7 @@ class ActivityController extends Controller {
 				if ($activityExist->case_id === $case->id) {
 					//Allow case with intial staus and not payment processed statuses
 					if ($activityExist->status_id == 2 || $activityExist->status_id == 4 || $activityExist->status_id == 1 || $activityExist->status_id == 15 || $activityExist->status_id == 16 || $activityExist->status_id == 17) {
-
-						//ALLOW ACTIVITY UPDATION ONLY BEFORE ONE MONTH OF CASE DATE
-						$caseDate = Carbon::parse($case_date);
-						$caseDateAfterOneMonth = date('Y-m-d', strtotime($caseDate->addMonth()));
-						if (date('Y-m-d') <= $caseDateAfterOneMonth) {
-							$activity = $activityExist;
-						} else {
-							//SAVE ACTIVITY API LOG
-							$errors[] = 'Activity update will not be allowed after one month of the case date';
-							saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
-							DB::commit();
-
-							return response()->json([
-								'success' => false,
-								'error' => 'Validation Error',
-								'errors' => [
-									'Activity update will not be allowed after one month of the case date',
-								],
-							], $this->successStatus);
-						}
+						$activity = $activityExist;
 					} else {
 						//SAVE ACTIVITY API LOG
 						$errors[] = 'Activity update will not be allowed. Case is under payment process';

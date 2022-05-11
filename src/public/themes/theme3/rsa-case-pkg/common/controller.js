@@ -6,6 +6,7 @@ app.component('aspActivitiesHeader', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
+        self.hasPermission = HelperService.hasPermission;
     }
 });
 
@@ -261,6 +262,7 @@ app.component('caseDetails', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
+        self.hasPermission = HelperService.hasPermission;
     }
 });
 

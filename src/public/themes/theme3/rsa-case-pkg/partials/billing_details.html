@@ -32,16 +32,16 @@
                             <thead>
                                 <tr>
                                     <th>Title</th>
-                                    <th style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && $ctrl.data.view_cc_details==1">CC Data</th>
-                                    <th style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities">ASP Data</th>
+                                    <th style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities')) && $ctrl.data.view_cc_details==1">CC Data</th>
+                                    <th style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities')">ASP Data</th>
                                     <th style="text-align:right">BO Data</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <th scope="row">Service</th>
-                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && $ctrl.data.view_cc_details==1">{{$ctrl.data.cc_service_type}}</td>
-                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities" ng-class="{'alert-danger': $ctrl.data.verification==1 && !$ctrl.data.is_service_type_eligible }">{{$ctrl.data.asp_service_type}}</td>
+                                    <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities')) && $ctrl.data.view_cc_details==1">{{$ctrl.data.cc_service_type}}</td>
+                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities')" ng-class="{'alert-danger': $ctrl.data.verification==1 && !$ctrl.data.is_service_type_eligible }">{{$ctrl.data.asp_service_type}}</td>
                                     <td ng-if="($ctrl.data.verification == 0) || ($ctrl.data.verification == 1 && $ctrl.data.activityApprovalLevel != 1)" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.service_type_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.service_type_changed_on_level == 2}">
                                         {{$ctrl.data.bo_service_type}}
                                     </td>
@@ -55,8 +55,8 @@
                                 </tr>
                                 <tr>
                                     <th scope="row">KM Travelled</th>
-                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && $ctrl.data.view_cc_details==1">{{$ctrl.data.cc_total_km}}</td style="text-align:right">
-                                    <td style="text-align:right" class="asp_value" ng-show="!$ctrl.data.has_view_own_activities" ng-class="{'alert-danger': $ctrl.data.verification==1 && !$ctrl.data.is_km_travelled_eligible }">{{$ctrl.data.asp_km_travelled}}</td style="text-align:right">
+                                    <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities')) && $ctrl.data.view_cc_details==1">{{$ctrl.data.cc_total_km}}</td style="text-align:right">
+                                    <td style="text-align:right" class="asp_value" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities')" ng-class="{'alert-danger': $ctrl.data.verification==1 && !$ctrl.data.is_km_travelled_eligible }">{{$ctrl.data.asp_km_travelled}}</td style="text-align:right">
                                     <td class="" ng-show="$ctrl.data.verification==0" style="text-align:right">{{$ctrl.data.bo_km_travelled}}</td>
                                     <td class="" ng-show="$ctrl.data.verification==1" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.km_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.km_changed_on_level == 2}">
                                         <input style="text-align:right" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" type="text" name="bo_km_travelled" ng-model="$ctrl.data.raw_bo_km_travelled" value="{{$ctrl.data.raw_bo_km_travelled}}" class="km_value" ng-keyup="calculate()"><br>
@@ -67,8 +67,8 @@
                                 </tr>
                                 <tr>
                                     <th scope="row">Charges Not Collected From Customer </th>
-                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && $ctrl.data.view_cc_details==1">{{$ctrl.data.cc_not_collected_amount}}</td style="text-align:right">
-                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities" ng-class="{'alert-danger': $ctrl.data.verification==1 && !$ctrl.data.is_not_collected_eligible }">{{$ctrl.data.asp_not_collected}}</td style="text-align:right">
+                                    <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities')) && $ctrl.data.view_cc_details==1">{{$ctrl.data.cc_not_collected_amount}}</td style="text-align:right">
+                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities')" ng-class="{'alert-danger': $ctrl.data.verification==1 && !$ctrl.data.is_not_collected_eligible }">{{$ctrl.data.asp_not_collected}}</td style="text-align:right">
                                     <td class="" ng-show="$ctrl.data.verification==0" style="text-align:right">{{$ctrl.data.bo_not_collected}}</td>
                                     <td class="" ng-show="$ctrl.data.verification==1" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 2}">
                                         <input style="text-align:right" type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_not_collected" class="non_collected_amount" value="{{$ctrl.data.raw_bo_not_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
@@ -78,8 +78,8 @@
                                 </tr>
                                 <tr>
                                     <th scope="row">Charges Collected From Customer </th>
-                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && $ctrl.data.view_cc_details==1">{{$ctrl.data.cc_colleced_amount}}</td style="text-align:right">
-                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities" ng-class="{'alert-danger': $ctrl.data.verification==1 && !$ctrl.data.is_collected_eligible }">{{$ctrl.data.asp_collected}}</td style="text-align:right">
+                                    <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities')) && $ctrl.data.view_cc_details==1">{{$ctrl.data.cc_colleced_amount}}</td style="text-align:right">
+                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities')" ng-class="{'alert-danger': $ctrl.data.verification==1 && !$ctrl.data.is_collected_eligible }">{{$ctrl.data.asp_collected}}</td style="text-align:right">
                                     <td class="" style="text-align:right" ng-show="$ctrl.data.verification==0">{{$ctrl.data.bo_collected}}</td>
                                     <td class="" ng-show="$ctrl.data.verification==1" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.collected_amount_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.collected_amount_changed_on_level == 2}">
                                         <input style="text-align:right" type="text" name="bo_collected" ng-model="$ctrl.data.raw_bo_collected" class="collected_amount" value="{{$ctrl.data.raw_bo_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
@@ -136,23 +136,23 @@
                                 {{ $ctrl.data.remarks }}
                             </p>
                         </div>
-                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && $ctrl.data.general_remarks != null">
+                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities') && $ctrl.data.general_remarks != null">
                             <h4>ASP General Remarks</h4>
                             <p style="word-wrap: break-word;max-height: 100px;overflow: auto;">
                                 {{ $ctrl.data.general_remarks }}
                             </p>
                         </div>
-                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && $ctrl.data.defer_reason != null">
+                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities') && $ctrl.data.defer_reason != null">
                             <h4>BO Defer Reason</h4>
                             <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.defer_reason"></p>
                         </div>
-                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && $ctrl.data.asp_resolve_comments != null">
+                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities') && $ctrl.data.asp_resolve_comments != null">
                             <h4>ASP Resolve Comments</h4>
                             <p style="word-wrap: break-word;max-height: 100px;overflow: auto;">
                                 {{ $ctrl.data.asp_resolve_comments }}
                             </p>
                         </div>
-                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && $ctrl.data.exceptional_reason != null">
+                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities') && $ctrl.data.exceptional_reason != null">
                             <h4>Exceptional Reason</h4>
                             <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.exceptional_reason"></p>
                         </div>

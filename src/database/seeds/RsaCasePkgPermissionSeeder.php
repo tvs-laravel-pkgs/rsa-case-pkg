@@ -599,6 +599,18 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'own-client-admin-report-membership',
 				'display_name' => 'Own Client Admin Report',
 			],
+			[
+				'display_order' => 20,
+				'parent' => 'membership',
+				'name' => 'own-rm-dealers-membership',
+				'display_name' => 'Own RM Dealers',
+			],
+			[
+				'display_order' => 21,
+				'parent' => 'membership',
+				'name' => 'rm-dealers-report-membership',
+				'display_name' => 'Own RM Dealers Report',
+			],
 
 			//Dealer Invoice Menu
 			[

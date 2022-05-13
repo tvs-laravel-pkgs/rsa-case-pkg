@@ -439,7 +439,6 @@ app.component('activityStatusView', {
         $http.get(
             get_view_data_url
         ).then(function(response) {
-            // console.log(response);
             if (!response.data.success) {
                 var errors = '';
                 for (var i in response.data.errors) {

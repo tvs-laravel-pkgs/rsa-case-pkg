@@ -26,7 +26,7 @@ class InvoiceController extends Controller {
 			$validator = Validator::make($request->all(), [
 				'activity_id.*' => 'required|numeric|exists:activities,crm_activity_id',
 				'asp_code' => 'required|string|exists:asps,asp_code',
-				'invoice_number' => 'nullable|string|min:3|max:20',
+				'invoice_number' => 'nullable|string|max:20',
 				'invoice_date' => 'nullable|string|date_format:"Y-m-d"',
 				'invoice_copy' => 'nullable',
 			]);
@@ -153,7 +153,7 @@ class InvoiceController extends Controller {
 			$activities_with_accepted = Activity::select('crm_activity_id', 'status_id')->whereIn('crm_activity_id', $request->activity_id)->get();
 			if (!empty($activities_with_accepted)) {
 				foreach ($activities_with_accepted as $key => $activity_accepted) {
-					//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND BO Approved - Waiting for Invoice Generation by ASP)
+					//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND Waiting for Invoice Generation by ASP)
 					if ($activity_accepted->status_id != 1 && $activity_accepted->status_id != 11) {
 						//CREATE INVOICE API LOG
 						$errors[] = 'ASP not accepted / case not closed for activity ID ' . $activity_accepted->crm_activity_id;

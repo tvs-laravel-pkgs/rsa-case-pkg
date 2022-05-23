@@ -98,6 +98,42 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'display-asp-number-in-activities',
 				'display_name' => 'Display ASP Number',
 			],
+			[
+				'display_order' => 13,
+				'parent' => 'activity-status',
+				'name' => 'own-rm-asp-activities',
+				'display_name' => 'Own RM ASPs',
+			],
+			[
+				'display_order' => 14,
+				'parent' => 'activity-status',
+				'name' => 'export-own-rm-asp-activities',
+				'display_name' => 'Export Own RM ASPs',
+			],
+			[
+				'display_order' => 15,
+				'parent' => 'activity-status',
+				'name' => 'own-zm-asp-activities',
+				'display_name' => 'Own ZM ASPs',
+			],
+			[
+				'display_order' => 16,
+				'parent' => 'activity-status',
+				'name' => 'export-own-zm-asp-activities',
+				'display_name' => 'Export Own ZM ASPs',
+			],
+			[
+				'display_order' => 17,
+				'parent' => 'activity-status',
+				'name' => 'own-nm-asp-activities',
+				'display_name' => 'Own NM ASPs',
+			],
+			[
+				'display_order' => 18,
+				'parent' => 'activity-status',
+				'name' => 'export-own-nm-asp-activities',
+				'display_name' => 'Export Own NM ASPs',
+			],
 
 			//ACTIVITIES VERIFICATION
 			[

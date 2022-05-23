@@ -314,7 +314,7 @@
                 <div ng-if="$ctrl.hasPermission('export-own-activities')">
                     <input type="hidden" name="asp_id" value="{{$ctrl.auth_user_details.entity_id}}" />
                 </div>
-                <div ng-if="$ctrl.hasPermission('export-own-activities') || $ctrl.hasPermission('export-own-rm-asp-activities') || $ctrl.hasPermission('export-own-zm-asp-activities') || $ctrl.hasPermission('export-own-nm-asp-activities')">
+                <div ng-if="$ctrl.hasPermission('export-own-activities')">
                     <input type="hidden" name="filter_by" value="general" />
                 </div>
                 <div class="modal-body">
@@ -351,7 +351,7 @@
                                                 <input type="text" value="" name="ticket" id="ticket_export" class="form-control valid" placeholder="Enter Ticket Number" autocomplete="off">
                                             </div>
                                         </div>
-                                        <div class="col-sm-6" ng-if="!$ctrl.hasPermission('export-own-activities') && !$ctrl.hasPermission('export-own-rm-asp-activities') && !$ctrl.hasPermission('export-own-zm-asp-activities') && !$ctrl.hasPermission('export-own-nm-asp-activities')">
+                                        <div class="col-sm-6" ng-if="!$ctrl.hasPermission('export-own-activities')">
                                             <div class="input-text form-group">
                                                 <label>ASP</label>
                                                 <md-autocomplete class="type-sm" md-items="option in $ctrl.searchAsps($ctrl.aspSearchText)" md-input-id="autoFocusId" md-selected-item="$ctrl.asp" md-search-text="$ctrl.aspSearchText" md-item-text="option.workshop" md-min-length="3" placeholder="Search ASP Code" md-clear-button="true" md-no-cache="true">
@@ -383,7 +383,7 @@
                                                 <input type="hidden" name="client_id" value="{{$ctrl.client.id}}" />
                                             </div>
                                         </div>
-                                        <div class="col-sm-6" ng-if="!$ctrl.hasPermission('export-own-activities') && !$ctrl.hasPermission('export-own-rm-asp-activities') && !$ctrl.hasPermission('export-own-zm-asp-activities') && !$ctrl.hasPermission('export-own-nm-asp-activities')">
+                                        <div class="col-sm-6" ng-if="!$ctrl.hasPermission('export-own-activities')">
                                             <div class="form-group">
                                                 <label>Filter By<sup class="req" style="color:red">*</sup></label>
                                                 <md-select ng-model="$ctrl.filterBy" placeholder="Select Filter By">

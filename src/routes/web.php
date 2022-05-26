@@ -51,6 +51,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	Route::post('/activity-verification/saveDiffer', 'ActivityController@saveActivityDiffer')->name('saveActivityDiffer');
 	Route::post('/activity-verification/approve', 'ActivityController@approveActivity')->name('approveActivity');
 	Route::post('/activity-verification/bulk-approve', 'ActivityController@bulkApproveActivity')->name('bulkApproveActivity');
+	Route::post('/activity-verification/get-service-type-ratecard-detail', 'ActivityController@getServiceTypeRateCardDetail')->name('getActivityServiceTypeRateCardDetail');
 
 	//INVOICE
 	Route::get('/invoice/get-filter-data/{type_id}', 'InvoiceController@getFilterData')->name('getFilterData');

@@ -353,26 +353,41 @@ class ActivityController extends Controller {
 			// 	], $this->successStatus);
 			// }
 
+			//ALLOW ACTIVITY CREATION OR UPDATION ONLY BEFORE 90 DAYS OF THE CASE DATE
+			$caseDate = Carbon::parse($case_date);
+			$caseDateAfter90Days = date('Y-m-d', strtotime($caseDate->addDays(90)));
+
 			$activityExist = Activity::withTrashed()->where('crm_activity_id', $request->crm_activity_id)
 				->first();
 			if (!$activityExist) {
-				$activity = new Activity([
-					'crm_activity_id' => $request->crm_activity_id,
-				]);
+				//ALLOW ACTIVITY CREATION ONLY BEFORE 90 DAYS OF THE CASE DATE
+				if (date('Y-m-d') > $caseDateAfter90Days) {
+					//SAVE ACTIVITY API LOG
+					$errors[] = 'Activity create will not be allowed after 90 days of the case date';
+					saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+					DB::commit();
+
+					return response()->json([
+						'success' => false,
+						'error' => 'Validation Error',
+						'errors' => [
+							'Activity create will not be allowed after 90 days of the case date',
+						],
+					], $this->successStatus);
+				} else {
+					$activity = new Activity([
+						'crm_activity_id' => $request->crm_activity_id,
+					]);
+				}
 			} else {
 				//ACTIVITY BELONGS TO SAME CASE
 				if ($activityExist->case_id === $case->id) {
 					//Allow case with intial staus and not payment processed statuses
 					if ($activityExist->status_id == 2 || $activityExist->status_id == 4 || $activityExist->status_id == 1 || $activityExist->status_id == 15 || $activityExist->status_id == 16 || $activityExist->status_id == 17) {
-
-						//ALLOW ACTIVITY UPDATION ONLY BEFORE ONE MONTH OF CASE DATE
-						$caseDate = Carbon::parse($case_date);
-						$caseDateAfterOneMonth = date('Y-m-d', strtotime($caseDate->addMonth()));
-						if (date('Y-m-d') <= $caseDateAfterOneMonth) {
-							$activity = $activityExist;
-						} else {
+						//ALLOW ACTIVITY UPDATION ONLY BEFORE 90 DAYS OF THE CASE DATE
+						if (date('Y-m-d') > $caseDateAfter90Days) {
 							//SAVE ACTIVITY API LOG
-							$errors[] = 'Activity update will not be allowed after one month of the case date';
+							$errors[] = 'Activity update will not be allowed after 90 days of the case date';
 							saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
 							DB::commit();
 
@@ -380,9 +395,11 @@ class ActivityController extends Controller {
 								'success' => false,
 								'error' => 'Validation Error',
 								'errors' => [
-									'Activity update will not be allowed after one month of the case date',
+									'Activity update will not be allowed after 90 days of the case date',
 								],
 							], $this->successStatus);
+						} else {
+							$activity = $activityExist;
 						}
 					} else {
 						//SAVE ACTIVITY API LOG
@@ -441,10 +458,10 @@ class ActivityController extends Controller {
 					if ($service_type->service_group_id == 2) {
 						$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $data_src->id);
 						if ($is_bulk) {
-							//ASP Completed Data Entry - Waiting for BO Bulk Verification
+							//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 							$activity->status_id = 5;
 						} else {
-							//ASP Completed Data Entry - Waiting for BO Individual Verification
+							//ASP Completed Data Entry - Waiting for L1 Individual Verification
 							$activity->status_id = 6;
 						}
 					} else {
@@ -547,10 +564,10 @@ class ActivityController extends Controller {
 						if ($service_type->service_group_id == 2) {
 							$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id);
 							if ($is_bulk) {
-								//ASP Completed Data Entry - Waiting for BO Bulk Verification
+								//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 								$activity->status_id = 5;
 							} else {
-								//ASP Completed Data Entry - Waiting for BO Individual Verification
+								//ASP Completed Data Entry - Waiting for L1 Individual Verification
 								$activity->status_id = 6;
 							}
 						}
@@ -568,10 +585,10 @@ class ActivityController extends Controller {
 				if ($service_type->service_group_id == 2) {
 					$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id);
 					if ($is_bulk) {
-						//ASP Completed Data Entry - Waiting for BO Bulk Verification
+						//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 						$statusId = 5;
 					} else {
-						//ASP Completed Data Entry - Waiting for BO Individual Verification
+						//ASP Completed Data Entry - Waiting for L1 Individual Verification
 						$statusId = 6;
 					}
 				} else {
@@ -694,7 +711,7 @@ class ActivityController extends Controller {
 					$join->on('bo_po_amount.activity_id', 'activities.id')
 						->where('bo_po_amount.key_id', 182); //BO INVOICE AMOUNT
 				})
-				->whereIn('activities.status_id', [11, 1]) //BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
+				->whereIn('activities.status_id', [11, 1]) //Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
 				->where('cases.status_id', 4) //case closed
 				->where('activities.data_src_id', '!=', 262) //NOT BO MANUAL
 				->where('activities.asp_id', $asp->id)
@@ -754,7 +771,7 @@ class ActivityController extends Controller {
 				'crm_activity_id' => $request->crm_activity_id,
 			])->first();
 
-			//ALLOW REJECTION ONLY FOR (BO Approved - Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice)
+			//ALLOW REJECTION ONLY FOR (Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice)
 			if ($activity->status_id != 1 && $activity->status_id != 11) {
 				//SAVE REJECT ACTIVITY API LOG
 				$errors[] = 'Rejection not allowed';

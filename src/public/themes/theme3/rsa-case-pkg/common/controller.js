@@ -6,6 +6,7 @@ app.component('aspActivitiesHeader', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
+        self.hasPermission = HelperService.hasPermission;
     }
 });
 
@@ -261,6 +262,7 @@ app.component('caseDetails', {
     controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
         $scope.loading = true;
         var self = this;
+        self.hasPermission = HelperService.hasPermission;
     }
 });
 
@@ -289,6 +291,12 @@ app.component('billingDetails', {
                 }
 
                 $scope.approveTicket = function() {
+
+                    if (self.data.verification == 1 && self.data.boServiceTypeId == '') {
+                        custom_noty('error', 'Service is required');
+                        return;
+                    }
+
                     if (self.data.raw_bo_km_travelled !== 0 && self.data.raw_bo_km_travelled === '') {
                         custom_noty('error', 'KM Travelled is required');
                         return;
@@ -335,7 +343,10 @@ app.component('billingDetails', {
                                 bo_comments: self.data.bo_comments,
                                 deduction_reason: self.data.deduction_reason,
                                 exceptional_reason: self.exceptional_reason,
-                                is_exceptional_check: self.is_exceptional_check,
+                                // is_exceptional_check: self.is_exceptional_check,
+                                is_exceptional_check: 1,
+                                bo_service_type: self.data.bo_service_type,
+                                boServiceTypeId: self.data.boServiceTypeId,
                             }
                         ).then(function(response) {
                             $(".loader-type-2").addClass("loader-hide");
@@ -397,9 +408,41 @@ app.component('billingDetails', {
                                     $location.path('/rsa-case-pkg/activity-verification/list');
                                     $scope.$apply();
                                 }, 1500);
-
                             }
                         });
+                    }
+                }
+
+                $scope.getServiceTypeRateCardDetail = () => {
+                    if (self.data.boServiceTypeId && self.data.asp_id) {
+                        $.ajax({
+                                url: getServiceTypeRateCardDetail,
+                                method: "POST",
+                                data: {
+                                    activity_id: self.data.id,
+                                    service_type_id: self.data.boServiceTypeId,
+                                    asp_id: self.data.asp_id,
+                                },
+                            })
+                            .done(function(res) {
+                                if (!res.success) {
+                                    var errors = '';
+                                    for (var i in res.errors) {
+                                        errors += '<li>' + res.errors[i] + '</li>';
+                                    }
+                                    custom_noty('error', errors);
+                                    return;
+                                } else {
+                                    self.data.bo_service_type = self.data.service = res.service;
+                                    self.data.asp_service_type_data = res.asp_service_type_data;
+                                    $scope.calculate();
+                                    $scope.$apply()
+                                }
+                            })
+                            .fail(function(xhr) {
+                                custom_noty('error', 'Something went wrong at server');
+                                console.log(xhr);
+                            });
                     }
                 }
 
@@ -413,7 +456,7 @@ app.component('billingDetails', {
 
                 $scope.calculate = function() {
                     //If view page and activity has been initiated for payment process
-                    if (self.data.verification == 0 && (self.data.activity_portal_status_id == 1 || self.data.activity_portal_status_id == 10 || self.data.activity_portal_status_id == 11 || self.data.activity_portal_status_id == 12 || self.data.activity_portal_status_id == 13 || self.data.activity_portal_status_id == 14)) {
+                    if (self.data.verification == 0 && (self.data.activity_portal_status_id == 1 || self.data.activity_portal_status_id == 10 || self.data.activity_portal_status_id == 11 || self.data.activity_portal_status_id == 12 || self.data.activity_portal_status_id == 13 || self.data.activity_portal_status_id == 14 || self.data.activity_portal_status_id == 20 || self.data.activity_portal_status_id == 23)) {
                         self.show_km = 0;
                         self.data.bo_po_amount = self.data.raw_bo_po_amount;
                         self.data.bo_deduction = self.data.raw_bo_deduction;
@@ -437,9 +480,9 @@ app.component('billingDetails', {
                             var above_amount = (parseFloat(excess) * parseFloat(self.data.asp_service_type_data.above_range_price));
                         }
                         var amount_wo_deduction = parseFloat(below_amount) + parseFloat(above_amount);
-                        var adjustment = 0;
 
                         //DISABLED AS THERE IS NO ADJUSTMENT TYPE IN FUTURE
+                        // var adjustment = 0;
                         // if (parseFloat(self.data.asp_service_type_data.adjustment_type) == 2) {
                         //     adjustment = parseFloat(self.data.asp_service_type_data.adjustment);
                         // } else if (self.data.asp_service_type_data.adjustment_type == 1) {
@@ -456,7 +499,12 @@ app.component('billingDetails', {
                         // if (self.data.asp.app_user == 0) {
                         //     adjustment = 0;
                         // }
-                        self.data.bo_deduction = parseFloat(adjustment);
+                        let boDeduction = 0;
+                        if (self.data.bo_deduction != '') {
+                            boDeduction = self.data.bo_deduction;
+                        }
+                        // self.data.bo_deduction = parseFloat(adjustment);
+                        self.data.bo_deduction = parseFloat(boDeduction);
                         var total = (parseFloat(amount) + parseFloat(self.data.raw_bo_not_collected)) - parseFloat(self.data.raw_bo_collected) - parseFloat(self.data.bo_deduction);
 
                         self.data.bo_net_amount = self.data.bo_amount = total;

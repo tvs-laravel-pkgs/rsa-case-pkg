@@ -2293,7 +2293,7 @@ class ActivityController extends Controller {
 	}
 	public function verifyActivity(Request $request) {
 		// dd($request->all());
-		$number = $request->number;
+		$number = str_replace(' ', '', $request->number);
 		$validator = Validator::make($request->all(), [
 			'number' => 'required',
 		]);

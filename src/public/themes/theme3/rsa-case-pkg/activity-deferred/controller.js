@@ -276,7 +276,10 @@ app.component('deferredActivityUpdate', {
             var other_charge = parseInt(self.cc_not_collected);
             if ($.isNumeric(other_charge_entered)) {
                 if (other_charge_entered) {
-                    if (other_charge_entered > other_charge) {
+                    //DISABLED
+                    // if (other_charge_entered > other_charge) {
+                    //NEW LOGIC BY CLIENT
+                    if (parseFloat(other_charge_entered) >= (parseFloat(other_charge) + 31)) {
                         $(".other_attachment").show();
                         $(".remarks_notcollected").show();
                         $(".for_differ_other").val(1);

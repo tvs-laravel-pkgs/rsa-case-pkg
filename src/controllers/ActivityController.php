@@ -2818,16 +2818,8 @@ class ActivityController extends Controller {
 				}
 			}
 
-			//checking ASP KMs exceed ASP service type range limit
-			if ($asp_km > $range_limit) {
-				$is_bulk = false;
-			}
-
-			//checking MIS and ASP not collected
-			if ($asp_other > $not_collect_charges) {
-				$is_bulk = false;
-
-				//$for_delete_old_other_attachment = 0;
+			//LOGIC SAID BY CLIENT
+			if (floatval($asp_other) >= (floatval($not_collect_charges) + 31)) {
 				if (!isset($request->other_attachment_exist) && empty($request->other_attachment)) {
 					return response()->json([
 						'success' => false,
@@ -2840,6 +2832,16 @@ class ActivityController extends Controller {
 						'errors' => ['Please enter remarks comments for not collected'],
 					]);
 				}
+			}
+
+			//checking ASP KMs exceed ASP service type range limit
+			if ($asp_km > $range_limit) {
+				$is_bulk = false;
+			}
+
+			//checking MIS and ASP not collected
+			if ($asp_other > $not_collect_charges) {
+				$is_bulk = false;
 			}
 
 			//checking MIS and ASP collected

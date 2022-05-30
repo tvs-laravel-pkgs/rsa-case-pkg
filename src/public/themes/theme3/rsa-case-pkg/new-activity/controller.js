@@ -153,8 +153,10 @@ app.component('newActivityUpdateDetails', {
 
             if ($.isNumeric(other_charge)) {
                 if (entry_val) {
-                    if (entry_val > other_not_collected) {
-
+                    //DISABLED
+                    // if (entry_val > other_not_collected) {
+                    //NEW LOGIC BY CLIENT
+                    if (parseFloat(entry_val) >= 31) {
                         $(".other_attachment").show();
                         $(".remarks_notcollected").show();
                         $(".for_differ_other").val(1);
@@ -163,20 +165,16 @@ app.component('newActivityUpdateDetails', {
                         $(".remarks_notcollected").hide();
                         $(".for_differ_other").val(0);
                     }
-
                 } else {
                     $(".other_attachment").hide();
                     $(".remarks_notcollected").hide();
                     $(".for_differ_other").val(0);
                 }
-            }
-            //$("#"+ids).after(html);
-            else {
+            } else {
                 $(".other_attachment").hide();
                 $(".remarks_notcollected").hide();
                 $(".other_charge").val("");
             }
-
         });
 
         $scope.getServiceTypeDetail = () => {

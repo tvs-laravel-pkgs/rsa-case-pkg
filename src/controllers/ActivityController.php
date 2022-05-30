@@ -2819,7 +2819,7 @@ class ActivityController extends Controller {
 			}
 
 			//LOGIC SAID BY CLIENT
-			if (floatval($asp_other) >= (floatval($not_collect_charges) + 31)) {
+			if (floatval($asp_other) >= 31) {
 				if (!isset($request->other_attachment_exist) && empty($request->other_attachment)) {
 					return response()->json([
 						'success' => false,

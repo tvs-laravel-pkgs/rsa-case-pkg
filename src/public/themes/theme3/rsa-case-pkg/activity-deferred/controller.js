@@ -279,7 +279,7 @@ app.component('deferredActivityUpdate', {
                     //DISABLED
                     // if (other_charge_entered > other_charge) {
                     //NEW LOGIC BY CLIENT
-                    if (parseFloat(other_charge_entered) >= (parseFloat(other_charge) + 31)) {
+                    if (parseFloat(other_charge_entered) >= 31) {
                         $(".other_attachment").show();
                         $(".remarks_notcollected").show();
                         $(".for_differ_other").val(1);

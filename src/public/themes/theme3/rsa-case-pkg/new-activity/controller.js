@@ -161,7 +161,7 @@ app.component('newActivityUpdateDetails', {
                     //DISABLED
                     // if (entry_val > other_not_collected) {
                     //NEW LOGIC BY CLIENT
-                    if (parseFloat(entry_val) >= (parseFloat(other_not_collected) + 31)) {
+                    if (parseFloat(entry_val) >= 31) {
                         $(".other_attachment").show();
                         $(".remarks_notcollected").show();
                         $(".for_differ_other").val(1);

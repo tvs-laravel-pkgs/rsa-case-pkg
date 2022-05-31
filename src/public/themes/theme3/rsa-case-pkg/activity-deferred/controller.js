@@ -434,7 +434,7 @@ app.component('deferredActivityUpdate', {
                     required: "Please Enter Kilo Meter Value",
                 },
                 'remarks_not_collected': {
-                    required: "Please Enter Remark Comments",
+                    required: "Please Enter Remarks",
                 },
                 'map_attachment[]': {
                     required: 'Please attach google map screenshot',

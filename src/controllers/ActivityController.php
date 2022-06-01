@@ -2786,64 +2786,6 @@ class ActivityController extends Controller {
 				$activity->asp_resolve_comments = $request->comments;
 			}
 
-			if (!empty($request->other_attachment)) {
-				//REMOVE EXISTING ATTACHMENT
-				$getOtherAttachments = Attachment::where('entity_id', $activity->id)
-					->where('entity_type', 17)
-					->get();
-				if ($getOtherAttachments->isNotEmpty()) {
-					foreach ($getOtherAttachments as $getOtherAttachmentKey => $getOtherAttachment) {
-						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $getOtherAttachment->attachment_file_name)) {
-							unlink(storage_path('app/' . $destination . '/' . $getOtherAttachment->attachment_file_name));
-						}
-						$getOtherAttachment->delete();
-					}
-				}
-				foreach ($request->other_attachment as $key => $value) {
-					if ($request->hasFile("other_attachment.$key")) {
-						$key1 = $key + 1;
-						$filename = "other_charges" . $key;
-						$extension = $request->file("other_attachment.$key")->getClientOriginalExtension();
-						$status = $request->file("other_attachment.$key")->storeAs($destination, $filename . '.' . $extension);
-						$other_charge = $filename . '.' . $extension;
-						$attachment = $Attachment = Attachment::create([
-							'entity_type' => config('constants.entity_types.ASP_OTHER_ATTACHMENT'),
-							'entity_id' => $activity->id,
-							'attachment_file_name' => $other_charge,
-						]);
-					}
-				}
-			}
-
-			if (!empty($request->map_attachment)) {
-				//REMOVE EXISTING ATTACHMENT
-				$getMapAttachments = Attachment::where('entity_id', $activity->id)
-					->where('entity_type', 16)
-					->get();
-				if ($getMapAttachments->isNotEmpty()) {
-					foreach ($getMapAttachments as $getMapAttachmentKey => $getMapAttachment) {
-						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $getMapAttachment->attachment_file_name)) {
-							unlink(storage_path('app/' . $destination . '/' . $getMapAttachment->attachment_file_name));
-						}
-						$getMapAttachment->delete();
-					}
-				}
-				foreach ($request->map_attachment as $key => $value) {
-					if ($request->hasFile("map_attachment.$key")) {
-						$key1 = $key + 1;
-						$filename = "km_travelled_attachment" . $key;
-						$extension = $request->file("map_attachment.$key")->getClientOriginalExtension();
-						$status = $request->file("map_attachment.$key")->storeAs($destination, $filename . '.' . $extension);
-						$km_travelled = $filename . '.' . $extension;
-						$attachment = $Attachment = Attachment::create([
-							'entity_type' => config('constants.entity_types.ASP_KM_ATTACHMENT'),
-							'entity_id' => $activity->id,
-							'attachment_file_name' => $km_travelled,
-						]);
-					}
-				}
-			}
-
 			//VEHICLE PICKUP ATTACHMENT
 			if (isset($request->vehicle_pickup_attachment) && $request->hasFile("vehicle_pickup_attachment")) {
 				//REMOVE EXISTING ATTACHMENT
@@ -2948,6 +2890,35 @@ class ActivityController extends Controller {
 								'errors' => ['Please attach google map screenshot'],
 							]);
 						}
+						if (!empty($request->map_attachment)) {
+							//REMOVE EXISTING ATTACHMENT
+							$getMapAttachments = Attachment::where('entity_id', $activity->id)
+								->where('entity_type', 16)
+								->get();
+							if ($getMapAttachments->isNotEmpty()) {
+								foreach ($getMapAttachments as $getMapAttachmentKey => $getMapAttachment) {
+									if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $getMapAttachment->attachment_file_name)) {
+										unlink(storage_path('app/' . $destination . '/' . $getMapAttachment->attachment_file_name));
+									}
+									$getMapAttachment->delete();
+								}
+							}
+							foreach ($request->map_attachment as $key => $value) {
+								if ($request->hasFile("map_attachment.$key")) {
+									$key1 = $key + 1;
+									$filename = "km_travelled_attachment" . $key;
+									$extension = $request->file("map_attachment.$key")->getClientOriginalExtension();
+									$status = $request->file("map_attachment.$key")->storeAs($destination, $filename . '.' . $extension);
+									$km_travelled = $filename . '.' . $extension;
+									$attachment = $Attachment = Attachment::create([
+										'entity_type' => config('constants.entity_types.ASP_KM_ATTACHMENT'),
+										'entity_id' => $activity->id,
+										'attachment_file_name' => $km_travelled,
+									]);
+								}
+							}
+						}
+
 						$is_bulk = false;
 
 					}
@@ -3013,8 +2984,39 @@ class ActivityController extends Controller {
 				$activity->asp_resolve_comments = $request->comments;
 			}
 
-			if (!empty($request->remarks_not_collected)) {
-				$activity->remarks = $request->remarks_not_collected;
+			if (floatval($asp_other) >= 31) {
+				if (!empty($request->other_attachment)) {
+					//REMOVE EXISTING ATTACHMENT
+					$getOtherAttachments = Attachment::where('entity_id', $activity->id)
+						->where('entity_type', 17)
+						->get();
+					if ($getOtherAttachments->isNotEmpty()) {
+						foreach ($getOtherAttachments as $getOtherAttachmentKey => $getOtherAttachment) {
+							if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $getOtherAttachment->attachment_file_name)) {
+								unlink(storage_path('app/' . $destination . '/' . $getOtherAttachment->attachment_file_name));
+							}
+							$getOtherAttachment->delete();
+						}
+					}
+					foreach ($request->other_attachment as $key => $value) {
+						if ($request->hasFile("other_attachment.$key")) {
+							$key1 = $key + 1;
+							$filename = "other_charges" . $key;
+							$extension = $request->file("other_attachment.$key")->getClientOriginalExtension();
+							$status = $request->file("other_attachment.$key")->storeAs($destination, $filename . '.' . $extension);
+							$other_charge = $filename . '.' . $extension;
+							$attachment = $Attachment = Attachment::create([
+								'entity_type' => config('constants.entity_types.ASP_OTHER_ATTACHMENT'),
+								'entity_id' => $activity->id,
+								'attachment_file_name' => $other_charge,
+							]);
+						}
+					}
+				}
+
+				if (!empty($request->remarks_not_collected)) {
+					$activity->remarks = $request->remarks_not_collected;
+				}
 			}
 
 			if (!empty($request->general_remarks)) {

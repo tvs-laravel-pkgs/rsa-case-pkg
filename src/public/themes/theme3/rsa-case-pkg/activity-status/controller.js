@@ -46,6 +46,15 @@ app.component('activityStatusList', {
                 { data: 'call_center', name: 'call_centers.name', searchable: true },
             ];
 
+            $('input[name="date_range_period"]').daterangepicker({
+                startDate: moment().startOf('month'),
+                endDate: moment().endOf('month'),
+                locale: {
+                    cancelLabel: 'Clear',
+                    format: "DD-MM-YYYY"
+                }
+            });
+
             var activities_status_dt_config = JSON.parse(JSON.stringify(dt_config));
 
             $('#activities_status_table').DataTable(
@@ -90,17 +99,9 @@ app.component('activityStatusList', {
 
             var dataTable = $('#activities_status_table').dataTable();
 
-            $('input[name="date_range_period"]').daterangepicker({
-                autoUpdateInput: false,
-                locale: {
-                    cancelLabel: 'Clear',
-                    format: "DD-MM-YYYY"
-                }
-            });
-
             $('.daterange').on('apply.daterangepicker', function(ev, picker) {
-                $(this).val(picker.startDate.format('DD-MM-YYYY') + ' to ' + picker.endDate.format('DD-MM-YYYY'));
-                $('#date_range_period').val(picker.startDate.format('DD-MM-YYYY') + ' to ' + picker.endDate.format('DD-MM-YYYY'));
+                $(this).val(picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY'));
+                $('#date_range_period').val(picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY'));
                 dataTable.fnFilter();
             });
 

@@ -59,15 +59,9 @@ class ActivityController extends Controller {
 
 	public function getList(Request $request) {
 		// dd($request->all());
-		$from_date = null;
-		$end_date = null;
-		if (isset($request->date_range_period) && !empty($request->date_range_period)) {
-			$period = explode(' to ', $request->date_range_period);
-			$from = $period[0];
-			$to = $period[1];
-			$from_date = date('Y-m-d', strtotime($from));
-			$end_date = date('Y-m-d', strtotime($to));
-		}
+		$periods = getStartDateAndEndDate($request->date_range_period);
+		$from_date = $periods['start_date'];
+		$end_date = $periods['end_date'];
 
 		$activities = Activity::select([
 			'activities.id',

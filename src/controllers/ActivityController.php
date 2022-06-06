@@ -203,86 +203,102 @@ class ActivityController extends Controller {
 	}
 
 	public function activityBackAsp(Request $request) {
-		//	dd($request->all());
-		$activity = Activity::findOrFail($request->activty_id);
-		$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22];
+		// dd($request->all());
+		try {
+			$activity = Activity::findOrFail($request->activty_id);
+			$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22];
 
-		if (!$activity) {
-			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-				'error' => 'Activity not found',
-			]);
-		}
-
-		if (!in_array($activity->status_id, $return_status_ids)) {
-			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-				'error' => 'Activity not eligible for back step',
-			]);
-		}
-
-		if (!Entrust::can('backstep-activity')) {
-			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-				'error' => 'User not eligible to back step',
-			]);
-		}
-
-		//ASP Rejected CC Details - Waiting for ASP Data Entry
-		if ($request->ticket_status_id == '1') {
-			$activity->status_id = 2;
-			$activity->updated_at = new Carbon();
-			$activity->updated_by_id = Auth::user()->id;
-			$activity->save();
-
-			if ($activity) {
-				//log message
-				$log_status = config('rsa.LOG_STATUES_TEMPLATES.ADMIN_TICKET_BACK_ASP');
-				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ADMIN_TICKET_BACK_ASP');
-				logActivity3(config('constants.entity_types.ticket'), $activity->id, [
-					'Status' => $log_status,
-					'Waiting for' => $log_waiting,
-				], 361);
-
-				$noty_message_template = 'WAITING_FOR_ASP_DATA_ENTRY';
-				$user_id = $activity->asp->user->id;
-				$number = [$activity->number];
-				notify2($noty_message_template, $user_id, config('constants.alert_type.blue'), $number);
-
+			if (!$activity) {
 				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-					'success' => 'Activity status moved to ASP data entry',
-				]);
-			} else {
-				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-					'error' => 'Activity status not moved to ASP data entry',
+					'error' => 'Activity not found',
 				]);
 			}
-		} elseif ($request->ticket_status_id == '2') {
-			//BO Rejected - Waiting for ASP Data Re-Entry
-			$activity->status_id = 7;
-			$activity->updated_at = new Carbon();
-			$activity->updated_by_id = Auth::user()->id;
-			$activity->save();
 
-			if ($activity) {
-				//log message
-				$log_status = config('rsa.LOG_STATUES_TEMPLATES.ADMIN_TICKET_BACK_BO_DEFERRED');
-				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ADMIN_TICKET_BACK_BO_DEFERRED');
-				logActivity3(config('constants.entity_types.ticket'), $activity->id, [
-					'Status' => $log_status,
-					'Waiting for' => $log_waiting,
-				], 361);
-
-				$noty_message_template = 'BO_DEFERRED';
-				$user_id = $activity->asp->user->id;
-				$number = [$activity->number];
-				notify2($noty_message_template, $user_id, config('constants.alert_type.blue'), $number);
-
+			if (!in_array($activity->status_id, $return_status_ids)) {
 				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-					'success' => 'Activity status moved to ASP Data Re-Entry',
-				]);
-			} else {
-				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-					'error' => 'Activity status not moved to ASP Data Re-Entry',
+					'error' => 'Activity not eligible for back step',
 				]);
 			}
+
+			if (!Entrust::can('backstep-activity')) {
+				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+					'error' => 'User not eligible to back step',
+				]);
+			}
+
+			if (!isset($request->backstep_reason) || (isset($request->backstep_reason) && empty($request->backstep_reason))) {
+				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+					'error' => 'Reason is required',
+				]);
+			}
+
+			//ASP Rejected CC Details - Waiting for ASP Data Entry
+			if ($request->ticket_status_id == '1') {
+				$activity->status_id = 2;
+				$activity->backstep_reason = $request->backstep_reason;
+				$activity->backstep_by_id = Auth::user()->id;
+				$activity->updated_at = new Carbon();
+				$activity->updated_by_id = Auth::user()->id;
+				$activity->save();
+
+				if ($activity) {
+					//log message
+					$log_status = config('rsa.LOG_STATUES_TEMPLATES.ADMIN_TICKET_BACK_ASP');
+					$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ADMIN_TICKET_BACK_ASP');
+					logActivity3(config('constants.entity_types.ticket'), $activity->id, [
+						'Status' => $log_status,
+						'Waiting for' => $log_waiting,
+					], 361);
+
+					$noty_message_template = 'WAITING_FOR_ASP_DATA_ENTRY';
+					$user_id = $activity->asp->user->id;
+					$number = [$activity->number];
+					notify2($noty_message_template, $user_id, config('constants.alert_type.blue'), $number);
+
+					return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+						'success' => 'Activity status moved to ASP data entry',
+					]);
+				} else {
+					return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+						'error' => 'Activity status not moved to ASP data entry',
+					]);
+				}
+			} elseif ($request->ticket_status_id == '2') {
+				//BO Rejected - Waiting for ASP Data Re-Entry
+				$activity->status_id = 7;
+				$activity->backstep_reason = $request->backstep_reason;
+				$activity->backstep_by_id = Auth::user()->id;
+				$activity->updated_at = new Carbon();
+				$activity->updated_by_id = Auth::user()->id;
+				$activity->save();
+
+				if ($activity) {
+					//log message
+					$log_status = config('rsa.LOG_STATUES_TEMPLATES.ADMIN_TICKET_BACK_BO_DEFERRED');
+					$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ADMIN_TICKET_BACK_BO_DEFERRED');
+					logActivity3(config('constants.entity_types.ticket'), $activity->id, [
+						'Status' => $log_status,
+						'Waiting for' => $log_waiting,
+					], 361);
+
+					$noty_message_template = 'BO_DEFERRED';
+					$user_id = $activity->asp->user->id;
+					$number = [$activity->number];
+					notify2($noty_message_template, $user_id, config('constants.alert_type.blue'), $number);
+
+					return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+						'success' => 'Activity status moved to ASP Data Re-Entry',
+					]);
+				} else {
+					return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+						'error' => 'Activity status not moved to ASP Data Re-Entry',
+					]);
+				}
+			}
+		} catch (\Exception $e) {
+			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+				'error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+			]);
 		}
 	}
 
@@ -588,6 +604,7 @@ class ActivityController extends Controller {
 					'activities.not_collected_amount_changed_on_level',
 					'activities.collected_amount_changed_on_level',
 					'activities.exceptional_reason',
+					'activities.backstep_reason',
 					//'activities.bo_comments as bo_comments',
 					'cases.vehicle_registration_number',
 					'case_statuses.name as case_status',

@@ -136,6 +136,12 @@
                                 {{ $ctrl.data.remarks }}
                             </p>
                         </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="$ctrl.data.backstep_reason != null">
+                            <h4>Backstep Reason</h4>
+                            <p style="word-wrap: break-word;max-height: 100px;overflow: auto;">
+                                {{ $ctrl.data.backstep_reason }}
+                            </p>
+                        </div>
                         <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities') && $ctrl.data.general_remarks != null">
                             <h4>ASP General Remarks</h4>
                             <p style="word-wrap: break-word;max-height: 100px;overflow: auto;">

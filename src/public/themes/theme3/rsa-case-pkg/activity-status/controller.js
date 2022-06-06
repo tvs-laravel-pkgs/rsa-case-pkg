@@ -16,6 +16,7 @@ app.component('activityStatusList', {
         self.activity_back_asp_update_route = activity_back_asp_update;
         self.activity_towing_images_required_url = activity_towing_images_required_url;
         self.csrf = token;
+        self.backstepReason = '';
         $http.get(
             activity_status_filter_url
         ).then(function(response) {
@@ -389,16 +390,24 @@ app.component('activityStatusList', {
 
         $scope.asp_data_entry_submit = function() {
             var ticket_status_id = $('#ticket_status_id').val(1);
-            setTimeout(function() {
-                $('#tickect-back-asp-form').submit();
-            }, 1000);
+            if (self.backstepReason == "") {
+                custom_noty('error', 'Reason is required');
+            } else {
+                setTimeout(function() {
+                    $('#tickect-back-asp-form').submit();
+                }, 1000);
+            }
         };
 
         $scope.asp_bo_deffered_submit = function() {
             var ticket_status_id = $('#ticket_status_id').val(2);
-            setTimeout(function() {
-                $('#tickect-back-asp-form').submit();
-            }, 1000);
+            if (self.backstepReason == "") {
+                custom_noty('error', 'Reason is required');
+            } else {
+                setTimeout(function() {
+                    $('#tickect-back-asp-form').submit();
+                }, 1000);
+            }
         };
 
     }

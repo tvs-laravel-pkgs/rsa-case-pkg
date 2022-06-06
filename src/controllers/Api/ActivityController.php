@@ -249,7 +249,7 @@ class ActivityController extends Controller {
 				], $this->successStatus);
 			}
 
-			if ($request->drop_location_type && strtolower($request->drop_location_type) != 'garage' && strtolower($request->drop_location_type) != 'dealer' && strtolower($request->drop_location_type) != 'customer preferred') {
+			if ($request->drop_location_type && strtolower($request->drop_location_type) != 'garage' && strtolower($request->drop_location_type) != 'dealer' && strtolower($request->drop_location_type) != 'customer preferred' && strtolower($request->drop_location_type) != 'na') {
 				//SAVE ACTIVITY API LOG
 				$errors[] = 'Invalid drop_location_type';
 				saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);

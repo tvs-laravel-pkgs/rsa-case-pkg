@@ -13,7 +13,8 @@ class AddBackstepColumnsInActivities extends Migration {
 	public function up() {
 		Schema::table('activities', function (Blueprint $table) {
 			$table->text('backstep_reason')->nullable()->after('defer_reason');
-			$table->unsignedInteger('backstep_by_id')->nullable()->after('backstep_reason');
+			$table->dateTime('backstepped_at')->nullable()->after('backstep_reason');
+			$table->unsignedInteger('backstep_by_id')->nullable()->after('backstepped_at');
 
 			$table->foreign('backstep_by_id')->references('id')->on('users')->onDelete('set null')->onUpdate('cascade');
 		});
@@ -28,6 +29,7 @@ class AddBackstepColumnsInActivities extends Migration {
 		Schema::table('activities', function (Blueprint $table) {
 			$table->dropForeign('activities_backstep_by_id_foreign');
 			$table->dropColumn('backstep_by_id');
+			$table->dropColumn('backstepped_at');
 			$table->dropColumn('backstep_reason');
 		});
 	}

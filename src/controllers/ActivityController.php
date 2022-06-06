@@ -236,8 +236,9 @@ class ActivityController extends Controller {
 			if ($request->ticket_status_id == '1') {
 				$activity->status_id = 2;
 				$activity->backstep_reason = $request->backstep_reason;
+				$activity->backstepped_at = Carbon::now();
 				$activity->backstep_by_id = Auth::user()->id;
-				$activity->updated_at = new Carbon();
+				$activity->updated_at = Carbon::now();
 				$activity->updated_by_id = Auth::user()->id;
 				$activity->save();
 
@@ -267,8 +268,9 @@ class ActivityController extends Controller {
 				//BO Rejected - Waiting for ASP Data Re-Entry
 				$activity->status_id = 7;
 				$activity->backstep_reason = $request->backstep_reason;
+				$activity->backstepped_at = Carbon::now();
 				$activity->backstep_by_id = Auth::user()->id;
-				$activity->updated_at = new Carbon();
+				$activity->updated_at = Carbon::now();
 				$activity->updated_by_id = Auth::user()->id;
 				$activity->save();
 

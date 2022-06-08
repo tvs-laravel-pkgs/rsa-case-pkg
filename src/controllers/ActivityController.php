@@ -1209,7 +1209,12 @@ class ActivityController extends Controller {
 					$boServiceTypeId = $boServiceType->id;
 				}
 			}
-
+			$eligibleBackstepStatusIds = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22];
+			$eligibleForBackstep = false;
+			if (Entrust::can('backstep-activity') && in_array($activity->activity_portal_status_id, $eligibleBackstepStatusIds)) {
+				$eligibleForBackstep = true;
+			}
+			$this->data['activities']['eligibleForBackstep'] = $eligibleForBackstep;
 			$this->data['activities']['serviceTypes'] = $serviceTypes;
 			$this->data['activities']['boServiceTypeId'] = $boServiceTypeId;
 			$this->data['activities']['importedAt'] = $importedAt;

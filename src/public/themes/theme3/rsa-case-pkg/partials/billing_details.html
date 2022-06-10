@@ -136,6 +136,12 @@
                                 {{ $ctrl.data.remarks }}
                             </p>
                         </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="$ctrl.data.backstep_reason != null">
+                            <h4>Backstep Reason</h4>
+                            <p style="word-wrap: break-word;max-height: 100px;overflow: auto;">
+                                {{ $ctrl.data.backstep_reason }}
+                            </p>
+                        </div>
                         <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities') && $ctrl.data.general_remarks != null">
                             <h4>ASP General Remarks</h4>
                             <p style="word-wrap: break-word;max-height: 100px;overflow: auto;">
@@ -288,10 +294,74 @@
                         </div>
                     </div>
                 </div>
+                <div class="table-data-footer" ng-show="$ctrl.data.verification==0 && $ctrl.data.eligibleForBackstep">
+                    <div class="row">
+                        <div class="col-md-offset-6 col-md-6 text-right">
+                            <ul class="inline-btns">
+                                <li>
+                                    <button class="btn btn-primary" data-toggle="modal" data-target="#backstep-case">
+                                        Backstep
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div><!-- tab-content -->
+        </div>
     </form>
 </div>
-</div>
+<!-- Modal -->
+<div class="modal fade" id="backstep-case" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <img class="close_btn" src="{{ $ctrl.modal_close }}">
+                </a>
+                <h4 class="modal-title">Ticket Backstep</h4>
+            </div>
+            <form id="tickect-back-asp-form" action="{{$ctrl.activity_back_asp_update_route}}" method="post">
+                <input type="hidden" name="_token" value="{{$ctrl.csrf}}" />
+                <input type="hidden" name="activty_id" id="activty_id" value="{{$ctrl.data.id}}">
+                <input type="hidden" name="ticket_status_id" id="ticket_status_id" value="">
+                <div class="modal-body">
+                    <div class="approvalModal-wrapper">
+                        <div class="viewData-threeColumn--wrapper">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                <label>Reason<sup class="req">*</sup></label>
+                                                <textarea name="backstep_reason" id="backstepReason" class="form-control" ng-model="$ctrl.backstepReason"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                Click Here
+                                                <button type="button" class="differed-btn blue approve-btn" ng-click="asp_data_entry_submit()" id="asp_data_entry_submit">ASP Rejected CC Details - Waiting for ASP Data Entry</button>
+                                            </div><!-- Field -->
+                                        </div><!-- Column -->
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                Click Here
+                                                <button type="button" ng-click="asp_bo_deffered_submit()" class="differed-btn blue approve-btn" id="asp_bo_deffered_submit">BO Rejected - Waiting for ASP Data Re-Entry</button>
+                                            </div><!-- Field -->
+                                        </div><!-- Column -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div><!-- Modal -->
+<!-- Modal -->
 <div class="modal fade uploadMsg modal-bo" id="reject-modal" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content txt-center">
@@ -317,7 +387,8 @@
             </div>
         </div>
     </div>
-</div>
+</div><!-- Modal -->
+<!-- Modal -->
 <div class="modal fade uploadMsg" id="confirm-ticket-modal" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content txt-center">
@@ -360,7 +431,7 @@
             </form>
         </div>
     </div>
-</div>
+</div><!-- Modal -->
 <div class="col-md-12">
     <!-- Button Loader Starts -->
     <div class="loader-type-2 loader-hide">

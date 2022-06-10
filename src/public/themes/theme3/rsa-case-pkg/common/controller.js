@@ -280,12 +280,38 @@ app.component('billingDetails', {
         this.$onInit = function() {
             setTimeout(function() {
                 self.hasPermission = HelperService.hasPermission;
+                self.activity_back_asp_update_route = activity_back_asp_update;
+                self.backstepReason = '';
+                self.csrf = token;
 
                 self.show_km = 0;
                 if (self.data.verification == 1) {
                     self.data.bo_comments = "";
                     self.data.deduction_reason = "";
                 }
+
+                $scope.asp_data_entry_submit = function() {
+                    $('#ticket_status_id').val(1);
+                    if (self.backstepReason == "") {
+                        custom_noty('error', 'Reason is required');
+                    } else {
+                        setTimeout(function() {
+                            $('#tickect-back-asp-form').submit();
+                        }, 1000);
+                    }
+                };
+
+                $scope.asp_bo_deffered_submit = function() {
+                    $('#ticket_status_id').val(2);
+                    if (self.backstepReason == "") {
+                        custom_noty('error', 'Reason is required');
+                    } else {
+                        setTimeout(function() {
+                            $('#tickect-back-asp-form').submit();
+                        }, 1000);
+                    }
+                };
+
                 $scope.deferTicket = function() {
                     $("#reject-modal").modal();
                 }

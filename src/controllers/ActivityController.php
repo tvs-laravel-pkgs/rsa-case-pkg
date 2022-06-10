@@ -2582,7 +2582,7 @@ class ActivityController extends Controller {
 			}
 			$checkTowingAttachmentMandatory = false;
 			//TOWING GROUP
-			if ($enteredServiceType->service_group_id == 3 && $activity->is_towing_attachments_mandatory == 1) {
+			if ($enteredServiceType->service_group_id == 3 && $activity->is_towing_attachments_mandatory == 1 && $activity->financeStatus && $activity->financeStatus->po_eligibility_type_id == 340) {
 				$towingImagesMandatoryEffectiveDate = config('rsa.TOWING_IMAGES_MANDATORY_EFFECTIVE_DATE');
 				if (date('Y-m-d', strtotime($activity->case->date)) >= $towingImagesMandatoryEffectiveDate) {
 					$checkTowingAttachmentMandatory = true;

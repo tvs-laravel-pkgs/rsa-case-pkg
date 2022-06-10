@@ -176,6 +176,7 @@
                                         <div ng-if="$ctrl.vehiclePickupAttach">
                                             {{ $ctrl.vehiclePickupAttach.attachment_file_name }}
                                             <button class='close_other' id="{{$ctrl.vehiclePickupAttach.id}}" type='button' ng-click="$ctrl.closeVehiclePickupAttach(index, $ctrl.vehiclePickupAttach.id)">X</button>
+                                            <input type="hidden" name="vehiclePickupAttachExist" value="1">
                                         </div>
                                     </div><!-- Field -->
                                 </div><!-- Column -->
@@ -199,6 +200,7 @@
                                         <div ng-if="$ctrl.vehicleDropAttach">
                                             {{ $ctrl.vehicleDropAttach.attachment_file_name }}
                                             <button class='close_other' id="{{$ctrl.vehicleDropAttach.id}}" type='button' ng-click="$ctrl.closeVehicleDropAttach(index, $ctrl.vehicleDropAttach.id)">X</button>
+                                            <input type="hidden" name="vehicleDropAttachExist" value="1">
                                         </div>
                                     </div><!-- Field -->
                                 </div><!-- Column -->
@@ -222,6 +224,7 @@
                                         <div ng-if="$ctrl.inventoryJobSheetAttach">
                                             {{ $ctrl.inventoryJobSheetAttach.attachment_file_name }}
                                             <button class='close_other' id="{{$ctrl.inventoryJobSheetAttach.id}}" type='button' ng-click="$ctrl.closeInventoryJobSheetAttach(index, $ctrl.inventoryJobSheetAttach.id)">X</button>
+                                            <input type="hidden" name="inventoryJobSheetAttachExist" value="1">
                                         </div>
                                     </div><!-- Field -->
                                 </div><!-- Column -->

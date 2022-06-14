@@ -16,6 +16,7 @@ app.component('activityStatusList', {
         self.activity_back_asp_update_route = activity_back_asp_update;
         self.activity_towing_images_required_url = activity_towing_images_required_url;
         self.csrf = token;
+        self.backstepReason = '';
         $http.get(
             activity_status_filter_url
         ).then(function(response) {
@@ -45,6 +46,15 @@ app.component('activityStatusList', {
                 { data: 'client', name: 'clients.name', searchable: true },
                 { data: 'call_center', name: 'call_centers.name', searchable: true },
             ];
+
+            $('input[name="date_range_period"]').daterangepicker({
+                startDate: moment().startOf('month'),
+                endDate: moment().endOf('month'),
+                locale: {
+                    cancelLabel: 'Clear',
+                    format: "DD-MM-YYYY"
+                }
+            });
 
             var activities_status_dt_config = JSON.parse(JSON.stringify(dt_config));
 
@@ -90,17 +100,9 @@ app.component('activityStatusList', {
 
             var dataTable = $('#activities_status_table').dataTable();
 
-            $('input[name="date_range_period"]').daterangepicker({
-                autoUpdateInput: false,
-                locale: {
-                    cancelLabel: 'Clear',
-                    format: "DD-MM-YYYY"
-                }
-            });
-
             $('.daterange').on('apply.daterangepicker', function(ev, picker) {
-                $(this).val(picker.startDate.format('DD-MM-YYYY') + ' to ' + picker.endDate.format('DD-MM-YYYY'));
-                $('#date_range_period').val(picker.startDate.format('DD-MM-YYYY') + ' to ' + picker.endDate.format('DD-MM-YYYY'));
+                $(this).val(picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY'));
+                $('#date_range_period').val(picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY'));
                 dataTable.fnFilter();
             });
 
@@ -388,16 +390,24 @@ app.component('activityStatusList', {
 
         $scope.asp_data_entry_submit = function() {
             var ticket_status_id = $('#ticket_status_id').val(1);
-            setTimeout(function() {
-                $('#tickect-back-asp-form').submit();
-            }, 1000);
+            if (self.backstepReason == "") {
+                custom_noty('error', 'Reason is required');
+            } else {
+                setTimeout(function() {
+                    $('#tickect-back-asp-form').submit();
+                }, 1000);
+            }
         };
 
         $scope.asp_bo_deffered_submit = function() {
             var ticket_status_id = $('#ticket_status_id').val(2);
-            setTimeout(function() {
-                $('#tickect-back-asp-form').submit();
-            }, 1000);
+            if (self.backstepReason == "") {
+                custom_noty('error', 'Reason is required');
+            } else {
+                setTimeout(function() {
+                    $('#tickect-back-asp-form').submit();
+                }, 1000);
+            }
         };
 
     }

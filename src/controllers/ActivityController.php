@@ -59,15 +59,9 @@ class ActivityController extends Controller {
 
 	public function getList(Request $request) {
 		// dd($request->all());
-		$from_date = null;
-		$end_date = null;
-		if (isset($request->date_range_period) && !empty($request->date_range_period)) {
-			$period = explode(' to ', $request->date_range_period);
-			$from = $period[0];
-			$to = $period[1];
-			$from_date = date('Y-m-d', strtotime($from));
-			$end_date = date('Y-m-d', strtotime($to));
-		}
+		$periods = getStartDateAndEndDate($request->date_range_period);
+		$from_date = $periods['start_date'];
+		$end_date = $periods['end_date'];
 
 		$activities = Activity::select([
 			'activities.id',
@@ -209,86 +203,104 @@ class ActivityController extends Controller {
 	}
 
 	public function activityBackAsp(Request $request) {
-		//	dd($request->all());
-		$activity = Activity::findOrFail($request->activty_id);
-		$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22];
+		// dd($request->all());
+		try {
+			$activity = Activity::findOrFail($request->activty_id);
+			$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22];
 
-		if (!$activity) {
-			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-				'error' => 'Activity not found',
-			]);
-		}
-
-		if (!in_array($activity->status_id, $return_status_ids)) {
-			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-				'error' => 'Activity not eligible for back step',
-			]);
-		}
-
-		if (!Entrust::can('backstep-activity')) {
-			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-				'error' => 'User not eligible to back step',
-			]);
-		}
-
-		//ASP Rejected CC Details - Waiting for ASP Data Entry
-		if ($request->ticket_status_id == '1') {
-			$activity->status_id = 2;
-			$activity->updated_at = new Carbon();
-			$activity->updated_by_id = Auth::user()->id;
-			$activity->save();
-
-			if ($activity) {
-				//log message
-				$log_status = config('rsa.LOG_STATUES_TEMPLATES.ADMIN_TICKET_BACK_ASP');
-				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ADMIN_TICKET_BACK_ASP');
-				logActivity3(config('constants.entity_types.ticket'), $activity->id, [
-					'Status' => $log_status,
-					'Waiting for' => $log_waiting,
-				], 361);
-
-				$noty_message_template = 'WAITING_FOR_ASP_DATA_ENTRY';
-				$user_id = $activity->asp->user->id;
-				$number = [$activity->number];
-				notify2($noty_message_template, $user_id, config('constants.alert_type.blue'), $number);
-
+			if (!$activity) {
 				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-					'success' => 'Activity status moved to ASP data entry',
-				]);
-			} else {
-				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-					'error' => 'Activity status not moved to ASP data entry',
+					'error' => 'Activity not found',
 				]);
 			}
-		} elseif ($request->ticket_status_id == '2') {
-			//BO Rejected - Waiting for ASP Data Re-Entry
-			$activity->status_id = 7;
-			$activity->updated_at = new Carbon();
-			$activity->updated_by_id = Auth::user()->id;
-			$activity->save();
 
-			if ($activity) {
-				//log message
-				$log_status = config('rsa.LOG_STATUES_TEMPLATES.ADMIN_TICKET_BACK_BO_DEFERRED');
-				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ADMIN_TICKET_BACK_BO_DEFERRED');
-				logActivity3(config('constants.entity_types.ticket'), $activity->id, [
-					'Status' => $log_status,
-					'Waiting for' => $log_waiting,
-				], 361);
-
-				$noty_message_template = 'BO_DEFERRED';
-				$user_id = $activity->asp->user->id;
-				$number = [$activity->number];
-				notify2($noty_message_template, $user_id, config('constants.alert_type.blue'), $number);
-
+			if (!in_array($activity->status_id, $return_status_ids)) {
 				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-					'success' => 'Activity status moved to ASP Data Re-Entry',
-				]);
-			} else {
-				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-					'error' => 'Activity status not moved to ASP Data Re-Entry',
+					'error' => 'Activity not eligible for back step',
 				]);
 			}
+
+			if (!Entrust::can('backstep-activity')) {
+				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+					'error' => 'User not eligible to back step',
+				]);
+			}
+
+			if (!isset($request->backstep_reason) || (isset($request->backstep_reason) && empty($request->backstep_reason))) {
+				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+					'error' => 'Reason is required',
+				]);
+			}
+
+			//ASP Rejected CC Details - Waiting for ASP Data Entry
+			if ($request->ticket_status_id == '1') {
+				$activity->status_id = 2;
+				$activity->backstep_reason = $request->backstep_reason;
+				$activity->backstepped_at = Carbon::now();
+				$activity->backstep_by_id = Auth::user()->id;
+				$activity->updated_at = Carbon::now();
+				$activity->updated_by_id = Auth::user()->id;
+				$activity->save();
+
+				if ($activity) {
+					//log message
+					$log_status = config('rsa.LOG_STATUES_TEMPLATES.ADMIN_TICKET_BACK_ASP');
+					$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ADMIN_TICKET_BACK_ASP');
+					logActivity3(config('constants.entity_types.ticket'), $activity->id, [
+						'Status' => $log_status,
+						'Waiting for' => $log_waiting,
+					], 361);
+
+					$noty_message_template = 'WAITING_FOR_ASP_DATA_ENTRY';
+					$user_id = $activity->asp->user->id;
+					$number = [$activity->number];
+					notify2($noty_message_template, $user_id, config('constants.alert_type.blue'), $number);
+
+					return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+						'success' => 'Activity status moved to ASP data entry',
+					]);
+				} else {
+					return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+						'error' => 'Activity status not moved to ASP data entry',
+					]);
+				}
+			} elseif ($request->ticket_status_id == '2') {
+				//BO Rejected - Waiting for ASP Data Re-Entry
+				$activity->status_id = 7;
+				$activity->backstep_reason = $request->backstep_reason;
+				$activity->backstepped_at = Carbon::now();
+				$activity->backstep_by_id = Auth::user()->id;
+				$activity->updated_at = Carbon::now();
+				$activity->updated_by_id = Auth::user()->id;
+				$activity->save();
+
+				if ($activity) {
+					//log message
+					$log_status = config('rsa.LOG_STATUES_TEMPLATES.ADMIN_TICKET_BACK_BO_DEFERRED');
+					$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ADMIN_TICKET_BACK_BO_DEFERRED');
+					logActivity3(config('constants.entity_types.ticket'), $activity->id, [
+						'Status' => $log_status,
+						'Waiting for' => $log_waiting,
+					], 361);
+
+					$noty_message_template = 'BO_DEFERRED';
+					$user_id = $activity->asp->user->id;
+					$number = [$activity->number];
+					notify2($noty_message_template, $user_id, config('constants.alert_type.blue'), $number);
+
+					return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+						'success' => 'Activity status moved to ASP Data Re-Entry',
+					]);
+				} else {
+					return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+						'error' => 'Activity status not moved to ASP Data Re-Entry',
+					]);
+				}
+			}
+		} catch (\Exception $e) {
+			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+				'error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+			]);
 		}
 	}
 
@@ -594,6 +606,7 @@ class ActivityController extends Controller {
 					'activities.not_collected_amount_changed_on_level',
 					'activities.collected_amount_changed_on_level',
 					'activities.exceptional_reason',
+					'activities.backstep_reason',
 					//'activities.bo_comments as bo_comments',
 					'cases.vehicle_registration_number',
 					'case_statuses.name as case_status',
@@ -1196,7 +1209,12 @@ class ActivityController extends Controller {
 					$boServiceTypeId = $boServiceType->id;
 				}
 			}
-
+			$eligibleBackstepStatusIds = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22];
+			$eligibleForBackstep = false;
+			if (Entrust::can('backstep-activity') && in_array($activity->activity_portal_status_id, $eligibleBackstepStatusIds)) {
+				$eligibleForBackstep = true;
+			}
+			$this->data['activities']['eligibleForBackstep'] = $eligibleForBackstep;
 			$this->data['activities']['serviceTypes'] = $serviceTypes;
 			$this->data['activities']['boServiceTypeId'] = $boServiceTypeId;
 			$this->data['activities']['importedAt'] = $importedAt;
@@ -2210,7 +2228,7 @@ class ActivityController extends Controller {
 	}
 	public function verifyActivity(Request $request) {
 		// dd($request->all());
-		$number = $request->number;
+		$number = str_replace(' ', '', $request->number);
 		$validator = Validator::make($request->all(), [
 			'number' => 'required',
 		]);
@@ -2650,64 +2668,6 @@ class ActivityController extends Controller {
 				$activity->asp_resolve_comments = $request->comments;
 			}
 
-			if (!empty($request->other_attachment)) {
-				//REMOVE EXISTING ATTACHMENT
-				$getOtherAttachments = Attachment::where('entity_id', $activity->id)
-					->where('entity_type', 17)
-					->get();
-				if ($getOtherAttachments->isNotEmpty()) {
-					foreach ($getOtherAttachments as $getOtherAttachmentKey => $getOtherAttachment) {
-						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $getOtherAttachment->attachment_file_name)) {
-							unlink(storage_path('app/' . $destination . '/' . $getOtherAttachment->attachment_file_name));
-						}
-						$getOtherAttachment->delete();
-					}
-				}
-				foreach ($request->other_attachment as $key => $value) {
-					if ($request->hasFile("other_attachment.$key")) {
-						$key1 = $key + 1;
-						$filename = "other_charges" . $key;
-						$extension = $request->file("other_attachment.$key")->getClientOriginalExtension();
-						$status = $request->file("other_attachment.$key")->storeAs($destination, $filename . '.' . $extension);
-						$other_charge = $filename . '.' . $extension;
-						$attachment = $Attachment = Attachment::create([
-							'entity_type' => config('constants.entity_types.ASP_OTHER_ATTACHMENT'),
-							'entity_id' => $activity->id,
-							'attachment_file_name' => $other_charge,
-						]);
-					}
-				}
-			}
-
-			if (!empty($request->map_attachment)) {
-				//REMOVE EXISTING ATTACHMENT
-				$getMapAttachments = Attachment::where('entity_id', $activity->id)
-					->where('entity_type', 16)
-					->get();
-				if ($getMapAttachments->isNotEmpty()) {
-					foreach ($getMapAttachments as $getMapAttachmentKey => $getMapAttachment) {
-						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $getMapAttachment->attachment_file_name)) {
-							unlink(storage_path('app/' . $destination . '/' . $getMapAttachment->attachment_file_name));
-						}
-						$getMapAttachment->delete();
-					}
-				}
-				foreach ($request->map_attachment as $key => $value) {
-					if ($request->hasFile("map_attachment.$key")) {
-						$key1 = $key + 1;
-						$filename = "km_travelled_attachment" . $key;
-						$extension = $request->file("map_attachment.$key")->getClientOriginalExtension();
-						$status = $request->file("map_attachment.$key")->storeAs($destination, $filename . '.' . $extension);
-						$km_travelled = $filename . '.' . $extension;
-						$attachment = $Attachment = Attachment::create([
-							'entity_type' => config('constants.entity_types.ASP_KM_ATTACHMENT'),
-							'entity_id' => $activity->id,
-							'attachment_file_name' => $km_travelled,
-						]);
-					}
-				}
-			}
-
 			//VEHICLE PICKUP ATTACHMENT
 			if (isset($request->vehicle_pickup_attachment) && $request->hasFile("vehicle_pickup_attachment")) {
 				//REMOVE EXISTING ATTACHMENT
@@ -2812,22 +2772,43 @@ class ActivityController extends Controller {
 								'errors' => ['Please attach google map screenshot'],
 							]);
 						}
+						if (!empty($request->map_attachment)) {
+							//REMOVE EXISTING ATTACHMENT
+							$getMapAttachments = Attachment::where('entity_id', $activity->id)
+								->where('entity_type', 16)
+								->get();
+							if ($getMapAttachments->isNotEmpty()) {
+								foreach ($getMapAttachments as $getMapAttachmentKey => $getMapAttachment) {
+									if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $getMapAttachment->attachment_file_name)) {
+										unlink(storage_path('app/' . $destination . '/' . $getMapAttachment->attachment_file_name));
+									}
+									$getMapAttachment->delete();
+								}
+							}
+							foreach ($request->map_attachment as $key => $value) {
+								if ($request->hasFile("map_attachment.$key")) {
+									$key1 = $key + 1;
+									$filename = "km_travelled_attachment" . $key;
+									$extension = $request->file("map_attachment.$key")->getClientOriginalExtension();
+									$status = $request->file("map_attachment.$key")->storeAs($destination, $filename . '.' . $extension);
+									$km_travelled = $filename . '.' . $extension;
+									$attachment = $Attachment = Attachment::create([
+										'entity_type' => config('constants.entity_types.ASP_KM_ATTACHMENT'),
+										'entity_id' => $activity->id,
+										'attachment_file_name' => $km_travelled,
+									]);
+								}
+							}
+						}
+
 						$is_bulk = false;
 
 					}
 				}
 			}
 
-			//checking ASP KMs exceed ASP service type range limit
-			if ($asp_km > $range_limit) {
-				$is_bulk = false;
-			}
-
-			//checking MIS and ASP not collected
-			if ($asp_other > $not_collect_charges) {
-				$is_bulk = false;
-
-				//$for_delete_old_other_attachment = 0;
+			//LOGIC SAID BY CLIENT
+			if (floatval($asp_other) >= 31) {
 				if (!isset($request->other_attachment_exist) && empty($request->other_attachment)) {
 					return response()->json([
 						'success' => false,
@@ -2840,6 +2821,16 @@ class ActivityController extends Controller {
 						'errors' => ['Please enter remarks comments for not collected'],
 					]);
 				}
+			}
+
+			//checking ASP KMs exceed ASP service type range limit
+			if ($asp_km > $range_limit) {
+				$is_bulk = false;
+			}
+
+			//checking MIS and ASP not collected
+			if ($asp_other > $not_collect_charges) {
+				$is_bulk = false;
 			}
 
 			//checking MIS and ASP collected
@@ -2875,8 +2866,39 @@ class ActivityController extends Controller {
 				$activity->asp_resolve_comments = $request->comments;
 			}
 
-			if (!empty($request->remarks_not_collected)) {
-				$activity->remarks = $request->remarks_not_collected;
+			if (floatval($asp_other) >= 31) {
+				if (!empty($request->other_attachment)) {
+					//REMOVE EXISTING ATTACHMENT
+					$getOtherAttachments = Attachment::where('entity_id', $activity->id)
+						->where('entity_type', 17)
+						->get();
+					if ($getOtherAttachments->isNotEmpty()) {
+						foreach ($getOtherAttachments as $getOtherAttachmentKey => $getOtherAttachment) {
+							if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $getOtherAttachment->attachment_file_name)) {
+								unlink(storage_path('app/' . $destination . '/' . $getOtherAttachment->attachment_file_name));
+							}
+							$getOtherAttachment->delete();
+						}
+					}
+					foreach ($request->other_attachment as $key => $value) {
+						if ($request->hasFile("other_attachment.$key")) {
+							$key1 = $key + 1;
+							$filename = "other_charges" . $key;
+							$extension = $request->file("other_attachment.$key")->getClientOriginalExtension();
+							$status = $request->file("other_attachment.$key")->storeAs($destination, $filename . '.' . $extension);
+							$other_charge = $filename . '.' . $extension;
+							$attachment = $Attachment = Attachment::create([
+								'entity_type' => config('constants.entity_types.ASP_OTHER_ATTACHMENT'),
+								'entity_id' => $activity->id,
+								'attachment_file_name' => $other_charge,
+							]);
+						}
+					}
+				}
+
+				if (!empty($request->remarks_not_collected)) {
+					$activity->remarks = $request->remarks_not_collected;
+				}
 			}
 
 			if (!empty($request->general_remarks)) {

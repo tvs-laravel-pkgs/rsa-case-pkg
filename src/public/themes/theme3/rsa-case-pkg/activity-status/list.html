@@ -167,7 +167,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><img src="{{$ctrl.modal_close}}"></button>
-                <h4 class="modal-title">Ticket Back Step</h4>
+                <h4 class="modal-title">Ticket Backstep</h4>
             </div>
             <form id="tickect-back-asp-form" name="tickect_back_asp_form" action="{{$ctrl.activity_back_asp_update_route}}" method="post">
                 <input type="hidden" name="_token" value="{{$ctrl.csrf}}" />
@@ -183,27 +183,25 @@
                                         <div class="col-sm-6">
                                             <div class="input-text form-group">
                                                 <label>Activity Number</label>
-                                                <span id="ticket_no" style="font-size: 18px;">{{$ctrl.activity_form_data.activity_number}}</span>
+                                                <input type="text" class="form-control" value="{{$ctrl.activity_form_data.activity_number}}" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                <label>Reason<sup class="req">*</sup></label>
+                                                <textarea name="backstep_reason" id="backstepReason" class="form-control" ng-model="$ctrl.backstepReason"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                Click Here
+                                                <button type="button" class="differed-btn blue approve-btn" ng-click="asp_data_entry_submit()" id="asp_data_entry_submit">ASP Rejected CC Details - Waiting for ASP Data Entry</button>
                                             </div><!-- Field -->
                                         </div><!-- Column -->
                                         <div class="col-sm-6">
-                                        </div><!-- Column -->
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-6">
                                             <div class="input-text form-group">
-                                                <div class="approvalModal-btns">
-                                                    Click Here
-                                                    <button type="button" class="differed-btn blue approve-btn" ng-click="asp_data_entry_submit()" id="asp_data_entry_submit">ASP Rejected CC Details - Waiting for ASP Data Entry</button>
-                                                </div>
-                                            </div><!-- Field -->
-                                        </div><!-- Column -->
-                                        <div class="col-sm-6">
-                                            <div class="input-text form-group">
-                                                <div class="approvalModal-btns">
-                                                    Click Here
-                                                    <button type="button" ng-click="asp_bo_deffered_submit()" class="differed-btn blue approve-btn" id="asp_bo_deffered_submit">BO Rejected - Waiting for ASP Data Re-Entry</button>
-                                                </div>
+                                                Click Here
+                                                <button type="button" ng-click="asp_bo_deffered_submit()" class="differed-btn blue approve-btn" id="asp_bo_deffered_submit">BO Rejected - Waiting for ASP Data Re-Entry</button>
                                             </div><!-- Field -->
                                         </div><!-- Column -->
                                     </div>

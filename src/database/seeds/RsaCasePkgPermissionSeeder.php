@@ -626,12 +626,6 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 			[
 				'display_order' => 19,
 				'parent' => 'membership',
-				'name' => 'import-post-paid-membership',
-				'display_name' => 'Import Post Paid Membership',
-			],
-			[
-				'display_order' => 20,
-				'parent' => 'membership',
 				'name' => 'own-client-admin-report-membership',
 				'display_name' => 'Own Client Admin Report',
 			],
@@ -646,6 +640,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'parent' => 'membership',
 				'name' => 'rm-dealers-report-membership',
 				'display_name' => 'Own RM Dealers Report',
+			],
+			[
+				'display_order' => 22,
+				'parent' => 'membership',
+				'name' => 'import-post-paid-membership',
+				'display_name' => 'Import Post Paid Membership',
 			],
 
 			//Dealer Invoice Menu

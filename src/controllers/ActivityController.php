@@ -2364,8 +2364,8 @@ class ActivityController extends Controller {
 		if ($tickets->isNotEmpty()) {
 			foreach ($tickets as $key => $ticketValue) {
 				//CASE WITH EXTENSION
-				if (!empty($ticketValue->submission_closing_date) && date('Y-m-d', strtotime($ticketValue->case_date)) > "2021-11-30") {
-					if ($ticketValue->submission_closing_date >= date('Y-m-d H:i:s')) {
+				if (!empty($ticketValue->submission_closing_date)) {
+					if ($ticketValue->submission_closing_date >= date('Y-m-d H:i:s') && date('Y-m-d', strtotime($ticketValue->case_date)) > "2021-11-30") {
 						return response()->json([
 							'success' => true,
 							'activity_id' => $ticketValue->id,

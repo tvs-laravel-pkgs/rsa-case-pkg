@@ -2247,12 +2247,6 @@ class ActivityController extends Controller {
 		$threeMonthsBefore = date('Y-m-d H:i:s', strtotime("-3 months", strtotime($today))); //three months before
 
 		$submission_closing_extended = false;
-		// $case = RsaCase::where('number', $number)
-		// 	->orWhere('vehicle_registration_number', $number)
-		// 	->first();
-		// if ($case && !empty($case->submission_closing_date)) {
-		// 	$submission_closing_extended = true;
-		// }
 
 		//CHECK TICKET EXIST WITH DATA ENTRY STATUS & DATE FOR ASP
 		$query = Activity::select([
@@ -2272,17 +2266,9 @@ class ActivityController extends Controller {
 					->orWhere('activities.crm_activity_id', $number);
 			});
 
-		// $ticket = $query1->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
-		// 	if ($submission_closing_extended) {
-		// 		$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
-		// 	} else {
-		// 		$q->where('cases.created_at', '>=', $threeMonthsBefore);
-		// 	}
-		// })
 		$caseExistQuery = clone $query;
 		$case = $caseExistQuery->where('activities.asp_id', Auth::user()->asp->id)
 			->first();
-
 		if ($case && !empty($case->submission_closing_date)) {
 			$submission_closing_extended = true;
 		}

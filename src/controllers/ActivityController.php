@@ -8,7 +8,6 @@ use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityPortalStatus;
 use Abs\RsaCasePkg\ActivityRatecard;
 use Abs\RsaCasePkg\ActivityStatus;
-use Abs\RsaCasePkg\RsaCase;
 use App\Asp;
 use App\AspServiceType;
 use App\Attachment;
@@ -2331,23 +2330,17 @@ class ActivityController extends Controller {
 		$threeMonthsBefore = date('Y-m-d H:i:s', strtotime("-3 months", strtotime($today))); //three months before
 
 		$submission_closing_extended = false;
-		$case = RsaCase::where('number', $number)
-			->orWhere('vehicle_registration_number', $number)
-			->first();
-		if ($case && !empty($case->submission_closing_date)) {
-			$submission_closing_extended = true;
-		}
-		//FOR CHANGE REQUEST BY TVS TEAM DATE GIVEN IN STATIC
-		// $threeMonthsBefore = "2019-04-01";
 
 		//CHECK TICKET EXIST WITH DATA ENTRY STATUS & DATE FOR ASP
 		$query = Activity::select([
 			'activities.id as id',
 			'activities.activity_status_id',
+			'activities.status_id',
 			'cases.created_at as case_created_at',
 			// 'cases.date as case_date',
 			DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y") as case_date'),
 			'cases.number as case_number',
+			'cases.submission_closing_date',
 		])
 			->join('cases', 'cases.id', 'activities.case_id')
 			->where(function ($q) use ($number) {
@@ -2356,246 +2349,248 @@ class ActivityController extends Controller {
 					->orWhere('activities.crm_activity_id', $number);
 			});
 
-		$query1 = clone $query;
-
-		$ticket = $query1->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
-			if ($submission_closing_extended) {
-				$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
-			} else {
-				$q->where('cases.created_at', '>=', $threeMonthsBefore);
-			}
-		})
-			->whereIn('activities.status_id', [2, 4])
-			->where('activities.asp_id', Auth::user()->asp->id)
+		$caseExistQuery = clone $query;
+		$case = $caseExistQuery->where('activities.asp_id', Auth::user()->asp->id)
 			->first();
+		if ($case && !empty($case->submission_closing_date)) {
+			$submission_closing_extended = true;
+		}
 
-		if ($ticket) {
-			//IF CASE DATE BELOW OR EQUAL TO 30 NOV 2021 THEN TICKET IS LAPSED - SAID BY CLIENT
-			if (date('Y-m-d', strtotime($ticket->case_date)) <= "2021-11-30") {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						"Ticket lapsed",
-					],
-				]);
-			} else {
-				return response()->json([
-					'success' => true,
-					'activity_id' => $ticket->id,
-				]);
-			}
-		} else {
-			//CHECK TICKET EXIST
-			$query2 = clone $query;
-			$ticket_exist = $query2->first();
-
-			if ($ticket_exist) {
-
-				$query3 = clone $query;
-				//CHECK TICKET IS BELONGS TO ASP
-				$asp_has_activity = $query3->where('activities.asp_id', Auth::user()->asp->id)
-					->first();
-
-				if (!$asp_has_activity) {
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							"Ticket is not attended by " . Auth::user()->asp->asp_code . " as per CRM",
-						],
-					]);
+		$query1 = clone $query;
+		$tickets = $query1->whereIn('activities.status_id', [2, 4])
+			->where('activities.asp_id', Auth::user()->asp->id)
+			->orderBy('activities.id', 'ASC')
+			->get();
+		if ($tickets->isNotEmpty()) {
+			foreach ($tickets as $key => $ticketValue) {
+				//CASE WITH EXTENSION
+				if (!empty($ticketValue->submission_closing_date) && date('Y-m-d', strtotime($ticketValue->case_date)) > "2021-11-30") {
+					if ($ticketValue->submission_closing_date >= date('Y-m-d H:i:s')) {
+						return response()->json([
+							'success' => true,
+							'activity_id' => $ticketValue->id,
+						]);
+					}
 				} else {
-
-					//IF CASE DATE BELOW OR EQUAL TO 30 NOV 2021 THEN TICKET IS LAPSED - SAID BY CLIENT
-					if (date('Y-m-d', strtotime($ticket_exist->case_date)) <= "2021-11-30") {
+					if ($ticketValue->case_created_at >= $threeMonthsBefore && date('Y-m-d', strtotime($ticketValue->case_date)) > "2021-11-30") {
 						return response()->json([
-							'success' => false,
-							'errors' => [
-								"Ticket lapsed",
-							],
-						]);
-					}
-
-					//Restriction disable - temporarily for June 2020 & July 2020 tickets
-					$sub_query = clone $query;
-					$tickets = $sub_query->addSelect([
-						'cases.created_at',
-					])
-						->whereIn('activities.status_id', [2, 4])
-						->where('activities.asp_id', Auth::user()->asp->id)
-						->get();
-
-					if ($tickets->isNotEmpty()) {
-						foreach ($tickets as $key => $ticket) {
-							$ticket_creation_date = date('Y-m-d', strtotime($ticket->created_at));
-							//If the ticket is June, then closing date is 27 Sep 2020
-							if ($ticket_creation_date >= "2020-06-01" && $ticket_creation_date <= "2020-06-31") {
-								$ticket_closing_date = "2020-09-27";
-							} elseif ($ticket_creation_date >= "2020-07-01" && $ticket_creation_date <= "2020-07-31") {
-								//If the ticket is July, then closing date is 11 Oct 2020
-								$ticket_closing_date = "2020-10-11";
-							} else {
-								continue;
-							}
-
-							if ($today <= $ticket_closing_date) {
-								return response()->json([
-									'success' => true,
-									'activity_id' => $ticket->id,
-								]);
-							}
-						}
-					}
-
-					//CHECK IF TICKET DATE IS GREATER THAN 3 MONTHS OLDER
-					$query4 = clone $query;
-					$check_ticket_date = $query4->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
-						if ($submission_closing_extended) {
-							$q->where('cases.submission_closing_date', '<', date('Y-m-d H:i:s'));
-						} else {
-							$q->where('cases.created_at', '<', $threeMonthsBefore);
-						}
-					})
-						->where('activities.asp_id', Auth::user()->asp->id)
-						->first();
-					if ($check_ticket_date) {
-						$checkTicketDateError = "Please contact administrator.";
-						if ($check_ticket_date->activityStatus) {
-							$checkTicketDateError = "Please contact administrator. Activity status : " . $check_ticket_date->activityStatus->name;
-						}
-						return response()->json([
-							'success' => false,
-							'errors' => [
-								$checkTicketDateError,
-							],
-						]);
-					}
-					$query5 = clone $query;
-					$activity_on_hold = $query5->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
-						if ($submission_closing_extended) {
-							$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
-						} else {
-							$q->where('cases.created_at', '>=', $threeMonthsBefore);
-						}
-					})
-						->where('activities.status_id', 17) //ON HOLD
-						->where('activities.asp_id', Auth::user()->asp->id)
-						->first();
-					if ($activity_on_hold) {
-						$activityOnHoldError = "Ticket On Hold";
-						if ($activity_on_hold->activityStatus) {
-							$activityOnHoldError = "Ticket On Hold. Activity status : " . $activity_on_hold->activityStatus->name;
-						}
-						return response()->json([
-							'success' => false,
-							'errors' => [
-								$activityOnHoldError,
-							],
-						]);
-					}
-
-					$query6 = clone $query;
-					$activity_not_eligible_for_payment = $query6->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
-						if ($submission_closing_extended) {
-							$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
-						} else {
-							$q->where('cases.created_at', '>=', $threeMonthsBefore);
-						}
-					})
-						->whereIn('activities.status_id', [15, 16]) // NOT ELIGIBLE FOR PAYOUT
-						->where('activities.asp_id', Auth::user()->asp->id)
-						->first();
-					if ($activity_not_eligible_for_payment) {
-						$activityNotEligibleForPaymentError = 'Ticket not found';
-						if ($activity_not_eligible_for_payment->activityStatus) {
-							$activityNotEligibleForPaymentError = "Ticket not found. Activity status : " . $activity_not_eligible_for_payment->activityStatus->name;
-						}
-						return response()->json([
-							'success' => false,
-							'errors' => [
-								$activityNotEligibleForPaymentError,
-							],
-						]);
-					}
-
-					$query7 = clone $query;
-					$activity_already_completed = $query7->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
-						if ($submission_closing_extended) {
-							$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
-						} else {
-							$q->where('cases.created_at', '>=', $threeMonthsBefore);
-						}
-					})
-						->whereIn('activities.status_id', [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 18, 19, 20, 21, 22])
-						->where('activities.asp_id', Auth::user()->asp->id)
-						->first();
-					if ($activity_already_completed) {
-						$activityAlreadyCompletedError = "Ticket already submitted. Case : " . $activity_already_completed->case_number . "(" . $activity_already_completed->case_date . ")";
-						if ($activity_already_completed->activityStatus) {
-							$activityAlreadyCompletedError = "Ticket already submitted. Case : " . $activity_already_completed->case_number . "(" . $activity_already_completed->case_date . "), Activity status : " . $activity_already_completed->activityStatus->name;
-						}
-						return response()->json([
-							'success' => false,
-							'errors' => [
-								$activityAlreadyCompletedError,
-							],
-						]);
-					}
-
-					$query8 = clone $query;
-					$case_with_cancelled_status = $query8->where('cases.status_id', 3) //CANCELLED
-						->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
-							if ($submission_closing_extended) {
-								$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
-							} else {
-								$q->where('cases.created_at', '>=', $threeMonthsBefore);
-							}
-						})
-						->where('activities.asp_id', Auth::user()->asp->id)
-						->first();
-					if ($case_with_cancelled_status) {
-						$caseWithCancelledStatusError = "Ticket is cancelled";
-						if ($case_with_cancelled_status->activityStatus) {
-							$caseWithCancelledStatusError = "Ticket is cancelled. Activity status : " . $case_with_cancelled_status->activityStatus->name;
-						}
-						return response()->json([
-							'success' => false,
-							'errors' => [
-								$caseWithCancelledStatusError,
-							],
-						]);
-					}
-					$query9 = clone $query;
-					$case_with_closed_status = $query9->where('cases.status_id', 4) //CLOSED
-						->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
-							if ($submission_closing_extended) {
-								$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
-							} else {
-								$q->where('cases.created_at', '>=', $threeMonthsBefore);
-							}
-						})
-						->where('activities.asp_id', Auth::user()->asp->id)
-						->first();
-					if ($case_with_closed_status) {
-						$caseWithClosedStatusError = "Ticket is closed";
-						if ($case_with_closed_status->activityStatus) {
-							$caseWithClosedStatusError = "Ticket is closed. Activity status : " . $case_with_closed_status->activityStatus->name;
-						}
-						return response()->json([
-							'success' => false,
-							'errors' => [
-								$caseWithClosedStatusError,
-							],
+							'success' => true,
+							'activity_id' => $ticketValue->id,
 						]);
 					}
 				}
-			} else {
+			}
+		}
+
+		//CHECK TICKET EXIST
+		$query2 = clone $query;
+		$ticket_exist = $query2->first();
+
+		if ($ticket_exist) {
+
+			$query3 = clone $query;
+			//CHECK TICKET IS BELONGS TO ASP
+			$asp_has_activity = $query3->where('activities.asp_id', Auth::user()->asp->id)
+				->first();
+
+			if (!$asp_has_activity) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
-						'Ticket not found',
+						"Ticket is not attended by " . Auth::user()->asp->asp_code . " as per CRM",
 					],
 				]);
+			} else {
+
+				//IF CASE DATE BELOW OR EQUAL TO 30 NOV 2021 THEN TICKET IS LAPSED - SAID BY CLIENT
+				if (date('Y-m-d', strtotime($ticket_exist->case_date)) <= "2021-11-30") {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							"Ticket lapsed",
+						],
+					]);
+				}
+
+				//Restriction disable - temporarily for June 2020 & July 2020 tickets
+				$sub_query = clone $query;
+				$tickets = $sub_query->addSelect([
+					'cases.created_at',
+				])
+					->whereIn('activities.status_id', [2, 4])
+					->where('activities.asp_id', Auth::user()->asp->id)
+					->get();
+
+				if ($tickets->isNotEmpty()) {
+					foreach ($tickets as $key => $ticket) {
+						$ticket_creation_date = date('Y-m-d', strtotime($ticket->created_at));
+						//If the ticket is June, then closing date is 27 Sep 2020
+						if ($ticket_creation_date >= "2020-06-01" && $ticket_creation_date <= "2020-06-31") {
+							$ticket_closing_date = "2020-09-27";
+						} elseif ($ticket_creation_date >= "2020-07-01" && $ticket_creation_date <= "2020-07-31") {
+							//If the ticket is July, then closing date is 11 Oct 2020
+							$ticket_closing_date = "2020-10-11";
+						} else {
+							continue;
+						}
+
+						if ($today <= $ticket_closing_date) {
+							return response()->json([
+								'success' => true,
+								'activity_id' => $ticket->id,
+							]);
+						}
+					}
+				}
+				//CHECK IF TICKET DATE IS GREATER THAN 3 MONTHS OLDER
+				$query4 = clone $query;
+				$check_ticket_date = $query4->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
+					if ($submission_closing_extended) {
+						$q->where('cases.submission_closing_date', '<', date('Y-m-d H:i:s'));
+					} else {
+						$q->where('cases.created_at', '<', $threeMonthsBefore);
+					}
+				})
+					->where('activities.asp_id', Auth::user()->asp->id)
+					->first();
+				if ($check_ticket_date) {
+					$checkTicketDateError = "Please contact administrator.";
+					if ($check_ticket_date->activityStatus) {
+						$checkTicketDateError = "Please contact administrator. Activity status : " . $check_ticket_date->activityStatus->name;
+					}
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							$checkTicketDateError,
+						],
+					]);
+				}
+				$query5 = clone $query;
+				$activity_on_hold = $query5->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
+					if ($submission_closing_extended) {
+						$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
+					} else {
+						$q->where('cases.created_at', '>=', $threeMonthsBefore);
+					}
+				})
+					->where('activities.status_id', 17) //ON HOLD
+					->where('activities.asp_id', Auth::user()->asp->id)
+					->first();
+				if ($activity_on_hold) {
+					$activityOnHoldError = "Ticket On Hold";
+					if ($activity_on_hold->activityStatus) {
+						$activityOnHoldError = "Ticket On Hold. Activity status : " . $activity_on_hold->activityStatus->name;
+					}
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							$activityOnHoldError,
+						],
+					]);
+				}
+
+				$query6 = clone $query;
+				$activity_not_eligible_for_payment = $query6->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
+					if ($submission_closing_extended) {
+						$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
+					} else {
+						$q->where('cases.created_at', '>=', $threeMonthsBefore);
+					}
+				})
+					->whereIn('activities.status_id', [15, 16]) // NOT ELIGIBLE FOR PAYOUT
+					->where('activities.asp_id', Auth::user()->asp->id)
+					->first();
+				if ($activity_not_eligible_for_payment) {
+					$activityNotEligibleForPaymentError = 'Ticket not found';
+					if ($activity_not_eligible_for_payment->activityStatus) {
+						$activityNotEligibleForPaymentError = "Ticket not found. Activity status : " . $activity_not_eligible_for_payment->activityStatus->name;
+					}
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							$activityNotEligibleForPaymentError,
+						],
+					]);
+				}
+
+				$query7 = clone $query;
+				$activity_already_completed = $query7->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
+					if ($submission_closing_extended) {
+						$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
+					} else {
+						$q->where('cases.created_at', '>=', $threeMonthsBefore);
+					}
+				})
+					->whereIn('activities.status_id', [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 18, 19, 20, 21, 22])
+					->where('activities.asp_id', Auth::user()->asp->id)
+					->first();
+				if ($activity_already_completed) {
+					$activityAlreadyCompletedError = "Ticket already submitted. Case : " . $activity_already_completed->case_number . "(" . $activity_already_completed->case_date . ")";
+					if ($activity_already_completed->activityStatus) {
+						$activityAlreadyCompletedError = "Ticket already submitted. Case : " . $activity_already_completed->case_number . "(" . $activity_already_completed->case_date . "), Activity status : " . $activity_already_completed->activityStatus->name;
+					}
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							$activityAlreadyCompletedError,
+						],
+					]);
+				}
+
+				$query8 = clone $query;
+				$case_with_cancelled_status = $query8->where('cases.status_id', 3) //CANCELLED
+					->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
+						if ($submission_closing_extended) {
+							$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
+						} else {
+							$q->where('cases.created_at', '>=', $threeMonthsBefore);
+						}
+					})
+					->where('activities.asp_id', Auth::user()->asp->id)
+					->first();
+				if ($case_with_cancelled_status) {
+					$caseWithCancelledStatusError = "Ticket is cancelled";
+					if ($case_with_cancelled_status->activityStatus) {
+						$caseWithCancelledStatusError = "Ticket is cancelled. Activity status : " . $case_with_cancelled_status->activityStatus->name;
+					}
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							$caseWithCancelledStatusError,
+						],
+					]);
+				}
+				$query9 = clone $query;
+				$case_with_closed_status = $query9->where('cases.status_id', 4) //CLOSED
+					->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
+						if ($submission_closing_extended) {
+							$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
+						} else {
+							$q->where('cases.created_at', '>=', $threeMonthsBefore);
+						}
+					})
+					->where('activities.asp_id', Auth::user()->asp->id)
+					->first();
+				if ($case_with_closed_status) {
+					$caseWithClosedStatusError = "Ticket is closed";
+					if ($case_with_closed_status->activityStatus) {
+						$caseWithClosedStatusError = "Ticket is closed. Activity status : " . $case_with_closed_status->activityStatus->name;
+					}
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							$caseWithClosedStatusError,
+						],
+					]);
+				}
 			}
+		} else {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Ticket not found',
+				],
+			]);
 		}
 
 	}

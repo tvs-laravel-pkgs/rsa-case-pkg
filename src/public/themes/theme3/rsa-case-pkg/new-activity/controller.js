@@ -286,22 +286,19 @@ app.component('newActivityUpdateDetails', {
             },
             messages: {
                 'km_travelled': {
-                    required: "Please Enter KM Travelled",
+                    required: "Please Enter KM Travelled",
                 },
-                'km_tother_chargeravelled': {
-                    required: "Please Enter Other Charge Value",
+                'other_charge': {
+                    required: "Please Enter Other Charges",
                 },
                 'asp_collected_charges': {
-                    required: "Please Enter Collected Charge Value",
+                    required: "Please Enter Charges Collected",
                 },
                 'remarks_not_collected': {
                     required: "Please Enter Remark Comments",
                 },
                 'map_attachment[]': {
                     required: 'Please attach google map screenshot',
-                },
-                'asp_collected_charges': {
-                    number: 'Please enter number value',
                 },
                 'other_attachment[]': {
                     required: 'Please attach other Attachment',

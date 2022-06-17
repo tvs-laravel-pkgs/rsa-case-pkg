@@ -436,16 +436,22 @@ app.component('deferredActivityUpdate', {
             },
             messages: {
                 'km_travelled': {
-                    required: "Please Enter Kilo Meter Value",
+                    required: "Please Enter KM Travelled",
+                },
+                'other_charge': {
+                    required: "Please Enter Other Charges",
+                },
+                'asp_collected_charges': {
+                    required: "Please Enter Charges Collected",
                 },
                 'remarks_not_collected': {
                     required: "Please Enter Remarks",
                 },
+                'comments': {
+                    required: "Please Enter Resolve Comments",
+                },
                 'map_attachment[]': {
                     required: 'Please attach google map screenshot',
-                },
-                'asp_collected_charges': {
-                    number: 'Please enter number value',
                 },
                 'other_attachment[]': {
                     required: 'Please attach other Attachment',

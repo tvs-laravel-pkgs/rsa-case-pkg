@@ -1365,6 +1365,14 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Export',
 			],
 
+			//DASHBOARD MAIL LOG
+			[
+				'display_order' => 999,
+				'parent' => null,
+				'name' => 'elk-mail-log',
+				'display_name' => 'Dashboard Mail Log',
+			],
+
 			//DISCOUNT REASONS
 			[
 				'display_order' => 999,

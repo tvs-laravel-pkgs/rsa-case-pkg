@@ -21,6 +21,7 @@ app.component('activityStatusList', {
             activity_status_filter_url
         ).then(function(response) {
             self.extras = response.data.extras;
+            self.isAspRole = response.data.isAspRole;
             self.auth_user_details = response.data.auth_user_details;
             // response.data.extras.status_list.splice(0, 1);
             self.status_list = response.data.extras.portal_status_list;
@@ -46,15 +47,24 @@ app.component('activityStatusList', {
                 { data: 'client', name: 'clients.name', searchable: true },
                 { data: 'call_center', name: 'call_centers.name', searchable: true },
             ];
-
-            $('input[name="date_range_period"]').daterangepicker({
-                startDate: moment().startOf('month'),
-                endDate: moment().endOf('month'),
-                locale: {
-                    cancelLabel: 'Clear',
-                    format: "DD-MM-YYYY"
-                }
-            });
+            if (!self.isAspRole) {
+                $('input[name="date_range_period"]').daterangepicker({
+                    startDate: moment().startOf('month'),
+                    endDate: moment().endOf('month'),
+                    locale: {
+                        cancelLabel: 'Clear',
+                        format: "DD-MM-YYYY"
+                    }
+                });
+            } else {
+                $('input[name="date_range_period"]').daterangepicker({
+                    autoUpdateInput: false,
+                    locale: {
+                        cancelLabel: 'Clear',
+                        format: "DD-MM-YYYY"
+                    }
+                });
+            }
 
             var activities_status_dt_config = JSON.parse(JSON.stringify(dt_config));
 

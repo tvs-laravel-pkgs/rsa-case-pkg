@@ -3611,6 +3611,22 @@ class ActivityController extends Controller {
 					}
 				}
 
+				//SPECIAL CHARACTERS NOT ALLOWED AT PREFIX
+				if (!preg_match("/^[A-Za-z0-9]{1}/", $request->invoice_no)) {
+					return response()->json([
+						'success' => false,
+						'error' => 'Special characters are not allowed at the beginning of the invoice number',
+					]);
+				}
+
+				//SPECIAL CHARACTERS NOT ALLOWED AT SUFFIX
+				if (!preg_match("/[A-Za-z0-9]{1}$/", $request->invoice_no)) {
+					return response()->json([
+						'success' => false,
+						'error' => 'Special characters are not allowed at the end of the invoice number',
+					]);
+				}
+
 				$invoice_no = $request->invoice_no;
 				$invoice_date = date('Y-m-d H:i:s', strtotime($request->inv_date));
 			} else {

@@ -165,7 +165,7 @@ app.component('approvedActivityList', {
                         .fail(function(xhr) {
                             $(".loader-type-2").addClass("loader-hide");
                             $('#submit').button('reset');
-                            custom_noty('error', 'Something went wrong at server');
+                            custom_noty('error', "Something went wrong at server");
                         });
                 },
             });
@@ -221,17 +221,6 @@ app.component('approvedActivityInvoicePreview', {
                 });
             }, 10);
 
-            setTimeout(function() {
-                $('.date-picker').datepicker({
-                    format: 'dd-mm-yyyy',
-                    changeMonth: true,
-                    todayHighlight: true,
-                    autoclose: true,
-                    startDate: new Date(),
-                    endDate: new Date(),
-                });
-            }, 100);
-
             $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
             $('.viewData-toggle--btn').click(function() {
                 $(this).toggleClass('viewData-toggle--btn_reverse');
@@ -255,6 +244,24 @@ app.component('approvedActivityInvoicePreview', {
                 }
             };
 
+            $.validator.addMethod("selfInvoiceNumberPrefixValidator", function(value, element) {
+                if (value && value.match("^[A-Za-z0-9]{1}")) {
+                    return true;
+                } else {
+                    return false;
+                }
+                return true;
+            }, 'Special characters are not allowed at the beginning of the invoice number');
+
+            $.validator.addMethod("selfInvoiceNumberSuffixValidator", function(value, element) {
+                if (value && value.match("[A-Za-z0-9]{1}$")) {
+                    return true;
+                } else {
+                    return false;
+                }
+                return true;
+            }, 'Special characters are not allowed at the end of the invoice number');
+
             var form_id = form_ids = '#invoice-create-form';
             var v = jQuery(form_ids).validate({
                 ignore: "",
@@ -263,6 +270,8 @@ app.component('approvedActivityInvoicePreview', {
                         required: true,
                         // minlength: 3,
                         maxlength: 20,
+                        selfInvoiceNumberPrefixValidator: true,
+                        selfInvoiceNumberSuffixValidator: true,
                     },
                     inv_date: {
                         required: true,
@@ -297,7 +306,7 @@ app.component('approvedActivityInvoicePreview', {
                                     return;
                                 }
                                 let formData = new FormData($(form_id)[0]);
-                                $('#submit').button('loading');
+                                $('#submitId').button('loading');
                                 if ($(".loader-type-2").hasClass("loader-hide")) {
                                     $(".loader-type-2").removeClass("loader-hide");
                                 }
@@ -309,10 +318,9 @@ app.component('approvedActivityInvoicePreview', {
                                         contentType: false,
                                     })
                                     .done(function(res) {
-                                        // console.log(res);
                                         if (!res.success) {
                                             $(".loader-type-2").addClass("loader-hide");
-                                            $('#submit').button('reset');
+                                            $('#submitId').button('reset');
                                             custom_noty('error', res.error);
                                         } else {
                                             custom_noty('success', res.message);
@@ -324,7 +332,7 @@ app.component('approvedActivityInvoicePreview', {
                                     })
                                     .fail(function(xhr) {
                                         $(".loader-type-2").addClass("loader-hide");
-                                        $('#submit').button('reset');
+                                        $('#submitId').button('reset');
                                         custom_noty('error', "Something went wrong at server");
                                     });
                             }

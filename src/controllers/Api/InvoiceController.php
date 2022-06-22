@@ -236,6 +236,36 @@ class InvoiceController extends Controller {
 					}
 				}
 
+				//SPECIAL CHARACTERS NOT ALLOWED AT PREFIX
+				if (!preg_match("/^[A-Za-z0-9]{1}/", $request->invoice_number)) {
+					//CREATE INVOICE API LOG
+					$errors[] = 'Special characters are not allowed at the beginning of the invoice number';
+					saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
+					DB::commit();
+					return response()->json([
+						'success' => false,
+						'error' => 'Validation Error',
+						'errors' => [
+							'Special characters are not allowed at the beginning of the invoice number',
+						],
+					], $this->successStatus);
+				}
+
+				//SPECIAL CHARACTERS NOT ALLOWED AT SUFFIX
+				if (!preg_match("/[A-Za-z0-9]{1}$/", $request->invoice_number)) {
+					//CREATE INVOICE API LOG
+					$errors[] = 'Special characters are not allowed at the end of the invoice number';
+					saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
+					DB::commit();
+					return response()->json([
+						'success' => false,
+						'error' => 'Validation Error',
+						'errors' => [
+							'Special characters are not allowed at the end of the invoice number',
+						],
+					], $this->successStatus);
+				}
+
 				$invoice_no = $request->invoice_number;
 				$invoice_date = date('Y-m-d H:i:s', strtotime($request->invoice_date));
 			} else {

@@ -401,6 +401,9 @@ app.component('deferredActivityUpdate', {
                 'remarks_not_collected': {
                     required: true,
                 },
+                'comments': {
+                    required: true,
+                },
                 'asp_collected_charges': {
                     number: true,
                     required: true,
@@ -413,7 +416,7 @@ app.component('deferredActivityUpdate', {
                 'other_attachment[]': {
                     // required: true,
                     check_other_attach: true,
-                    extension: "jpg|jpeg|png|gif"
+                    extension: "jpg|jpeg|png|gif|pdf"
                 },
                 'vehicle_pickup_attachment': {
                     required: function(element) {

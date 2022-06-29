@@ -263,7 +263,7 @@ app.component('newActivityUpdateDetails', {
                 },
                 'other_attachment[]': {
                     required: true,
-                    extension: "jpg|jpeg|png|gif",
+                    extension: "jpg|jpeg|png|gif|pdf",
                 },
                 'vehicle_pickup_attachment': {
                     required: function(element) {

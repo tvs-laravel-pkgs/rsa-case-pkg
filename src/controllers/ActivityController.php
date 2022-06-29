@@ -54,6 +54,11 @@ class ActivityController extends Controller {
 			],
 		];
 		$this->data['auth_user_details'] = Auth::user();
+		$isAspRole = false;
+		if (Entrust::hasRole('asp')) {
+			$isAspRole = true;
+		}
+		$this->data['isAspRole'] = $isAspRole;
 		return response()->json($this->data);
 	}
 

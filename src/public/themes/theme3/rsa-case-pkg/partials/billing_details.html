@@ -100,8 +100,8 @@
                                     <th scope="row">Other Attachment</th>
                                     <td colspan="{{$ctrl.data.span_value}}">
                                         <div ng-repeat="(index,other_charges_attachment) in $ctrl.data.other_charges_attachments">
-                                            <a target="_blank" href="{{$ctrl.data.other_charges_attachment_url[index]}}">{{other_charges_attachment.attachment_file_name}}</a>,
-                                            <img height="80px" weight="80px" src="{{$ctrl.data.other_charges_attachment_url[index]}}">
+                                            <a target="_blank" href="{{$ctrl.data.other_charges_attachment_url[index]}}">{{other_charges_attachment.attachment_file_name}}</a>
+                                            <!-- <img height="80px" weight="80px" src="{{$ctrl.data.other_charges_attachment_url[index]}}"> -->
                                         </div>
                                     </td>
                                 </tr>

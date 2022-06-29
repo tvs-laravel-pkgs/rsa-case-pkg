@@ -409,6 +409,7 @@ class InvoiceController extends Controller {
 				})
 				->whereIn('Invoices.id', $invoice_ids)
 				->orderBy('activities.asp_id')
+				->groupBy('activities.id')
 				->get();
 
 			$exportInfo = $this->getaxapta->startExportInvoice($invoice_ids, $activities);

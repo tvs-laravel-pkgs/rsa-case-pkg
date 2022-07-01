@@ -263,45 +263,42 @@ app.component('newActivityUpdateDetails', {
                 },
                 'other_attachment[]': {
                     required: true,
-                    extension: "jpg|jpeg|png|gif",
+                    extension: "jpg|jpeg|png|gif|pdf",
                 },
                 'vehicle_pickup_attachment': {
                     required: function(element) {
-                        return self.activity.is_towing_attachments_mandatory === 1;
+                        return self.activity.is_towing_attachments_mandatory === 1 && self.activity.finance_status.po_eligibility_type_id == 340;
                     },
                     imageFileSize: 1048576,
                 },
                 'vehicle_drop_attachment': {
                     required: function(element) {
-                        return self.activity.is_towing_attachments_mandatory === 1;
+                        return self.activity.is_towing_attachments_mandatory === 1 && self.activity.finance_status.po_eligibility_type_id == 340;
                     },
                     imageFileSize: 1048576,
                 },
                 'inventory_job_sheet_attachment': {
                     required: function(element) {
-                        return self.activity.is_towing_attachments_mandatory === 1;
+                        return self.activity.is_towing_attachments_mandatory === 1 && self.activity.finance_status.po_eligibility_type_id == 340;
                     },
                     imageFileSize: 1048576,
                 }
             },
             messages: {
                 'km_travelled': {
-                    required: "Please Enter KM Travelled",
+                    required: "Please Enter KM Travelled",
                 },
-                'km_tother_chargeravelled': {
-                    required: "Please Enter Other Charge Value",
+                'other_charge': {
+                    required: "Please Enter Other Charges",
                 },
                 'asp_collected_charges': {
-                    required: "Please Enter Collected Charge Value",
+                    required: "Please Enter Charges Collected",
                 },
                 'remarks_not_collected': {
                     required: "Please Enter Remark Comments",
                 },
                 'map_attachment[]': {
                     required: 'Please attach google map screenshot',
-                },
-                'asp_collected_charges': {
-                    number: 'Please enter number value',
                 },
                 'other_attachment[]': {
                     required: 'Please attach other Attachment',

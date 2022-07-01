@@ -53,6 +53,11 @@ class ActivityController extends Controller {
 			],
 		];
 		$this->data['auth_user_details'] = Auth::user();
+		$isAspRole = false;
+		if (Entrust::hasRole('asp')) {
+			$isAspRole = true;
+		}
+		$this->data['isAspRole'] = $isAspRole;
 		return response()->json($this->data);
 	}
 
@@ -2571,6 +2576,59 @@ class ActivityController extends Controller {
 				]);
 			}
 
+			$enteredServiceType = ServiceType::select([
+				'id',
+				'service_group_id',
+			])
+				->where('id', $request->asp_service_type_id)
+				->first();
+			if (!$enteredServiceType) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Service not found',
+					],
+				]);
+			}
+			$checkTowingAttachmentMandatory = false;
+			//TOWING GROUP
+			if ($enteredServiceType->service_group_id == 3 && $activity->is_towing_attachments_mandatory == 1 && $activity->financeStatus && $activity->financeStatus->po_eligibility_type_id == 340) {
+				$towingImagesMandatoryEffectiveDate = config('rsa.TOWING_IMAGES_MANDATORY_EFFECTIVE_DATE');
+				if (date('Y-m-d', strtotime($activity->case->date)) >= $towingImagesMandatoryEffectiveDate) {
+					$checkTowingAttachmentMandatory = true;
+				}
+			}
+
+			if ($checkTowingAttachmentMandatory) {
+				// Vehicle Pickup image
+				if (!isset($request->vehiclePickupAttachExist) && (!isset($request->vehicle_pickup_attachment) || (isset($request->vehicle_pickup_attachment) && empty($request->vehicle_pickup_attachment)))) {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'Please Upload Vehicle Pickup image',
+						],
+					]);
+				}
+				// Vehicle Pickup image
+				if (!isset($request->vehicleDropAttachExist) && (!isset($request->vehicle_drop_attachment) || (isset($request->vehicle_drop_attachment) && empty($request->vehicle_drop_attachment)))) {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'Please Upload Vehicle Drop image',
+						],
+					]);
+				}
+				// Vehicle Pickup image
+				if (!isset($request->inventoryJobSheetAttachExist) && (!isset($request->inventory_job_sheet_attachment) || (isset($request->inventory_job_sheet_attachment) && empty($request->inventory_job_sheet_attachment)))) {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'Please Upload Inventory Job Sheet image',
+						],
+					]);
+				}
+			}
+
 			$range_limit = 0;
 			$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
 			Storage::makeDirectory($destination, 0777);
@@ -2774,7 +2832,9 @@ class ActivityController extends Controller {
 						if (!isset($request->km_attachment_exist) && empty($request->map_attachment)) {
 							return response()->json([
 								'success' => false,
-								'errors' => ['Please attach google map screenshot'],
+								'errors' => [
+									'Please attach google map screenshot',
+								],
 							]);
 						}
 						if (!empty($request->map_attachment)) {
@@ -2817,13 +2877,17 @@ class ActivityController extends Controller {
 				if (!isset($request->other_attachment_exist) && empty($request->other_attachment)) {
 					return response()->json([
 						'success' => false,
-						'errors' => ['Please attach other Attachment'],
+						'errors' => [
+							'Please attach other Attachment',
+						],
 					]);
 				}
 				if (empty($request->remarks_not_collected)) {
 					return response()->json([
 						'success' => false,
-						'errors' => ['Please enter remarks comments for not collected'],
+						'errors' => [
+							'Please enter remarks comments for not collected',
+						],
 					]);
 				}
 			}
@@ -2914,12 +2978,12 @@ class ActivityController extends Controller {
 
 			$saveActivityRatecardResponse = $activity->saveActivityRatecard();
 			if (!$saveActivityRatecardResponse['success']) {
-				return [
+				return response()->json([
 					'success' => false,
 					'errors' => [
 						$saveActivityRatecardResponse['error'],
 					],
-				];
+				]);
 			}
 
 			//UPDATE ASP ACTIVITY DETAILS & CALCULATE INVOICE AMOUNT FOR ASP & BO BASED ON ASP ENTERTED DETAILS
@@ -2941,12 +3005,12 @@ class ActivityController extends Controller {
 
 			$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id);
 			if (!$response['success']) {
-				return [
+				return response()->json([
 					'success' => false,
 					'errors' => [
 						$response['error'],
 					],
-				];
+				]);
 			}
 
 			$price = $response['asp_service_price'];
@@ -3074,15 +3138,18 @@ class ActivityController extends Controller {
 				}
 			}
 			DB::commit();
-			$message = ['success' => "Ticket informations saved successfully"];
 			return response()->json(['success' => true]);
 		} catch (\Exception $e) {
 			DB::rollBack();
-			dd($e);
-			return response()->json(['success' => false]);
-
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
 		}
 	}
+
 	public function getDeferredList(Request $request) {
 		$activities = Activity::select(
 			'activities.id',

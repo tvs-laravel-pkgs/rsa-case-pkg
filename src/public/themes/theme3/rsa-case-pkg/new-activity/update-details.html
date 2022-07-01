@@ -141,7 +141,7 @@
                             <div class="row" ng-show="$ctrl.showTowingAttachment">
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
-                                        <label>Vehicle Pickup Image<sup ng-if="$ctrl.activity.is_towing_attachments_mandatory" class="req" style="color:red">*</sup></label>
+                                        <label>Vehicle Pickup Image<sup ng-if="$ctrl.activity.is_towing_attachments_mandatory && $ctrl.activity.finance_status.po_eligibility_type_id == 340" class="req" style="color:red">*</sup></label>
                                         <div class="input-group">
                                             <input type="text" class="form-control" readonly placeholder="Select File">
                                             <span class="input-group-btn">
@@ -160,7 +160,7 @@
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
-                                        <label>Vehicle Drop Image<sup ng-if="$ctrl.activity.is_towing_attachments_mandatory" class="req" style="color:red">*</sup></label>
+                                        <label>Vehicle Drop Image<sup ng-if="$ctrl.activity.is_towing_attachments_mandatory && $ctrl.activity.finance_status.po_eligibility_type_id == 340" class="req" style="color:red">*</sup></label>
                                         <div class="input-group">
                                             <input type="text" class="form-control" readonly placeholder="Select File">
                                             <span class="input-group-btn">
@@ -179,7 +179,7 @@
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
-                                        <label>Inventory Job Sheet Image<sup ng-if="$ctrl.activity.is_towing_attachments_mandatory" class="req" style="color:red">*</sup></label>
+                                        <label>Inventory Job Sheet Image<sup ng-if="$ctrl.activity.is_towing_attachments_mandatory && $ctrl.activity.finance_status.po_eligibility_type_id == 340" class="req" style="color:red">*</sup></label>
                                         <div class="input-group">
                                             <input type="text" class="form-control" readonly placeholder="Select File">
                                             <span class="input-group-btn">

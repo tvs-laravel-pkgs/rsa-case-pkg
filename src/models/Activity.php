@@ -191,6 +191,7 @@ class Activity extends Model {
 		$data['activity'] = $activity = self::with([
 			'case',
 			'serviceType',
+			'financeStatus',
 		])
 			->findOrFail($id);
 

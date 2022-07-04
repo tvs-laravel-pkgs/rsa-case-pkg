@@ -592,7 +592,11 @@ class ActivityController extends Controller {
 						$statusId = 6;
 					}
 				} else {
-					$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+					if ($activity->is_asp_data_entry_done == 1) {
+						$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+					} else {
+						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+					}
 				}
 				$activity->status_id = $statusId;
 				$activity->save();

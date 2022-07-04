@@ -420,14 +420,19 @@ class CaseController extends Controller {
 							$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
 							$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
 							if ($is_bulk) {
-								//ASP Completed Data Entry - Waiting for BO Bulk Verification
+								//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 								$status_id = 5;
 							} else {
-								//ASP Completed Data Entry - Waiting for BO Individual Verification
+								//ASP Completed Data Entry - Waiting for L1 Individual Verification
 								$status_id = 6;
 							}
 						} else {
-							$status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+							if ($activity->is_asp_data_entry_done == 1) {
+								//ASP Completed Data Entry - Waiting for L1 Individual Verification
+								$status_id = 6;
+							} else {
+								$status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+							}
 						}
 						$activity->update([
 							'status_id' => $status_id,

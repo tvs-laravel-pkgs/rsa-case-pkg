@@ -2279,7 +2279,7 @@ class ActivityController extends Controller {
 		}
 
 		$query1 = clone $query;
-		$tickets = $query1->whereIn('activities.status_id', [2, 4])
+		$tickets = $query1->whereIn('activities.status_id', [2, 4, 17]) // WAITING FOR ASP DATA ENTRY AND ON HOLD
 			->where('activities.asp_id', Auth::user()->asp->id)
 			->orderBy('activities.id', 'ASC')
 			->get();
@@ -2377,29 +2377,30 @@ class ActivityController extends Controller {
 						],
 					]);
 				}
-				$query5 = clone $query;
-				$activity_on_hold = $query5->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
-					if ($submission_closing_extended) {
-						$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
-					} else {
-						$q->where('cases.created_at', '>=', $threeMonthsBefore);
-					}
-				})
-					->where('activities.status_id', 17) //ON HOLD
-					->where('activities.asp_id', Auth::user()->asp->id)
-					->first();
-				if ($activity_on_hold) {
-					$activityOnHoldError = "Ticket On Hold";
-					if ($activity_on_hold->activityStatus) {
-						$activityOnHoldError = "Ticket On Hold. Activity status : " . $activity_on_hold->activityStatus->name;
-					}
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							$activityOnHoldError,
-						],
-					]);
-				}
+				//DISABLED NOW SINCE ON HOLD CASES ARE ALLOWED
+				// $query5 = clone $query;
+				// $activity_on_hold = $query5->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
+				// 	if ($submission_closing_extended) {
+				// 		$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
+				// 	} else {
+				// 		$q->where('cases.created_at', '>=', $threeMonthsBefore);
+				// 	}
+				// })
+				// 	->where('activities.status_id', 17) //ON HOLD
+				// 	->where('activities.asp_id', Auth::user()->asp->id)
+				// 	->first();
+				// if ($activity_on_hold) {
+				// 	$activityOnHoldError = "Ticket On Hold";
+				// 	if ($activity_on_hold->activityStatus) {
+				// 		$activityOnHoldError = "Ticket On Hold. Activity status : " . $activity_on_hold->activityStatus->name;
+				// 	}
+				// 	return response()->json([
+				// 		'success' => false,
+				// 		'errors' => [
+				// 			$activityOnHoldError,
+				// 		],
+				// 	]);
+				// }
 
 				$query6 = clone $query;
 				$activity_not_eligible_for_payment = $query6->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
@@ -2912,22 +2913,26 @@ class ActivityController extends Controller {
 				$is_bulk = false;
 			}
 
-			//ASP DATA RE-ENTRY - DEFERRED
-			if ($request->data_reentry == '1') {
-				if ($is_bulk) {
-					$activity->status_id = 8;
+			//NOT ONHOLD TICKETS
+			if ($activity->status_id != 17) {
+				//ASP DATA RE-ENTRY - DEFERRED
+				if ($request->data_reentry == '1') {
+					if ($is_bulk) {
+						$activity->status_id = 8;
+					} else {
+						$activity->status_id = 9;
+					}
 				} else {
-					$activity->status_id = 9;
-				}
-			} else {
-				//ASP DATA ENTRY - NEW
-				if ($is_bulk) {
-					$activity->status_id = 5;
-				} else {
-					$activity->status_id = 6;
+					//ASP DATA ENTRY - NEW
+					if ($is_bulk) {
+						$activity->status_id = 5;
+					} else {
+						$activity->status_id = 6;
+					}
 				}
 			}
 
+			$activity->is_asp_data_entry_done = 1;
 			$activity->service_type_id = $request->asp_service_type_id;
 
 			if (!empty($request->comments)) {
@@ -2993,6 +2998,7 @@ class ActivityController extends Controller {
 				154 => $request->km_travelled,
 				156 => $request->other_charge,
 				155 => $request->asp_collected_charges,
+				//BO
 				//BO
 				161 => $activity->serviceType->name,
 				158 => $request->km_travelled,

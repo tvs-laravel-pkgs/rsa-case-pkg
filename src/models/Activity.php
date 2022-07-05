@@ -1170,10 +1170,10 @@ class Activity extends Model {
 									if ($service_type->service_group_id == 2) {
 										$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $dataSourceId);
 										if ($is_bulk) {
-											//ASP Completed Data Entry - Waiting for BO Bulk Verification
+											//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 											$activity->status_id = 5;
 										} else {
-											//ASP Completed Data Entry - Waiting for BO Individual Verification
+											//ASP Completed Data Entry - Waiting for L1 Individual Verification
 											$activity->status_id = 6;
 										}
 									} else {
@@ -1270,10 +1270,10 @@ class Activity extends Model {
 										if ($service_type->service_group_id == 2) {
 											$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $activity->data_src_id);
 											if ($is_bulk) {
-												//ASP Completed Data Entry - Waiting for BO Bulk Verification
+												//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 												$activity->status_id = 5;
 											} else {
-												//ASP Completed Data Entry - Waiting for BO Individual Verification
+												//ASP Completed Data Entry - Waiting for L1 Individual Verification
 												$activity->status_id = 6;
 											}
 										}

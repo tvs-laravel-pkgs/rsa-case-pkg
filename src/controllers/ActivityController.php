@@ -2281,6 +2281,7 @@ class ActivityController extends Controller {
 		$query1 = clone $query;
 		$tickets = $query1->whereIn('activities.status_id', [2, 4, 17]) // WAITING FOR ASP DATA ENTRY AND ON HOLD
 			->where('activities.asp_id', Auth::user()->asp->id)
+			->whereNull('activities.is_asp_data_entry_done') //FOR ONHOLD STATUS PURPOSE
 			->orderBy('activities.id', 'ASC')
 			->get();
 		if ($tickets->isNotEmpty()) {
@@ -2377,30 +2378,35 @@ class ActivityController extends Controller {
 						],
 					]);
 				}
-				//DISABLED NOW SINCE ON HOLD CASES ARE ALLOWED
-				// $query5 = clone $query;
-				// $activity_on_hold = $query5->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
-				// 	if ($submission_closing_extended) {
-				// 		$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
-				// 	} else {
-				// 		$q->where('cases.created_at', '>=', $threeMonthsBefore);
-				// 	}
-				// })
-				// 	->where('activities.status_id', 17) //ON HOLD
-				// 	->where('activities.asp_id', Auth::user()->asp->id)
-				// 	->first();
-				// if ($activity_on_hold) {
-				// 	$activityOnHoldError = "Ticket On Hold";
-				// 	if ($activity_on_hold->activityStatus) {
-				// 		$activityOnHoldError = "Ticket On Hold. Activity status : " . $activity_on_hold->activityStatus->name;
-				// 	}
-				// 	return response()->json([
-				// 		'success' => false,
-				// 		'errors' => [
-				// 			$activityOnHoldError,
-				// 		],
-				// 	]);
-				// }
+
+				$query5 = clone $query;
+				$activity_on_hold = $query5->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
+					if ($submission_closing_extended) {
+						$q->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
+					} else {
+						$q->where('cases.created_at', '>=', $threeMonthsBefore);
+					}
+				})
+					->where('activities.status_id', 17) //ON HOLD
+					->whereNotNull('activities.is_asp_data_entry_done')
+					->where('activities.asp_id', Auth::user()->asp->id)
+					->first();
+				if ($activity_on_hold) {
+					// $activityOnHoldError = "Ticket On Hold";
+					// if ($activity_on_hold->activityStatus) {
+					// 	$activityOnHoldError = "Ticket On Hold. Activity status : " . $activity_on_hold->activityStatus->name;
+					// }
+					$activityOnHoldError = "Ticket already submitted. Case : " . $activity_on_hold->case_number . "(" . $activity_on_hold->case_date . ")";
+					if ($activity_on_hold->activityStatus) {
+						$activityOnHoldError = "Ticket already submitted. Case : " . $activity_on_hold->case_number . "(" . $activity_on_hold->case_date . "), Activity status : " . $activity_on_hold->activityStatus->name;
+					}
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							$activityOnHoldError,
+						],
+					]);
+				}
 
 				$query6 = clone $query;
 				$activity_not_eligible_for_payment = $query6->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {

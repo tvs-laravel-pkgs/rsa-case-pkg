@@ -3115,32 +3115,35 @@ class ActivityController extends Controller {
 			$activity_log->updated_by_id = Auth::id();
 			$activity_log->save();
 
-			//sending confirmation SMS to ASP
-			$mobile_number = $activity->asp->contact_number1;
-			$sms_message = 'Tkt uptd successfully';
-			$array = [$activity->case->number];
-			// sendSMS2($sms_message, $mobile_number, $array, NULL);
+			//NOT ONHOLD TICKETS
+			if ($activity->status_id != 17) {
+				//sending confirmation SMS to ASP
+				$mobile_number = $activity->asp->contact_number1;
+				$sms_message = 'Tkt uptd successfully';
+				$array = [$activity->case->number];
+				// sendSMS2($sms_message, $mobile_number, $array, NULL);
 
-			//sending notification to all ASP STATE MAPPED BO users
-			//$bo_users = User::where('users.role_id', 6)->pluck('users.id'); //6 - Bo User role ID
-			$state_id = Auth::user()->asp->state_id;
-			// $bo_users = StateUser::where('state_id', $state_id)->pluck('user_id');
-			$bo_users = DB::table('state_user')
-				->join('users', 'users.id', 'state_user.user_id')
-				->where('state_user.state_id', $state_id)
-				->where('users.role_id', 6) //BO
-				->where('users.activity_approval_level_id', 1) //L1
-				->pluck('state_user.user_id');
+				//sending notification to all ASP STATE MAPPED BO users
+				//$bo_users = User::where('users.role_id', 6)->pluck('users.id'); //6 - Bo User role ID
+				$state_id = Auth::user()->asp->state_id;
+				// $bo_users = StateUser::where('state_id', $state_id)->pluck('user_id');
+				$bo_users = DB::table('state_user')
+					->join('users', 'users.id', 'state_user.user_id')
+					->where('state_user.state_id', $state_id)
+					->where('users.role_id', 6) //BO
+					->where('users.activity_approval_level_id', 1) //L1
+					->pluck('state_user.user_id');
 
-			if ($activity->status_id == 5) {
-				$noty_message_template = 'ASP_DATA_ENTRY_DONE_BULK';
-			} else {
-				$noty_message_template = 'ASP_DATA_ENTRY_DONE_DEFFERED';
-			}
-			$ticket_number = [$activity->case->number];
-			if (!empty($bo_users)) {
-				foreach ($bo_users as $bo_user_id) {
-					notify2($noty_message_template, $bo_user_id, config('constants.alert_type.blue'), $ticket_number);
+				if ($activity->status_id == 5) {
+					$noty_message_template = 'ASP_DATA_ENTRY_DONE_BULK';
+				} else {
+					$noty_message_template = 'ASP_DATA_ENTRY_DONE_DEFFERED';
+				}
+				$ticket_number = [$activity->case->number];
+				if (!empty($bo_users)) {
+					foreach ($bo_users as $bo_user_id) {
+						notify2($noty_message_template, $bo_user_id, config('constants.alert_type.blue'), $ticket_number);
+					}
 				}
 			}
 			DB::commit();

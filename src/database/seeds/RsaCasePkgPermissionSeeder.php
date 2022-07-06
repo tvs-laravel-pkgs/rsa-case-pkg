@@ -647,6 +647,30 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'import-post-paid-membership',
 				'display_name' => 'Import Post Paid Membership',
 			],
+			[
+				'display_order' => 23,
+				'parent' => 'membership',
+				'name' => 'own-zm-dealers-membership',
+				'display_name' => 'Own ZM Dealers',
+			],
+			[
+				'display_order' => 24,
+				'parent' => 'membership',
+				'name' => 'zm-dealers-report-membership',
+				'display_name' => 'Own ZM Dealers Report',
+			],
+			[
+				'display_order' => 25,
+				'parent' => 'membership',
+				'name' => 'own-nm-dealers-membership',
+				'display_name' => 'Own NM Dealers',
+			],
+			[
+				'display_order' => 26,
+				'parent' => 'membership',
+				'name' => 'nm-dealers-report-membership',
+				'display_name' => 'Own NM Dealers Report',
+			],
 
 			//Dealer Invoice Menu
 			[

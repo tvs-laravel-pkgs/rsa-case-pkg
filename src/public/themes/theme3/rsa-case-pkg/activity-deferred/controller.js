@@ -271,7 +271,10 @@ app.component('deferredActivityUpdate', {
             var other_charge = parseInt(self.cc_not_collected);
             if ($.isNumeric(other_charge_entered)) {
                 if (other_charge_entered) {
-                    if (other_charge_entered > other_charge) {
+                    //DISABLED
+                    // if (other_charge_entered > other_charge) {
+                    //NEW LOGIC BY CLIENT
+                    if (parseFloat(other_charge_entered) >= 31) {
                         $(".other_attachment").show();
                         $(".remarks_notcollected").show();
                         $(".for_differ_other").val(1);
@@ -393,6 +396,9 @@ app.component('deferredActivityUpdate', {
                 'remarks_not_collected': {
                     required: true,
                 },
+                'comments': {
+                    required: true,
+                },
                 'asp_collected_charges': {
                     number: true,
                     required: true,
@@ -405,39 +411,45 @@ app.component('deferredActivityUpdate', {
                 'other_attachment[]': {
                     // required: true,
                     check_other_attach: true,
-                    extension: "jpg|jpeg|png|gif"
+                    extension: "jpg|jpeg|png|gif|pdf"
                 },
                 'vehicle_pickup_attachment': {
                     required: function(element) {
-                        return self.activity.is_towing_attachments_mandatory === 1 && !self.vehiclePickupAttach;
+                        return self.activity.is_towing_attachments_mandatory === 1 && !self.vehiclePickupAttach && self.activity.finance_status.po_eligibility_type_id == 340;
                     },
                     imageFileSize: 1048576,
                 },
                 'vehicle_drop_attachment': {
                     required: function(element) {
-                        return self.activity.is_towing_attachments_mandatory === 1 && !self.vehicleDropAttach;
+                        return self.activity.is_towing_attachments_mandatory === 1 && !self.vehicleDropAttach && self.activity.finance_status.po_eligibility_type_id == 340;
                     },
                     imageFileSize: 1048576,
                 },
                 'inventory_job_sheet_attachment': {
                     required: function(element) {
-                        return self.activity.is_towing_attachments_mandatory === 1 && !self.inventoryJobSheetAttach;
+                        return self.activity.is_towing_attachments_mandatory === 1 && !self.inventoryJobSheetAttach && self.activity.finance_status.po_eligibility_type_id == 340;
                     },
                     imageFileSize: 1048576,
                 }
             },
             messages: {
                 'km_travelled': {
-                    required: "Please Enter Kilo Meter Value",
+                    required: "Please Enter KM Travelled",
+                },
+                'other_charge': {
+                    required: "Please Enter Other Charges",
+                },
+                'asp_collected_charges': {
+                    required: "Please Enter Charges Collected",
                 },
                 'remarks_not_collected': {
-                    required: "Please Enter Remark Comments",
+                    required: "Please Enter Remarks",
+                },
+                'comments': {
+                    required: "Please Enter Resolve Comments",
                 },
                 'map_attachment[]': {
                     required: 'Please attach google map screenshot',
-                },
-                'asp_collected_charges': {
-                    number: 'Please enter number value',
                 },
                 'other_attachment[]': {
                     required: 'Please attach other Attachment',

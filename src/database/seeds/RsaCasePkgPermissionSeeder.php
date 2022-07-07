@@ -98,6 +98,42 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'display-asp-number-in-activities',
 				'display_name' => 'Display ASP Number',
 			],
+			[
+				'display_order' => 13,
+				'parent' => 'activity-status',
+				'name' => 'own-rm-asp-activities',
+				'display_name' => 'Own RM ASPs',
+			],
+			[
+				'display_order' => 14,
+				'parent' => 'activity-status',
+				'name' => 'export-own-rm-asp-activities',
+				'display_name' => 'Export Own RM ASPs',
+			],
+			[
+				'display_order' => 15,
+				'parent' => 'activity-status',
+				'name' => 'own-zm-asp-activities',
+				'display_name' => 'Own ZM ASPs',
+			],
+			[
+				'display_order' => 16,
+				'parent' => 'activity-status',
+				'name' => 'export-own-zm-asp-activities',
+				'display_name' => 'Export Own ZM ASPs',
+			],
+			[
+				'display_order' => 17,
+				'parent' => 'activity-status',
+				'name' => 'own-nm-asp-activities',
+				'display_name' => 'Own NM ASPs',
+			],
+			[
+				'display_order' => 18,
+				'parent' => 'activity-status',
+				'name' => 'export-own-nm-asp-activities',
+				'display_name' => 'Export Own NM ASPs',
+			],
 
 			//ACTIVITIES VERIFICATION
 			[
@@ -592,6 +628,18 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'parent' => 'membership',
 				'name' => 'own-client-admin-report-membership',
 				'display_name' => 'Own Client Admin Report',
+			],
+			[
+				'display_order' => 20,
+				'parent' => 'membership',
+				'name' => 'own-rm-dealers-membership',
+				'display_name' => 'Own RM Dealers',
+			],
+			[
+				'display_order' => 21,
+				'parent' => 'membership',
+				'name' => 'rm-dealers-report-membership',
+				'display_name' => 'Own RM Dealers Report',
 			],
 
 			//Dealer Invoice Menu
@@ -1149,6 +1197,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'parent' => 'sales_data_upload',
 				'name' => 'failed-direct-sale-transactions-crm-repush',
 				'display_name' => 'Failed Direct sale transactions CRM Re-push',
+			],
+			[
+				'display_order' => 5,
+				'parent' => 'sales_data_upload',
+				'name' => 'edit-failed-direct-sale-transaction',
+				'display_name' => 'Edit failed direct sale transaction',
 			],
 
 			//QUERY LOG

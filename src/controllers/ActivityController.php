@@ -2279,8 +2279,9 @@ class ActivityController extends Controller {
 		}
 
 		$query1 = clone $query;
-		$tickets = $query1->whereIn('activities.status_id', [2, 4])
+		$tickets = $query1->whereIn('activities.status_id', [2, 4, 17]) // WAITING FOR ASP DATA ENTRY AND ON HOLD
 			->where('activities.asp_id', Auth::user()->asp->id)
+			->whereNull('activities.is_asp_data_entry_done') //FOR ONHOLD STATUS PURPOSE
 			->orderBy('activities.id', 'ASC')
 			->get();
 		if ($tickets->isNotEmpty()) {
@@ -2377,6 +2378,7 @@ class ActivityController extends Controller {
 						],
 					]);
 				}
+
 				$query5 = clone $query;
 				$activity_on_hold = $query5->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
 					if ($submission_closing_extended) {
@@ -2386,12 +2388,17 @@ class ActivityController extends Controller {
 					}
 				})
 					->where('activities.status_id', 17) //ON HOLD
+					->whereNotNull('activities.is_asp_data_entry_done')
 					->where('activities.asp_id', Auth::user()->asp->id)
 					->first();
 				if ($activity_on_hold) {
-					$activityOnHoldError = "Ticket On Hold";
+					// $activityOnHoldError = "Ticket On Hold";
+					// if ($activity_on_hold->activityStatus) {
+					// 	$activityOnHoldError = "Ticket On Hold. Activity status : " . $activity_on_hold->activityStatus->name;
+					// }
+					$activityOnHoldError = "Ticket already submitted. Case : " . $activity_on_hold->case_number . "(" . $activity_on_hold->case_date . ")";
 					if ($activity_on_hold->activityStatus) {
-						$activityOnHoldError = "Ticket On Hold. Activity status : " . $activity_on_hold->activityStatus->name;
+						$activityOnHoldError = "Ticket already submitted. Case : " . $activity_on_hold->case_number . "(" . $activity_on_hold->case_date . "), Activity status : " . $activity_on_hold->activityStatus->name;
 					}
 					return response()->json([
 						'success' => false,
@@ -2912,22 +2919,26 @@ class ActivityController extends Controller {
 				$is_bulk = false;
 			}
 
-			//ASP DATA RE-ENTRY - DEFERRED
-			if ($request->data_reentry == '1') {
-				if ($is_bulk) {
-					$activity->status_id = 8;
+			//NOT ONHOLD TICKETS
+			if ($activity->status_id != 17) {
+				//ASP DATA RE-ENTRY - DEFERRED
+				if ($request->data_reentry == '1') {
+					if ($is_bulk) {
+						$activity->status_id = 8;
+					} else {
+						$activity->status_id = 9;
+					}
 				} else {
-					$activity->status_id = 9;
-				}
-			} else {
-				//ASP DATA ENTRY - NEW
-				if ($is_bulk) {
-					$activity->status_id = 5;
-				} else {
-					$activity->status_id = 6;
+					//ASP DATA ENTRY - NEW
+					if ($is_bulk) {
+						$activity->status_id = 5;
+					} else {
+						$activity->status_id = 6;
+					}
 				}
 			}
 
+			$activity->is_asp_data_entry_done = 1;
 			$activity->service_type_id = $request->asp_service_type_id;
 
 			if (!empty($request->comments)) {
@@ -2993,6 +3004,7 @@ class ActivityController extends Controller {
 				154 => $request->km_travelled,
 				156 => $request->other_charge,
 				155 => $request->asp_collected_charges,
+				//BO
 				//BO
 				161 => $activity->serviceType->name,
 				158 => $request->km_travelled,
@@ -3109,32 +3121,35 @@ class ActivityController extends Controller {
 			$activity_log->updated_by_id = Auth::id();
 			$activity_log->save();
 
-			//sending confirmation SMS to ASP
-			$mobile_number = $activity->asp->contact_number1;
-			$sms_message = 'Tkt uptd successfully';
-			$array = [$activity->case->number];
-			// sendSMS2($sms_message, $mobile_number, $array, NULL);
+			//NOT ONHOLD TICKETS
+			if ($activity->status_id != 17) {
+				//sending confirmation SMS to ASP
+				$mobile_number = $activity->asp->contact_number1;
+				$sms_message = 'Tkt uptd successfully';
+				$array = [$activity->case->number];
+				// sendSMS2($sms_message, $mobile_number, $array, NULL);
 
-			//sending notification to all ASP STATE MAPPED BO users
-			//$bo_users = User::where('users.role_id', 6)->pluck('users.id'); //6 - Bo User role ID
-			$state_id = Auth::user()->asp->state_id;
-			// $bo_users = StateUser::where('state_id', $state_id)->pluck('user_id');
-			$bo_users = DB::table('state_user')
-				->join('users', 'users.id', 'state_user.user_id')
-				->where('state_user.state_id', $state_id)
-				->where('users.role_id', 6) //BO
-				->where('users.activity_approval_level_id', 1) //L1
-				->pluck('state_user.user_id');
+				//sending notification to all ASP STATE MAPPED BO users
+				//$bo_users = User::where('users.role_id', 6)->pluck('users.id'); //6 - Bo User role ID
+				$state_id = Auth::user()->asp->state_id;
+				// $bo_users = StateUser::where('state_id', $state_id)->pluck('user_id');
+				$bo_users = DB::table('state_user')
+					->join('users', 'users.id', 'state_user.user_id')
+					->where('state_user.state_id', $state_id)
+					->where('users.role_id', 6) //BO
+					->where('users.activity_approval_level_id', 1) //L1
+					->pluck('state_user.user_id');
 
-			if ($activity->status_id == 5) {
-				$noty_message_template = 'ASP_DATA_ENTRY_DONE_BULK';
-			} else {
-				$noty_message_template = 'ASP_DATA_ENTRY_DONE_DEFFERED';
-			}
-			$ticket_number = [$activity->case->number];
-			if (!empty($bo_users)) {
-				foreach ($bo_users as $bo_user_id) {
-					notify2($noty_message_template, $bo_user_id, config('constants.alert_type.blue'), $ticket_number);
+				if ($activity->status_id == 5) {
+					$noty_message_template = 'ASP_DATA_ENTRY_DONE_BULK';
+				} else {
+					$noty_message_template = 'ASP_DATA_ENTRY_DONE_DEFFERED';
+				}
+				$ticket_number = [$activity->case->number];
+				if (!empty($bo_users)) {
+					foreach ($bo_users as $bo_user_id) {
+						notify2($noty_message_template, $bo_user_id, config('constants.alert_type.blue'), $ticket_number);
+					}
 				}
 			}
 			DB::commit();
@@ -3619,6 +3634,22 @@ class ActivityController extends Controller {
 							'error' => 'Invoice number should not start with zero',
 						]);
 					}
+				}
+
+				//SPECIAL CHARACTERS NOT ALLOWED AT PREFIX
+				if (!preg_match("/^[A-Za-z0-9]{1}/", $request->invoice_no)) {
+					return response()->json([
+						'success' => false,
+						'error' => 'Special characters are not allowed at the beginning of the invoice number',
+					]);
+				}
+
+				//SPECIAL CHARACTERS NOT ALLOWED AT SUFFIX
+				if (!preg_match("/[A-Za-z0-9]{1}$/", $request->invoice_no)) {
+					return response()->json([
+						'success' => false,
+						'error' => 'Special characters are not allowed at the end of the invoice number',
+					]);
 				}
 
 				$invoice_no = $request->invoice_no;

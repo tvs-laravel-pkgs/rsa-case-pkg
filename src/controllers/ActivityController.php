@@ -2147,6 +2147,8 @@ class ActivityController extends Controller {
 					$deferReason = "L1 Approver : " . $request->defer_reason;
 				}
 				$activity->service_type_changed_on_level = NULL;
+				$activity->l1_changed_service_type_id = NULL;
+				$activity->l2_changed_service_type_id = NULL;
 				$activity->km_changed_on_level = NULL;
 				$activity->not_collected_amount_changed_on_level = NULL;
 				$activity->collected_amount_changed_on_level = NULL;

@@ -1607,6 +1607,7 @@ class ActivityController extends Controller {
 						$approver = '1';
 						if ($isServiceTypeChanged) {
 							$activity->service_type_changed_on_level = 1;
+							$activity->l1_changed_service_type_id = $request->boServiceTypeId;
 						}
 						if ($isKmTravelledChanged) {
 							$activity->km_changed_on_level = 1;
@@ -1628,6 +1629,7 @@ class ActivityController extends Controller {
 						$approver = '2';
 						if ($isServiceTypeChanged) {
 							$activity->service_type_changed_on_level = 2;
+							$activity->l2_changed_service_type_id = $request->boServiceTypeId;
 						}
 						if ($isKmTravelledChanged) {
 							$activity->km_changed_on_level = 2;
@@ -1657,6 +1659,7 @@ class ActivityController extends Controller {
 						$approver = '1';
 						if ($isServiceTypeChanged) {
 							$activity->service_type_changed_on_level = 1;
+							$activity->l1_changed_service_type_id = $request->boServiceTypeId;
 						}
 						if ($isKmTravelledChanged) {
 							$activity->km_changed_on_level = 1;
@@ -1675,6 +1678,7 @@ class ActivityController extends Controller {
 						$approver = '2';
 						if ($isServiceTypeChanged) {
 							$activity->service_type_changed_on_level = 2;
+							$activity->l2_changed_service_type_id = $request->boServiceTypeId;
 						}
 						if ($isKmTravelledChanged) {
 							$activity->km_changed_on_level = 2;
@@ -1710,6 +1714,7 @@ class ActivityController extends Controller {
 						$approver = '1';
 						if ($isServiceTypeChanged) {
 							$activity->service_type_changed_on_level = 1;
+							$activity->l1_changed_service_type_id = $request->boServiceTypeId;
 						}
 						if ($isKmTravelledChanged) {
 							$activity->km_changed_on_level = 1;
@@ -1727,6 +1732,7 @@ class ActivityController extends Controller {
 						$approver = '2';
 						if ($isServiceTypeChanged) {
 							$activity->service_type_changed_on_level = 2;
+							$activity->l2_changed_service_type_id = $request->boServiceTypeId;
 						}
 						if ($isKmTravelledChanged) {
 							$activity->km_changed_on_level = 2;

@@ -1800,7 +1800,7 @@ class ActivityController extends Controller {
 			return response()->json([
 				'success' => false,
 				'errors' => [
-					'Exception Error' => $e->getMessage(),
+					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			]);
 		}
@@ -2158,7 +2158,7 @@ class ActivityController extends Controller {
 			DB::rollBack();
 			return response()->json([
 				'success' => false,
-				'error' => $e->getMessage(),
+				'error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 			]);
 		}
 	}
@@ -3923,7 +3923,7 @@ class ActivityController extends Controller {
 			return response()->json([
 				'success' => false,
 				'errors' => [
-					'Exception Error' => $e->getMessage(),
+					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			]);
 		}
@@ -4884,7 +4884,7 @@ class ActivityController extends Controller {
 			return response()->json([
 				'success' => false,
 				'errors' => [
-					'Exception Error' => $e->getMessage(),
+					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			]);
 		}

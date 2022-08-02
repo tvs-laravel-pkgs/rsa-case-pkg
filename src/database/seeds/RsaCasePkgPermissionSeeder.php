@@ -1397,6 +1397,14 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Dashboard Mail Log',
 			],
 
+			//UNBILLED AUTO INVOICE CRON LOG
+			[
+				'display_order' => 999,
+				'parent' => null,
+				'name' => 'unbilled-auto-invoice-cron-log',
+				'display_name' => 'Unbilled Auto Invoice Cron Log',
+			],
+
 			//DISCOUNT REASONS
 			[
 				'display_order' => 999,

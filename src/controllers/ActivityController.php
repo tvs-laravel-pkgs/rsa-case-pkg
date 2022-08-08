@@ -1684,6 +1684,8 @@ class ActivityController extends Controller {
 					$approver = '2';
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					$approver = '3';
+				} elseif (Auth::user()->activity_approval_level_id == 4) {
+					$approver = '4';
 				}
 			}
 
@@ -1710,6 +1712,10 @@ class ActivityController extends Controller {
 				//L3
 				$activityLog->l3_approved_at = Carbon::now();
 				$activityLog->l3_approved_by_id = Auth::id();
+			} elseif ($approver == '4') {
+				//L4
+				$activityLog->l4_approved_at = Carbon::now();
+				$activityLog->l4_approved_by_id = Auth::id();
 			}
 			$activityLog->updated_by_id = Auth::id();
 			$activityLog->updated_at = Carbon::now();
@@ -2029,6 +2035,8 @@ class ActivityController extends Controller {
 							$approver = '2';
 						} elseif (Auth::user()->activity_approval_level_id == 3) {
 							$approver = '3';
+						} elseif (Auth::user()->activity_approval_level_id == 4) {
+							$approver = '4';
 						}
 					}
 
@@ -2055,6 +2063,10 @@ class ActivityController extends Controller {
 						//L3
 						$activityLog->l3_approved_at = Carbon::now();
 						$activityLog->l3_approved_by_id = Auth::id();
+					} elseif ($approver == '4') {
+						//L4
+						$activityLog->l4_approved_at = Carbon::now();
+						$activityLog->l4_approved_by_id = Auth::id();
 					}
 					$activityLog->updated_by_id = Auth::id();
 					$activityLog->updated_at = Carbon::now();
@@ -2168,6 +2180,14 @@ class ActivityController extends Controller {
 				} else {
 					$deferReason = "L3 Approver : " . $request->defer_reason;
 				}
+			} elseif (Auth::user()->activity_approval_level_id == 4) {
+				// L4
+				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
+				if (!empty($deferReason)) {
+					$deferReason .= nl2br("<hr> L4 Approver : " . $request->defer_reason);
+				} else {
+					$deferReason = "L4 Approver : " . $request->defer_reason;
+				}
 			}
 
 			$activity->defer_reason = $deferReason;
@@ -2195,6 +2215,10 @@ class ActivityController extends Controller {
 				// L3
 				$activityLog->l3_deffered_at = date('Y-m-d H:i:s');
 				$activityLog->l3_deffered_by_id = Auth::id();
+			} elseif (Auth::user()->activity_approval_level_id == 4) {
+				// L4
+				$activityLog->l4_deffered_at = date('Y-m-d H:i:s');
+				$activityLog->l4_deffered_by_id = Auth::id();
 			}
 			$activityLog->updated_by_id = Auth::id();
 			$activityLog->updated_at = Carbon::now();

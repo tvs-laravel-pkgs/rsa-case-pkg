@@ -172,7 +172,7 @@ class ActivityController extends Controller {
 			})
 			->addColumn('action', function ($activity) {
 				$status_id = 1;
-				$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22];
+				$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24];
 
 				$action = '<div class="dataTable-actions">
 				<a href="#!/rsa-case-pkg/activity-status/' . $status_id . '/view/' . $activity->id . '">
@@ -210,7 +210,7 @@ class ActivityController extends Controller {
 		// dd($request->all());
 		try {
 			$activity = Activity::findOrFail($request->activty_id);
-			$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22];
+			$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24];
 
 			if (!$activity) {
 				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
@@ -403,6 +403,9 @@ class ActivityController extends Controller {
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
 					$activities->where('activities.status_id', 20); //Waiting for L3 Bulk Verification
+				} elseif (Auth::user()->activity_approval_level_id == 4) {
+					// L4
+					$activities->where('activities.status_id', 23); //Waiting for L4 Bulk Verification
 				} else {
 					$activities->whereNull('activities.status_id');
 				}
@@ -498,7 +501,6 @@ class ActivityController extends Controller {
 				$activities->whereIn('asps.state_id', $states);
 			}
 		}
-
 		if (Auth::check()) {
 			if (!empty(Auth::user()->activity_approval_level_id)) {
 				//L1
@@ -510,6 +512,9 @@ class ActivityController extends Controller {
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
 					$activities->where('activities.status_id', 21); //Waiting for L3 Individual Verification
+				} elseif (Auth::user()->activity_approval_level_id == 4) {
+					// L4
+					$activities->where('activities.status_id', 24); //Waiting for L4 Individual Verification
 				} else {
 					$activities->whereNull('activities.status_id');
 				}
@@ -538,7 +543,7 @@ class ActivityController extends Controller {
 			$activityApprovalLevel = '';
 			$activity_data = Activity::findOrFail($activity_status_id);
 			if ($view_type_id == 2) {
-				if (!$activity_data || ($activity_data && $activity_data->status_id != 5 && $activity_data->status_id != 6 && $activity_data->status_id != 8 && $activity_data->status_id != 9 && $activity_data->status_id != 18 && $activity_data->status_id != 19 && $activity_data->status_id != 20 && $activity_data->status_id != 21 && $activity_data->status_id != 22)) {
+				if (!$activity_data || ($activity_data && $activity_data->status_id != 5 && $activity_data->status_id != 6 && $activity_data->status_id != 8 && $activity_data->status_id != 9 && $activity_data->status_id != 18 && $activity_data->status_id != 19 && $activity_data->status_id != 20 && $activity_data->status_id != 21 && $activity_data->status_id != 22 && $activity_data->status_id != 23 && $activity_data->status_id != 24)) {
 					return response()->json([
 						'success' => false,
 						'errors' => [
@@ -1125,6 +1130,10 @@ class ActivityController extends Controller {
 			$l3DefferedBy = "";
 			$l3ApprovedAt = "";
 			$l3ApprovedBy = "";
+			$l4DefferedAt = "";
+			$l4DefferedBy = "";
+			$l4ApprovedAt = "";
+			$l4ApprovedBy = "";
 			$invoiceGeneratedAt = "";
 			$invoiceGeneratedBy = "";
 			$axaptaGeneratedAt = "";
@@ -1180,6 +1189,18 @@ class ActivityController extends Controller {
 				if (!empty($activity_data->log->l3_approved_by_id)) {
 					$l3ApprovedBy = $activity_data->log->l3ApprovedBy ? ($activity_data->log->l3ApprovedBy->name . ' - ' . $activity_data->log->l3ApprovedBy->username) : '';
 				}
+				if (!empty($activity_data->log->l4_deffered_at)) {
+					$l4DefferedAt = $activity_data->log->l4_deffered_at;
+				}
+				if (!empty($activity_data->log->l4_deffered_by_id)) {
+					$l4DefferedBy = $activity_data->log->l4DefferedBy ? ($activity_data->log->l4DefferedBy->name . ' - ' . $activity_data->log->l4DefferedBy->username) : '';
+				}
+				if (!empty($activity_data->log->l4_approved_at)) {
+					$l4ApprovedAt = $activity_data->log->l4_approved_at;
+				}
+				if (!empty($activity_data->log->l4_approved_by_id)) {
+					$l4ApprovedBy = $activity_data->log->l4ApprovedBy ? ($activity_data->log->l4ApprovedBy->name . ' - ' . $activity_data->log->l4ApprovedBy->username) : '';
+				}
 				if (!empty($activity_data->log->invoice_generated_at)) {
 					$invoiceGeneratedAt = $activity_data->log->invoice_generated_at;
 				}
@@ -1213,7 +1234,7 @@ class ActivityController extends Controller {
 					$boServiceTypeId = $boServiceType->id;
 				}
 			}
-			$eligibleBackstepStatusIds = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22];
+			$eligibleBackstepStatusIds = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24];
 			$eligibleForBackstep = false;
 			if (Entrust::can('backstep-activity') && in_array($activity->activity_portal_status_id, $eligibleBackstepStatusIds)) {
 				$eligibleForBackstep = true;
@@ -1237,6 +1258,10 @@ class ActivityController extends Controller {
 			$this->data['activities']['l3DefferedBy'] = $l3DefferedBy;
 			$this->data['activities']['l3ApprovedAt'] = $l3ApprovedAt;
 			$this->data['activities']['l3ApprovedBy'] = $l3ApprovedBy;
+			$this->data['activities']['l4DefferedAt'] = $l4DefferedAt;
+			$this->data['activities']['l4DefferedBy'] = $l4DefferedBy;
+			$this->data['activities']['l4ApprovedAt'] = $l4ApprovedAt;
+			$this->data['activities']['l4ApprovedBy'] = $l4ApprovedBy;
 			$this->data['activities']['invoiceGeneratedAt'] = $invoiceGeneratedAt;
 			$this->data['activities']['invoiceGeneratedBy'] = $invoiceGeneratedBy;
 			$this->data['activities']['axaptaGeneratedAt'] = $axaptaGeneratedAt;
@@ -1473,6 +1498,7 @@ class ActivityController extends Controller {
 				$activity->is_exceptional_check = $request->is_exceptional_check;
 				if (!empty($request->exceptional_reason)) {
 					$exceptionalReason = $activity->exceptional_reason;
+					//L1
 					if (Auth::user()->activity_approval_level_id == 1) {
 						if (!empty($exceptionalReason)) {
 							$exceptionalReason .= nl2br("<hr> L1 Approver : " . $request->exceptional_reason);
@@ -1480,16 +1506,25 @@ class ActivityController extends Controller {
 							$exceptionalReason = 'L1 Approver : ' . $request->exceptional_reason;
 						}
 					} elseif (Auth::user()->activity_approval_level_id == 2) {
+						//L2
 						if (!empty($exceptionalReason)) {
 							$exceptionalReason .= nl2br("<hr> L2 Approver : " . $request->exceptional_reason);
 						} else {
 							$exceptionalReason = 'L2 Approver : ' . $request->exceptional_reason;
 						}
 					} elseif (Auth::user()->activity_approval_level_id == 3) {
+						//L3
 						if (!empty($exceptionalReason)) {
 							$exceptionalReason .= nl2br("<hr> L3 Approver : " . $request->exceptional_reason);
 						} else {
 							$exceptionalReason = 'L3 Approver : ' . $request->exceptional_reason;
+						}
+					} elseif (Auth::user()->activity_approval_level_id == 4) {
+						//L4
+						if (!empty($exceptionalReason)) {
+							$exceptionalReason .= nl2br("<hr> L4 Approver : " . $request->exceptional_reason);
+						} else {
+							$exceptionalReason = 'L4 Approver : ' . $request->exceptional_reason;
 						}
 					}
 					$activity->exceptional_reason = $exceptionalReason;
@@ -1511,10 +1546,11 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
-			//L2 and L3 approver flow should be effective from April 2022 cases not for all the cases - By Sundhar / Hyder
+			//L2, L3, and L4 approver flow should be effective from April 2022 cases not for all the cases - By Sundhar / Hyder
 			if (date('Y-m-d', strtotime($activity->case->date)) >= "2022-04-01") {
 				$l2Approvers = User::where('activity_approval_level_id', 2)->pluck('id');
 				$l3Approvers = User::where('activity_approval_level_id', 3)->pluck('id');
+				$l4Approvers = User::where('activity_approval_level_id', 4)->pluck('id');
 
 				$isActivityBulk = $this->isActivityBulkOnApproval($activity);
 				$isApproved = false;
@@ -1567,12 +1603,104 @@ class ActivityController extends Controller {
 						$this->sendApprovalNoty($l3Approvers, $activity->case->number, "L3_APPROVAL");
 					} elseif (Auth::user()->activity_approval_level_id == 3) {
 						// L3
+						if ($isActivityBulk) {
+							$activityStatusId = 23; //Waiting for L4 Bulk Verification
+						} else {
+							$activityStatusId = 24; //Waiting for L4 Individual Verification
+						}
+						$approver = '3';
+						if ($isServiceTypeChanged) {
+							$activity->service_type_changed_on_level = 3;
+							$activity->l3_changed_service_type_id = $request->boServiceTypeId;
+						}
+						if ($isKmTravelledChanged) {
+							$activity->km_changed_on_level = 3;
+						}
+						if ($isNotCollectedChanged) {
+							$activity->not_collected_amount_changed_on_level = 3;
+						}
+						if ($isCollectedChanged) {
+							$activity->collected_amount_changed_on_level = 3;
+						}
+						$this->sendApprovalNoty($l4Approvers, $activity->case->number, "L4_APPROVAL");
+					} elseif (Auth::user()->activity_approval_level_id == 4) {
+						// L4
+						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+						$isApproved = true;
+						$approver = '4';
+					}
+				} elseif (floatval($request->bo_net_amount) > 6000 && floatval($request->bo_net_amount) <= 10000) {
+					//GREATER THAN 6000 AND LESSER THAN OR EQUAL TO 10000
+					//L1
+					if (Auth::user()->activity_approval_level_id == 1) {
+						if ($isActivityBulk) {
+							$activityStatusId = 18; //Waiting for L2 Bulk Verification
+						} else {
+							$activityStatusId = 19; //Waiting for L2 Individual Verification
+						}
+						$approver = '1';
+						if ($isServiceTypeChanged) {
+							$activity->service_type_changed_on_level = 1;
+							$activity->l1_changed_service_type_id = $request->boServiceTypeId;
+						}
+						if ($isKmTravelledChanged) {
+							$activity->km_changed_on_level = 1;
+						}
+						if ($isNotCollectedChanged) {
+							$activity->not_collected_amount_changed_on_level = 1;
+						}
+						if ($isCollectedChanged) {
+							$activity->collected_amount_changed_on_level = 1;
+						}
+						$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
+					} elseif (Auth::user()->activity_approval_level_id == 2) {
+						// L2
+						if ($isActivityBulk) {
+							$activityStatusId = 20; //Waiting for L3 Bulk Verification
+						} else {
+							$activityStatusId = 21; //Waiting for L3 Individual Verification
+						}
+						$approver = '2';
+						if ($isServiceTypeChanged) {
+							$activity->service_type_changed_on_level = 2;
+							$activity->l2_changed_service_type_id = $request->boServiceTypeId;
+						}
+						if ($isKmTravelledChanged) {
+							$activity->km_changed_on_level = 2;
+						}
+						if ($isNotCollectedChanged) {
+							$activity->not_collected_amount_changed_on_level = 2;
+						}
+						if ($isCollectedChanged) {
+							$activity->collected_amount_changed_on_level = 2;
+						}
+						$this->sendApprovalNoty($l3Approvers, $activity->case->number, "L3_APPROVAL");
+					} elseif (Auth::user()->activity_approval_level_id == 3) {
+						// L3
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 						$isApproved = true;
 						$approver = '3';
+						if ($isServiceTypeChanged) {
+							$activity->service_type_changed_on_level = 3;
+							$activity->l3_changed_service_type_id = $request->boServiceTypeId;
+						}
+						if ($isKmTravelledChanged) {
+							$activity->km_changed_on_level = 3;
+						}
+						if ($isNotCollectedChanged) {
+							$activity->not_collected_amount_changed_on_level = 3;
+						}
+						if ($isCollectedChanged) {
+							$activity->collected_amount_changed_on_level = 3;
+						}
+					} elseif (Auth::user()->activity_approval_level_id == 4) {
+						// L4
+						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+						$isApproved = true;
+						$approver = '4';
 					}
-				} elseif (floatval($request->bo_net_amount) > 4000 && floatval($request->bo_net_amount) <= 10000) {
-					//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 10000
+				} elseif (floatval($request->bo_net_amount) > 4000 && floatval($request->bo_net_amount) <= 6000) {
+					//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 6000
 					//L1
 					if (Auth::user()->activity_approval_level_id == 1) {
 						if ($isActivityBulk) {
@@ -1618,6 +1746,24 @@ class ActivityController extends Controller {
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 						$isApproved = true;
 						$approver = '3';
+						if ($isServiceTypeChanged) {
+							$activity->service_type_changed_on_level = 3;
+							$activity->l3_changed_service_type_id = $request->boServiceTypeId;
+						}
+						if ($isKmTravelledChanged) {
+							$activity->km_changed_on_level = 3;
+						}
+						if ($isNotCollectedChanged) {
+							$activity->not_collected_amount_changed_on_level = 3;
+						}
+						if ($isCollectedChanged) {
+							$activity->collected_amount_changed_on_level = 3;
+						}
+					} elseif (Auth::user()->activity_approval_level_id == 4) {
+						// L4
+						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+						$isApproved = true;
+						$approver = '4';
 					}
 				} else {
 					//LESSER THAN OR EQUAL TO 4000
@@ -1672,6 +1818,24 @@ class ActivityController extends Controller {
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 						$isApproved = true;
 						$approver = '3';
+						if ($isServiceTypeChanged) {
+							$activity->service_type_changed_on_level = 3;
+							$activity->l3_changed_service_type_id = $request->boServiceTypeId;
+						}
+						if ($isKmTravelledChanged) {
+							$activity->km_changed_on_level = 3;
+						}
+						if ($isNotCollectedChanged) {
+							$activity->not_collected_amount_changed_on_level = 3;
+						}
+						if ($isCollectedChanged) {
+							$activity->collected_amount_changed_on_level = 3;
+						}
+					} elseif (Auth::user()->activity_approval_level_id == 4) {
+						// L4
+						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+						$isApproved = true;
+						$approver = '4';
 					}
 				}
 			} else {
@@ -1862,6 +2026,7 @@ class ActivityController extends Controller {
 
 			$l2Approvers = User::where('activity_approval_level_id', 2)->pluck('id');
 			$l3Approvers = User::where('activity_approval_level_id', 3)->pluck('id');
+			$l4Approvers = User::where('activity_approval_level_id', 4)->pluck('id');
 
 			foreach ($activities as $key => $activity) {
 
@@ -1960,7 +2125,7 @@ class ActivityController extends Controller {
 					$bo_invoice_amount->value = $invoiceAmount;
 					$bo_invoice_amount->save();
 
-					//L2 and L3 approver flow should be effective from April 2022 cases not for all the cases - By Sundhar / Hyder
+					//L2, L3, and L4 approver flow should be effective from April 2022 cases not for all the cases - By Sundhar / Hyder
 					if (date('Y-m-d', strtotime($activity->case->date)) >= "2022-04-01") {
 						$isApproved = false;
 						$approver = '';
@@ -1978,12 +2143,40 @@ class ActivityController extends Controller {
 								$this->sendApprovalNoty($l3Approvers, $activity->case->number, "L3_APPROVAL");
 							} elseif (Auth::user()->activity_approval_level_id == 3) {
 								// L3
+								$activityStatusId = 23; //Waiting for L4 Bulk Verification
+								$approver = '3';
+								$this->sendApprovalNoty($l4Approvers, $activity->case->number, "L4_APPROVAL");
+							} elseif (Auth::user()->activity_approval_level_id == 4) {
+								// L4
+								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+								$isApproved = true;
+								$approver = '4';
+							}
+						} elseif (floatval($invoiceAmount) > 6000 && floatval($invoiceAmount) <= 10000) {
+							//GREATER THAN 6000 AND LESSER THAN OR EQUAL TO 10000
+							//L1
+							if (Auth::user()->activity_approval_level_id == 1) {
+								$activityStatusId = 18; //Waiting for L2 Bulk Verification
+								$approver = '1';
+								$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
+							} elseif (Auth::user()->activity_approval_level_id == 2) {
+								// L2
+								$activityStatusId = 20; //Waiting for L3 Bulk Verification
+								$approver = '2';
+								$this->sendApprovalNoty($l3Approvers, $activity->case->number, "L3_APPROVAL");
+							} elseif (Auth::user()->activity_approval_level_id == 3) {
+								// L3
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '3';
+							} elseif (Auth::user()->activity_approval_level_id == 4) {
+								// L4
+								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+								$isApproved = true;
+								$approver = '4';
 							}
-						} elseif (floatval($invoiceAmount) > 4000 && floatval($invoiceAmount) <= 10000) {
-							//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 10000
+						} elseif (floatval($invoiceAmount) > 4000 && floatval($invoiceAmount) <= 6000) {
+							//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 6000
 							//L1
 							if (Auth::user()->activity_approval_level_id == 1) {
 								$activityStatusId = 18; //Waiting for L2 Bulk Verification
@@ -1999,6 +2192,11 @@ class ActivityController extends Controller {
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '3';
+							} elseif (Auth::user()->activity_approval_level_id == 4) {
+								// L4
+								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+								$isApproved = true;
+								$approver = '4';
 							}
 						} else {
 							//LESSER THAN OR EQUAL TO 4000
@@ -2023,6 +2221,11 @@ class ActivityController extends Controller {
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '3';
+							} elseif (Auth::user()->activity_approval_level_id == 4) {
+								// L4
+								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+								$isApproved = true;
+								$approver = '4';
 							}
 						}
 					} else {
@@ -2161,6 +2364,7 @@ class ActivityController extends Controller {
 				$activity->service_type_changed_on_level = NULL;
 				$activity->l1_changed_service_type_id = NULL;
 				$activity->l2_changed_service_type_id = NULL;
+				$activity->l3_changed_service_type_id = NULL;
 				$activity->km_changed_on_level = NULL;
 				$activity->not_collected_amount_changed_on_level = NULL;
 				$activity->collected_amount_changed_on_level = NULL;
@@ -2172,6 +2376,7 @@ class ActivityController extends Controller {
 				} else {
 					$deferReason = "L2 Approver : " . $request->defer_reason;
 				}
+				$activity->l2_changed_service_type_id = NULL;
 			} elseif (Auth::user()->activity_approval_level_id == 3) {
 				// L3
 				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
@@ -2180,6 +2385,7 @@ class ActivityController extends Controller {
 				} else {
 					$deferReason = "L3 Approver : " . $request->defer_reason;
 				}
+				$activity->l3_changed_service_type_id = NULL;
 			} elseif (Auth::user()->activity_approval_level_id == 4) {
 				// L4
 				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
@@ -3903,6 +4109,12 @@ class ActivityController extends Controller {
 								$query->whereRaw('DATE(activity_logs.l3_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
 							})
 							->orwhere(function ($query) use ($range1, $range2) {
+								$query->whereRaw('DATE(activity_logs.l4_deffered_at) between "' . $range1 . '" and "' . $range2 . '"');
+							})
+							->orwhere(function ($query) use ($range1, $range2) {
+								$query->whereRaw('DATE(activity_logs.l4_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
+							})
+							->orwhere(function ($query) use ($range1, $range2) {
 								$query->whereRaw('DATE(activity_logs.invoice_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
 							})
 							->orwhere(function ($query) use ($range1, $range2) {
@@ -4104,6 +4316,12 @@ class ActivityController extends Controller {
 										})
 										->orwhere(function ($query) use ($range1, $range2) {
 											$query->whereRaw('DATE(activity_logs.l3_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
+										})
+										->orwhere(function ($query) use ($range1, $range2) {
+											$query->whereRaw('DATE(activity_logs.l4_deffered_at) between "' . $range1 . '" and "' . $range2 . '"');
+										})
+										->orwhere(function ($query) use ($range1, $range2) {
+											$query->whereRaw('DATE(activity_logs.l4_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
 										})
 										->orwhere(function ($query) use ($range1, $range2) {
 											$query->whereRaw('DATE(activity_logs.invoice_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
@@ -4328,6 +4546,15 @@ class ActivityController extends Controller {
 					'L3 Approved',
 					'L3 Approved By',
 					'Duration Between L3 approved and Invoice generated',
+					'Duration Between L1 approved and L4 deffered',
+					'Duration Between L2 approved and L4 deffered',
+					'Duration Between L3 approved and L4 deffered',
+					'L4 Deferred',
+					'L4 Deferred By',
+					'Duration Between L3 approved and L4 approved',
+					'L4 Approved',
+					'L4 Approved By',
+					'Duration Between L4 approved and Invoice generated',
 					'Invoice Generated',
 					'Invoice Generated By',
 					'Duration Between Invoice generated and Axapta Generated',
@@ -4518,6 +4745,7 @@ class ActivityController extends Controller {
 					if ($activity_log) {
 						$activity_details_data[$activity_key][] = $activity_log->imported_at ? date('d-m-Y H:i:s', strtotime($activity_log->imported_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->importedBy ? $activity_log->importedBy->username : '';
+
 						// 'Duration Between Import and ASP Data Filled'
 						$tot = ($activity_log->imported_at && $activity_log->asp_data_filled_at) ? $this->findDifference($activity_log->imported_at, $activity_log->asp_data_filled_at) : '';
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
@@ -4525,6 +4753,7 @@ class ActivityController extends Controller {
 
 						$activity_details_data[$activity_key][] = $activity_log->asp_data_filled_at ? date('d-m-Y H:i:s', strtotime($activity_log->asp_data_filled_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->aspDataFilledBy ? $activity_log->aspDataFilledBy->username : '';
+
 						// 'Duration Between ASP Data Filled and L1 deffered'
 						$tot = ($activity_log->asp_data_filled_at && $activity_log->bo_deffered_at) ? $this->findDifference($activity_log->asp_data_filled_at, $activity_log->bo_deffered_at) : '';
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
@@ -4532,6 +4761,7 @@ class ActivityController extends Controller {
 
 						$activity_details_data[$activity_key][] = $activity_log->bo_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_deffered_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->boDefferedBy ? $activity_log->boDefferedBy->username : '';
+
 						// 'Duration Between ASP Data Filled and L1 approved'
 						$tot = ($activity_log->asp_data_filled_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->asp_data_filled_at, $activity_log->bo_approved_at) : '';
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
@@ -4539,6 +4769,7 @@ class ActivityController extends Controller {
 
 						$activity_details_data[$activity_key][] = $activity_log->bo_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_approved_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->boApprovedBy ? $activity_log->boApprovedBy->username : '';
+
 						// 'Duration Between L1 approved and Invoice generated'
 						$tot = ($activity_log->invoice_generated_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->bo_approved_at) : '';
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
@@ -4558,6 +4789,7 @@ class ActivityController extends Controller {
 
 						$activity_details_data[$activity_key][] = $activity_log->l2_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->l2_approved_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->l2ApprovedBy ? $activity_log->l2ApprovedBy->username : '';
+
 						// 'Duration Between L2 approved and Invoice generated'
 						$tot = ($activity_log->invoice_generated_at && $activity_log->l2_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->l2_approved_at) : '';
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
@@ -4583,13 +4815,46 @@ class ActivityController extends Controller {
 
 						$activity_details_data[$activity_key][] = $activity_log->l3_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->l3_approved_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->l3ApprovedBy ? $activity_log->l3ApprovedBy->username : '';
+
 						// 'Duration Between L3 approved and Invoice generated'
 						$tot = ($activity_log->invoice_generated_at && $activity_log->l3_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->l3_approved_at) : '';
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
+						// 'Duration Between L1 approved and L4 deffered'
+						$tot = ($activity_log->l4_deffered_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->l4_deffered_at, $activity_log->bo_approved_at) : '';
+						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+
+						// 'Duration Between L2 approved and L4 deffered'
+						$tot = ($activity_log->l4_deffered_at && $activity_log->l2_approved_at) ? $this->findDifference($activity_log->l4_deffered_at, $activity_log->l2_approved_at) : '';
+						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+
+						// 'Duration Between L3 approved and L4 deffered'
+						$tot = ($activity_log->l4_deffered_at && $activity_log->l3_approved_at) ? $this->findDifference($activity_log->l4_deffered_at, $activity_log->l3_approved_at) : '';
+						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+
+						$activity_details_data[$activity_key][] = $activity_log->l4_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->l4_deffered_at)) : '';
+						$activity_details_data[$activity_key][] = $activity_log->l4DefferedBy ? $activity_log->l4DefferedBy->username : '';
+
+						// 'Duration Between L3 approved and L4 approved'
+						$tot = ($activity_log->l4_approved_at && $activity_log->l3_approved_at) ? $this->findDifference($activity_log->l4_approved_at, $activity_log->l3_approved_at) : '';
+						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+
+						$activity_details_data[$activity_key][] = $activity_log->l4_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->l4_approved_at)) : '';
+						$activity_details_data[$activity_key][] = $activity_log->l4ApprovedBy ? $activity_log->l4ApprovedBy->username : '';
+
+						// 'Duration Between L4 approved and Invoice generated'
+						$tot = ($activity_log->invoice_generated_at && $activity_log->l4_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->l4_approved_at) : '';
+						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+
 						$activity_details_data[$activity_key][] = $activity_log->invoice_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->invoice_generated_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->invoiceGeneratedBy ? $activity_log->invoiceGeneratedBy->username : '';
+
 						// 'Duration Between Invoice generated and Axapta Generated'
 						$tot = ($activity_log->invoice_generated_at && $activity_log->axapta_generated_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->axapta_generated_at) : '';
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
@@ -4597,6 +4862,7 @@ class ActivityController extends Controller {
 
 						$activity_details_data[$activity_key][] = $activity_log->axapta_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->axapta_generated_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->axaptaGeneratedBy ? $activity_log->axaptaGeneratedBy->username : '';
+
 						// 'Duration Between Axapta Generated and Payment Completed'
 						$tot = ($activity_log->axapta_generated_at && $activity_log->payment_completed_at) ? $this->findDifference($activity_log->axapta_generated_at, $activity_log->payment_completed_at) : '';
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
@@ -4669,7 +4935,7 @@ class ActivityController extends Controller {
 					$sheet->setAutoSize(false);
 					$sheet->fromArray($activity_details_data, NULL, 'A1');
 					$sheet->row(1, $activity_details_header);
-					$sheet->cells('A1:FB1', function ($cells) {
+					$sheet->cells('A1:FK1', function ($cells) {
 						$cells->setFont(array(
 							'size' => '10',
 							'bold' => true,

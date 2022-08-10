@@ -102,6 +102,30 @@
                                 </div>
                             </div>
                         </li>
+                        <li ng-if="$ctrl.data.l4DefferedAt != ''">
+                            <div class="customStatus-list-item">
+                                <div class="customStatus-list-child left">
+                                    <p class="date"><span>{{ formatDate($ctrl.data.l4DefferedAt) | date: 'd-M' }} <br>{{ formatDate($ctrl.data.l4DefferedAt) | date: 'y' }}</span></p>
+                                </div>
+                                <div class="customStatus-list-child">
+                                    <h3 class="title">L4 Deferred</h3>
+                                    <p ng-if="$ctrl.data.l4DefferedBy != ''">By : {{ $ctrl.data.l4DefferedBy }}</p>
+                                    <span>{{ formatDate($ctrl.data.l4DefferedAt) | date: 'h:mm a' }}</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li ng-if="$ctrl.data.l4ApprovedAt != ''">
+                            <div class="customStatus-list-item">
+                                <div class="customStatus-list-child left">
+                                    <p class="date"><span>{{ formatDate($ctrl.data.l4ApprovedAt) | date: 'd-M' }} <br>{{ formatDate($ctrl.data.l4ApprovedAt) | date: 'y' }}</span></p>
+                                </div>
+                                <div class="customStatus-list-child">
+                                    <h3 class="title">L4 Approved</h3>
+                                    <p ng-if="$ctrl.data.l4ApprovedBy != ''">By : {{ $ctrl.data.l4ApprovedBy }}</p>
+                                    <span>{{ formatDate($ctrl.data.l4ApprovedAt) | date: 'h:mm a' }}</span>
+                                </div>
+                            </div>
+                        </li>
                         <li ng-if="$ctrl.data.invoiceGeneratedAt != ''">
                             <div class="customStatus-list-item">
                                 <div class="customStatus-list-child left">

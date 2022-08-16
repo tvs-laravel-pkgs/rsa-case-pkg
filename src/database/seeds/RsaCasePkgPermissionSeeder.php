@@ -752,6 +752,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'finance-export-own-dealers-commission-invoice',
 				'display_name' => 'Finance Export Own Dealers',
 			],
+			[
+				'display_order' => 12,
+				'parent' => 'dealer-commission-invoice',
+				'name' => 'unbilled-dealer-commission-invoice',
+				'display_name' => 'Unbilled Dealer Commission Invoice',
+			],
 
 			//TAX CODES
 			[
@@ -1395,6 +1401,14 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'parent' => null,
 				'name' => 'elk-mail-log',
 				'display_name' => 'Dashboard Mail Log',
+			],
+
+			//UNBILLED AUTO INVOICE CRON LOG
+			[
+				'display_order' => 999,
+				'parent' => null,
+				'name' => 'unbilled-auto-invoice-cron-log',
+				'display_name' => 'Unbilled Auto Invoice Cron Log',
 			],
 
 			//DISCOUNT REASONS

@@ -1635,9 +1635,9 @@ class ActivityController extends Controller {
 					//L1
 					if (Auth::user()->activity_approval_level_id == 1) {
 						if ($isActivityBulk) {
-							$activityStatusId = 18; //Waiting for L2 Bulk Verification
+							$activityStatusId = 20; //Waiting for L3 Bulk Verification
 						} else {
-							$activityStatusId = 19; //Waiting for L2 Individual Verification
+							$activityStatusId = 21; //Waiting for L3 Individual Verification
 						}
 						$approver = '1';
 						if ($isServiceTypeChanged) {
@@ -1653,7 +1653,7 @@ class ActivityController extends Controller {
 						if ($isCollectedChanged) {
 							$activity->collected_amount_changed_on_level = 1;
 						}
-						$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
+						$this->sendApprovalNoty($l3Approvers, $activity->case->number, "L3_APPROVAL");
 					} elseif (Auth::user()->activity_approval_level_id == 2) {
 						// L2
 						if ($isActivityBulk) {
@@ -1709,9 +1709,9 @@ class ActivityController extends Controller {
 					//L1
 					if (Auth::user()->activity_approval_level_id == 1) {
 						if ($isActivityBulk) {
-							$activityStatusId = 18; //Waiting for L2 Bulk Verification
+							$activityStatusId = 20; //Waiting for L3 Bulk Verification
 						} else {
-							$activityStatusId = 19; //Waiting for L2 Individual Verification
+							$activityStatusId = 21; //Waiting for L3 Individual Verification
 						}
 						$approver = '1';
 						if ($isServiceTypeChanged) {
@@ -1727,7 +1727,7 @@ class ActivityController extends Controller {
 						if ($isCollectedChanged) {
 							$activity->collected_amount_changed_on_level = 1;
 						}
-						$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
+						$this->sendApprovalNoty($l3Approvers, $activity->case->number, "L3_APPROVAL");
 					} elseif (Auth::user()->activity_approval_level_id == 2) {
 						// L2
 						if ($isActivityBulk) {
@@ -2215,9 +2215,9 @@ class ActivityController extends Controller {
 						if (floatval($invoiceAmount) > 10000) {
 							//L1
 							if (Auth::user()->activity_approval_level_id == 1) {
-								$activityStatusId = 18; //Waiting for L2 Bulk Verification
+								$activityStatusId = 20; //Waiting for L3 Bulk Verification
 								$approver = '1';
-								$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
+								$this->sendApprovalNoty($l3Approvers, $activity->case->number, "L3_APPROVAL");
 							} elseif (Auth::user()->activity_approval_level_id == 2) {
 								// L2
 								$activityStatusId = 20; //Waiting for L3 Bulk Verification
@@ -2238,9 +2238,9 @@ class ActivityController extends Controller {
 							//GREATER THAN 6000 AND LESSER THAN OR EQUAL TO 10000
 							//L1
 							if (Auth::user()->activity_approval_level_id == 1) {
-								$activityStatusId = 18; //Waiting for L2 Bulk Verification
+								$activityStatusId = 20; //Waiting for L3 Bulk Verification
 								$approver = '1';
-								$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
+								$this->sendApprovalNoty($l3Approvers, $activity->case->number, "L3_APPROVAL");
 							} elseif (Auth::user()->activity_approval_level_id == 2) {
 								// L2
 								$activityStatusId = 20; //Waiting for L3 Bulk Verification

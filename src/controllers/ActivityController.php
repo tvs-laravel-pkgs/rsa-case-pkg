@@ -161,8 +161,7 @@ class ActivityController extends Controller {
 			}
 			if (Entrust::can('own-nm-asp-activities')) {
 				$aspIds = Asp::where('nm_id', Auth::user()->id)->pluck('id')->toArray();
-				$activities->whereIn('asps.id', $aspIds)
-					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17]);
+				$activities->whereIn('asps.id', $aspIds);
 			}
 		}
 		return Datatables::of($activities)
@@ -4252,8 +4251,7 @@ class ActivityController extends Controller {
 				}
 				if (Entrust::can('export-own-nm-asp-activities')) {
 					$aspIds = Asp::where('nm_id', Auth::user()->id)->pluck('id')->toArray();
-					$activities = $activities->whereIn('asps.id', $aspIds)
-						->whereNotIn('activities.status_id', [2, 4, 15, 16, 17]);
+					$activities = $activities->whereIn('asps.id', $aspIds);
 				}
 			}
 			$activitesTotalCount = $activities;
@@ -4389,7 +4387,7 @@ class ActivityController extends Controller {
 
 			$summary[] = ['Total', $total_count];
 
-			if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities') || Entrust::can('export-own-nm-asp-activities')) {
+			if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities')) {
 				$activity_details_header = [
 					'ID',
 					'Case Number',
@@ -4517,7 +4515,7 @@ class ActivityController extends Controller {
 				$activity_details_header[] = str_replace("_", " ", strtolower($config->name));
 			}
 
-			if (!Entrust::can('export-own-activities') && !Entrust::can('export-own-rm-asp-activities') && !Entrust::can('export-own-zm-asp-activities') && !Entrust::can('export-own-nm-asp-activities')) {
+			if (!Entrust::can('export-own-activities') && !Entrust::can('export-own-rm-asp-activities') && !Entrust::can('export-own-zm-asp-activities')) {
 				$status_headers = [
 					'Imported through MIS Import',
 					'Imported By',
@@ -4603,7 +4601,7 @@ class ActivityController extends Controller {
 				} else {
 					$aspContactNumber = maskPhoneNumber($activity->asp_contact_number1);
 				}
-				if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities') || Entrust::can('export-own-nm-asp-activities')) {
+				if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities')) {
 					$activity_details_data[] = [
 						$activity->id,
 						$activity->case_number,
@@ -4739,7 +4737,7 @@ class ActivityController extends Controller {
 					}
 				}
 
-				if (!Entrust::can('export-own-activities') && !Entrust::can('export-own-rm-asp-activities') && !Entrust::can('export-own-zm-asp-activities') && !Entrust::can('export-own-nm-asp-activities')) {
+				if (!Entrust::can('export-own-activities') && !Entrust::can('export-own-rm-asp-activities') && !Entrust::can('export-own-zm-asp-activities')) {
 					$total_days = 0;
 					$activity_log = ActivityLog::where('activity_id', $activity->id)->first();
 					if ($activity_log) {

@@ -32,8 +32,12 @@
                             <thead>
                                 <tr>
                                     <th>Title</th>
-                                    <th style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities')) && $ctrl.data.view_cc_details == 1">CC Data</th>
-                                    <th style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities')">ASP Data</th>
+                                    <th style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                        CC Data
+                                    </th>
+                                    <th style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities')">
+                                        ASP Data
+                                    </th>
                                     <th style="text-align:right">BO Data</th>
                                 </tr>
                             </thead>
@@ -46,7 +50,7 @@
                                     <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities')" ng-class="{'alert-danger': $ctrl.data.verification == 1 && !$ctrl.data.is_service_type_eligible }">
                                         {{$ctrl.data.asp_service_type}}
                                     </td>
-                                    <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.service_type_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.service_type_changed_on_level == 3}">
+                                    <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.service_type_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.service_type_changed_on_level == 3}">
                                         {{$ctrl.data.bo_service_type}}
                                     </td>
                                     <td ng-if="$ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 1 || $ctrl.data.activityApprovalLevel == 3)" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.service_type_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.service_type_changed_on_level == 3}">
@@ -65,7 +69,7 @@
                                     <td style="text-align:right" class="asp_value" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities')" ng-class="{'alert-danger': $ctrl.data.verification == 1 && !$ctrl.data.is_km_travelled_eligible }">
                                         {{$ctrl.data.asp_km_travelled}}
                                     </td>
-                                    <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.km_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.km_changed_on_level == 3}">
+                                    <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.km_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.km_changed_on_level == 3}">
                                         {{$ctrl.data.bo_km_travelled}}
                                     </td>
                                     <td ng-if="$ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 1 || $ctrl.data.activityApprovalLevel == 3)" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.km_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.km_changed_on_level == 3}">
@@ -89,7 +93,7 @@
                                     <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities')" ng-class="{'alert-danger': $ctrl.data.verification == 1 && !$ctrl.data.is_not_collected_eligible }">
                                         {{$ctrl.data.asp_not_collected}}
                                     </td>
-                                    <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 3}">
+                                    <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.not_collected_amount_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.not_collected_amount_changed_on_level == 3}">
                                         {{$ctrl.data.bo_not_collected}}
                                     </td>
                                     <td ng-if="$ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 1 || $ctrl.data.activityApprovalLevel == 3)" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 3}">
@@ -108,7 +112,7 @@
                                     <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && !$ctrl.hasPermission('own-nm-asp-activities')" ng-class="{'alert-danger': $ctrl.data.verification == 1 && !$ctrl.data.is_collected_eligible }">
                                         {{$ctrl.data.asp_collected}}
                                     </td>
-                                    <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.collected_amount_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.collected_amount_changed_on_level == 3}">
+                                    <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.collected_amount_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.collected_amount_changed_on_level == 3}">
                                         {{$ctrl.data.bo_collected}}
                                     </td>
                                     <td ng-if="$ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 1 || $ctrl.data.activityApprovalLevel == 3)" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.collected_amount_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.collected_amount_changed_on_level == 3}">

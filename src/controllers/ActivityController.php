@@ -5036,4 +5036,27 @@ class ActivityController extends Controller {
 	public function searchClients(Request $request) {
 		return Client::searchClient($request);
 	}
+
+	public function whatsappWebhookResponse(Request $request) {
+		DB::beginTransaction();
+		try {
+			if (!isset($request->payload) || (isset($request->payload) && empty($request->payload))) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Payload not found',
+					],
+				]);
+			}
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
+		}
+	}
+
 }

@@ -28,6 +28,7 @@ use App\VehicleMake;
 use App\VehicleModel;
 use Auth;
 use DB;
+use GuzzleHttp\Client as GClient;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Validation\Rule;
@@ -1434,6 +1435,168 @@ class Activity extends Model {
 			$is_bulk = false;
 		}
 		return $is_bulk;
+	}
+
+	public function sendBreakdownAlertWhatsappSms() {
+		$aspName = $this->asp ? (!empty($this->asp->name) ? $this->asp->name : '') : '';
+		$aspWhatsAppNumber = $this->asp ? (!empty($this->asp->whatsapp_number) ? $this->asp->whatsapp_number : '') : '';
+		$caseDate = $this->case ? (!empty($this->case->date) ? date('d.m.Y', strtotime($this->case->date)) : '') : '';
+		$activityNumber = $this->number;
+		$customerName = $this->case ? (!empty($this->case->customer_name) ? $this->case->customer_name : '') : '';
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '') : '';
+		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '') : '';
+		$model = $this->case ? ($this->case->vehicleModel ? $this->case->vehicleModel->name : '') : '';
+		$serviceType = $this->serviceType ? $this->serviceType->name : '';
+		$bdAddress = $this->case ? (!empty($this->case->bd_location) ? $this->case->bd_location : '') : '';
+		$bdMapLocation = '';
+		if (!empty($this->case->bd_lat) && !empty($this->case->bd_long)) {
+			$bdMapLocation = "https://maps.google.com/maps?q=" . $this->case->bd_lat . "," . $this->case->bd_long;
+		}
+		$dropAddress = $this->detail(295) ? (!empty($this->detail(295)->value) ? $this->detail(295)->value : '') : '';
+		$dropLocationLat = $this->detail(296) ? (!empty($this->detail(296)->value) ? $this->detail(296)->value : '') : '';
+		$dropLocationLong = $this->detail(297) ? (!empty($this->detail(297)->value) ? $this->detail(297)->value : '') : '';
+		$dropMapLocation = '';
+		if (!empty($dropLocationLat) && !empty($dropLocationLong)) {
+			$dropMapLocation = "https://maps.google.com/maps?q=" . $dropLocationLat . "," . $dropLocationLong;
+		}
+		$tollFreeNumber = '';
+		if ($this->case && $this->case->callcenter && !empty($this->case->callcenter->toll_free_number)) {
+			$tollFreeNumber = $this->case->callcenter->toll_free_number;
+		}
+		$whatsAppNumber = '';
+		if ($this->case && $this->case->callcenter && !empty($this->case->callcenter->whatsapp_number)) {
+			$whatsAppNumber = $this->case->callcenter->whatsapp_number;
+		}
+
+		if (!empty($aspWhatsAppNumber)) {
+			$templateId = ''; //WILL BE SHARED BY TEAM
+			$senderNumber = ''; //WILL BE SHARED BY TEAM
+			$webHookDNId = ''; //WILL BE SHARED BY TEAM
+
+			//OTHER THAN TOW SERVICE
+			if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
+				$parameterValues = [
+					0 => $aspName,
+					1 => $caseDate,
+					2 => $activityNumber,
+					3 => $customerName,
+					4 => $vehicleNumber,
+					5 => $vin,
+					6 => $model,
+					7 => $serviceType,
+					8 => $bdAddress,
+					9 => $bdMapLocation,
+					10 => $tollFreeNumber,
+					11 => $whatsAppNumber,
+				];
+
+				$inputRequests[] = [
+					"message" => [
+						"channel" => "WABA",
+						"content" => [
+							"preview_url" => false,
+							"type" => "TEMPLATE",
+							"template" => [
+								"templateId" => $templateId,
+								"parameterValues" => $parameterValues,
+							],
+						],
+						"recipient" => [
+							"to" => $aspWhatsAppNumber,
+							"recipient_type" => "individual",
+						],
+						"sender" => [
+							"from" => $senderNumber,
+						],
+						"preferences" => [
+							"webHookDNId" => $webHookDNId,
+						],
+					],
+					"metaData" => [
+						"version" => "v1.0.9",
+					],
+				];
+			} else {
+				// TOWING SERVICE
+				$parameterValues = [
+					0 => $aspName,
+					1 => $caseDate,
+					2 => $activityNumber,
+					3 => $customerName,
+					4 => $vehicleNumber,
+					5 => $vin,
+					6 => $model,
+					7 => $serviceType,
+					8 => $bdAddress,
+					9 => $bdMapLocation,
+					10 => $dropAddress,
+					11 => $dropMapLocation,
+					12 => $tollFreeNumber,
+					13 => $whatsAppNumber,
+				];
+
+				$payloadIndexOne = [
+					"value" => "Upload Images",
+					"activityId" => $this->number,
+					"type" => "Case Assigned",
+				];
+				$payloadIndexTwo = [
+					"value" => "Empty Return",
+					"activityId" => $this->number,
+					"type" => "Case Assigned",
+				];
+				$inputRequests[] = [
+					"message" => [
+						"channel" => "WABA",
+						"content" => [
+							"preview_url" => false,
+							"type" => "TEMPLATE",
+							"template" => [
+								"templateId" => $templateId,
+								"parameterValues" => $parameterValues,
+								"buttons" => [
+									"quickReplies" => [
+										[
+											"index" => "0",
+											"payload" => json_encode($payloadIndexOne),
+										],
+										[
+											"index" => "1",
+											"payload" => json_encode($payloadIndexTwo),
+										],
+									],
+								],
+							],
+						],
+						"recipient" => [
+							"to" => $aspWhatsAppNumber,
+							"recipient_type" => "individual",
+						],
+						"sender" => [
+							"from" => $senderNumber,
+						],
+						"preferences" => [
+							"webHookDNId" => $webHookDNId,
+						],
+					],
+					"metaData" => [
+						"version" => "v1.0.9",
+					],
+				];
+			}
+
+			// dd($inputRequests);
+
+			$whatsappApiUrl = config('constants')['whatsapp_api_url'];
+			$api = new GClient();
+			$response = $api->request('POST', $whatsappApiUrl, [
+				'json' => $inputRequests,
+			]);
+			$body = $response->getBody();
+			$result = json_decode((string) $body);
+
+			//SMS LOGS NEED TO BE ADDED
+		}
 	}
 
 }

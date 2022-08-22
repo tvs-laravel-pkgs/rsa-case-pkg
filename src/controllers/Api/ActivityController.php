@@ -11,12 +11,14 @@ use Abs\RsaCasePkg\AspActivityRejectedReason;
 use Abs\RsaCasePkg\AspPoRejectedReason;
 use Abs\RsaCasePkg\RsaCase;
 use App\Asp;
+use App\Attachment;
 use App\Config;
 use App\Http\Controllers\Controller;
 use App\ServiceType;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Validator;
 
@@ -357,6 +359,7 @@ class ActivityController extends Controller {
 			$caseDate = Carbon::parse($case_date);
 			$caseDateAfter90Days = date('Y-m-d', strtotime($caseDate->addDays(90)));
 
+			$newActivity = false;
 			$activityExist = Activity::withTrashed()->where('crm_activity_id', $request->crm_activity_id)
 				->first();
 			if (!$activityExist) {
@@ -378,6 +381,7 @@ class ActivityController extends Controller {
 					$activity = new Activity([
 						'crm_activity_id' => $request->crm_activity_id,
 					]);
+					$newActivity = true;
 				}
 			} else {
 				//ACTIVITY BELONGS TO SAME CASE
@@ -615,6 +619,11 @@ class ActivityController extends Controller {
 				$activity->save();
 			}
 
+			//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
+			if ($newActivity) {
+				$activity->sendBreakdownAlertWhatsappSms();
+			}
+
 			//UPDATE LOG ACTIVITY AND LOG MESSAGE
 			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
 				'Status' => 'Imported through API',
@@ -820,6 +829,199 @@ class ActivityController extends Controller {
 					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			], $this->successStatus);
+		}
+	}
+
+	public function uploadTowImages(Request $request) {
+		// dd($request->all());
+		$errors = [];
+		DB::beginTransaction();
+		try {
+			$validator = Validator::make($request->all(), [
+				'activity_number' => [
+					'required:true',
+					'string',
+					'exists:activities,number',
+				],
+				'vehicle_pickup_image' => [
+					'required:true',
+					'file',
+					'mimes:jpg,jpeg,png,pdf',
+					'max:1024',
+				],
+				'vehicle_drop_image' => [
+					'required:true',
+					'file',
+					'mimes:jpg,jpeg,png,pdf',
+					'max:1024',
+				],
+				'inventory_job_sheet_image' => [
+					'required:true',
+					'file',
+					'mimes:jpg,jpeg,png,pdf',
+					'max:1024',
+				],
+			]);
+			if ($validator->fails()) {
+				//UPLOAD TOW IMAGE API LOG
+				$errors = $validator->errors()->all();
+				saveApiLog(110, NULL, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => $validator->errors()->all(),
+				], $this->successStatus);
+			}
+
+			//GET ASP
+			// $asp = ASP::where('asp_code', $request->asp_code)->first();
+
+			$activity = Activity::select([
+				'id',
+				'asp_id',
+				'service_type_id',
+			])
+				->where('number', $request->activity_number)
+				->first();
+
+			if (!$activity) {
+				//UPLOAD TOW IMAGE API LOG
+				$errors = $validator->errors()->all();
+				saveApiLog(110, NULL, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						'Activity not found',
+					],
+				], $this->successStatus);
+			}
+
+			if ($activity && $activity->serviceType && $activity->serviceType->group && $activity->serviceType->group != 3) {
+				//UPLOAD TOW IMAGE API LOG
+				$errors = $validator->errors()->all();
+				saveApiLog(110, NULL, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						'Activity is not a towing service',
+					],
+				], $this->successStatus);
+			}
+
+			$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
+			Storage::makeDirectory($destination, 0777);
+
+			//VEHICLE PICKUP ATTACHMENT
+			if ($request->hasFile("vehicle_pickup_image")) {
+				//REMOVE EXISTING ATTACHMENT
+				$vehiclePickupAttachExist = Attachment::where('entity_id', $activity->id)
+					->where('entity_type', config('constants.entity_types.VEHICLE_PICKUP_ATTACHMENT'))
+					->first();
+				if ($vehiclePickupAttachExist) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $vehiclePickupAttachExist->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $vehiclePickupAttachExist->attachment_file_name));
+					}
+					$vehiclePickupAttachExist->delete();
+				}
+
+				$filename = "vehicle_pickup_attachment";
+				$extension = $request->file("vehicle_pickup_image")->getClientOriginalExtension();
+
+				//STORE FILE
+				$request->file("vehicle_pickup_image")->storeAs($destination, $filename . '.' . $extension);
+
+				//SAVE IN TABLE
+				Attachment::create([
+					'entity_type' => config('constants.entity_types.VEHICLE_PICKUP_ATTACHMENT'),
+					'entity_id' => $activity->id,
+					'attachment_file_name' => $filename . '.' . $extension,
+				]);
+			}
+
+			//VEHICLE DROP ATTACHMENT
+			if ($request->hasFile("vehicle_drop_image")) {
+				//REMOVE EXISTING ATTACHMENT
+				$vehicleDropAttachExist = Attachment::where('entity_id', $activity->id)
+					->where('entity_type', config('constants.entity_types.VEHICLE_DROP_ATTACHMENT'))
+					->first();
+				if ($vehicleDropAttachExist) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $vehicleDropAttachExist->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $vehicleDropAttachExist->attachment_file_name));
+					}
+					$vehicleDropAttachExist->delete();
+				}
+
+				$filename = "vehicle_drop_attachment";
+				$extension = $request->file("vehicle_drop_image")->getClientOriginalExtension();
+
+				//STORE FILE
+				$request->file("vehicle_drop_image")->storeAs($destination, $filename . '.' . $extension);
+
+				//SAVE IN TABLE
+				Attachment::create([
+					'entity_type' => config('constants.entity_types.VEHICLE_DROP_ATTACHMENT'),
+					'entity_id' => $activity->id,
+					'attachment_file_name' => $filename . '.' . $extension,
+				]);
+			}
+
+			//INVENTORY JOB SHEET ATTACHMENT
+			if ($request->hasFile("inventory_job_sheet_image")) {
+				//REMOVE EXISTING ATTACHMENT
+				$inventoryJobSheetAttachExist = Attachment::where('entity_id', $activity->id)
+					->where('entity_type', config('constants.entity_types.INVENTORY_JOB_SHEET_ATTACHMENT'))
+					->first();
+				if ($inventoryJobSheetAttachExist) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $inventoryJobSheetAttachExist->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $inventoryJobSheetAttachExist->attachment_file_name));
+					}
+					$inventoryJobSheetAttachExist->delete();
+				}
+
+				$filename = "inventory_job_sheet_attachment";
+				$extension = $request->file("inventory_job_sheet_image")->getClientOriginalExtension();
+
+				//STORE FILE
+				$request->file("inventory_job_sheet_image")->storeAs($destination, $filename . '.' . $extension);
+
+				//SAVE IN TABLE
+				Attachment::create([
+					'entity_type' => config('constants.entity_types.INVENTORY_JOB_SHEET_ATTACHMENT'),
+					'entity_id' => $activity->id,
+					'attachment_file_name' => $filename . '.' . $extension,
+				]);
+			}
+
+			//UPLOAD TOW IMAGE API LOG
+			saveApiLog(110, NULL, $request->all(), $errors, NULL, 120);
+
+			DB::commit();
+			return response()->json([
+				'success' => true,
+				'message' => 'Towing images uploaded successfully',
+			], $this->successStatus);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			//UPLOAD TOW IMAGE API LOG
+			$errors[] = $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile();
+			saveApiLog(110, NULL, $request->all(), $errors, NULL, 121);
+
+			return response()->json([
+				'success' => false,
+				'error' => 'Exception Error',
+				'errors' => [
+					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
 		}
 	}
 

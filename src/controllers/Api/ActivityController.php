@@ -619,11 +619,6 @@ class ActivityController extends Controller {
 				$activity->save();
 			}
 
-			//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
-			if ($newActivity) {
-				$activity->sendBreakdownAlertWhatsappSms();
-			}
-
 			//UPDATE LOG ACTIVITY AND LOG MESSAGE
 			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
 				'Status' => 'Imported through API',
@@ -648,6 +643,11 @@ class ActivityController extends Controller {
 
 			//SAVE ACTIVITY API LOG
 			saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 120);
+
+			//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
+			if ($newActivity && $activity->asp && !empty($activity->asp->whatsapp_number)) {
+				$activity->sendBreakdownAlertWhatsappSms();
+			}
 
 			DB::commit();
 			return response()->json([
@@ -838,7 +838,7 @@ class ActivityController extends Controller {
 		DB::beginTransaction();
 		try {
 			$validator = Validator::make($request->all(), [
-				'activity_number' => [
+				'activity_id' => [
 					'required:true',
 					'string',
 					'exists:activities,number',
@@ -875,20 +875,11 @@ class ActivityController extends Controller {
 				], $this->successStatus);
 			}
 
-			//GET ASP
-			// $asp = ASP::where('asp_code', $request->asp_code)->first();
-
-			$activity = Activity::select([
-				'id',
-				'asp_id',
-				'service_type_id',
-			])
-				->where('number', $request->activity_number)
-				->first();
+			$activity = Activity::where('number', $request->activity_id)->first();
 
 			if (!$activity) {
 				//UPLOAD TOW IMAGE API LOG
-				$errors = $validator->errors()->all();
+				$errors[] = "Activity not found";
 				saveApiLog(110, NULL, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
@@ -1002,6 +993,11 @@ class ActivityController extends Controller {
 
 			//UPLOAD TOW IMAGE API LOG
 			saveApiLog(110, NULL, $request->all(), $errors, NULL, 120);
+
+			//SEND IMAGE UPLOAD CONFIRMATION WHATSAPP SMS TO ASP
+			if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
+				$activity->sendImageUploadConfirmationWhatsappSms();
+			}
 
 			DB::commit();
 			return response()->json([

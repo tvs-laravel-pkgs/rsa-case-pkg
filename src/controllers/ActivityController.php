@@ -5038,24 +5038,105 @@ class ActivityController extends Controller {
 	}
 
 	public function whatsappWebhookResponse(Request $request) {
+		$whatsappWebhookResponse = new WhatsappWebhookResponse();
+		$whatsappWebhookResponse->payload = $request->payload;
+		$whatsappWebhookResponse->status = 'Started';
+		$whatsappWebhookResponse->save();
+
 		DB::beginTransaction();
 		try {
 			if (!isset($request->payload) || (isset($request->payload) && empty($request->payload))) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Payload not found',
-					],
-				]);
+				$whatsappWebhookResponse->errors = 'Payload not found';
+				$whatsappWebhookResponse->save();
+				DB::commit();
+				return;
 			}
+
+			$payload = json_decode($request->payload);
+			if (empty($payload)) {
+				$whatsappWebhookResponse->errors = 'Payload is empty';
+				$whatsappWebhookResponse->save();
+				DB::commit();
+				return;
+			}
+
+			$activity = Activity::where('number', $payload->activity_id)->first();
+			if (!$activity) {
+				$whatsappWebhookResponse->errors = 'Activity not found';
+				$whatsappWebhookResponse->save();
+				DB::commit();
+				return;
+			}
+
+			if ($payload->type == "Breakdown Charges") {
+				if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
+					if ($payload->value == 'Yes') {
+						//SEND ASP ACCEPTANCE CHARGES WHATSAPP SMS TO ASP
+						$activity->sendAspAcceptanceChargesWhatsappSms();
+					} else {
+						//SEND ASP CHARGES REJECTION WHATSAPP SMS TO ASP
+						$activity->sendAspChargesRejectionWhatsappSms();
+					}
+					//UPDATE WEBHOOK STATUS
+					$whatsappWebhookResponse->status = 'Completed';
+					$whatsappWebhookResponse->save();
+					DB::commit();
+					return;
+				} else {
+					DB::rollBack();
+					//UPDATE WEBHOOK STATUS
+					$whatsappWebhookResponse->status = 'Failed';
+					$whatsappWebhookResponse->errors = "ASP not having whatsapp number";
+					$whatsappWebhookResponse->save();
+					return;
+				}
+			} elseif ($payload->type == "ASP Charges Acceptance") {
+				if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
+					if ($payload->value == 'Yes') {
+
+						//GENERATE INVOICE NUMBER
+						$invoiceNumber = generateAppInvoiceNumber();
+						$invoiceDate = new Carbon();
+
+						//CREATE INVOICE
+						$createInvoiceResponse = Invoices::createInvoice($activity->asp, $activity->id, $invoiceNumber, $invoiceDate, '');
+
+						if (!$createInvoiceResponse['success']) {
+							DB::rollBack();
+							$whatsappWebhookResponse->status = 'Failed';
+							$whatsappWebhookResponse->errors = $createInvoiceResponse['message'];
+							$whatsappWebhookResponse->save();
+							return;
+						}
+
+						//SEND INDIVIDUAL INVOICING WHATSAPP SMS TO ASP
+						$activity->sendIndividualInvoicingWhatsappSms();
+					} else {
+						//SEND BULK INVOICING WHATSAPP SMS TO ASP
+						$activity->sendBulkInvoicingWhatsappSms();
+					}
+					//UPDATE WEBHOOK STATUS
+					$whatsappWebhookResponse->status = 'Completed';
+					$whatsappWebhookResponse->save();
+					DB::commit();
+					return;
+				} else {
+					DB::rollBack();
+					//UPDATE WEBHOOK STATUS
+					$whatsappWebhookResponse->status = 'Failed';
+					$whatsappWebhookResponse->errors = "ASP not having whatsapp number";
+					$whatsappWebhookResponse->save();
+					return;
+				}
+			}
+
 		} catch (\Exception $e) {
 			DB::rollBack();
-			return response()->json([
-				'success' => false,
-				'errors' => [
-					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
-				],
-			]);
+			//UPDATE WEBHOOK STATUS
+			$whatsappWebhookResponse->status = 'Failed';
+			$whatsappWebhookResponse->errors = $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile();
+			$whatsappWebhookResponse->save();
+			return;
 		}
 	}
 

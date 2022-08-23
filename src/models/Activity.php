@@ -28,7 +28,6 @@ use App\VehicleMake;
 use App\VehicleModel;
 use Auth;
 use DB;
-use GuzzleHttp\Client as GClient;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Validation\Rule;
@@ -1083,40 +1082,6 @@ class Activity extends Model {
 						$case->bd_location_category_id = $bd_location_category_id;
 						$case->save();
 
-						if ($case->status_id == 3) {
-							//CANCELLED
-							if ($case->activities->isNotEmpty()) {
-								foreach ($case->activities as $key => $activity) {
-									//If Finance Status is Not Matured
-									if ($activity->financeStatus->po_eligibility_type_id == 342) {
-										//If ASP Workshop Type is Own Patrol Activity
-										if ($activity->asp->workshop_type == 1) {
-											$status_id = 16; //Own Patrol Activity - Not Eligible for Payout
-										} else {
-											$status_id = 15; // Not Eligible for Payout
-										}
-										$activity->update([
-											'status_id' => $status_id,
-										]);
-									}
-								}
-							}
-						}
-
-						if ($case->status_id == 4) {
-							//CLOSED
-							$case
-								->activities()
-								->where([
-									// Invoice Amount Calculated - Waiting for Case Closure
-									'status_id' => 10,
-								])
-								->update([
-									// Case Closed - Waiting for ASP to Generate Invoice
-									'status_id' => 1,
-								]);
-						}
-
 						$activity_save_eligible = true;
 						$crm_activity_id = trim($record['crm_activity_id']);
 						$activity_exist = Activity::withTrashed()->where('crm_activity_id', $crm_activity_id)->first();
@@ -1201,28 +1166,6 @@ class Activity extends Model {
 							$activity->number = 'ACT' . $activity->id;
 							$activity->save();
 
-							if ($case->status_id == 3) {
-								if ($activity->financeStatus->po_eligibility_type_id == 342) {
-									//CANCELLED
-									$activity->update([
-										// Not Eligible for Payout
-										'status_id' => 15,
-									]);
-								}
-							}
-
-							// CHECK CASE IS CLOSED
-							if ($case->status_id == 4) {
-								$activity->where([
-									// Invoice Amount Calculated - Waiting for Case Closure
-									'status_id' => 10,
-								])
-									->update([
-										// Case Closed - Waiting for ASP to Generate Invoice
-										'status_id' => 1,
-									]);
-							}
-
 							//SAVING ACTIVITY DETAILS
 							$activity_fields = Config::where('entity_type_id', 23)->get();
 							foreach ($activity_fields as $key => $activity_field) {
@@ -1283,6 +1226,63 @@ class Activity extends Model {
 								//Own Patrol Activity - Not Eligible for Payout
 								$activity->status_id = 16;
 								$activity->save();
+							}
+
+							if ($case->status_id == 3) {
+								//CANCELLED
+								if ($case->activities->isNotEmpty()) {
+									foreach ($case->activities as $key => $activity) {
+										//If Finance Status is Not Matured
+										if ($activity->financeStatus->po_eligibility_type_id == 342) {
+											//If ASP Workshop Type is Own Patrol Activity
+											if ($activity->asp->workshop_type == 1) {
+												$status_id = 16; //Own Patrol Activity - Not Eligible for Payout
+											} else {
+												$status_id = 15; // Not Eligible for Payout
+											}
+											$activity->update([
+												'status_id' => $status_id,
+											]);
+										}
+									}
+								}
+							}
+
+							//CLOSED
+							if ($case->status_id == 4) {
+								//UPDATE LOG
+								$invoiceAmountCalculatedActivities = $case->activities()->where(['status_id' => 10])->get();
+								if ($invoiceAmountCalculatedActivities->isNotEmpty()) {
+									foreach ($invoiceAmountCalculatedActivities as $key => $invoiceAmountCalculatedActivity) {
+										$activityLog = ActivityLog::firstOrNew([
+											'activity_id' => $invoiceAmountCalculatedActivity->id,
+										]);
+										//NEW
+										if (!$activityLog->exists) {
+											$activityLog->created_by_id = 72;
+										} else {
+											$activityLog->updated_by_id = 72;
+										}
+										$activityLog->bo_approved_at = date('Y-m-d H:i:s');
+										$activityLog->save();
+
+										//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
+										if ($invoiceAmountCalculatedActivity->asp && !empty($invoiceAmountCalculatedActivity->asp->whatsapp_number) && $activity->financeStatus && $activity->financeStatus->po_eligibility_type_id != 342) {
+											$invoiceAmountCalculatedActivity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
+										}
+
+									}
+								}
+
+								$case->activities()
+									->where([
+										// Invoice Amount Calculated - Waiting for Case Closure
+										'status_id' => 10,
+									])
+									->update([
+										// Case Closed - Waiting for ASP to Generate Invoice
+										'status_id' => 1,
+									]);
 							}
 
 							//RELEASE ONHOLD ACTIVITIES WITH CLOSED OR CANCELLED CASES
@@ -1438,8 +1438,8 @@ class Activity extends Model {
 	}
 
 	public function sendBreakdownAlertWhatsappSms() {
-		$aspName = $this->asp ? (!empty($this->asp->name) ? $this->asp->name : '') : '';
-		$aspWhatsAppNumber = $this->asp ? (!empty($this->asp->whatsapp_number) ? $this->asp->whatsapp_number : '') : '';
+		$aspName = !empty($this->asp->name) ? $this->asp->name : '';
+		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 		$caseDate = $this->case ? (!empty($this->case->date) ? date('d.m.Y', strtotime($this->case->date)) : '') : '';
 		$activityNumber = $this->number;
 		$customerName = $this->case ? (!empty($this->case->customer_name) ? $this->case->customer_name : '') : '';
@@ -1468,135 +1468,562 @@ class Activity extends Model {
 			$whatsAppNumber = $this->case->callcenter->whatsapp_number;
 		}
 
-		if (!empty($aspWhatsAppNumber)) {
-			$templateId = ''; //WILL BE SHARED BY TEAM
-			$senderNumber = ''; //WILL BE SHARED BY TEAM
-			$webHookDNId = ''; //WILL BE SHARED BY TEAM
+		$templateId = ''; //WILL BE SHARED BY TEAM
+		$senderNumber = ''; //WILL BE SHARED BY TEAM
+		$webHookDNId = ''; //WILL BE SHARED BY TEAM
+
+		//OTHER THAN TOW SERVICE
+		if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
+			$parameterValues = [
+				0 => $aspName,
+				1 => $caseDate,
+				2 => $activityNumber,
+				3 => $customerName,
+				4 => $vehicleNumber,
+				5 => $vin,
+				6 => $model,
+				7 => $serviceType,
+				8 => $bdAddress,
+				9 => $bdMapLocation,
+				10 => $tollFreeNumber,
+				11 => $whatsAppNumber,
+			];
+
+			$inputRequests[] = [
+				"message" => [
+					"channel" => "WABA",
+					"content" => [
+						"preview_url" => false,
+						"type" => "TEMPLATE",
+						"template" => [
+							"templateId" => $templateId,
+							"parameterValues" => $parameterValues,
+						],
+					],
+					"recipient" => [
+						"to" => $aspWhatsAppNumber,
+						"recipient_type" => "individual",
+					],
+					"sender" => [
+						"from" => $senderNumber,
+					],
+					"preferences" => [
+						"webHookDNId" => $webHookDNId,
+					],
+				],
+				"metaData" => [
+					"version" => "v1.0.9",
+				],
+			];
+		} else {
+			// TOWING SERVICE
+			$parameterValues = [
+				0 => $aspName,
+				1 => $caseDate,
+				2 => $activityNumber,
+				3 => $customerName,
+				4 => $vehicleNumber,
+				5 => $vin,
+				6 => $model,
+				7 => $serviceType,
+				8 => $bdAddress,
+				9 => $bdMapLocation,
+				10 => $dropAddress,
+				11 => $dropMapLocation,
+				12 => $tollFreeNumber,
+				13 => $whatsAppNumber,
+			];
+
+			$payloadIndexOne = [
+				"value" => "Upload Images",
+				"activity_id" => $this->number,
+				"type" => "Case Assigned",
+			];
+			$payloadIndexTwo = [
+				"value" => "Empty Return",
+				"activity_id" => $this->number,
+				"type" => "Case Assigned",
+			];
+			$inputRequests[] = [
+				"message" => [
+					"channel" => "WABA",
+					"content" => [
+						"preview_url" => false,
+						"type" => "TEMPLATE",
+						"template" => [
+							"templateId" => $templateId,
+							"parameterValues" => $parameterValues,
+							"buttons" => [
+								"quickReplies" => [
+									[
+										"index" => "0",
+										"payload" => json_encode($payloadIndexOne),
+									],
+									[
+										"index" => "1",
+										"payload" => json_encode($payloadIndexTwo),
+									],
+								],
+							],
+						],
+					],
+					"recipient" => [
+						"to" => $aspWhatsAppNumber,
+						"recipient_type" => "individual",
+					],
+					"sender" => [
+						"from" => $senderNumber,
+					],
+					"preferences" => [
+						"webHookDNId" => $webHookDNId,
+					],
+				],
+				"metaData" => [
+					"version" => "v1.0.9",
+				],
+			];
+		}
+
+		//SEND WHATSAPP SMS
+		sendWhatsappSMS($this->id, 1191, $inputRequests);
+	}
+
+	public function sendImageUploadConfirmationWhatsappSms() {
+		$aspName = !empty($this->asp->name) ? $this->asp->name : '';
+		$aspWhatsAppNumber = $this->asp->whatsapp_number;
+		$activityNumber = $this->number;
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '') : '';
+
+		$templateId = ''; //WILL BE SHARED BY TEAM
+		$senderNumber = ''; //WILL BE SHARED BY TEAM
+		$webHookDNId = ''; //WILL BE SHARED BY TEAM
+
+		$parameterValues = [
+			0 => $aspName,
+			1 => $vehicleNumber,
+			2 => $activityNumber,
+		];
+
+		$inputRequests[] = [
+			"message" => [
+				"channel" => "WABA",
+				"content" => [
+					"preview_url" => false,
+					"type" => "TEMPLATE",
+					"template" => [
+						"templateId" => $templateId,
+						"parameterValues" => $parameterValues,
+					],
+				],
+				"recipient" => [
+					"to" => $aspWhatsAppNumber,
+					"recipient_type" => "individual",
+				],
+				"sender" => [
+					"from" => $senderNumber,
+				],
+				"preferences" => [
+					"webHookDNId" => $webHookDNId,
+				],
+			],
+			"metaData" => [
+				"version" => "v1.0.9",
+			],
+		];
+
+		//SEND WHATSAPP SMS
+		sendWhatsappSMS($this->id, 1192, $inputRequests);
+	}
+
+	public function sendBreakdownOrEmptyreturnChargesWhatsappSms() {
+		$aspName = !empty($this->asp->name) ? $this->asp->name : '';
+		$aspWhatsAppNumber = $this->asp->whatsapp_number;
+		$activityNumber = $this->number;
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '') : '';
+		$serviceType = $this->serviceType ? $this->serviceType->name : '';
+		$distance = $this->detail(158) ? (!empty($this->detail(158)->value) ? $this->detail(158)->value : '') : '';
+		$payoutAmount = $this->detail(182) ? (!empty($this->detail(182)->value) ? $this->detail(182)->value : '') : '';
+
+		$templateId = ''; //WILL BE SHARED BY TEAM
+		$senderNumber = ''; //WILL BE SHARED BY TEAM
+		$webHookDNId = ''; //WILL BE SHARED BY TEAM
+
+		//NORMAL PAYOUT (BREAKDOWN CHARGES)
+		if ($this->financeStatus && $this->financeStatus->id == 1) {
+			$typeId = 1193;
+			//OTHER THAN TOW SERVICE
+			if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
+				$parameterValues = [
+					0 => $aspName,
+					1 => $vehicleNumber,
+					2 => $serviceType,
+					3 => $activityNumber,
+					4 => $distance,
+					5 => $payoutAmount,
+				];
+			} else {
+				//TOW SERVICE
+				$parameterValues = [
+					0 => $aspName,
+					1 => $vehicleNumber,
+					2 => $activityNumber,
+					3 => $distance,
+					4 => $payoutAmount,
+				];
+			}
+
+			$payloadIndexOne = [
+				"value" => "Yes",
+				"activity_id" => $this->number,
+				"type" => "Breakdown Charges",
+			];
+			$payloadIndexTwo = [
+				"value" => "No",
+				"activity_id" => $this->number,
+				"type" => "Breakdown Charges",
+			];
+			$inputRequests[] = [
+				"message" => [
+					"channel" => "WABA",
+					"content" => [
+						"preview_url" => false,
+						"type" => "TEMPLATE",
+						"template" => [
+							"templateId" => $templateId,
+							"parameterValues" => $parameterValues,
+							"buttons" => [
+								"quickReplies" => [
+									[
+										"index" => "0",
+										"payload" => json_encode($payloadIndexOne),
+									],
+									[
+										"index" => "1",
+										"payload" => json_encode($payloadIndexTwo),
+									],
+								],
+							],
+						],
+					],
+					"recipient" => [
+						"to" => $aspWhatsAppNumber,
+						"recipient_type" => "individual",
+					],
+					"sender" => [
+						"from" => $senderNumber,
+					],
+					"preferences" => [
+						"webHookDNId" => $webHookDNId,
+					],
+				],
+				"metaData" => [
+					"version" => "v1.0.9",
+				],
+			];
+
+		} else {
+			//EMPTY RETURN PAYOUT (EMPTY RETURN CHARGES)
+			$typeId = 1194;
 
 			//OTHER THAN TOW SERVICE
 			if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
 				$parameterValues = [
 					0 => $aspName,
-					1 => $caseDate,
-					2 => $activityNumber,
-					3 => $customerName,
-					4 => $vehicleNumber,
-					5 => $vin,
-					6 => $model,
-					7 => $serviceType,
-					8 => $bdAddress,
-					9 => $bdMapLocation,
-					10 => $tollFreeNumber,
-					11 => $whatsAppNumber,
-				];
-
-				$inputRequests[] = [
-					"message" => [
-						"channel" => "WABA",
-						"content" => [
-							"preview_url" => false,
-							"type" => "TEMPLATE",
-							"template" => [
-								"templateId" => $templateId,
-								"parameterValues" => $parameterValues,
-							],
-						],
-						"recipient" => [
-							"to" => $aspWhatsAppNumber,
-							"recipient_type" => "individual",
-						],
-						"sender" => [
-							"from" => $senderNumber,
-						],
-						"preferences" => [
-							"webHookDNId" => $webHookDNId,
-						],
-					],
-					"metaData" => [
-						"version" => "v1.0.9",
-					],
+					1 => $vehicleNumber,
+					2 => $serviceType,
+					3 => $activityNumber,
+					4 => $payoutAmount,
 				];
 			} else {
-				// TOWING SERVICE
+				//TOW SERVICE
 				$parameterValues = [
 					0 => $aspName,
-					1 => $caseDate,
+					1 => $vehicleNumber,
 					2 => $activityNumber,
-					3 => $customerName,
-					4 => $vehicleNumber,
-					5 => $vin,
-					6 => $model,
-					7 => $serviceType,
-					8 => $bdAddress,
-					9 => $bdMapLocation,
-					10 => $dropAddress,
-					11 => $dropMapLocation,
-					12 => $tollFreeNumber,
-					13 => $whatsAppNumber,
-				];
-
-				$payloadIndexOne = [
-					"value" => "Upload Images",
-					"activityId" => $this->number,
-					"type" => "Case Assigned",
-				];
-				$payloadIndexTwo = [
-					"value" => "Empty Return",
-					"activityId" => $this->number,
-					"type" => "Case Assigned",
-				];
-				$inputRequests[] = [
-					"message" => [
-						"channel" => "WABA",
-						"content" => [
-							"preview_url" => false,
-							"type" => "TEMPLATE",
-							"template" => [
-								"templateId" => $templateId,
-								"parameterValues" => $parameterValues,
-								"buttons" => [
-									"quickReplies" => [
-										[
-											"index" => "0",
-											"payload" => json_encode($payloadIndexOne),
-										],
-										[
-											"index" => "1",
-											"payload" => json_encode($payloadIndexTwo),
-										],
-									],
-								],
-							],
-						],
-						"recipient" => [
-							"to" => $aspWhatsAppNumber,
-							"recipient_type" => "individual",
-						],
-						"sender" => [
-							"from" => $senderNumber,
-						],
-						"preferences" => [
-							"webHookDNId" => $webHookDNId,
-						],
-					],
-					"metaData" => [
-						"version" => "v1.0.9",
-					],
+					3 => $payoutAmount,
 				];
 			}
 
-			// dd($inputRequests);
+			$inputRequests[] = [
+				"message" => [
+					"channel" => "WABA",
+					"content" => [
+						"preview_url" => false,
+						"type" => "TEMPLATE",
+						"template" => [
+							"templateId" => $templateId,
+							"parameterValues" => $parameterValues,
+						],
+					],
+					"recipient" => [
+						"to" => $aspWhatsAppNumber,
+						"recipient_type" => "individual",
+					],
+					"sender" => [
+						"from" => $senderNumber,
+					],
+					"preferences" => [
+						"webHookDNId" => $webHookDNId,
+					],
+				],
+				"metaData" => [
+					"version" => "v1.0.9",
+				],
+			];
 
-			$whatsappApiUrl = config('constants')['whatsapp_api_url'];
-			$api = new GClient();
-			$response = $api->request('POST', $whatsappApiUrl, [
-				'json' => $inputRequests,
-			]);
-			$body = $response->getBody();
-			$result = json_decode((string) $body);
-
-			//SMS LOGS NEED TO BE ADDED
 		}
+
+		//SEND WHATSAPP SMS
+		sendWhatsappSMS($this->id, $typeId, $inputRequests);
+	}
+
+	public function sendAspAcceptanceChargesWhatsappSms() {
+		$aspName = !empty($this->asp->name) ? $this->asp->name : '';
+		$aspWhatsAppNumber = $this->asp->whatsapp_number;
+		$activityNumber = $this->number;
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '') : '';
+		$serviceType = $this->serviceType ? $this->serviceType->name : '';
+
+		$templateId = ''; //WILL BE SHARED BY TEAM
+		$senderNumber = ''; //WILL BE SHARED BY TEAM
+		$webHookDNId = ''; //WILL BE SHARED BY TEAM
+
+		//OTHER THAN TOW SERVICE
+		if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
+			$parameterValues = [
+				0 => $aspName,
+				1 => $vehicleNumber,
+				2 => $serviceType,
+				3 => $activityNumber,
+			];
+		} else {
+			//TOW SERVICE
+			$parameterValues = [
+				0 => $aspName,
+				1 => $vehicleNumber,
+				2 => $activityNumber,
+			];
+		}
+
+		$payloadIndexOne = [
+			"value" => "Yes",
+			"activity_id" => $this->number,
+			"type" => "ASP Charges Acceptance",
+		];
+		$payloadIndexTwo = [
+			"value" => "No",
+			"activity_id" => $this->number,
+			"type" => "ASP Charges Acceptance",
+		];
+
+		$inputRequests[] = [
+			"message" => [
+				"channel" => "WABA",
+				"content" => [
+					"preview_url" => false,
+					"type" => "TEMPLATE",
+					"template" => [
+						"templateId" => $templateId,
+						"parameterValues" => $parameterValues,
+						"buttons" => [
+							"quickReplies" => [
+								[
+									"index" => "0",
+									"payload" => json_encode($payloadIndexOne),
+								],
+								[
+									"index" => "1",
+									"payload" => json_encode($payloadIndexTwo),
+								],
+							],
+						],
+					],
+				],
+				"recipient" => [
+					"to" => $aspWhatsAppNumber,
+					"recipient_type" => "individual",
+				],
+				"sender" => [
+					"from" => $senderNumber,
+				],
+				"preferences" => [
+					"webHookDNId" => $webHookDNId,
+				],
+			],
+			"metaData" => [
+				"version" => "v1.0.9",
+			],
+		];
+
+		//SEND WHATSAPP SMS
+		sendWhatsappSMS($this->id, 1195, $inputRequests);
+	}
+
+	public function sendAspChargesRejectionWhatsappSms() {
+		$aspName = !empty($this->asp->name) ? $this->asp->name : '';
+		$aspWhatsAppNumber = $this->asp->whatsapp_number;
+		$activityNumber = $this->number;
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '') : '';
+		$serviceType = $this->serviceType ? $this->serviceType->name : '';
+
+		$templateId = ''; //WILL BE SHARED BY TEAM
+		$senderNumber = ''; //WILL BE SHARED BY TEAM
+		$webHookDNId = ''; //WILL BE SHARED BY TEAM
+
+		//OTHER THAN TOW SERVICE
+		if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
+			$parameterValues = [
+				0 => $aspName,
+				1 => $vehicleNumber,
+				2 => $serviceType,
+				3 => $activityNumber,
+			];
+		} else {
+			//TOW SERVICE
+			$parameterValues = [
+				0 => $aspName,
+				1 => $vehicleNumber,
+				2 => $activityNumber,
+			];
+		}
+
+		$inputRequests[] = [
+			"message" => [
+				"channel" => "WABA",
+				"content" => [
+					"preview_url" => false,
+					"type" => "TEMPLATE",
+					"template" => [
+						"templateId" => $templateId,
+						"parameterValues" => $parameterValues,
+					],
+				],
+				"recipient" => [
+					"to" => $aspWhatsAppNumber,
+					"recipient_type" => "individual",
+				],
+				"sender" => [
+					"from" => $senderNumber,
+				],
+				"preferences" => [
+					"webHookDNId" => $webHookDNId,
+				],
+			],
+			"metaData" => [
+				"version" => "v1.0.9",
+			],
+		];
+
+		//SEND WHATSAPP SMS
+		sendWhatsappSMS($this->id, 1196, $inputRequests);
+	}
+
+	public function sendIndividualInvoicingWhatsappSms() {
+		$aspName = !empty($this->asp->name) ? $this->asp->name : '';
+		$aspWhatsAppNumber = $this->asp->whatsapp_number;
+		$activityNumber = $this->number;
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '') : '';
+		$serviceType = $this->serviceType ? $this->serviceType->name : '';
+
+		$templateId = ''; //WILL BE SHARED BY TEAM
+		$senderNumber = ''; //WILL BE SHARED BY TEAM
+		$webHookDNId = ''; //WILL BE SHARED BY TEAM
+
+		//OTHER THAN TOW SERVICE
+		if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
+			$bodyParameterValues = [
+				0 => $aspName,
+				1 => $vehicleNumber,
+				2 => $serviceType,
+				3 => $activityNumber,
+			];
+		} else {
+			//TOW SERVICE
+			$bodyParameterValues = [
+				0 => $aspName,
+				1 => $vehicleNumber,
+				2 => $activityNumber,
+			];
+		}
+
+		$inputRequests[] = [
+			"message" => [
+				"channel" => "WABA",
+				"content" => [
+					"preview_url" => false,
+					"shorten_url" => false,
+					"type" => "MEDIA_TEMPLATE",
+					"mediaTemplate" => [
+						"templateId" => $templateId,
+						"media" => [
+							"type" => "document",
+							"url" => URL::asset('storage/app/public/invoices/' . $this->invoice_id . '.pdf'),
+							"fileName" => "invoice-copy.pdf",
+						],
+						"bodyParameterValues" => $bodyParameterValues,
+					],
+				],
+				"recipient" => [
+					"to" => $aspWhatsAppNumber,
+					"recipient_type" => "individual",
+				],
+				"sender" => [
+					"from" => $senderNumber,
+				],
+				"preferences" => [
+					"webHookDNId" => $webHookDNId,
+				],
+			],
+			"metaData" => [
+				"version" => "v1.0.9",
+			],
+		];
+
+		//SEND WHATSAPP SMS
+		sendWhatsappSMS($this->id, 1197, $inputRequests);
+	}
+
+	public function sendBulkInvoicingWhatsappSms() {
+		$aspName = !empty($this->asp->name) ? $this->asp->name : '';
+		$aspWhatsAppNumber = $this->asp->whatsapp_number;
+
+		$templateId = ''; //WILL BE SHARED BY TEAM
+		$senderNumber = ''; //WILL BE SHARED BY TEAM
+		$webHookDNId = ''; //WILL BE SHARED BY TEAM
+
+		$parameterValues = [
+			0 => $aspName,
+		];
+
+		$inputRequests[] = [
+			"message" => [
+				"channel" => "WABA",
+				"content" => [
+					"preview_url" => false,
+					"type" => "TEMPLATE",
+					"template" => [
+						"templateId" => $templateId,
+						"parameterValues" => $parameterValues,
+					],
+				],
+				"recipient" => [
+					"to" => $aspWhatsAppNumber,
+					"recipient_type" => "individual",
+				],
+				"sender" => [
+					"from" => $senderNumber,
+				],
+				"preferences" => [
+					"webHookDNId" => $webHookDNId,
+				],
+			],
+			"metaData" => [
+				"version" => "v1.0.9",
+			],
+		];
+
+		//SEND WHATSAPP SMS
+		sendWhatsappSMS($this->id, 1198, $inputRequests);
 	}
 
 }

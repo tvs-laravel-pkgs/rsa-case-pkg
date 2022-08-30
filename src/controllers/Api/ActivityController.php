@@ -1070,7 +1070,7 @@ class ActivityController extends Controller {
 				], $this->successStatus);
 			}
 
-			if ($activity && $activity->serviceType && $activity->serviceType->group && $activity->serviceType->group != 3) {
+			if ($activity && $activity->serviceType && $activity->serviceType->group && $activity->serviceType->group->id != 3) {
 				//UPLOAD TOW IMAGE API LOG
 				$errors = $validator->errors()->all();
 				saveApiLog(111, NULL, $request->all(), $errors, NULL, 121);

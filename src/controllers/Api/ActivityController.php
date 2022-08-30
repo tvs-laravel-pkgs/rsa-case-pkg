@@ -1012,7 +1012,7 @@ class ActivityController extends Controller {
 			if ($validator->fails()) {
 				//UPLOAD TOW IMAGE API LOG
 				$errors = $validator->errors()->all();
-				saveApiLog(110, NULL, $request->all(), $errors, NULL, 121);
+				saveApiLog(111, NULL, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -1027,7 +1027,7 @@ class ActivityController extends Controller {
 			if (!$activity) {
 				//UPLOAD TOW IMAGE API LOG
 				$errors[] = "Activity not found";
-				saveApiLog(110, NULL, $request->all(), $errors, NULL, 121);
+				saveApiLog(111, NULL, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -1042,7 +1042,7 @@ class ActivityController extends Controller {
 			if ($activity && $activity->serviceType && $activity->serviceType->group && $activity->serviceType->group != 3) {
 				//UPLOAD TOW IMAGE API LOG
 				$errors = $validator->errors()->all();
-				saveApiLog(110, NULL, $request->all(), $errors, NULL, 121);
+				saveApiLog(111, NULL, $request->all(), $errors, NULL, 121);
 				DB::commit();
 
 				return response()->json([
@@ -1139,7 +1139,7 @@ class ActivityController extends Controller {
 			}
 
 			//UPLOAD TOW IMAGE API LOG
-			saveApiLog(110, NULL, $request->all(), $errors, NULL, 120);
+			saveApiLog(111, NULL, $request->all(), $errors, NULL, 120);
 
 			//SEND IMAGE UPLOAD CONFIRMATION WHATSAPP SMS TO ASP
 			if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
@@ -1156,7 +1156,7 @@ class ActivityController extends Controller {
 			DB::rollBack();
 			//UPLOAD TOW IMAGE API LOG
 			$errors[] = $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile();
-			saveApiLog(110, NULL, $request->all(), $errors, NULL, 121);
+			saveApiLog(111, NULL, $request->all(), $errors, NULL, 121);
 
 			return response()->json([
 				'success' => false,

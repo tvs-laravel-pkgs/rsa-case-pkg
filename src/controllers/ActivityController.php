@@ -5200,4 +5200,5 @@ class ActivityController extends Controller {
 	public function searchClients(Request $request) {
 		return Client::searchClient($request);
 	}
+
 }

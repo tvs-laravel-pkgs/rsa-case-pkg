@@ -1,5 +1,8 @@
 <?php
 Route::group(['namespace' => 'Abs\RsaCasePkg\Api', 'middleware' => ['api']], function () {
+	//ASP AUTO BILLING - WHATSAPP WEBHOOK RESPONSE
+	Route::post('whatsapp/webhook/response', 'ActivityController@whatsappWebhookResponse')->name('whatsappWebhookResponse');
+
 	Route::group(['prefix' => 'api/case-pkg'], function () {
 		Route::post('case/save', 'CaseController@save');
 
@@ -14,10 +17,13 @@ Route::group(['namespace' => 'Abs\RsaCasePkg\Api', 'middleware' => ['api']], fun
 		Route::post('get-invoice-list', 'InvoiceController@getList');
 		Route::post('get-invoice-details', 'InvoiceController@getDetails');
 
+		//ASP AUTO BILLING - WHATSAPP
+		Route::post('tow-images/upload', 'ActivityController@uploadTowImages');
+
 		Route::post('policy/save', 'PolicyController@save');
 		Route::post('policy-entitlement/update', 'PolicyController@updatePolicyEntitlement');
 
-		Route::group(['middleware' => ['auth:api']], function () {
-		});
+		// Route::group(['middleware' => ['auth:api']], function () {
+		// });
 	});
 });

@@ -1659,26 +1659,23 @@ class Activity extends Model {
 			//ROS SERVICE
 			if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
 				$templateId = 'breakdown_charges_2_ros';
-				$parameterValues = [
-					0 => $aspName,
-					1 => $vehicleNumber,
-					2 => $serviceType,
-					3 => $activityNumber,
-					4 => $distance,
-					5 => $payoutAmount,
-				];
+				$parameterValues = new \stdClass();
+				$parameterValues->{'0'} = $aspName;
+				$parameterValues->{'1'} = $vehicleNumber;
+				$parameterValues->{'2'} = $serviceType;
+				$parameterValues->{'3'} = $activityNumber;
+				$parameterValues->{'4'} = $distance;
+				$parameterValues->{'5'} = $payoutAmount;
 			} else {
 				//TOW SERVICE
 				$templateId = 'breakdown_charges_3';
-				$parameterValues = [
-					0 => $aspName,
-					1 => $vehicleNumber,
-					2 => $activityNumber,
-					3 => $distance,
-					4 => $payoutAmount,
-				];
+				$parameterValues = new \stdClass();
+				$parameterValues->{'0'} = $aspName;
+				$parameterValues->{'1'} = $vehicleNumber;
+				$parameterValues->{'2'} = $activityNumber;
+				$parameterValues->{'3'} = $distance;
+				$parameterValues->{'4'} = $payoutAmount;
 			}
-
 			$payloadIndexOne = [
 				"value" => "Yes",
 				"activity_id" => $this->number,
@@ -1694,10 +1691,10 @@ class Activity extends Model {
 					"channel" => "WABA",
 					"content" => [
 						"preview_url" => false,
-						"type" => "TEMPLATE",
-						"template" => [
+						"type" => "MEDIA_TEMPLATE",
+						"mediaTemplate" => [
 							"templateId" => $templateId,
-							"parameterValues" => $parameterValues,
+							"bodyParameterValues" => $parameterValues,
 							"buttons" => [
 								"quickReplies" => [
 									[
@@ -1782,7 +1779,7 @@ class Activity extends Model {
 
 		}
 
-		// dd($inputRequests);
+		//dd(json_encode($inputRequests));
 		//SEND WHATSAPP SMS
 		sendWhatsappSMS($this->id, $typeId, $inputRequests);
 	}

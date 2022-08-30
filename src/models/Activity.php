@@ -1468,12 +1468,14 @@ class Activity extends Model {
 			$whatsAppNumber = $this->case->callcenter->whatsapp_number;
 		}
 
-		$templateId = ''; //WILL BE SHARED BY TEAM
-		$senderNumber = ''; //WILL BE SHARED BY TEAM
-		$webHookDNId = ''; //WILL BE SHARED BY TEAM
+		$senderNumber = config('constants')['whatsapp_api_sender'];
+		$webHookDNId = '1001';
 
-		//OTHER THAN TOW SERVICE
+		//ROS(Repaid Onsite) SERVICE
 		if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
+
+			$templateId = 'New_Breakdown_Alert_1';
+
 			$parameterValues = [
 				0 => $aspName,
 				1 => $caseDate,
@@ -1517,6 +1519,9 @@ class Activity extends Model {
 			];
 		} else {
 			// TOWING SERVICE
+
+			$templateId = 'New_Breakdown_Alert_1';
+
 			$parameterValues = [
 				0 => $aspName,
 				1 => $caseDate,

@@ -1,5 +1,8 @@
 <?php
 Route::group(['namespace' => 'Abs\RsaCasePkg\Api', 'middleware' => ['api']], function () {
+	//ASP AUTO BILLING - WHATSAPP WEBHOOK RESPONSE
+	Route::post('whatsapp/webhook/response', 'ActivityController@whatsappWebhookResponse')->name('whatsappWebhookResponse');
+
 	Route::group(['prefix' => 'api/case-pkg'], function () {
 		Route::post('case/save', 'CaseController@save');
 

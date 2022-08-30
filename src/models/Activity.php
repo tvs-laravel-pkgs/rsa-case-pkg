@@ -1474,7 +1474,7 @@ class Activity extends Model {
 		//ROS(Repaid Onsite) SERVICE
 		if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
 
-			$templateId = 'New_Breakdown_Alert_1';
+			$templateId = 'new_breakdown_alert_1_ros';
 
 			$parameterValues = [
 				0 => $aspName,
@@ -1491,7 +1491,7 @@ class Activity extends Model {
 				11 => $whatsAppNumber,
 			];
 
-			$inputRequests[] = [
+			$inputRequests = [
 				"message" => [
 					"channel" => "WABA",
 					"content" => [
@@ -1520,7 +1520,7 @@ class Activity extends Model {
 		} else {
 			// TOWING SERVICE
 
-			$templateId = 'New_Breakdown_Alert_1';
+			$templateId = 'new_breakdown_alert_1';
 
 			$parameterValues = [
 				0 => $aspName,
@@ -1549,7 +1549,7 @@ class Activity extends Model {
 				"activity_id" => $this->number,
 				"type" => "Case Assigned",
 			];
-			$inputRequests[] = [
+			$inputRequests = [
 				"message" => [
 					"channel" => "WABA",
 					"content" => [
@@ -1589,6 +1589,7 @@ class Activity extends Model {
 			];
 		}
 
+		// dd($inputRequests);
 		//SEND WHATSAPP SMS
 		sendWhatsappSMS($this->id, 1191, $inputRequests);
 	}
@@ -1599,9 +1600,9 @@ class Activity extends Model {
 		$activityNumber = $this->number;
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '') : '';
 
-		$templateId = ''; //WILL BE SHARED BY TEAM
-		$senderNumber = ''; //WILL BE SHARED BY TEAM
-		$webHookDNId = ''; //WILL BE SHARED BY TEAM
+		$templateId = 'image_upload_confirmation_2';
+		$senderNumber = config('constants')['whatsapp_api_sender'];
+		$webHookDNId = '1001';
 
 		$parameterValues = [
 			0 => $aspName,
@@ -1649,15 +1650,15 @@ class Activity extends Model {
 		$distance = $this->detail(158) ? (!empty($this->detail(158)->value) ? $this->detail(158)->value : '') : '';
 		$payoutAmount = $this->detail(182) ? (!empty($this->detail(182)->value) ? $this->detail(182)->value : '') : '';
 
-		$templateId = ''; //WILL BE SHARED BY TEAM
-		$senderNumber = ''; //WILL BE SHARED BY TEAM
-		$webHookDNId = ''; //WILL BE SHARED BY TEAM
+		$senderNumber = config('constants')['whatsapp_api_sender'];
+		$webHookDNId = '1001';
 
 		//NORMAL PAYOUT (BREAKDOWN CHARGES)
 		if ($this->financeStatus && $this->financeStatus->id == 1) {
 			$typeId = 1193;
-			//OTHER THAN TOW SERVICE
+			//ROS SERVICE
 			if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
+				$templateId = 'breakdown_charges_2_ros';
 				$parameterValues = [
 					0 => $aspName,
 					1 => $vehicleNumber,
@@ -1668,6 +1669,7 @@ class Activity extends Model {
 				];
 			} else {
 				//TOW SERVICE
+				$templateId = 'breakdown_charges_3';
 				$parameterValues = [
 					0 => $aspName,
 					1 => $vehicleNumber,
@@ -1687,7 +1689,7 @@ class Activity extends Model {
 				"activity_id" => $this->number,
 				"type" => "Breakdown Charges",
 			];
-			$inputRequests[] = [
+			$inputRequests = [
 				"message" => [
 					"channel" => "WABA",
 					"content" => [
@@ -1730,8 +1732,9 @@ class Activity extends Model {
 			//EMPTY RETURN PAYOUT (EMPTY RETURN CHARGES)
 			$typeId = 1194;
 
-			//OTHER THAN TOW SERVICE
+			//ROS SERVICE
 			if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
+				$templateId = 'breakdown_charges_7_ros';
 				$parameterValues = [
 					0 => $aspName,
 					1 => $vehicleNumber,
@@ -1741,6 +1744,7 @@ class Activity extends Model {
 				];
 			} else {
 				//TOW SERVICE
+				$templateId = 'breakdown_charges_8';
 				$parameterValues = [
 					0 => $aspName,
 					1 => $vehicleNumber,
@@ -1749,7 +1753,7 @@ class Activity extends Model {
 				];
 			}
 
-			$inputRequests[] = [
+			$inputRequests = [
 				"message" => [
 					"channel" => "WABA",
 					"content" => [
@@ -1778,6 +1782,7 @@ class Activity extends Model {
 
 		}
 
+		// dd($inputRequests);
 		//SEND WHATSAPP SMS
 		sendWhatsappSMS($this->id, $typeId, $inputRequests);
 	}
@@ -1789,12 +1794,12 @@ class Activity extends Model {
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '') : '';
 		$serviceType = $this->serviceType ? $this->serviceType->name : '';
 
-		$templateId = ''; //WILL BE SHARED BY TEAM
-		$senderNumber = ''; //WILL BE SHARED BY TEAM
-		$webHookDNId = ''; //WILL BE SHARED BY TEAM
+		$senderNumber = config('constants')['whatsapp_api_sender'];
+		$webHookDNId = '1001';
 
-		//OTHER THAN TOW SERVICE
+		//ROS SERVICE
 		if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
+			$templateId = 'asp_charges_acceptance_3_ros';
 			$parameterValues = [
 				0 => $aspName,
 				1 => $vehicleNumber,
@@ -1803,6 +1808,7 @@ class Activity extends Model {
 			];
 		} else {
 			//TOW SERVICE
+			$templateId = 'asp_charges_acceptance_4';
 			$parameterValues = [
 				0 => $aspName,
 				1 => $vehicleNumber,
@@ -1821,7 +1827,7 @@ class Activity extends Model {
 			"type" => "ASP Charges Acceptance",
 		];
 
-		$inputRequests[] = [
+		$inputRequests = [
 			"message" => [
 				"channel" => "WABA",
 				"content" => [
@@ -1871,12 +1877,12 @@ class Activity extends Model {
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '') : '';
 		$serviceType = $this->serviceType ? $this->serviceType->name : '';
 
-		$templateId = ''; //WILL BE SHARED BY TEAM
-		$senderNumber = ''; //WILL BE SHARED BY TEAM
-		$webHookDNId = ''; //WILL BE SHARED BY TEAM
+		$senderNumber = config('constants')['whatsapp_api_sender'];
+		$webHookDNId = '1001';
 
-		//OTHER THAN TOW SERVICE
+		//ROS SERVICE
 		if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
+			$templateId = 'asp_charges_rejection_5_ros';
 			$parameterValues = [
 				0 => $aspName,
 				1 => $vehicleNumber,
@@ -1885,6 +1891,7 @@ class Activity extends Model {
 			];
 		} else {
 			//TOW SERVICE
+			$templateId = 'asp_charges_rejection_6';
 			$parameterValues = [
 				0 => $aspName,
 				1 => $vehicleNumber,
@@ -1892,7 +1899,7 @@ class Activity extends Model {
 			];
 		}
 
-		$inputRequests[] = [
+		$inputRequests = [
 			"message" => [
 				"channel" => "WABA",
 				"content" => [
@@ -1930,12 +1937,12 @@ class Activity extends Model {
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '') : '';
 		$serviceType = $this->serviceType ? $this->serviceType->name : '';
 
-		$templateId = ''; //WILL BE SHARED BY TEAM
-		$senderNumber = ''; //WILL BE SHARED BY TEAM
-		$webHookDNId = ''; //WILL BE SHARED BY TEAM
+		$senderNumber = config('constants')['whatsapp_api_sender'];
+		$webHookDNId = '1001';
 
-		//OTHER THAN TOW SERVICE
+		//ROS SERVICE
 		if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
+			$templateId = 'individual_invoicing_4_ros';
 			$bodyParameterValues = [
 				0 => $aspName,
 				1 => $vehicleNumber,
@@ -1944,6 +1951,7 @@ class Activity extends Model {
 			];
 		} else {
 			//TOW SERVICE
+			$templateId = 'individual_invoicing_5';
 			$bodyParameterValues = [
 				0 => $aspName,
 				1 => $vehicleNumber,
@@ -1951,7 +1959,7 @@ class Activity extends Model {
 			];
 		}
 
-		$inputRequests[] = [
+		$inputRequests = [
 			"message" => [
 				"channel" => "WABA",
 				"content" => [
@@ -1992,15 +2000,22 @@ class Activity extends Model {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 
-		$templateId = ''; //WILL BE SHARED BY TEAM
-		$senderNumber = ''; //WILL BE SHARED BY TEAM
-		$webHookDNId = ''; //WILL BE SHARED BY TEAM
+		$senderNumber = config('constants')['whatsapp_api_sender'];
+		$webHookDNId = '1001';
+
+		//ROS SERVICE
+		if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
+			$templateId = 'bulk_invoicing_6_ros';
+		} else {
+			//TOW SERVICE
+			$templateId = 'bulk_invoicing_7';
+		}
 
 		$parameterValues = [
 			0 => $aspName,
 		];
 
-		$inputRequests[] = [
+		$inputRequests = [
 			"message" => [
 				"channel" => "WABA",
 				"content" => [

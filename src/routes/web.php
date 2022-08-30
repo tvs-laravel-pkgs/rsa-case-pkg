@@ -1,9 +1,6 @@
 <?php
 Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web'], 'prefix' => 'rsa-case-pkg'], function () {
 
-	//ASP AUTO BILLING - WHATSAPP WEBHOOK RESPONSE
-	Route::post('whatsapp/webhook/response', 'ActivityController@whatsappWebhookResponse')->name('whatsappWebhookResponse');
-
 	Route::group(['middleware' => ['auth']], function () {
 
 		//DASHBOARD

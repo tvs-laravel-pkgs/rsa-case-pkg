@@ -398,8 +398,8 @@ class CaseController extends Controller {
 						$activityLog->save();
 
 						//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
-						if ($invoiceAmountCalculatedActivity->asp && !empty($invoiceAmountCalculatedActivity->asp->whatsapp_number) && $activity->financeStatus && $activity->financeStatus->po_eligibility_type_id != 342) {
-							$invoiceAmountCalculatedActivity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
+						if ($invoiceAmountCalculatedActivity->asp && !empty($invoiceAmountCalculatedActivity->asp->whatsapp_number) && $invoiceAmountCalculatedActivity->financeStatus && $invoiceAmountCalculatedActivity->financeStatus->po_eligibility_type_id != 342) {
+							// $invoiceAmountCalculatedActivity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 						}
 
 					}
@@ -459,14 +459,14 @@ class CaseController extends Controller {
 		} catch (\Exception $e) {
 			DB::rollBack();
 			//SAVE CASE API LOG
-			$errors[] = $e->getMessage() . ' Line:' . $e->getLine();
+			$errors[] = $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile();
 			saveApiLog(102, $request->number, $request->all(), $errors, NULL, 121);
 
 			return response()->json([
 				'success' => false,
 				'error' => 'Exception Error',
 				'errors' => [
-					$e->getMessage() . ' Line:' . $e->getLine(),
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			], $this->successStatus);
 		}

@@ -15,6 +15,7 @@ use App\Asp;
 use App\Attachment;
 use App\Config;
 use App\Http\Controllers\Controller;
+use App\Invoices;
 use App\ServiceType;
 use Carbon\Carbon;
 use DB;
@@ -834,14 +835,14 @@ class ActivityController extends Controller {
 	}
 
 	public function whatsappWebhookResponse(Request $request) {
-		// dd($request->all());
+		// dd($request->payload);
 		$whatsappWebhookResponse = new WhatsappWebhookResponse();
 		$whatsappWebhookResponse->payload = json_encode($request->all());
 		$whatsappWebhookResponse->status = 'Started';
 		$whatsappWebhookResponse->save();
-		return response()->json([
-			'success' => true,
-		], $this->successStatus);
+		// return response()->json([
+		// 	'success' => true,
+		// ], $this->successStatus);
 
 		DB::beginTransaction();
 		try {
@@ -857,7 +858,7 @@ class ActivityController extends Controller {
 				], $this->successStatus);
 			}
 
-			$payload = json_decode($request->payload);
+			$payload = json_decode(stripslashes($request->payload));
 			if (empty($payload)) {
 				$whatsappWebhookResponse->errors = 'Payload is empty';
 				$whatsappWebhookResponse->save();
@@ -921,7 +922,8 @@ class ActivityController extends Controller {
 						$invoiceDate = new Carbon();
 
 						//CREATE INVOICE
-						$createInvoiceResponse = Invoices::createInvoice($activity->asp, $activity->id, $invoiceNumber, $invoiceDate, '');
+						$crmActivityId[] = $activity->crm_activity_id;
+						$createInvoiceResponse = Invoices::createInvoice($activity->asp, $crmActivityId, $invoiceNumber, $invoiceDate, '');
 
 						if (!$createInvoiceResponse['success']) {
 							DB::rollBack();
@@ -937,7 +939,7 @@ class ActivityController extends Controller {
 						}
 
 						//SEND INDIVIDUAL INVOICING WHATSAPP SMS TO ASP
-						$activity->sendIndividualInvoicingWhatsappSms();
+						$activity->sendIndividualInvoicingWhatsappSms($createInvoiceResponse['invoice']->id);
 					} else {
 						//SEND BULK INVOICING WHATSAPP SMS TO ASP
 						$activity->sendBulkInvoicingWhatsappSms();

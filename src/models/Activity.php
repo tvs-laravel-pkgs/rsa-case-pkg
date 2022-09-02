@@ -1909,7 +1909,7 @@ class Activity extends Model {
 		sendWhatsappSMS($this->id, 1196, $inputRequests);
 	}
 
-	public function sendIndividualInvoicingWhatsappSms() {
+	public function sendIndividualInvoicingWhatsappSms($invoiceId) {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 		$activityNumber = $this->number;
@@ -1939,14 +1939,13 @@ class Activity extends Model {
 			"message" => [
 				"channel" => "WABA",
 				"content" => [
-					"preview_url" => false,
-					"shorten_url" => false,
+					"preview_url" => true,
 					"type" => "MEDIA_TEMPLATE",
 					"mediaTemplate" => [
 						"templateId" => $templateId,
 						"media" => [
 							"type" => "document",
-							"url" => URL::asset('storage/app/public/invoices/' . $this->invoice_id . '.pdf'),
+							"url" => URL::asset('storage/app/public/invoices/' . $invoiceId . '.pdf'),
 							"fileName" => "invoice-copy.pdf",
 						],
 						"bodyParameterValues" => $bodyParameterValues,

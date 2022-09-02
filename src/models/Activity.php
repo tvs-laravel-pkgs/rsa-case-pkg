@@ -1469,37 +1469,33 @@ class Activity extends Model {
 		}
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
-		$webHookDNId = '1001';
 
 		//ROS(Repaid Onsite) SERVICE
-		if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
-
+		if ($this->serviceType && !empty($this->serviceType->service_group_id) && $this->serviceType->service_group_id != 3) {
 			$templateId = 'new_breakdown_alert_1_ros';
-
-			$parameterValues = [
-				0 => $aspName,
-				1 => $caseDate,
-				2 => $activityNumber,
-				3 => $customerName,
-				4 => $vehicleNumber,
-				5 => $vin,
-				6 => $model,
-				7 => $serviceType,
-				8 => $bdAddress,
-				9 => $bdMapLocation,
-				10 => $tollFreeNumber,
-				11 => $whatsAppNumber,
-			];
+			$bodyParameterValues = new \stdClass();
+			$bodyParameterValues->{'0'} = $aspName;
+			$bodyParameterValues->{'1'} = $caseDate;
+			$bodyParameterValues->{'2'} = $activityNumber;
+			$bodyParameterValues->{'3'} = $customerName;
+			$bodyParameterValues->{'4'} = $vehicleNumber;
+			$bodyParameterValues->{'5'} = $vin;
+			$bodyParameterValues->{'6'} = $model;
+			$bodyParameterValues->{'7'} = $serviceType;
+			$bodyParameterValues->{'8'} = $bdAddress;
+			$bodyParameterValues->{'9'} = $bdMapLocation;
+			$bodyParameterValues->{'10'} = $tollFreeNumber;
+			$bodyParameterValues->{'11'} = $whatsAppNumber;
 
 			$inputRequests = [
 				"message" => [
 					"channel" => "WABA",
 					"content" => [
 						"preview_url" => false,
-						"type" => "TEMPLATE",
-						"template" => [
+						"type" => "MEDIA_TEMPLATE",
+						"mediaTemplate" => [
 							"templateId" => $templateId,
-							"parameterValues" => $parameterValues,
+							"bodyParameterValues" => $bodyParameterValues,
 						],
 					],
 					"recipient" => [
@@ -1510,7 +1506,7 @@ class Activity extends Model {
 						"from" => $senderNumber,
 					],
 					"preferences" => [
-						"webHookDNId" => $webHookDNId,
+						"webHookDNId" => "1001",
 					],
 				],
 				"metaData" => [
@@ -1519,25 +1515,21 @@ class Activity extends Model {
 			];
 		} else {
 			// TOWING SERVICE
-
 			$templateId = 'new_breakdown_alert_1';
-
-			$parameterValues = [
-				0 => $aspName,
-				1 => $caseDate,
-				2 => $activityNumber,
-				3 => $customerName,
-				4 => $vehicleNumber,
-				5 => $vin,
-				6 => $model,
-				7 => $serviceType,
-				8 => $bdAddress,
-				9 => $bdMapLocation,
-				10 => $dropAddress,
-				11 => $dropMapLocation,
-				12 => $tollFreeNumber,
-				13 => $whatsAppNumber,
-			];
+			$bodyParameterValues = new \stdClass();
+			$bodyParameterValues->{'0'} = $aspName;
+			$bodyParameterValues->{'1'} = $caseDate;
+			$bodyParameterValues->{'2'} = $activityNumber;
+			$bodyParameterValues->{'3'} = $customerName;
+			$bodyParameterValues->{'4'} = $vehicleNumber;
+			$bodyParameterValues->{'5'} = $vin;
+			$bodyParameterValues->{'6'} = $model;
+			$bodyParameterValues->{'7'} = $serviceType;
+			$bodyParameterValues->{'8'} = $bdAddress;
+			$bodyParameterValues->{'9'} = $bdMapLocation;
+			$bodyParameterValues->{'10'} = $dropAddress;
+			$bodyParameterValues->{'11'} = $dropMapLocation;
+			$bodyParameterValues->{'12'} = $tollFreeNumber;
 
 			$payloadIndexOne = [
 				"value" => "Upload Images",
@@ -1554,10 +1546,10 @@ class Activity extends Model {
 					"channel" => "WABA",
 					"content" => [
 						"preview_url" => false,
-						"type" => "TEMPLATE",
-						"template" => [
+						"type" => "MEDIA_TEMPLATE",
+						"mediaTemplate" => [
 							"templateId" => $templateId,
-							"parameterValues" => $parameterValues,
+							"bodyParameterValues" => $bodyParameterValues,
 							"buttons" => [
 								"quickReplies" => [
 									[
@@ -1580,7 +1572,7 @@ class Activity extends Model {
 						"from" => $senderNumber,
 					],
 					"preferences" => [
-						"webHookDNId" => $webHookDNId,
+						"webHookDNId" => "1001",
 					],
 				],
 				"metaData" => [
@@ -1602,23 +1594,21 @@ class Activity extends Model {
 
 		$templateId = 'image_upload_confirmation_2';
 		$senderNumber = config('constants')['whatsapp_api_sender'];
-		$webHookDNId = '1001';
 
-		$parameterValues = [
-			0 => $aspName,
-			1 => $vehicleNumber,
-			2 => $activityNumber,
-		];
+		$bodyParameterValues = new \stdClass();
+		$bodyParameterValues->{'0'} = $aspName;
+		$bodyParameterValues->{'1'} = $vehicleNumber;
+		$bodyParameterValues->{'2'} = $activityNumber;
 
 		$inputRequests[] = [
 			"message" => [
 				"channel" => "WABA",
 				"content" => [
 					"preview_url" => false,
-					"type" => "TEMPLATE",
-					"template" => [
+					"type" => "MEDIA_TEMPLATE",
+					"mediaTemplate" => [
 						"templateId" => $templateId,
-						"parameterValues" => $parameterValues,
+						"bodyParameterValues" => $bodyParameterValues,
 					],
 				],
 				"recipient" => [
@@ -1629,7 +1619,7 @@ class Activity extends Model {
 					"from" => $senderNumber,
 				],
 				"preferences" => [
-					"webHookDNId" => $webHookDNId,
+					"webHookDNId" => "1001",
 				],
 			],
 			"metaData" => [
@@ -1651,30 +1641,29 @@ class Activity extends Model {
 		$payoutAmount = $this->detail(182) ? (!empty($this->detail(182)->value) ? $this->detail(182)->value : '') : '';
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
-		$webHookDNId = '1001';
 
 		//NORMAL PAYOUT (BREAKDOWN CHARGES)
 		if ($this->financeStatus && $this->financeStatus->id == 1) {
 			$typeId = 1193;
 			//ROS SERVICE
-			if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
+			if ($this->serviceType && !empty($this->serviceType->service_group_id) && $this->serviceType->service_group_id != 3) {
 				$templateId = 'breakdown_charges_2_ros';
-				$parameterValues = new \stdClass();
-				$parameterValues->{'0'} = $aspName;
-				$parameterValues->{'1'} = $vehicleNumber;
-				$parameterValues->{'2'} = $serviceType;
-				$parameterValues->{'3'} = $activityNumber;
-				$parameterValues->{'4'} = $distance;
-				$parameterValues->{'5'} = $payoutAmount;
+				$bodyParameterValues = new \stdClass();
+				$bodyParameterValues->{'0'} = $aspName;
+				$bodyParameterValues->{'1'} = $vehicleNumber;
+				$bodyParameterValues->{'2'} = $serviceType;
+				$bodyParameterValues->{'3'} = $activityNumber;
+				$bodyParameterValues->{'4'} = $distance;
+				$bodyParameterValues->{'5'} = $payoutAmount;
 			} else {
 				//TOW SERVICE
 				$templateId = 'breakdown_charges_3';
-				$parameterValues = new \stdClass();
-				$parameterValues->{'0'} = $aspName;
-				$parameterValues->{'1'} = $vehicleNumber;
-				$parameterValues->{'2'} = $activityNumber;
-				$parameterValues->{'3'} = $distance;
-				$parameterValues->{'4'} = $payoutAmount;
+				$bodyParameterValues = new \stdClass();
+				$bodyParameterValues->{'0'} = $aspName;
+				$bodyParameterValues->{'1'} = $vehicleNumber;
+				$bodyParameterValues->{'2'} = $activityNumber;
+				$bodyParameterValues->{'3'} = $distance;
+				$bodyParameterValues->{'4'} = $payoutAmount;
 			}
 			$payloadIndexOne = [
 				"value" => "Yes",
@@ -1694,7 +1683,7 @@ class Activity extends Model {
 						"type" => "MEDIA_TEMPLATE",
 						"mediaTemplate" => [
 							"templateId" => $templateId,
-							"bodyParameterValues" => $parameterValues,
+							"bodyParameterValues" => $bodyParameterValues,
 							"buttons" => [
 								"quickReplies" => [
 									[
@@ -1717,7 +1706,7 @@ class Activity extends Model {
 						"from" => $senderNumber,
 					],
 					"preferences" => [
-						"webHookDNId" => $webHookDNId,
+						"webHookDNId" => "1001",
 					],
 				],
 				"metaData" => [
@@ -1730,24 +1719,22 @@ class Activity extends Model {
 			$typeId = 1194;
 
 			//ROS SERVICE
-			if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
+			if ($this->serviceType && !empty($this->serviceType->service_group_id) && $this->serviceType->service_group_id != 3) {
 				$templateId = 'breakdown_charges_7_ros';
-				$parameterValues = [
-					0 => $aspName,
-					1 => $vehicleNumber,
-					2 => $serviceType,
-					3 => $activityNumber,
-					4 => $payoutAmount,
-				];
+				$bodyParameterValues = new \stdClass();
+				$bodyParameterValues->{'0'} = $aspName;
+				$bodyParameterValues->{'1'} = $vehicleNumber;
+				$bodyParameterValues->{'2'} = $serviceType;
+				$bodyParameterValues->{'3'} = $activityNumber;
+				$bodyParameterValues->{'4'} = $payoutAmount;
 			} else {
 				//TOW SERVICE
 				$templateId = 'breakdown_charges_8';
-				$parameterValues = [
-					0 => $aspName,
-					1 => $vehicleNumber,
-					2 => $activityNumber,
-					3 => $payoutAmount,
-				];
+				$bodyParameterValues = new \stdClass();
+				$bodyParameterValues->{'0'} = $aspName;
+				$bodyParameterValues->{'1'} = $vehicleNumber;
+				$bodyParameterValues->{'2'} = $activityNumber;
+				$bodyParameterValues->{'3'} = $payoutAmount;
 			}
 
 			$inputRequests = [
@@ -1755,10 +1742,10 @@ class Activity extends Model {
 					"channel" => "WABA",
 					"content" => [
 						"preview_url" => false,
-						"type" => "TEMPLATE",
-						"template" => [
+						"type" => "MEDIA_TEMPLATE",
+						"mediaTemplate" => [
 							"templateId" => $templateId,
-							"parameterValues" => $parameterValues,
+							"bodyParameterValues" => $bodyParameterValues,
 						],
 					],
 					"recipient" => [
@@ -1769,7 +1756,7 @@ class Activity extends Model {
 						"from" => $senderNumber,
 					],
 					"preferences" => [
-						"webHookDNId" => $webHookDNId,
+						"webHookDNId" => "1001",
 					],
 				],
 				"metaData" => [
@@ -1792,25 +1779,22 @@ class Activity extends Model {
 		$serviceType = $this->serviceType ? $this->serviceType->name : '';
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
-		$webHookDNId = '1001';
 
 		//ROS SERVICE
-		if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
+		if ($this->serviceType && !empty($this->serviceType->service_group_id) && $this->serviceType->service_group_id != 3) {
 			$templateId = 'asp_charges_acceptance_3_ros';
-			$parameterValues = [
-				0 => $aspName,
-				1 => $vehicleNumber,
-				2 => $serviceType,
-				3 => $activityNumber,
-			];
+			$bodyParameterValues = new \stdClass();
+			$bodyParameterValues->{'0'} = $aspName;
+			$bodyParameterValues->{'1'} = $vehicleNumber;
+			$bodyParameterValues->{'2'} = $serviceType;
+			$bodyParameterValues->{'3'} = $activityNumber;
 		} else {
 			//TOW SERVICE
 			$templateId = 'asp_charges_acceptance_4';
-			$parameterValues = [
-				0 => $aspName,
-				1 => $vehicleNumber,
-				2 => $activityNumber,
-			];
+			$bodyParameterValues = new \stdClass();
+			$bodyParameterValues->{'0'} = $aspName;
+			$bodyParameterValues->{'1'} = $vehicleNumber;
+			$bodyParameterValues->{'2'} = $activityNumber;
 		}
 
 		$payloadIndexOne = [
@@ -1829,10 +1813,10 @@ class Activity extends Model {
 				"channel" => "WABA",
 				"content" => [
 					"preview_url" => false,
-					"type" => "TEMPLATE",
-					"template" => [
+					"type" => "MEDIA_TEMPLATE",
+					"mediaTemplate" => [
 						"templateId" => $templateId,
-						"parameterValues" => $parameterValues,
+						"bodyParameterValues" => $bodyParameterValues,
 						"buttons" => [
 							"quickReplies" => [
 								[
@@ -1855,7 +1839,7 @@ class Activity extends Model {
 					"from" => $senderNumber,
 				],
 				"preferences" => [
-					"webHookDNId" => $webHookDNId,
+					"webHookDNId" => "1001",
 				],
 			],
 			"metaData" => [
@@ -1875,25 +1859,22 @@ class Activity extends Model {
 		$serviceType = $this->serviceType ? $this->serviceType->name : '';
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
-		$webHookDNId = '1001';
 
 		//ROS SERVICE
-		if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
+		if ($this->serviceType && !empty($this->serviceType->service_group_id) && $this->serviceType->service_group_id != 3) {
 			$templateId = 'asp_charges_rejection_5_ros';
-			$parameterValues = [
-				0 => $aspName,
-				1 => $vehicleNumber,
-				2 => $serviceType,
-				3 => $activityNumber,
-			];
+			$bodyParameterValues = new \stdClass();
+			$bodyParameterValues->{'0'} = $aspName;
+			$bodyParameterValues->{'1'} = $vehicleNumber;
+			$bodyParameterValues->{'2'} = $serviceType;
+			$bodyParameterValues->{'3'} = $activityNumber;
 		} else {
 			//TOW SERVICE
 			$templateId = 'asp_charges_rejection_6';
-			$parameterValues = [
-				0 => $aspName,
-				1 => $vehicleNumber,
-				2 => $activityNumber,
-			];
+			$bodyParameterValues = new \stdClass();
+			$bodyParameterValues->{'0'} = $aspName;
+			$bodyParameterValues->{'1'} = $vehicleNumber;
+			$bodyParameterValues->{'2'} = $activityNumber;
 		}
 
 		$inputRequests = [
@@ -1901,10 +1882,10 @@ class Activity extends Model {
 				"channel" => "WABA",
 				"content" => [
 					"preview_url" => false,
-					"type" => "TEMPLATE",
-					"template" => [
+					"type" => "MEDIA_TEMPLATE",
+					"mediaTemplate" => [
 						"templateId" => $templateId,
-						"parameterValues" => $parameterValues,
+						"bodyParameterValues" => $bodyParameterValues,
 					],
 				],
 				"recipient" => [
@@ -1915,7 +1896,7 @@ class Activity extends Model {
 					"from" => $senderNumber,
 				],
 				"preferences" => [
-					"webHookDNId" => $webHookDNId,
+					"webHookDNId" => "1001",
 				],
 			],
 			"metaData" => [
@@ -1935,25 +1916,22 @@ class Activity extends Model {
 		$serviceType = $this->serviceType ? $this->serviceType->name : '';
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
-		$webHookDNId = '1001';
 
 		//ROS SERVICE
-		if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
+		if ($this->serviceType && !empty($this->serviceType->service_group_id) && $this->serviceType->service_group_id != 3) {
 			$templateId = 'individual_invoicing_4_ros';
-			$bodyParameterValues = [
-				0 => $aspName,
-				1 => $vehicleNumber,
-				2 => $serviceType,
-				3 => $activityNumber,
-			];
+			$bodyParameterValues = new \stdClass();
+			$bodyParameterValues->{'0'} = $aspName;
+			$bodyParameterValues->{'1'} = $vehicleNumber;
+			$bodyParameterValues->{'2'} = $serviceType;
+			$bodyParameterValues->{'3'} = $activityNumber;
 		} else {
 			//TOW SERVICE
 			$templateId = 'individual_invoicing_5';
-			$bodyParameterValues = [
-				0 => $aspName,
-				1 => $vehicleNumber,
-				2 => $activityNumber,
-			];
+			$bodyParameterValues = new \stdClass();
+			$bodyParameterValues->{'0'} = $aspName;
+			$bodyParameterValues->{'1'} = $vehicleNumber;
+			$bodyParameterValues->{'2'} = $activityNumber;
 		}
 
 		$inputRequests = [
@@ -1981,7 +1959,7 @@ class Activity extends Model {
 					"from" => $senderNumber,
 				],
 				"preferences" => [
-					"webHookDNId" => $webHookDNId,
+					"webHookDNId" => "1001",
 				],
 			],
 			"metaData" => [
@@ -1998,29 +1976,27 @@ class Activity extends Model {
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
-		$webHookDNId = '1001';
 
 		//ROS SERVICE
-		if ($this->serviceType && $this->serviceType->group && $this->serviceType->group != 3) {
+		if ($this->serviceType && !empty($this->serviceType->service_group_id) && $this->serviceType->service_group_id != 3) {
 			$templateId = 'bulk_invoicing_6_ros';
 		} else {
 			//TOW SERVICE
 			$templateId = 'bulk_invoicing_7';
 		}
 
-		$parameterValues = [
-			0 => $aspName,
-		];
+		$bodyParameterValues = new \stdClass();
+		$bodyParameterValues->{'0'} = $aspName;
 
 		$inputRequests = [
 			"message" => [
 				"channel" => "WABA",
 				"content" => [
 					"preview_url" => false,
-					"type" => "TEMPLATE",
-					"template" => [
+					"type" => "MEDIA_TEMPLATE",
+					"mediaTemplate" => [
 						"templateId" => $templateId,
-						"parameterValues" => $parameterValues,
+						"bodyParameterValues" => $bodyParameterValues,
 					],
 				],
 				"recipient" => [
@@ -2031,7 +2007,7 @@ class Activity extends Model {
 					"from" => $senderNumber,
 				],
 				"preferences" => [
-					"webHookDNId" => $webHookDNId,
+					"webHookDNId" => "1001",
 				],
 			],
 			"metaData" => [

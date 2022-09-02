@@ -648,7 +648,7 @@ class ActivityController extends Controller {
 
 			//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
 			if ($newActivity && $activity->asp && !empty($activity->asp->whatsapp_number)) {
-				// $activity->sendBreakdownAlertWhatsappSms();
+				$activity->sendBreakdownAlertWhatsappSms();
 			}
 
 			DB::commit();
@@ -1041,7 +1041,7 @@ class ActivityController extends Controller {
 				], $this->successStatus);
 			}
 
-			if ($activity && $activity->serviceType && $activity->serviceType->group && $activity->serviceType->group->id != 3) {
+			if ($activity && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id != 3) {
 				//UPLOAD TOW IMAGE API LOG
 				$errors = $validator->errors()->all();
 				saveApiLog(111, NULL, $request->all(), $errors, NULL, 121);

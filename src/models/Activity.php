@@ -1601,7 +1601,7 @@ class Activity extends Model {
 		$bodyParameterValues->{'1'} = $vehicleNumber;
 		$bodyParameterValues->{'2'} = $activityNumber;
 
-		$inputRequests[] = [
+		$inputRequests = [
 			"message" => [
 				"channel" => "WABA",
 				"content" => [
@@ -1666,54 +1666,6 @@ class Activity extends Model {
 				$bodyParameterValues->{'3'} = $distance;
 				$bodyParameterValues->{'4'} = $payoutAmount;
 			}
-			$payloadIndexOne = [
-				"value" => "Yes",
-				"activity_id" => $this->number,
-				"type" => "Breakdown Charges",
-			];
-			$payloadIndexTwo = [
-				"value" => "No",
-				"activity_id" => $this->number,
-				"type" => "Breakdown Charges",
-			];
-			$inputRequests = [
-				"message" => [
-					"channel" => "WABA",
-					"content" => [
-						"preview_url" => false,
-						"type" => "MEDIA_TEMPLATE",
-						"mediaTemplate" => [
-							"templateId" => $templateId,
-							"bodyParameterValues" => $bodyParameterValues,
-							"buttons" => [
-								"quickReplies" => [
-									[
-										"index" => "0",
-										"payload" => json_encode($payloadIndexOne),
-									],
-									[
-										"index" => "1",
-										"payload" => json_encode($payloadIndexTwo),
-									],
-								],
-							],
-						],
-					],
-					"recipient" => [
-						"to" => $aspWhatsAppNumber,
-						"recipient_type" => "individual",
-					],
-					"sender" => [
-						"from" => $senderNumber,
-					],
-					"preferences" => [
-						"webHookDNId" => "1001",
-					],
-				],
-				"metaData" => [
-					"version" => "v1.0.9",
-				],
-			];
 
 		} else {
 			//EMPTY RETURN PAYOUT (EMPTY RETURN CHARGES)
@@ -1738,34 +1690,83 @@ class Activity extends Model {
 				$bodyParameterValues->{'3'} = $payoutAmount;
 			}
 
-			$inputRequests = [
-				"message" => [
-					"channel" => "WABA",
-					"content" => [
-						"preview_url" => false,
-						"type" => "MEDIA_TEMPLATE",
-						"mediaTemplate" => [
-							"templateId" => $templateId,
-							"bodyParameterValues" => $bodyParameterValues,
-						],
-					],
-					"recipient" => [
-						"to" => $aspWhatsAppNumber,
-						"recipient_type" => "individual",
-					],
-					"sender" => [
-						"from" => $senderNumber,
-					],
-					"preferences" => [
-						"webHookDNId" => "1001",
-					],
-				],
-				"metaData" => [
-					"version" => "v1.0.9",
-				],
-			];
+			// $inputRequests = [
+			// 	"message" => [
+			// 		"channel" => "WABA",
+			// 		"content" => [
+			// 			"preview_url" => false,
+			// 			"type" => "MEDIA_TEMPLATE",
+			// 			"mediaTemplate" => [
+			// 				"templateId" => $templateId,
+			// 				"bodyParameterValues" => $bodyParameterValues,
+			// 			],
+			// 		],
+			// 		"recipient" => [
+			// 			"to" => $aspWhatsAppNumber,
+			// 			"recipient_type" => "individual",
+			// 		],
+			// 		"sender" => [
+			// 			"from" => $senderNumber,
+			// 		],
+			// 		"preferences" => [
+			// 			"webHookDNId" => "1001",
+			// 		],
+			// 	],
+			// 	"metaData" => [
+			// 		"version" => "v1.0.9",
+			// 	],
+			// ];
 
 		}
+
+		$payloadIndexOne = [
+			"value" => "Yes",
+			"activity_id" => $this->number,
+			"type" => "Breakdown Charges",
+		];
+		$payloadIndexTwo = [
+			"value" => "No",
+			"activity_id" => $this->number,
+			"type" => "Breakdown Charges",
+		];
+		$inputRequests = [
+			"message" => [
+				"channel" => "WABA",
+				"content" => [
+					"preview_url" => false,
+					"type" => "MEDIA_TEMPLATE",
+					"mediaTemplate" => [
+						"templateId" => $templateId,
+						"bodyParameterValues" => $bodyParameterValues,
+						"buttons" => [
+							"quickReplies" => [
+								[
+									"index" => "0",
+									"payload" => json_encode($payloadIndexOne),
+								],
+								[
+									"index" => "1",
+									"payload" => json_encode($payloadIndexTwo),
+								],
+							],
+						],
+					],
+				],
+				"recipient" => [
+					"to" => $aspWhatsAppNumber,
+					"recipient_type" => "individual",
+				],
+				"sender" => [
+					"from" => $senderNumber,
+				],
+				"preferences" => [
+					"webHookDNId" => "1001",
+				],
+			],
+			"metaData" => [
+				"version" => "v1.0.9",
+			],
+		];
 
 		//dd(json_encode($inputRequests));
 		//SEND WHATSAPP SMS

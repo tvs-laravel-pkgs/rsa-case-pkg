@@ -322,7 +322,7 @@ class ActivityController extends Controller {
 	}
 
 	public function getBulkVerificationList(Request $request) {
-		$activities = Activity::select(
+		$activities = Activity::select([
 			'activities.id',
 			'activities.crm_activity_id',
 			'activities.number as activity_number',
@@ -338,8 +338,18 @@ class ActivityController extends Controller {
 			'activity_statuses.name as activity_status',
 			'configs.name as source',
 			'clients.name as client',
-			'call_centers.name as call_center'
-		)
+			'call_centers.name as call_center',
+			DB::raw('COALESCE(bo_km_travelled.value, "--") as boKmTravelled'),
+			DB::raw('COALESCE(bo_payout_amount.value, "--") as boPayoutAmount'),
+		])
+			->leftJoin('activity_details as bo_km_travelled', function ($join) {
+				$join->on('bo_km_travelled.activity_id', 'activities.id')
+					->where('bo_km_travelled.key_id', 158); //BO KM TRAVELLED
+			})
+			->leftJoin('activity_details as bo_payout_amount', function ($join) {
+				$join->on('bo_payout_amount.activity_id', 'activities.id')
+					->where('bo_payout_amount.key_id', 182); //BO PAYOUT AMOUNT
+			})
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('users', 'users.id', 'asps.user_id')
 			->leftjoin('cases', 'cases.id', 'activities.case_id')
@@ -432,7 +442,7 @@ class ActivityController extends Controller {
 	}
 
 	public function getIndividualVerificationList(Request $request) {
-		$activities = Activity::select(
+		$activities = Activity::select([
 			'activities.id',
 			'activities.crm_activity_id',
 			'activities.number as activity_number',
@@ -448,8 +458,18 @@ class ActivityController extends Controller {
 			'activity_statuses.name as activity_status',
 			'configs.name as source',
 			'clients.name as client',
-			'call_centers.name as call_center'
-		)
+			'call_centers.name as call_center',
+			DB::raw('COALESCE(bo_km_travelled.value, "--") as boKmTravelled'),
+			DB::raw('COALESCE(bo_payout_amount.value, "--") as boPayoutAmount'),
+		])
+			->leftJoin('activity_details as bo_km_travelled', function ($join) {
+				$join->on('bo_km_travelled.activity_id', 'activities.id')
+					->where('bo_km_travelled.key_id', 158); //BO KM TRAVELLED
+			})
+			->leftJoin('activity_details as bo_payout_amount', function ($join) {
+				$join->on('bo_payout_amount.activity_id', 'activities.id')
+					->where('bo_payout_amount.key_id', 182); //BO PAYOUT AMOUNT
+			})
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('users', 'users.id', 'asps.user_id')
 			->leftjoin('cases', 'cases.id', 'activities.case_id')

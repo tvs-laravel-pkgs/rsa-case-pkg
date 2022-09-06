@@ -24,7 +24,8 @@ app.component('activityVerificationList', {
                 { data: 'asp', name: 'asp', searchable: true },
                 // { data: 'asp_code', name: 'asps.asp_code', searchable: true },
                 { data: 'crm_activity_id', searchable: false },
-                { data: 'source', name: 'configs.name', searchable: true },
+                // { data: 'source', name: 'configs.name', searchable: true },
+                { data: 'boKmTravelled', searchable: false },
                 // { data: 'activity_number', name: 'activities.number', searchable: true },
                 { data: 'sub_service', name: 'service_types.name', searchable: true },
                 { data: 'finance_status', name: 'activity_finance_statuses.name', searchable: true },
@@ -32,7 +33,8 @@ app.component('activityVerificationList', {
                 { data: 'status', name: 'activity_portal_statuses.name', searchable: true },
                 { data: 'activity_status', name: 'activity_statuses.name', searchable: true },
                 { data: 'client', name: 'clients.name', searchable: true },
-                { data: 'call_center', name: 'call_centers.name', searchable: true },
+                // { data: 'call_center', name: 'call_centers.name', searchable: true },
+                { data: 'boPayoutAmount', searchable: false },
             ];
 
             var activities_verification_below_40_dt_config = JSON.parse(JSON.stringify(dt_config));
@@ -170,7 +172,8 @@ app.component('activityVerificationList', {
                 { data: 'asp', name: 'asp', searchable: true },
                 // { data: 'asp_code', name: 'asps.asp_code', searchable: true },
                 { data: 'crm_activity_id', searchable: false },
-                { data: 'source', name: 'configs.name', searchable: true },
+                // { data: 'source', name: 'configs.name', searchable: true },
+                { data: 'boKmTravelled', searchable: false },
                 // { data: 'activity_number', name: 'activities.number', searchable: true },
                 { data: 'sub_service', name: 'service_types.name', searchable: true },
                 { data: 'finance_status', name: 'activity_finance_statuses.name', searchable: true },
@@ -178,7 +181,8 @@ app.component('activityVerificationList', {
                 { data: 'status', name: 'activity_portal_statuses.name', searchable: true },
                 { data: 'activity_status', name: 'activity_statuses.name', searchable: true },
                 { data: 'client', name: 'clients.name', searchable: true },
-                { data: 'call_center', name: 'call_centers.name', searchable: true },
+                // { data: 'call_center', name: 'call_centers.name', searchable: true },
+                { data: 'boPayoutAmount', searchable: false },
             ];
 
             var activities_verification_above_40_dt_config = JSON.parse(JSON.stringify(dt_config));

@@ -641,6 +641,36 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'rm-dealers-report-membership',
 				'display_name' => 'Own RM Dealers Report',
 			],
+			[
+				'display_order' => 22,
+				'parent' => 'membership',
+				'name' => 'import-post-paid-membership',
+				'display_name' => 'Import Post Paid Membership',
+			],
+			[
+				'display_order' => 23,
+				'parent' => 'membership',
+				'name' => 'own-zm-dealers-membership',
+				'display_name' => 'Own ZM Dealers',
+			],
+			[
+				'display_order' => 24,
+				'parent' => 'membership',
+				'name' => 'zm-dealers-report-membership',
+				'display_name' => 'Own ZM Dealers Report',
+			],
+			[
+				'display_order' => 25,
+				'parent' => 'membership',
+				'name' => 'own-nm-dealers-membership',
+				'display_name' => 'Own NM Dealers',
+			],
+			[
+				'display_order' => 26,
+				'parent' => 'membership',
+				'name' => 'nm-dealers-report-membership',
+				'display_name' => 'Own NM Dealers Report',
+			],
 
 			//Dealer Invoice Menu
 			[
@@ -721,6 +751,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'parent' => 'dealer-commission-invoice',
 				'name' => 'finance-export-own-dealers-commission-invoice',
 				'display_name' => 'Finance Export Own Dealers',
+			],
+			[
+				'display_order' => 12,
+				'parent' => 'dealer-commission-invoice',
+				'name' => 'unbilled-dealer-commission-invoice',
+				'display_name' => 'Unbilled Dealer Commission Invoice',
 			],
 
 			//TAX CODES
@@ -1358,6 +1394,23 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'last-login-log-export',
 				'display_name' => 'Export',
 			],
+
+			//DASHBOARD MAIL LOG
+			[
+				'display_order' => 999,
+				'parent' => null,
+				'name' => 'elk-mail-log',
+				'display_name' => 'Dashboard Mail Log',
+			],
+
+			//UNBILLED AUTO INVOICE CRON LOG
+			[
+				'display_order' => 999,
+				'parent' => null,
+				'name' => 'unbilled-auto-invoice-cron-log',
+				'display_name' => 'Unbilled Auto Invoice Cron Log',
+			],
+
 			//DISCOUNT REASONS
 			[
 				'display_order' => 999,

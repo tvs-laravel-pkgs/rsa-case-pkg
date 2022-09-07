@@ -1227,15 +1227,14 @@ class Activity extends Model {
 									if ($service_type->service_group_id == 2) {
 										$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $dataSourceId, $vehicle_model_by_make->vehicle_category_id);
 										if ($is_bulk) {
-											//ASP Completed Data Entry - Waiting for BO Bulk Verification
+											//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 											$activity->status_id = 5;
 										} else {
-											//ASP Completed Data Entry - Waiting for BO Individual Verification
+											//ASP Completed Data Entry - Waiting for L1 Individual Verification
 											$activity->status_id = 6;
 										}
 									} else {
-										//ASP Rejected CC Details - Waiting for ASP Data Entry
-										$activity->status_id = 2;
+										$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 									}
 								} else {
 									//ON HOLD
@@ -1310,8 +1309,7 @@ class Activity extends Model {
 									if ($case->status_id == 4) {
 										//IF ROS ASP then changes status as Waitin for ASP data entry. If not change status as on hold
 										if ($asp->is_ros_asp == 1) {
-											//ASP Rejected CC Details - Waiting for ASP Data Entry
-											$activity->status_id = 2;
+											$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 										} else {
 											//ON HOLD
 											$activity->status_id = 17;
@@ -1321,10 +1319,10 @@ class Activity extends Model {
 										if ($service_type->service_group_id == 2) {
 											$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $activity->data_src_id, $vehicle_model_by_make->vehicle_category_id);
 											if ($is_bulk) {
-												//ASP Completed Data Entry - Waiting for BO Bulk Verification
+												//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 												$activity->status_id = 5;
 											} else {
-												//ASP Completed Data Entry - Waiting for BO Individual Verification
+												//ASP Completed Data Entry - Waiting for L1 Individual Verification
 												$activity->status_id = 6;
 											}
 										}
@@ -1353,10 +1351,10 @@ class Activity extends Model {
 											$cc_total_km = $caseActivity->detail(280) ? $caseActivity->detail(280)->value : 0;
 											$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id, $vehicle_model_by_make->vehicle_category_id);
 											if ($isBulk) {
-												//ASP Completed Data Entry - Waiting for BO Bulk Verification
+												//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 												$statusId = 5;
 											} else {
-												//ASP Completed Data Entry - Waiting for BO Individual Verification
+												//ASP Completed Data Entry - Waiting for L1 Individual Verification
 												$statusId = 6;
 											}
 										} else {

@@ -166,7 +166,6 @@
 
 <!-- RSA-DASHBOARD -->
 <script type="text/javascript">
-	console.log('asdf');
     var dashboard_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/dashboard/dashboard.html')}}";
     var dashboard_data_url = "{{url('rsa-case-pkg/dashboard/get-data/')}}";
     var dash2 = "{{ asset('resources/assets/images/dash-icon-2.svg') }}";

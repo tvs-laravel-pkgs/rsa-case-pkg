@@ -161,8 +161,7 @@ class ActivityController extends Controller {
 			}
 			if (Entrust::can('own-nm-asp-activities')) {
 				$aspIds = Asp::where('nm_id', Auth::user()->id)->pluck('id')->toArray();
-				$activities->whereIn('asps.id', $aspIds)
-					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17]);
+				$activities->whereIn('asps.id', $aspIds);
 			}
 		}
 		return Datatables::of($activities)
@@ -172,7 +171,7 @@ class ActivityController extends Controller {
 			})
 			->addColumn('action', function ($activity) {
 				$status_id = 1;
-				$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22];
+				$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24];
 
 				$action = '<div class="dataTable-actions">
 				<a href="#!/rsa-case-pkg/activity-status/' . $status_id . '/view/' . $activity->id . '">
@@ -210,7 +209,7 @@ class ActivityController extends Controller {
 		// dd($request->all());
 		try {
 			$activity = Activity::findOrFail($request->activty_id);
-			$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22];
+			$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24];
 
 			if (!$activity) {
 				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
@@ -403,6 +402,9 @@ class ActivityController extends Controller {
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
 					$activities->where('activities.status_id', 20); //Waiting for L3 Bulk Verification
+				} elseif (Auth::user()->activity_approval_level_id == 4) {
+					// L4
+					$activities->where('activities.status_id', 23); //Waiting for L4 Bulk Verification
 				} else {
 					$activities->whereNull('activities.status_id');
 				}
@@ -498,7 +500,6 @@ class ActivityController extends Controller {
 				$activities->whereIn('asps.state_id', $states);
 			}
 		}
-
 		if (Auth::check()) {
 			if (!empty(Auth::user()->activity_approval_level_id)) {
 				//L1
@@ -510,6 +511,9 @@ class ActivityController extends Controller {
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					// L3
 					$activities->where('activities.status_id', 21); //Waiting for L3 Individual Verification
+				} elseif (Auth::user()->activity_approval_level_id == 4) {
+					// L4
+					$activities->where('activities.status_id', 24); //Waiting for L4 Individual Verification
 				} else {
 					$activities->whereNull('activities.status_id');
 				}
@@ -538,7 +542,7 @@ class ActivityController extends Controller {
 			$activityApprovalLevel = '';
 			$activity_data = Activity::findOrFail($activity_status_id);
 			if ($view_type_id == 2) {
-				if (!$activity_data || ($activity_data && $activity_data->status_id != 5 && $activity_data->status_id != 6 && $activity_data->status_id != 8 && $activity_data->status_id != 9 && $activity_data->status_id != 18 && $activity_data->status_id != 19 && $activity_data->status_id != 20 && $activity_data->status_id != 21 && $activity_data->status_id != 22)) {
+				if (!$activity_data || ($activity_data && $activity_data->status_id != 5 && $activity_data->status_id != 6 && $activity_data->status_id != 8 && $activity_data->status_id != 9 && $activity_data->status_id != 18 && $activity_data->status_id != 19 && $activity_data->status_id != 20 && $activity_data->status_id != 21 && $activity_data->status_id != 22 && $activity_data->status_id != 23 && $activity_data->status_id != 24)) {
 					return response()->json([
 						'success' => false,
 						'errors' => [
@@ -1155,6 +1159,10 @@ class ActivityController extends Controller {
 			$l3DefferedBy = "";
 			$l3ApprovedAt = "";
 			$l3ApprovedBy = "";
+			$l4DefferedAt = "";
+			$l4DefferedBy = "";
+			$l4ApprovedAt = "";
+			$l4ApprovedBy = "";
 			$invoiceGeneratedAt = "";
 			$invoiceGeneratedBy = "";
 			$axaptaGeneratedAt = "";
@@ -1210,6 +1218,18 @@ class ActivityController extends Controller {
 				if (!empty($activity_data->log->l3_approved_by_id)) {
 					$l3ApprovedBy = $activity_data->log->l3ApprovedBy ? ($activity_data->log->l3ApprovedBy->name . ' - ' . $activity_data->log->l3ApprovedBy->username) : '';
 				}
+				if (!empty($activity_data->log->l4_deffered_at)) {
+					$l4DefferedAt = $activity_data->log->l4_deffered_at;
+				}
+				if (!empty($activity_data->log->l4_deffered_by_id)) {
+					$l4DefferedBy = $activity_data->log->l4DefferedBy ? ($activity_data->log->l4DefferedBy->name . ' - ' . $activity_data->log->l4DefferedBy->username) : '';
+				}
+				if (!empty($activity_data->log->l4_approved_at)) {
+					$l4ApprovedAt = $activity_data->log->l4_approved_at;
+				}
+				if (!empty($activity_data->log->l4_approved_by_id)) {
+					$l4ApprovedBy = $activity_data->log->l4ApprovedBy ? ($activity_data->log->l4ApprovedBy->name . ' - ' . $activity_data->log->l4ApprovedBy->username) : '';
+				}
 				if (!empty($activity_data->log->invoice_generated_at)) {
 					$invoiceGeneratedAt = $activity_data->log->invoice_generated_at;
 				}
@@ -1243,7 +1263,7 @@ class ActivityController extends Controller {
 					$boServiceTypeId = $boServiceType->id;
 				}
 			}
-			$eligibleBackstepStatusIds = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22];
+			$eligibleBackstepStatusIds = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24];
 			$eligibleForBackstep = false;
 			if (Entrust::can('backstep-activity') && in_array($activity->activity_portal_status_id, $eligibleBackstepStatusIds)) {
 				$eligibleForBackstep = true;
@@ -1267,6 +1287,10 @@ class ActivityController extends Controller {
 			$this->data['activities']['l3DefferedBy'] = $l3DefferedBy;
 			$this->data['activities']['l3ApprovedAt'] = $l3ApprovedAt;
 			$this->data['activities']['l3ApprovedBy'] = $l3ApprovedBy;
+			$this->data['activities']['l4DefferedAt'] = $l4DefferedAt;
+			$this->data['activities']['l4DefferedBy'] = $l4DefferedBy;
+			$this->data['activities']['l4ApprovedAt'] = $l4ApprovedAt;
+			$this->data['activities']['l4ApprovedBy'] = $l4ApprovedBy;
 			$this->data['activities']['invoiceGeneratedAt'] = $invoiceGeneratedAt;
 			$this->data['activities']['invoiceGeneratedBy'] = $invoiceGeneratedBy;
 			$this->data['activities']['axaptaGeneratedAt'] = $axaptaGeneratedAt;
@@ -1549,6 +1573,7 @@ class ActivityController extends Controller {
 				$activity->is_exceptional_check = $request->is_exceptional_check;
 				if (!empty($request->exceptional_reason)) {
 					$exceptionalReason = $activity->exceptional_reason;
+					//L1
 					if (Auth::user()->activity_approval_level_id == 1) {
 						if (!empty($exceptionalReason)) {
 							$exceptionalReason .= nl2br("<hr> L1 Approver : " . $request->exceptional_reason);
@@ -1556,16 +1581,25 @@ class ActivityController extends Controller {
 							$exceptionalReason = 'L1 Approver : ' . $request->exceptional_reason;
 						}
 					} elseif (Auth::user()->activity_approval_level_id == 2) {
+						//L2
 						if (!empty($exceptionalReason)) {
 							$exceptionalReason .= nl2br("<hr> L2 Approver : " . $request->exceptional_reason);
 						} else {
 							$exceptionalReason = 'L2 Approver : ' . $request->exceptional_reason;
 						}
 					} elseif (Auth::user()->activity_approval_level_id == 3) {
+						//L3
 						if (!empty($exceptionalReason)) {
 							$exceptionalReason .= nl2br("<hr> L3 Approver : " . $request->exceptional_reason);
 						} else {
 							$exceptionalReason = 'L3 Approver : ' . $request->exceptional_reason;
+						}
+					} elseif (Auth::user()->activity_approval_level_id == 4) {
+						//L4
+						if (!empty($exceptionalReason)) {
+							$exceptionalReason .= nl2br("<hr> L4 Approver : " . $request->exceptional_reason);
+						} else {
+							$exceptionalReason = 'L4 Approver : ' . $request->exceptional_reason;
 						}
 					}
 					$activity->exceptional_reason = $exceptionalReason;
@@ -1587,10 +1621,11 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
-			//L2 and L3 approver flow should be effective from April 2022 cases not for all the cases - By Sundhar / Hyder
+			//L2, L3, and L4 approver flow should be effective from April 2022 cases not for all the cases - By Sundhar / Hyder
 			if (date('Y-m-d', strtotime($activity->case->date)) >= "2022-04-01") {
 				$l2Approvers = User::where('activity_approval_level_id', 2)->pluck('id');
 				$l3Approvers = User::where('activity_approval_level_id', 3)->pluck('id');
+				$l4Approvers = User::where('activity_approval_level_id', 4)->pluck('id');
 
 				$isActivityBulk = $this->isActivityBulkOnApproval($activity);
 				$isApproved = false;
@@ -1607,6 +1642,7 @@ class ActivityController extends Controller {
 						$approver = '1';
 						if ($isServiceTypeChanged) {
 							$activity->service_type_changed_on_level = 1;
+							$activity->l1_changed_service_type_id = $request->boServiceTypeId;
 						}
 						if ($isKmTravelledChanged) {
 							$activity->km_changed_on_level = 1;
@@ -1628,6 +1664,81 @@ class ActivityController extends Controller {
 						$approver = '2';
 						if ($isServiceTypeChanged) {
 							$activity->service_type_changed_on_level = 2;
+							$activity->l2_changed_service_type_id = $request->boServiceTypeId;
+						}
+						if ($isKmTravelledChanged) {
+							$activity->km_changed_on_level = 2;
+						}
+						if ($isNotCollectedChanged) {
+							$activity->not_collected_amount_changed_on_level = 2;
+						}
+						if ($isCollectedChanged) {
+							$activity->collected_amount_changed_on_level = 2;
+						}
+						$this->sendApprovalNoty($l3Approvers, $activity->case->number, "L3_APPROVAL");
+					} elseif (Auth::user()->activity_approval_level_id == 3) {
+						// L3
+						if ($isActivityBulk) {
+							$activityStatusId = 23; //Waiting for L4 Bulk Verification
+						} else {
+							$activityStatusId = 24; //Waiting for L4 Individual Verification
+						}
+						$approver = '3';
+						if ($isServiceTypeChanged) {
+							$activity->service_type_changed_on_level = 3;
+							$activity->l3_changed_service_type_id = $request->boServiceTypeId;
+						}
+						if ($isKmTravelledChanged) {
+							$activity->km_changed_on_level = 3;
+						}
+						if ($isNotCollectedChanged) {
+							$activity->not_collected_amount_changed_on_level = 3;
+						}
+						if ($isCollectedChanged) {
+							$activity->collected_amount_changed_on_level = 3;
+						}
+						$this->sendApprovalNoty($l4Approvers, $activity->case->number, "L4_APPROVAL");
+					} elseif (Auth::user()->activity_approval_level_id == 4) {
+						// L4
+						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+						$isApproved = true;
+						$approver = '4';
+					}
+				} elseif (floatval($request->bo_net_amount) > 6000 && floatval($request->bo_net_amount) <= 10000) {
+					//GREATER THAN 6000 AND LESSER THAN OR EQUAL TO 10000
+					//L1
+					if (Auth::user()->activity_approval_level_id == 1) {
+						if ($isActivityBulk) {
+							$activityStatusId = 18; //Waiting for L2 Bulk Verification
+						} else {
+							$activityStatusId = 19; //Waiting for L2 Individual Verification
+						}
+						$approver = '1';
+						if ($isServiceTypeChanged) {
+							$activity->service_type_changed_on_level = 1;
+							$activity->l1_changed_service_type_id = $request->boServiceTypeId;
+						}
+						if ($isKmTravelledChanged) {
+							$activity->km_changed_on_level = 1;
+						}
+						if ($isNotCollectedChanged) {
+							$activity->not_collected_amount_changed_on_level = 1;
+						}
+						if ($isCollectedChanged) {
+							$activity->collected_amount_changed_on_level = 1;
+						}
+						$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
+					} elseif (Auth::user()->activity_approval_level_id == 2) {
+						// L2
+						if ($isActivityBulk) {
+							$activityStatusId = 20; //Waiting for L3 Bulk Verification
+						} else {
+							$activityStatusId = 21; //Waiting for L3 Individual Verification
+						}
+						$approver = '2';
+						if ($isServiceTypeChanged) {
+							$activity->service_type_changed_on_level = 2;
+							$activity->l2_changed_service_type_id = $request->boServiceTypeId;
 						}
 						if ($isKmTravelledChanged) {
 							$activity->km_changed_on_level = 2;
@@ -1644,9 +1755,27 @@ class ActivityController extends Controller {
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 						$isApproved = true;
 						$approver = '3';
+						if ($isServiceTypeChanged) {
+							$activity->service_type_changed_on_level = 3;
+							$activity->l3_changed_service_type_id = $request->boServiceTypeId;
+						}
+						if ($isKmTravelledChanged) {
+							$activity->km_changed_on_level = 3;
+						}
+						if ($isNotCollectedChanged) {
+							$activity->not_collected_amount_changed_on_level = 3;
+						}
+						if ($isCollectedChanged) {
+							$activity->collected_amount_changed_on_level = 3;
+						}
+					} elseif (Auth::user()->activity_approval_level_id == 4) {
+						// L4
+						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+						$isApproved = true;
+						$approver = '4';
 					}
-				} elseif (floatval($request->bo_net_amount) > 4000 && floatval($request->bo_net_amount) <= 10000) {
-					//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 10000
+				} elseif (floatval($request->bo_net_amount) > 4000 && floatval($request->bo_net_amount) <= 6000) {
+					//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 6000
 					//L1
 					if (Auth::user()->activity_approval_level_id == 1) {
 						if ($isActivityBulk) {
@@ -1657,6 +1786,7 @@ class ActivityController extends Controller {
 						$approver = '1';
 						if ($isServiceTypeChanged) {
 							$activity->service_type_changed_on_level = 1;
+							$activity->l1_changed_service_type_id = $request->boServiceTypeId;
 						}
 						if ($isKmTravelledChanged) {
 							$activity->km_changed_on_level = 1;
@@ -1675,6 +1805,7 @@ class ActivityController extends Controller {
 						$approver = '2';
 						if ($isServiceTypeChanged) {
 							$activity->service_type_changed_on_level = 2;
+							$activity->l2_changed_service_type_id = $request->boServiceTypeId;
 						}
 						if ($isKmTravelledChanged) {
 							$activity->km_changed_on_level = 2;
@@ -1690,6 +1821,24 @@ class ActivityController extends Controller {
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 						$isApproved = true;
 						$approver = '3';
+						if ($isServiceTypeChanged) {
+							$activity->service_type_changed_on_level = 3;
+							$activity->l3_changed_service_type_id = $request->boServiceTypeId;
+						}
+						if ($isKmTravelledChanged) {
+							$activity->km_changed_on_level = 3;
+						}
+						if ($isNotCollectedChanged) {
+							$activity->not_collected_amount_changed_on_level = 3;
+						}
+						if ($isCollectedChanged) {
+							$activity->collected_amount_changed_on_level = 3;
+						}
+					} elseif (Auth::user()->activity_approval_level_id == 4) {
+						// L4
+						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+						$isApproved = true;
+						$approver = '4';
 					}
 				} else {
 					//LESSER THAN OR EQUAL TO 4000
@@ -1710,6 +1859,7 @@ class ActivityController extends Controller {
 						$approver = '1';
 						if ($isServiceTypeChanged) {
 							$activity->service_type_changed_on_level = 1;
+							$activity->l1_changed_service_type_id = $request->boServiceTypeId;
 						}
 						if ($isKmTravelledChanged) {
 							$activity->km_changed_on_level = 1;
@@ -1727,6 +1877,7 @@ class ActivityController extends Controller {
 						$approver = '2';
 						if ($isServiceTypeChanged) {
 							$activity->service_type_changed_on_level = 2;
+							$activity->l2_changed_service_type_id = $request->boServiceTypeId;
 						}
 						if ($isKmTravelledChanged) {
 							$activity->km_changed_on_level = 2;
@@ -1742,6 +1893,24 @@ class ActivityController extends Controller {
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 						$isApproved = true;
 						$approver = '3';
+						if ($isServiceTypeChanged) {
+							$activity->service_type_changed_on_level = 3;
+							$activity->l3_changed_service_type_id = $request->boServiceTypeId;
+						}
+						if ($isKmTravelledChanged) {
+							$activity->km_changed_on_level = 3;
+						}
+						if ($isNotCollectedChanged) {
+							$activity->not_collected_amount_changed_on_level = 3;
+						}
+						if ($isCollectedChanged) {
+							$activity->collected_amount_changed_on_level = 3;
+						}
+					} elseif (Auth::user()->activity_approval_level_id == 4) {
+						// L4
+						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+						$isApproved = true;
+						$approver = '4';
 					}
 				}
 			} else {
@@ -1754,6 +1923,8 @@ class ActivityController extends Controller {
 					$approver = '2';
 				} elseif (Auth::user()->activity_approval_level_id == 3) {
 					$approver = '3';
+				} elseif (Auth::user()->activity_approval_level_id == 4) {
+					$approver = '4';
 				}
 			}
 
@@ -1780,6 +1951,10 @@ class ActivityController extends Controller {
 				//L3
 				$activityLog->l3_approved_at = Carbon::now();
 				$activityLog->l3_approved_by_id = Auth::id();
+			} elseif ($approver == '4') {
+				//L4
+				$activityLog->l4_approved_at = Carbon::now();
+				$activityLog->l4_approved_by_id = Auth::id();
 			}
 			$activityLog->updated_by_id = Auth::id();
 			$activityLog->updated_at = Carbon::now();
@@ -1800,7 +1975,7 @@ class ActivityController extends Controller {
 			return response()->json([
 				'success' => false,
 				'errors' => [
-					'Exception Error' => $e->getMessage(),
+					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			]);
 		}
@@ -1927,6 +2102,7 @@ class ActivityController extends Controller {
 
 			$l2Approvers = User::where('activity_approval_level_id', 2)->pluck('id');
 			$l3Approvers = User::where('activity_approval_level_id', 3)->pluck('id');
+			$l4Approvers = User::where('activity_approval_level_id', 4)->pluck('id');
 
 			foreach ($activities as $key => $activity) {
 
@@ -2031,7 +2207,7 @@ class ActivityController extends Controller {
 					$bo_invoice_amount->value = $invoiceAmount;
 					$bo_invoice_amount->save();
 
-					//L2 and L3 approver flow should be effective from April 2022 cases not for all the cases - By Sundhar / Hyder
+					//L2, L3, and L4 approver flow should be effective from April 2022 cases not for all the cases - By Sundhar / Hyder
 					if (date('Y-m-d', strtotime($activity->case->date)) >= "2022-04-01") {
 						$isApproved = false;
 						$approver = '';
@@ -2049,12 +2225,40 @@ class ActivityController extends Controller {
 								$this->sendApprovalNoty($l3Approvers, $activity->case->number, "L3_APPROVAL");
 							} elseif (Auth::user()->activity_approval_level_id == 3) {
 								// L3
+								$activityStatusId = 23; //Waiting for L4 Bulk Verification
+								$approver = '3';
+								$this->sendApprovalNoty($l4Approvers, $activity->case->number, "L4_APPROVAL");
+							} elseif (Auth::user()->activity_approval_level_id == 4) {
+								// L4
+								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+								$isApproved = true;
+								$approver = '4';
+							}
+						} elseif (floatval($invoiceAmount) > 6000 && floatval($invoiceAmount) <= 10000) {
+							//GREATER THAN 6000 AND LESSER THAN OR EQUAL TO 10000
+							//L1
+							if (Auth::user()->activity_approval_level_id == 1) {
+								$activityStatusId = 18; //Waiting for L2 Bulk Verification
+								$approver = '1';
+								$this->sendApprovalNoty($l2Approvers, $activity->case->number, "L2_APPROVAL");
+							} elseif (Auth::user()->activity_approval_level_id == 2) {
+								// L2
+								$activityStatusId = 20; //Waiting for L3 Bulk Verification
+								$approver = '2';
+								$this->sendApprovalNoty($l3Approvers, $activity->case->number, "L3_APPROVAL");
+							} elseif (Auth::user()->activity_approval_level_id == 3) {
+								// L3
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '3';
+							} elseif (Auth::user()->activity_approval_level_id == 4) {
+								// L4
+								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+								$isApproved = true;
+								$approver = '4';
 							}
-						} elseif (floatval($invoiceAmount) > 4000 && floatval($invoiceAmount) <= 10000) {
-							//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 10000
+						} elseif (floatval($invoiceAmount) > 4000 && floatval($invoiceAmount) <= 6000) {
+							//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 6000
 							//L1
 							if (Auth::user()->activity_approval_level_id == 1) {
 								$activityStatusId = 18; //Waiting for L2 Bulk Verification
@@ -2070,6 +2274,11 @@ class ActivityController extends Controller {
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '3';
+							} elseif (Auth::user()->activity_approval_level_id == 4) {
+								// L4
+								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+								$isApproved = true;
+								$approver = '4';
 							}
 						} else {
 							//LESSER THAN OR EQUAL TO 4000
@@ -2094,6 +2303,11 @@ class ActivityController extends Controller {
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '3';
+							} elseif (Auth::user()->activity_approval_level_id == 4) {
+								// L4
+								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
+								$isApproved = true;
+								$approver = '4';
 							}
 						}
 					} else {
@@ -2106,6 +2320,8 @@ class ActivityController extends Controller {
 							$approver = '2';
 						} elseif (Auth::user()->activity_approval_level_id == 3) {
 							$approver = '3';
+						} elseif (Auth::user()->activity_approval_level_id == 4) {
+							$approver = '4';
 						}
 					}
 
@@ -2132,6 +2348,10 @@ class ActivityController extends Controller {
 						//L3
 						$activityLog->l3_approved_at = Carbon::now();
 						$activityLog->l3_approved_by_id = Auth::id();
+					} elseif ($approver == '4') {
+						//L4
+						$activityLog->l4_approved_at = Carbon::now();
+						$activityLog->l4_approved_by_id = Auth::id();
 					}
 					$activityLog->updated_by_id = Auth::id();
 					$activityLog->updated_at = Carbon::now();
@@ -2158,7 +2378,7 @@ class ActivityController extends Controller {
 			DB::rollBack();
 			return response()->json([
 				'success' => false,
-				'error' => $e->getMessage(),
+				'error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 			]);
 		}
 	}
@@ -2224,6 +2444,9 @@ class ActivityController extends Controller {
 					$deferReason = "L1 Approver : " . $request->defer_reason;
 				}
 				$activity->service_type_changed_on_level = NULL;
+				$activity->l1_changed_service_type_id = NULL;
+				$activity->l2_changed_service_type_id = NULL;
+				$activity->l3_changed_service_type_id = NULL;
 				$activity->km_changed_on_level = NULL;
 				$activity->not_collected_amount_changed_on_level = NULL;
 				$activity->collected_amount_changed_on_level = NULL;
@@ -2235,6 +2458,7 @@ class ActivityController extends Controller {
 				} else {
 					$deferReason = "L2 Approver : " . $request->defer_reason;
 				}
+				$activity->l2_changed_service_type_id = NULL;
 			} elseif (Auth::user()->activity_approval_level_id == 3) {
 				// L3
 				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
@@ -2242,6 +2466,15 @@ class ActivityController extends Controller {
 					$deferReason .= nl2br("<hr> L3 Approver : " . $request->defer_reason);
 				} else {
 					$deferReason = "L3 Approver : " . $request->defer_reason;
+				}
+				$activity->l3_changed_service_type_id = NULL;
+			} elseif (Auth::user()->activity_approval_level_id == 4) {
+				// L4
+				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
+				if (!empty($deferReason)) {
+					$deferReason .= nl2br("<hr> L4 Approver : " . $request->defer_reason);
+				} else {
+					$deferReason = "L4 Approver : " . $request->defer_reason;
 				}
 			}
 
@@ -2270,6 +2503,10 @@ class ActivityController extends Controller {
 				// L3
 				$activityLog->l3_deffered_at = date('Y-m-d H:i:s');
 				$activityLog->l3_deffered_by_id = Auth::id();
+			} elseif (Auth::user()->activity_approval_level_id == 4) {
+				// L4
+				$activityLog->l4_deffered_at = date('Y-m-d H:i:s');
+				$activityLog->l4_deffered_by_id = Auth::id();
 			}
 			$activityLog->updated_by_id = Auth::id();
 			$activityLog->updated_at = Carbon::now();
@@ -2362,8 +2599,9 @@ class ActivityController extends Controller {
 		}
 
 		$query1 = clone $query;
-		$tickets = $query1->whereIn('activities.status_id', [2, 4])
+		$tickets = $query1->whereIn('activities.status_id', [2, 4, 17]) // WAITING FOR ASP DATA ENTRY AND ON HOLD
 			->where('activities.asp_id', Auth::user()->asp->id)
+			->whereNull('activities.is_asp_data_entry_done') //FOR ONHOLD STATUS PURPOSE
 			->orderBy('activities.id', 'ASC')
 			->get();
 		if ($tickets->isNotEmpty()) {
@@ -2460,6 +2698,7 @@ class ActivityController extends Controller {
 						],
 					]);
 				}
+
 				$query5 = clone $query;
 				$activity_on_hold = $query5->where(function ($q) use ($submission_closing_extended, $threeMonthsBefore) {
 					if ($submission_closing_extended) {
@@ -2469,12 +2708,17 @@ class ActivityController extends Controller {
 					}
 				})
 					->where('activities.status_id', 17) //ON HOLD
+					->whereNotNull('activities.is_asp_data_entry_done')
 					->where('activities.asp_id', Auth::user()->asp->id)
 					->first();
 				if ($activity_on_hold) {
-					$activityOnHoldError = "Ticket On Hold";
+					// $activityOnHoldError = "Ticket On Hold";
+					// if ($activity_on_hold->activityStatus) {
+					// 	$activityOnHoldError = "Ticket On Hold. Activity status : " . $activity_on_hold->activityStatus->name;
+					// }
+					$activityOnHoldError = "Ticket already submitted. Case : " . $activity_on_hold->case_number . "(" . $activity_on_hold->case_date . ")";
 					if ($activity_on_hold->activityStatus) {
-						$activityOnHoldError = "Ticket On Hold. Activity status : " . $activity_on_hold->activityStatus->name;
+						$activityOnHoldError = "Ticket already submitted. Case : " . $activity_on_hold->case_number . "(" . $activity_on_hold->case_date . "), Activity status : " . $activity_on_hold->activityStatus->name;
 					}
 					return response()->json([
 						'success' => false,
@@ -3028,22 +3272,26 @@ class ActivityController extends Controller {
 				$is_bulk = false;
 			}
 
-			//ASP DATA RE-ENTRY - DEFERRED
-			if ($request->data_reentry == '1') {
-				if ($is_bulk) {
-					$activity->status_id = 8;
+			//NOT ONHOLD TICKETS
+			if ($activity->status_id != 17) {
+				//ASP DATA RE-ENTRY - DEFERRED
+				if ($request->data_reentry == '1') {
+					if ($is_bulk) {
+						$activity->status_id = 8;
+					} else {
+						$activity->status_id = 9;
+					}
 				} else {
-					$activity->status_id = 9;
-				}
-			} else {
-				//ASP DATA ENTRY - NEW
-				if ($is_bulk) {
-					$activity->status_id = 5;
-				} else {
-					$activity->status_id = 6;
+					//ASP DATA ENTRY - NEW
+					if ($is_bulk) {
+						$activity->status_id = 5;
+					} else {
+						$activity->status_id = 6;
+					}
 				}
 			}
 
+			$activity->is_asp_data_entry_done = 1;
 			$activity->service_type_id = $request->asp_service_type_id;
 
 			if (!empty($request->comments)) {
@@ -3109,6 +3357,7 @@ class ActivityController extends Controller {
 				154 => $request->km_travelled,
 				156 => $request->other_charge,
 				155 => $request->asp_collected_charges,
+				//BO
 				//BO
 				161 => $activity->serviceType->name,
 				158 => $request->km_travelled,
@@ -3225,32 +3474,35 @@ class ActivityController extends Controller {
 			$activity_log->updated_by_id = Auth::id();
 			$activity_log->save();
 
-			//sending confirmation SMS to ASP
-			$mobile_number = $activity->asp->contact_number1;
-			$sms_message = 'Tkt uptd successfully';
-			$array = [$activity->case->number];
-			// sendSMS2($sms_message, $mobile_number, $array, NULL);
+			//NOT ONHOLD TICKETS
+			if ($activity->status_id != 17) {
+				//sending confirmation SMS to ASP
+				$mobile_number = $activity->asp->contact_number1;
+				$sms_message = 'Tkt uptd successfully';
+				$array = [$activity->case->number];
+				// sendSMS2($sms_message, $mobile_number, $array, NULL);
 
-			//sending notification to all ASP STATE MAPPED BO users
-			//$bo_users = User::where('users.role_id', 6)->pluck('users.id'); //6 - Bo User role ID
-			$state_id = Auth::user()->asp->state_id;
-			// $bo_users = StateUser::where('state_id', $state_id)->pluck('user_id');
-			$bo_users = DB::table('state_user')
-				->join('users', 'users.id', 'state_user.user_id')
-				->where('state_user.state_id', $state_id)
-				->where('users.role_id', 6) //BO
-				->where('users.activity_approval_level_id', 1) //L1
-				->pluck('state_user.user_id');
+				//sending notification to all ASP STATE MAPPED BO users
+				//$bo_users = User::where('users.role_id', 6)->pluck('users.id'); //6 - Bo User role ID
+				$state_id = Auth::user()->asp->state_id;
+				// $bo_users = StateUser::where('state_id', $state_id)->pluck('user_id');
+				$bo_users = DB::table('state_user')
+					->join('users', 'users.id', 'state_user.user_id')
+					->where('state_user.state_id', $state_id)
+					->where('users.role_id', 6) //BO
+					->where('users.activity_approval_level_id', 1) //L1
+					->pluck('state_user.user_id');
 
-			if ($activity->status_id == 5) {
-				$noty_message_template = 'ASP_DATA_ENTRY_DONE_BULK';
-			} else {
-				$noty_message_template = 'ASP_DATA_ENTRY_DONE_DEFFERED';
-			}
-			$ticket_number = [$activity->case->number];
-			if (!empty($bo_users)) {
-				foreach ($bo_users as $bo_user_id) {
-					notify2($noty_message_template, $bo_user_id, config('constants.alert_type.blue'), $ticket_number);
+				if ($activity->status_id == 5) {
+					$noty_message_template = 'ASP_DATA_ENTRY_DONE_BULK';
+				} else {
+					$noty_message_template = 'ASP_DATA_ENTRY_DONE_DEFFERED';
+				}
+				$ticket_number = [$activity->case->number];
+				if (!empty($bo_users)) {
+					foreach ($bo_users as $bo_user_id) {
+						notify2($noty_message_template, $bo_user_id, config('constants.alert_type.blue'), $ticket_number);
+					}
 				}
 			}
 			DB::commit();
@@ -3743,6 +3995,22 @@ class ActivityController extends Controller {
 					}
 				}
 
+				//SPECIAL CHARACTERS NOT ALLOWED AT PREFIX
+				if (!preg_match("/^[A-Za-z0-9]{1}/", $request->invoice_no)) {
+					return response()->json([
+						'success' => false,
+						'error' => 'Special characters are not allowed at the beginning of the invoice number',
+					]);
+				}
+
+				//SPECIAL CHARACTERS NOT ALLOWED AT SUFFIX
+				if (!preg_match("/[A-Za-z0-9]{1}$/", $request->invoice_no)) {
+					return response()->json([
+						'success' => false,
+						'error' => 'Special characters are not allowed at the end of the invoice number',
+					]);
+				}
+
 				$invoice_no = $request->invoice_no;
 				$invoice_date = date('Y-m-d H:i:s', strtotime($request->inv_date));
 			} else {
@@ -3869,7 +4137,7 @@ class ActivityController extends Controller {
 			return response()->json([
 				'success' => false,
 				'errors' => [
-					'Exception Error' => $e->getMessage(),
+					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			]);
 		}
@@ -3960,6 +4228,12 @@ class ActivityController extends Controller {
 							})
 							->orwhere(function ($query) use ($range1, $range2) {
 								$query->whereRaw('DATE(activity_logs.l3_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
+							})
+							->orwhere(function ($query) use ($range1, $range2) {
+								$query->whereRaw('DATE(activity_logs.l4_deffered_at) between "' . $range1 . '" and "' . $range2 . '"');
+							})
+							->orwhere(function ($query) use ($range1, $range2) {
+								$query->whereRaw('DATE(activity_logs.l4_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
 							})
 							->orwhere(function ($query) use ($range1, $range2) {
 								$query->whereRaw('DATE(activity_logs.invoice_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
@@ -4099,8 +4373,7 @@ class ActivityController extends Controller {
 				}
 				if (Entrust::can('export-own-nm-asp-activities')) {
 					$aspIds = Asp::where('nm_id', Auth::user()->id)->pluck('id')->toArray();
-					$activities = $activities->whereIn('asps.id', $aspIds)
-						->whereNotIn('activities.status_id', [2, 4, 15, 16, 17]);
+					$activities = $activities->whereIn('asps.id', $aspIds);
 				}
 			}
 			$activitesTotalCount = $activities;
@@ -4163,6 +4436,12 @@ class ActivityController extends Controller {
 										})
 										->orwhere(function ($query) use ($range1, $range2) {
 											$query->whereRaw('DATE(activity_logs.l3_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
+										})
+										->orwhere(function ($query) use ($range1, $range2) {
+											$query->whereRaw('DATE(activity_logs.l4_deffered_at) between "' . $range1 . '" and "' . $range2 . '"');
+										})
+										->orwhere(function ($query) use ($range1, $range2) {
+											$query->whereRaw('DATE(activity_logs.l4_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
 										})
 										->orwhere(function ($query) use ($range1, $range2) {
 											$query->whereRaw('DATE(activity_logs.invoice_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
@@ -4230,7 +4509,7 @@ class ActivityController extends Controller {
 
 			$summary[] = ['Total', $total_count];
 
-			if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities') || Entrust::can('export-own-nm-asp-activities')) {
+			if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities')) {
 				$activity_details_header = [
 					'ID',
 					'Case Number',
@@ -4358,7 +4637,7 @@ class ActivityController extends Controller {
 				$activity_details_header[] = str_replace("_", " ", strtolower($config->name));
 			}
 
-			if (!Entrust::can('export-own-activities') && !Entrust::can('export-own-rm-asp-activities') && !Entrust::can('export-own-zm-asp-activities') && !Entrust::can('export-own-nm-asp-activities')) {
+			if (!Entrust::can('export-own-activities') && !Entrust::can('export-own-rm-asp-activities') && !Entrust::can('export-own-zm-asp-activities')) {
 				$status_headers = [
 					'Imported through MIS Import',
 					'Imported By',
@@ -4387,6 +4666,15 @@ class ActivityController extends Controller {
 					'L3 Approved',
 					'L3 Approved By',
 					'Duration Between L3 approved and Invoice generated',
+					'Duration Between L1 approved and L4 deffered',
+					'Duration Between L2 approved and L4 deffered',
+					'Duration Between L3 approved and L4 deffered',
+					'L4 Deferred',
+					'L4 Deferred By',
+					'Duration Between L3 approved and L4 approved',
+					'L4 Approved',
+					'L4 Approved By',
+					'Duration Between L4 approved and Invoice generated',
 					'Invoice Generated',
 					'Invoice Generated By',
 					'Duration Between Invoice generated and Axapta Generated',
@@ -4435,7 +4723,7 @@ class ActivityController extends Controller {
 				} else {
 					$aspContactNumber = maskPhoneNumber($activity->asp_contact_number1);
 				}
-				if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities') || Entrust::can('export-own-nm-asp-activities')) {
+				if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities')) {
 					$activity_details_data[] = [
 						$activity->id,
 						$activity->case_number,
@@ -4571,12 +4859,13 @@ class ActivityController extends Controller {
 					}
 				}
 
-				if (!Entrust::can('export-own-activities') && !Entrust::can('export-own-rm-asp-activities') && !Entrust::can('export-own-zm-asp-activities') && !Entrust::can('export-own-nm-asp-activities')) {
+				if (!Entrust::can('export-own-activities') && !Entrust::can('export-own-rm-asp-activities') && !Entrust::can('export-own-zm-asp-activities')) {
 					$total_days = 0;
 					$activity_log = ActivityLog::where('activity_id', $activity->id)->first();
 					if ($activity_log) {
 						$activity_details_data[$activity_key][] = $activity_log->imported_at ? date('d-m-Y H:i:s', strtotime($activity_log->imported_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->importedBy ? $activity_log->importedBy->username : '';
+
 						// 'Duration Between Import and ASP Data Filled'
 						$tot = ($activity_log->imported_at && $activity_log->asp_data_filled_at) ? $this->findDifference($activity_log->imported_at, $activity_log->asp_data_filled_at) : '';
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
@@ -4584,6 +4873,7 @@ class ActivityController extends Controller {
 
 						$activity_details_data[$activity_key][] = $activity_log->asp_data_filled_at ? date('d-m-Y H:i:s', strtotime($activity_log->asp_data_filled_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->aspDataFilledBy ? $activity_log->aspDataFilledBy->username : '';
+
 						// 'Duration Between ASP Data Filled and L1 deffered'
 						$tot = ($activity_log->asp_data_filled_at && $activity_log->bo_deffered_at) ? $this->findDifference($activity_log->asp_data_filled_at, $activity_log->bo_deffered_at) : '';
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
@@ -4591,6 +4881,7 @@ class ActivityController extends Controller {
 
 						$activity_details_data[$activity_key][] = $activity_log->bo_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_deffered_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->boDefferedBy ? $activity_log->boDefferedBy->username : '';
+
 						// 'Duration Between ASP Data Filled and L1 approved'
 						$tot = ($activity_log->asp_data_filled_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->asp_data_filled_at, $activity_log->bo_approved_at) : '';
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
@@ -4598,6 +4889,7 @@ class ActivityController extends Controller {
 
 						$activity_details_data[$activity_key][] = $activity_log->bo_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_approved_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->boApprovedBy ? $activity_log->boApprovedBy->username : '';
+
 						// 'Duration Between L1 approved and Invoice generated'
 						$tot = ($activity_log->invoice_generated_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->bo_approved_at) : '';
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
@@ -4617,6 +4909,7 @@ class ActivityController extends Controller {
 
 						$activity_details_data[$activity_key][] = $activity_log->l2_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->l2_approved_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->l2ApprovedBy ? $activity_log->l2ApprovedBy->username : '';
+
 						// 'Duration Between L2 approved and Invoice generated'
 						$tot = ($activity_log->invoice_generated_at && $activity_log->l2_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->l2_approved_at) : '';
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
@@ -4642,13 +4935,46 @@ class ActivityController extends Controller {
 
 						$activity_details_data[$activity_key][] = $activity_log->l3_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->l3_approved_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->l3ApprovedBy ? $activity_log->l3ApprovedBy->username : '';
+
 						// 'Duration Between L3 approved and Invoice generated'
 						$tot = ($activity_log->invoice_generated_at && $activity_log->l3_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->l3_approved_at) : '';
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
+						// 'Duration Between L1 approved and L4 deffered'
+						$tot = ($activity_log->l4_deffered_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->l4_deffered_at, $activity_log->bo_approved_at) : '';
+						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+
+						// 'Duration Between L2 approved and L4 deffered'
+						$tot = ($activity_log->l4_deffered_at && $activity_log->l2_approved_at) ? $this->findDifference($activity_log->l4_deffered_at, $activity_log->l2_approved_at) : '';
+						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+
+						// 'Duration Between L3 approved and L4 deffered'
+						$tot = ($activity_log->l4_deffered_at && $activity_log->l3_approved_at) ? $this->findDifference($activity_log->l4_deffered_at, $activity_log->l3_approved_at) : '';
+						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+
+						$activity_details_data[$activity_key][] = $activity_log->l4_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->l4_deffered_at)) : '';
+						$activity_details_data[$activity_key][] = $activity_log->l4DefferedBy ? $activity_log->l4DefferedBy->username : '';
+
+						// 'Duration Between L3 approved and L4 approved'
+						$tot = ($activity_log->l4_approved_at && $activity_log->l3_approved_at) ? $this->findDifference($activity_log->l4_approved_at, $activity_log->l3_approved_at) : '';
+						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+
+						$activity_details_data[$activity_key][] = $activity_log->l4_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->l4_approved_at)) : '';
+						$activity_details_data[$activity_key][] = $activity_log->l4ApprovedBy ? $activity_log->l4ApprovedBy->username : '';
+
+						// 'Duration Between L4 approved and Invoice generated'
+						$tot = ($activity_log->invoice_generated_at && $activity_log->l4_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->l4_approved_at) : '';
+						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
+						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
+
 						$activity_details_data[$activity_key][] = $activity_log->invoice_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->invoice_generated_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->invoiceGeneratedBy ? $activity_log->invoiceGeneratedBy->username : '';
+
 						// 'Duration Between Invoice generated and Axapta Generated'
 						$tot = ($activity_log->invoice_generated_at && $activity_log->axapta_generated_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->axapta_generated_at) : '';
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
@@ -4656,6 +4982,7 @@ class ActivityController extends Controller {
 
 						$activity_details_data[$activity_key][] = $activity_log->axapta_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->axapta_generated_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->axaptaGeneratedBy ? $activity_log->axaptaGeneratedBy->username : '';
+
 						// 'Duration Between Axapta Generated and Payment Completed'
 						$tot = ($activity_log->axapta_generated_at && $activity_log->payment_completed_at) ? $this->findDifference($activity_log->axapta_generated_at, $activity_log->payment_completed_at) : '';
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
@@ -4728,7 +5055,7 @@ class ActivityController extends Controller {
 					$sheet->setAutoSize(false);
 					$sheet->fromArray($activity_details_data, NULL, 'A1');
 					$sheet->row(1, $activity_details_header);
-					$sheet->cells('A1:FB1', function ($cells) {
+					$sheet->cells('A1:FK1', function ($cells) {
 						$cells->setFont(array(
 							'size' => '10',
 							'bold' => true,
@@ -4830,7 +5157,7 @@ class ActivityController extends Controller {
 			return response()->json([
 				'success' => false,
 				'errors' => [
-					'Exception Error' => $e->getMessage(),
+					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			]);
 		}

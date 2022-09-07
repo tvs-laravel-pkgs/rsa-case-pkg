@@ -497,28 +497,6 @@ class ActivityController extends Controller {
 			$activity->number = 'ACT' . $activity->id;
 			$activity->save();
 
-			if ($case->status_id == 3) {
-				if ($activity->financeStatus->po_eligibility_type_id == 342) {
-					//CANCELLED
-					$activity->update([
-						// Not Eligible for Payout
-						'status_id' => 15,
-					]);
-				}
-			}
-
-			// CHECK CASE IS CLOSED
-			if ($case->status_id == 4) {
-				$activity->where([
-					// Invoice Amount Calculated - Waiting for Case Closure
-					'status_id' => 10,
-				])
-					->update([
-						// Case Closed - Waiting for ASP to Generate Invoice
-						'status_id' => 1,
-					]);
-			}
-
 			//SAVING ACTIVITY DETAILS
 			$activity_fields = Config::where('entity_type_id', 23)->get();
 			foreach ($activity_fields as $key => $activity_field) {
@@ -591,6 +569,40 @@ class ActivityController extends Controller {
 				}
 			}
 
+			//MARKING AS OWN PATROL ACTIVITY
+			if ($activity->asp->workshop_type == 1) {
+				//Own Patrol Activity - Not Eligible for Payout
+				$activity->status_id = 16;
+				$activity->save();
+			}
+
+			if ($case->status_id == 3) {
+				if ($activity->financeStatus->po_eligibility_type_id == 342) {
+					//CANCELLED
+					$activity->update([
+						// Not Eligible for Payout
+						'status_id' => 15,
+					]);
+				}
+			}
+
+			// CHECK CASE IS CLOSED
+			if ($case->status_id == 4) {
+				$activity->where([
+					// Invoice Amount Calculated - Waiting for Case Closure
+					'status_id' => 10,
+				])
+					->update([
+						// Case Closed - Waiting for ASP to Generate Invoice
+						'status_id' => 1,
+					]);
+
+				//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
+				if ($asp && !empty($asp->whatsapp_number) && $activity->financeStatus && $activity->financeStatus->po_eligibility_type_id != 342) {
+					$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
+				}
+			}
+
 			//RELEASE ONHOLD ACTIVITIES WITH CLOSED OR CANCELLED CASES
 			if (($case->status_id == 4 || $case->status_id == 3) && $activity->status_id == 17) {
 				//MECHANICAL SERVICE GROUP
@@ -611,13 +623,6 @@ class ActivityController extends Controller {
 					}
 				}
 				$activity->status_id = $statusId;
-				$activity->save();
-			}
-
-			//MARKING AS OWN PATROL ACTIVITY
-			if ($activity->asp->workshop_type == 1) {
-				//Own Patrol Activity - Not Eligible for Payout
-				$activity->status_id = 16;
 				$activity->save();
 			}
 
@@ -901,11 +906,11 @@ class ActivityController extends Controller {
 						'success' => true,
 					], $this->successStatus);
 				} else {
-					DB::rollBack();
 					//UPDATE WEBHOOK STATUS
 					$whatsappWebhookResponse->status = 'Failed';
 					$whatsappWebhookResponse->errors = "ASP not having whatsapp number";
 					$whatsappWebhookResponse->save();
+					DB::commit();
 					return response()->json([
 						'success' => false,
 						'errors' => [
@@ -918,12 +923,12 @@ class ActivityController extends Controller {
 					if ($payload->value == 'Yes') {
 
 						//GENERATE INVOICE NUMBER
-						$invoiceNumber = generateAppInvoiceNumber();
+						$invoiceNumber = generateInvoiceNumber();
 						$invoiceDate = new Carbon();
 
 						//CREATE INVOICE
 						$crmActivityId[] = $activity->crm_activity_id;
-						$createInvoiceResponse = Invoices::createInvoice($activity->asp, $crmActivityId, $invoiceNumber, $invoiceDate, '');
+						$createInvoiceResponse = Invoices::createInvoice($activity->asp, $crmActivityId, $invoiceNumber, $invoiceDate, '', false);
 
 						if (!$createInvoiceResponse['success']) {
 							DB::rollBack();
@@ -936,6 +941,12 @@ class ActivityController extends Controller {
 									$createInvoiceResponse['message'],
 								],
 							], $this->successStatus);
+						}
+
+						$invoice = Invoices::find($createInvoiceResponse['invoice']->id);
+						if ($invoice) {
+							$invoice->invoice_no = $invoice->invoice_no . '-' . $invoice->id;
+							$invoice->save();
 						}
 
 						//SEND INDIVIDUAL INVOICING WHATSAPP SMS TO ASP
@@ -952,11 +963,11 @@ class ActivityController extends Controller {
 						'success' => true,
 					], $this->successStatus);
 				} else {
-					DB::rollBack();
 					//UPDATE WEBHOOK STATUS
 					$whatsappWebhookResponse->status = 'Failed';
 					$whatsappWebhookResponse->errors = "ASP not having whatsapp number";
 					$whatsappWebhookResponse->save();
+					DB::commit();
 					return response()->json([
 						'success' => false,
 						'errors' => [

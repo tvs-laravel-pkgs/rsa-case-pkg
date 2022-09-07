@@ -4073,7 +4073,7 @@ class ActivityController extends Controller {
 				$invoice_date = new Carbon();
 			}
 
-			$invoice_c = Invoices::createInvoice($asp, $request->crm_activity_ids, $invoice_no, $invoice_date, $value);
+			$invoice_c = Invoices::createInvoice($asp, $request->crm_activity_ids, $invoice_no, $invoice_date, $value, true);
 			if (!$invoice_c['success']) {
 				return response()->json([
 					'success' => false,

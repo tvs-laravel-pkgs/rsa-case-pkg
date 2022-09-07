@@ -318,7 +318,7 @@ class InvoiceController extends Controller {
 				$value = $imageName;
 			}
 			//CREATE INVOICE
-			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $invoice_date, $value);
+			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $invoice_date, $value, true);
 
 			if (!$invoice_c['success']) {
 				//CREATE INVOICE API LOG

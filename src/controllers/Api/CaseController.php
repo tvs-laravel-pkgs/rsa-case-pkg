@@ -416,7 +416,7 @@ class CaseController extends Controller {
 
 						//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
 						if ($invoiceAmountCalculatedActivity->asp && !empty($invoiceAmountCalculatedActivity->asp->whatsapp_number) && $invoiceAmountCalculatedActivity->financeStatus && $invoiceAmountCalculatedActivity->financeStatus->po_eligibility_type_id != 342) {
-							// $invoiceAmountCalculatedActivity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
+							$invoiceAmountCalculatedActivity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 						}
 
 					}

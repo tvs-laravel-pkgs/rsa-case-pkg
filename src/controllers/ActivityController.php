@@ -199,6 +199,16 @@ class ActivityController extends Controller {
 						            </a>';
 				}
 
+				//RELEASE ON HOLD CASES
+				if (Entrust::can('release-onhold-case')) {
+					$onholdCaseReleaseIcon = asset('public/img/content/table/release.svg');
+					if ($activity->status_id == 17) {
+						$action .= '<a href="javascript:;" onclick="angular.element(this).scope().releaseOnHoldCase(' . $activity->id . ')" title="Release On Hold Case">
+                						<img src="' . $onholdCaseReleaseIcon . '" alt="Release On Hold Case" class="img-responsive">
+                					</a>';
+					}
+				}
+
 				$action .= '</div>';
 				return $action;
 			})
@@ -4952,6 +4962,7 @@ class ActivityController extends Controller {
 		}
 	}
 
+	// NOT USED NOW
 	public function releaseOnHold(Request $r) {
 		// dd($r->all());
 		DB::beginTransaction();
@@ -5021,6 +5032,62 @@ class ActivityController extends Controller {
 			]);
 		}
 	}
+
+	public function releaseOnHoldActivity($activityId) {
+		// dd($activityId);
+		DB::beginTransaction();
+		try {
+			$activity = Activity::withTrashed()->where('status_id', 17) //ONHOLD
+				->find($activityId);
+			if (!$activity) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Ticket not found',
+					],
+				]);
+			}
+
+			//MECHANICAL SERVICE GROUP
+			if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
+				$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
+				$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+				if ($is_bulk) {
+					$statusId = 5; //ASP Completed Data Entry - Waiting for L1 Bulk Verification
+				} else {
+					$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+				}
+			} else {
+				if ($activity->is_asp_data_entry_done == 1) {
+					$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+				} else {
+					$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+				}
+			}
+			$activity->update([
+				'status_id' => $statusId,
+				'onhold_released_by_id' => Auth::user()->id,
+				'onhold_released_at' => Carbon::now(),
+				'updated_by_id' => Auth::user()->id,
+			]);
+
+			DB::commit();
+			return response()->json([
+				'success' => true,
+				'message' => 'Activity released successfully',
+			]);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
+		}
+	}
+
 	public static function findDifference($date1, $date2) {
 		$date1 = date_create(date('Y-m-d', strtotime($date1)));
 		$date2 = date_create(date('Y-m-d', strtotime($date2)));

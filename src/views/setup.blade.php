@@ -150,6 +150,7 @@
     var activity_back_asp_update = "{{route('activityBackAspUpdate')}}";
     var activity_towing_images_required_url = "{{route('activityTowingImagesRequiredUpdated')}}";
     var releaseOnHold = "{{route('releaseOnHold')}}";
+    var releaseOnHoldActivity = "{{url('rsa-case-pkg/onhold-activity/release')}}";
 
     var getServiceTypeRateCardDetail = "{{route('getActivityServiceTypeRateCardDetail')}}";
 

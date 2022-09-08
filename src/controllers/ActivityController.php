@@ -362,7 +362,7 @@ class ActivityController extends Controller {
 			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 		// ->where('activities.asp_accepted_cc_details', '!=', 1)
-			->orderBy('cases.date', 'DESC')
+		// ->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
 		;
 
@@ -482,7 +482,7 @@ class ActivityController extends Controller {
 			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 		// ->where('activities.asp_accepted_cc_details', '!=', 1)
-			->orderBy('cases.date', 'DESC')
+		// ->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
 		;
 

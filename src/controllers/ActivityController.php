@@ -173,7 +173,7 @@ class ActivityController extends Controller {
 				$status_id = 1;
 				$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24];
 
-				$action = '<div class="dataTable-actions">
+				$action = '<div class="dataTable-actions" style="min-width: 125px;">
 				<a href="#!/rsa-case-pkg/activity-status/' . $status_id . '/view/' . $activity->id . '">
 					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
 					            </a>';
@@ -205,6 +205,16 @@ class ActivityController extends Controller {
 					if ($activity->status_id == 17) {
 						$action .= '<a href="javascript:;" onclick="angular.element(this).scope().releaseOnHoldCase(' . $activity->id . ')" title="Release On Hold Case">
                 						<img src="' . $onholdCaseReleaseIcon . '" alt="Release On Hold Case" class="img-responsive">
+                					</a>';
+					}
+				}
+
+				//MOVE CASE TO NOT ELIGIBLE FOR PAYOUT
+				if (Entrust::can('move-activity-to-not-eligible-payout')) {
+					$notEligibleIcon = asset('public/img/content/table/noteligible.svg');
+					if ($activity->status_id != 15 && $activity->status_id != 16 && $activity->status_id != 12 && $activity->status_id != 13 && $activity->status_id != 14) {
+						$action .= '<a href="javascript:;" onclick="angular.element(this).scope().moveToNotEligibleForPayout(' . $activity->id . ')" title="Move To Not Eligible">
+                						<img src="' . $notEligibleIcon . '" alt="Move To Not Eligible" class="img-responsive">
                 					</a>';
 					}
 				}
@@ -1515,7 +1525,9 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$activity = Activity::findOrFail($request->activity_id);
+			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24])
+				->where('id', $request->activity_id)
+				->first();
 			if (!$activity) {
 				return response()->json([
 					'success' => false,
@@ -2122,7 +2134,9 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$activities = Activity::whereIn('id', $request->activity_ids)->get();
+			$activities = Activity::whereIn('id', $request->activity_ids)
+				->whereIn('status_id', [5, 8, 18, 20, 23])
+				->get();
 			if ($activities->isEmpty()) {
 				return response()->json([
 					'success' => false,
@@ -2460,7 +2474,18 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$activity = Activity::findOrFail($request->activity_id);
+			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24])
+				->where('id', $request->activity_id)
+				->first();
+
+			if (!$activity) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Activity not found',
+					],
+				]);
+			}
 
 			$eligleForAspReEntry = false;
 			$deferReason = $activity->defer_reason;
@@ -2930,7 +2955,9 @@ class ActivityController extends Controller {
 		// dd($request->all());
 		DB::beginTransaction();
 		try {
-			$activity = Activity::findOrFail($request->activity_id);
+			$activity = Activity::whereIn('status_id', [2, 4, 7, 17])
+				->where('id', $request->activity_id)
+				->first();
 			if (!$activity) {
 				return response()->json([
 					'success' => false,
@@ -3958,13 +3985,14 @@ class ActivityController extends Controller {
 				'status_id',
 			])
 				->whereIn('crm_activity_id', $request->crm_activity_ids)
+				->whereIn('status_id', [11, 1]) //Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
 				->get();
 
 			//CUSTOM VALIDATION SAID BY BUSINESS TEAM
 			$aug21ToNov21caseExist = false;
 			$afterDec21caseExist = false;
 
-			if (!empty($activities)) {
+			if ($activities->isNotEmpty()) {
 				foreach ($activities as $key => $activity) {
 					//CHECK ASP MATCHES WITH ACTIVITY ASP
 					if ($activity->asp_id != $asp->id) {
@@ -4008,7 +4036,6 @@ class ActivityController extends Controller {
 					'error' => 'Activity not found',
 				]);
 			}
-
 			if ($aug21ToNov21caseExist && $afterDec21caseExist) {
 				return response()->json([
 					'success' => false,
@@ -4148,6 +4175,53 @@ class ActivityController extends Controller {
 				'success' => false,
 				'errors' => [
 					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
+		}
+	}
+
+	public function moveToNotEligibleForPayout(Request $request) {
+		// dd($request->all());
+		DB::beginTransaction();
+		try {
+			$validator = Validator::make($request->all(), [
+				'activity_id' => [
+					'required',
+					'integer',
+					'exists:activities,id',
+				],
+				'not_eligible_reason' => [
+					'required',
+					'string',
+				],
+			]);
+
+			if ($validator->fails()) {
+				return response()->json([
+					'success' => false,
+					'errors' => $validator->errors()->all(),
+				]);
+			}
+
+			$activity = Activity::find($request->activity_id);
+			$activity->not_eligible_moved_by_id = Auth::user()->id;
+			$activity->not_eligible_moved_at = Carbon::now();
+			$activity->not_eligible_reason = $request->not_eligible_reason;
+			$activity->status_id = 15; //Not Eligible for Payout
+			$activity->save();
+			DB::commit();
+
+			return response()->json([
+				'success' => true,
+				'message' => 'Activity moved to not eligible for payout',
+			]);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			]);
 		}

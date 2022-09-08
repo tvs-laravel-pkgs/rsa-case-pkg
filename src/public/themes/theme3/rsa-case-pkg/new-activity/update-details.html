@@ -58,7 +58,7 @@
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
                                         <label>Services <span class="mandatory">*</span></label>
-                                        <md-select ng-model="$ctrl.service_type_id" ng-change="getServiceTypeDetail()">
+                                        <md-select ng-model="$ctrl.service_type_id" ng-change="getServiceTypeDetail()" placeholder="Select Service">
                                             <md-option ng-repeat="val in $ctrl.service_types_list" value="<% val.id %>">
                                                 <% val.name %>
                                             </md-option>

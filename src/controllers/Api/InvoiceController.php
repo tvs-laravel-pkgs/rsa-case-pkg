@@ -83,12 +83,13 @@ class InvoiceController extends Controller {
 				'case_id'
 			)
 				->whereIn('crm_activity_id', $request->activity_id)
+				->whereIn('status_id', [11, 1]) //Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
 				->get();
 
 			//CUSTOM VALIDATION SAID BY BUSINESS TEAM
 			$aug21ToNov21caseExist = false;
 			$afterDec21caseExist = false;
-			if (!empty($activities)) {
+			if ($activities->isNotEmpty()) {
 				foreach ($activities as $key => $activity) {
 					//CHECK ASP MATCHES WITH ACTIVITY ASP
 					if ($activity->asp_id != $asp->id) {
@@ -165,8 +166,13 @@ class InvoiceController extends Controller {
 			}
 
 			//CHECK ACTIVITY IS ACCEPTED OR NOT
-			$activities_with_accepted = Activity::select('crm_activity_id', 'status_id')->whereIn('crm_activity_id', $request->activity_id)->get();
-			if (!empty($activities_with_accepted)) {
+			$activities_with_accepted = Activity::select([
+				'crm_activity_id',
+				'status_id',
+			])
+				->whereIn('crm_activity_id', $request->activity_id)
+				->get();
+			if ($activities_with_accepted->isNotEmpty()) {
 				foreach ($activities_with_accepted as $key => $activity_accepted) {
 					//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND Waiting for Invoice Generation by ASP)
 					if ($activity_accepted->status_id != 1 && $activity_accepted->status_id != 11) {

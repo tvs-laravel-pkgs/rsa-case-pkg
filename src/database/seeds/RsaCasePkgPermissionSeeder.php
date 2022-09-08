@@ -134,6 +134,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'export-own-nm-asp-activities',
 				'display_name' => 'Export Own NM ASPs',
 			],
+			[
+				'display_order' => 19,
+				'parent' => 'activity-status',
+				'name' => 'move-activity-to-not-eligible-payout',
+				'display_name' => 'Move to Not Eligible For Payout',
+			],
 
 			//ACTIVITIES VERIFICATION
 			[

@@ -396,6 +396,55 @@ app.component('activityStatusList', {
             }, 1000);
         }
 
+        $scope.moveToNotEligibleForPayout = activityId => {
+            self.notEligibleActivityId = activityId;
+            self.notEligibleReason = '';
+            $scope.$apply();
+            $("#moveToNotEligibleForPayoutModal").modal('toggle');
+        }
+
+        const notEligibleFormId = '#not-eligible-for-payout-form';
+        const notEligibleFormValidator = jQuery(notEligibleFormId).validate({
+            rules: {
+                not_eligible_reason: {
+                    required: true,
+                },
+            },
+            submitHandler: function(form) {
+                let formData = new FormData($(notEligibleFormId)[0]);
+                $('#notEligibleForPayoutSubmitId').button('loading');
+                $.ajax({
+                        url: laravel_routes['moveToNotEligibleForPayout'],
+                        method: "POST",
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                    })
+                    .done(function(res) {
+                        if (!res.success) {
+                            $('#notEligibleForPayoutSubmitId').button('reset');
+                            let errors = '';
+                            for (let i in res.errors) {
+                                errors += '<li>' + res.errors[i] + '</li>';
+                            }
+                            custom_noty('error', errors);
+                        } else {
+                            custom_noty('success', res.message);
+                            self.notEligibleActivityId = '';
+                            self.notEligibleReason = '';
+                            $('#notEligibleForPayoutSubmitId').button('reset');
+                            $('#moveToNotEligibleForPayoutModal').modal('hide');
+                            $('#activities_status_table').DataTable().ajax.reload();
+                        }
+                    })
+                    .fail(function(xhr) {
+                        $('#notEligibleForPayoutSubmitId').button('reset');
+                        custom_noty('error', 'Something went wrong at server');
+                    });
+            }
+        });
+
+
         $scope.towingImageRequiredBtn = function(activityId, isTowingAttachmentsMandatory) {
             self.towingImagesActivityId = activityId;
             self.isTowingAttachmentsMandatory = isTowingAttachmentsMandatory;

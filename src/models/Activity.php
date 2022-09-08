@@ -67,6 +67,9 @@ class Activity extends Model {
 		'towing_attachments_mandatory_by_id',
 		'onhold_released_by_id',
 		'onhold_released_at',
+		'not_eligible_moved_by_id',
+		'not_eligible_moved_at',
+		'not_eligible_reason',
 	];
 
 	// Relationships --------------------------------------------------------------

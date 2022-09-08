@@ -22,6 +22,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	Route::post('activity/onhold/release', 'ActivityController@releaseOnHold')->name('releaseOnHold');
 	Route::post('activity-status/closing-date/update', 'ActivityController@updateCaseSubmissionClosingDate')->name('updateCaseSubmissionClosingDate');
 	Route::post('activity-status/towing-images-required/update', 'ActivityController@towingImagesRequiredUpdated')->name('activityTowingImagesRequiredUpdated');
+	Route::post('activity-status/not-eligible-for-payout/move', 'ActivityController@moveToNotEligibleForPayout')->name('moveToNotEligibleForPayout');
 
 	//ASP NEW ACTIVITY
 	Route::get('/new-activity/get-form-data/{id?}', 'ActivityController@activityNewGetFormData')->name('activityNewGetFormData');

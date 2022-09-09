@@ -164,21 +164,15 @@
                     <div class="row" style="border: 1px solid #e1e1e1;padding: 10px 15px;margin: 0 auto;">
                         <div class="col-xs-12 col-sm-6 col-md-6" ng-show="$ctrl.data.other_charges_attachment_url.length>0">
                             <h4>Remarks Comments for not collected charges</h4>
-                            <p style="word-wrap: break-word;max-height: 100px;overflow: auto;">
-                                {{ $ctrl.data.remarks }}
-                            </p>
+                            <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.remarks"></p>
                         </div>
                         <div class="col-xs-12 col-sm-6 col-md-6" ng-show="$ctrl.data.backstep_reason != null">
                             <h4>Backstep Reason</h4>
-                            <p style="word-wrap: break-word;max-height: 100px;overflow: auto;">
-                                {{ $ctrl.data.backstep_reason }}
-                            </p>
+                            <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.backstep_reason"></p>
                         </div>
                         <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && $ctrl.data.general_remarks != null">
                             <h4>ASP General Remarks</h4>
-                            <p style="word-wrap: break-word;max-height: 100px;overflow: auto;">
-                                {{ $ctrl.data.general_remarks }}
-                            </p>
+                            <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.general_remarks"></p>
                         </div>
                         <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && $ctrl.data.defer_reason != null">
                             <h4>BO Defer Reason</h4>
@@ -186,9 +180,7 @@
                         </div>
                         <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && $ctrl.data.asp_resolve_comments != null">
                             <h4>ASP Resolve Comments</h4>
-                            <p style="word-wrap: break-word;max-height: 100px;overflow: auto;">
-                                {{ $ctrl.data.asp_resolve_comments }}
-                            </p>
+                            <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.asp_resolve_comments"></p>
                         </div>
                         <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && $ctrl.data.exceptional_reason != null">
                             <h4>Exceptional Reason</h4>

@@ -201,12 +201,18 @@ class Activity extends Model {
 			$isMobile = 1;
 		}
 
-		$data['service_types'] = Asp::where('asps.user_id', Auth::id())
-			->where('asp_service_types.is_mobile', $isMobile)
+		$data['service_types'] = Asp::select([
+			'service_types.name',
+			'asp_service_types.service_type_id as id',
+		])
 			->join('asp_service_types', 'asp_service_types.asp_id', '=', 'asps.id')
 			->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')
-			->select('service_types.name', 'asp_service_types.service_type_id as id')
+			->where('asps.user_id', Auth::user()->id)
+			->where('asp_service_types.is_mobile', $isMobile)
+			->where('service_types.service_group_id', $activity->serviceType->service_group_id)
+			->groupBy('service_types.id')
 			->get();
+
 		if ($for_deffer_activity) {
 			$asp_km_travelled = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 154]])->first();
 			if (!$asp_km_travelled) {

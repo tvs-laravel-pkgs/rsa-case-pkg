@@ -1473,7 +1473,7 @@ class Activity extends Model {
 
 		//ROS(Repaid Onsite) SERVICE
 		if ($this->serviceType && !empty($this->serviceType->service_group_id) && $this->serviceType->service_group_id != 3) {
-			$templateId = 'new_breakdown_alert_1_ros';
+			$templateId = 'new_alert_ros_2';
 			$bodyParameterValues = new \stdClass();
 			$bodyParameterValues->{'0'} = $aspName;
 			$bodyParameterValues->{'1'} = $caseDate;
@@ -1485,8 +1485,10 @@ class Activity extends Model {
 			$bodyParameterValues->{'7'} = $serviceType;
 			$bodyParameterValues->{'8'} = $bdAddress;
 			$bodyParameterValues->{'9'} = $bdMapLocation;
-			$bodyParameterValues->{'10'} = $tollFreeNumber;
-			$bodyParameterValues->{'11'} = $whatsAppNumber;
+			$bodyParameterValues->{'10'} = $dropAddress;
+			$bodyParameterValues->{'11'} = $dropMapLocation;
+			$bodyParameterValues->{'12'} = $tollFreeNumber;
+			$bodyParameterValues->{'13'} = $whatsAppNumber;
 
 			$inputRequests = [
 				"message" => [
@@ -1516,21 +1518,20 @@ class Activity extends Model {
 			];
 		} else {
 			// TOWING SERVICE
-			$templateId = 'new_breakdown_alert_1';
+			$templateId = 'alert_new_1';
 			$bodyParameterValues = new \stdClass();
-			$bodyParameterValues->{'0'} = $aspName;
-			$bodyParameterValues->{'1'} = $caseDate;
-			$bodyParameterValues->{'2'} = $activityNumber;
-			$bodyParameterValues->{'3'} = $customerName;
-			$bodyParameterValues->{'4'} = $vehicleNumber;
-			$bodyParameterValues->{'5'} = $vin;
-			$bodyParameterValues->{'6'} = $model;
-			$bodyParameterValues->{'7'} = $serviceType;
-			$bodyParameterValues->{'8'} = $bdAddress;
-			$bodyParameterValues->{'9'} = $bdMapLocation;
-			$bodyParameterValues->{'10'} = $dropAddress;
-			$bodyParameterValues->{'11'} = $dropMapLocation;
-			$bodyParameterValues->{'12'} = $tollFreeNumber;
+			$bodyParameterValues->{'0'} = $caseDate;
+			$bodyParameterValues->{'1'} = $activityNumber;
+			$bodyParameterValues->{'2'} = $customerName;
+			$bodyParameterValues->{'3'} = $vehicleNumber;
+			$bodyParameterValues->{'4'} = $vin;
+			$bodyParameterValues->{'5'} = $model;
+			$bodyParameterValues->{'6'} = $serviceType;
+			$bodyParameterValues->{'7'} = $bdAddress;
+			$bodyParameterValues->{'8'} = $bdMapLocation;
+			$bodyParameterValues->{'9'} = $dropAddress;
+			$bodyParameterValues->{'10'} = $dropMapLocation;
+			$bodyParameterValues->{'11'} = $tollFreeNumber;
 
 			$payloadIndexOne = [
 				"value" => "Upload Images",
@@ -1582,7 +1583,6 @@ class Activity extends Model {
 			];
 		}
 
-		// dd($inputRequests);
 		//SEND WHATSAPP SMS
 		sendWhatsappSMS($this->id, 1191, $inputRequests);
 	}

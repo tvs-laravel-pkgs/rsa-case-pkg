@@ -126,6 +126,11 @@
                                                 <td><span>{{$ctrl.inv_no}}</span>
                                                 </td>
                                             </tr>
+                                            <tr ng-if="isSelf($ctrl.asp)">
+                                                <td class="text-right">IRN :</td>
+                                                <td><span>{{$ctrl.irn}}</span>
+                                                </td>
+                                            </tr>
                                             <tr>
                                                 <td class="text-right">Invoice Date :</td>
                                                 <td><span>{{$ctrl.invoice.created_at}}</span></td>

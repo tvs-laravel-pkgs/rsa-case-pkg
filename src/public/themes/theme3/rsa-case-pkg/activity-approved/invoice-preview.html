@@ -123,6 +123,12 @@
                                                 </td>
                                             </tr>
                                             <tr ng-if="isSystem($ctrl.asp)">
+                                                <td class="text-right">IRN :</td>
+                                                <td><span>{{$ctrl.irn}}</span>
+                                                    <input type="hidden" name="irn" value="{{$ctrl.irn}}">
+                                                </td>
+                                            </tr>
+                                            <tr ng-if="isSystem($ctrl.asp)">
                                                 <td class="text-right">Invoice Date :</td>
                                                 <td>
                                                     <span>{{$ctrl.inv_date}}</span>
@@ -133,6 +139,12 @@
                                                 <td class="text-right">Invoice No :</td>
                                                 <td style="padding-left: 15px;">
                                                     <input id="invoice_no" class="form-control filter-input" type="text" name="invoice_no" placeholder="Enter Invoice Number" autocomplete="off">
+                                                </td>
+                                            </tr>
+                                            <tr ng-if="isSelf($ctrl.asp)">
+                                                <td class="text-right">IRN :</td>
+                                                <td style="padding-left: 15px;">
+                                                    <input id="irn" class="form-control filter-input" type="text" name="irn" placeholder="Enter IRN Number" autocomplete="off" minlength="64" maxlength="64">
                                                 </td>
                                             </tr>
                                             <tr ng-if="isSelf($ctrl.asp)">

@@ -3910,7 +3910,7 @@ class ActivityController extends Controller {
 				}
 
 				$invoice_no = $request->invoice_no;
-				$irn = $request->irn ? $request->irn :NULL;
+				$irn = (isset($request->irn) && !empty($request->irn)) ? $request->irn : NULL;
 				$invoice_date = date('Y-m-d H:i:s', strtotime($request->inv_date));
 			} else {
 				//SYSTEM

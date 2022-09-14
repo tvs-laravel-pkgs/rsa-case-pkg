@@ -422,19 +422,19 @@ app.component('deferredActivityUpdate', {
                     required: function(element) {
                         return self.activity.is_towing_attachments_mandatory === 1 && !self.vehiclePickupAttach && self.activity.finance_status.po_eligibility_type_id == 340;
                     },
-                    imageFileSize: 1048576,
+                    //imageFileSize: 1048576,
                 },
                 'vehicle_drop_attachment': {
                     required: function(element) {
                         return self.activity.is_towing_attachments_mandatory === 1 && !self.vehicleDropAttach && self.activity.finance_status.po_eligibility_type_id == 340;
                     },
-                    imageFileSize: 1048576,
+                    //imageFileSize: 1048576,
                 },
                 'inventory_job_sheet_attachment': {
                     required: function(element) {
                         return self.activity.is_towing_attachments_mandatory === 1 && !self.inventoryJobSheetAttach && self.activity.finance_status.po_eligibility_type_id == 340;
                     },
-                    imageFileSize: 1048576,
+                    //imageFileSize: 1048576,
                 }
             },
             messages: {

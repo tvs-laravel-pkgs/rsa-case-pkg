@@ -1147,6 +1147,7 @@ class Activity extends Model {
 						$case->save();
 
 						$activity_save_eligible = true;
+						$newActivity = false;
 						$crm_activity_id = trim($record['crm_activity_id']);
 						$activity_exist = Activity::withTrashed()->where('crm_activity_id', $crm_activity_id)->first();
 						if (!$activity_exist) {
@@ -1154,6 +1155,7 @@ class Activity extends Model {
 								'crm_activity_id' => $crm_activity_id,
 							]);
 							$count_variable = 'new_count';
+							$newActivity = true;
 						} else {
 							$activity_belongsto_case = Activity::withTrashed()->where('crm_activity_id', $crm_activity_id)
 								->where('case_id', $case->id)
@@ -1207,7 +1209,11 @@ class Activity extends Model {
 											$activity->status_id = 6;
 										}
 									} else {
-										$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+										if (($service_type->service_group_id == 3 && $activity->towing_attachments_uploaded_on_whatsapp == 1) || $activity->is_asp_data_entry_done == 1) {
+											$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+										} else {
+											$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+										}
 									}
 								} else {
 									//ON HOLD
@@ -1260,7 +1266,11 @@ class Activity extends Model {
 									if ($case->status_id == 4) {
 										//IF ROS ASP then changes status as Waitin for ASP data entry. If not change status as on hold
 										if ($asp->is_ros_asp == 1) {
-											$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+											if (($service_type->service_group_id == 3 && $activity->towing_attachments_uploaded_on_whatsapp == 1) || $activity->is_asp_data_entry_done == 1) {
+												$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+											} else {
+												$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+											}
 										} else {
 											//ON HOLD
 											$activity->status_id = 17;
@@ -1290,6 +1300,11 @@ class Activity extends Model {
 								//Own Patrol Activity - Not Eligible for Payout
 								$activity->status_id = 16;
 								$activity->save();
+							}
+
+							//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
+							if ($newActivity && $activity->asp && !empty($activity->asp->whatsapp_number)) {
+								$activity->sendBreakdownAlertWhatsappSms();
 							}
 
 							if ($case->status_id == 3) {
@@ -1331,7 +1346,7 @@ class Activity extends Model {
 										$activityLog->save();
 
 										//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
-										if ($invoiceAmountCalculatedActivity->asp && !empty($invoiceAmountCalculatedActivity->asp->whatsapp_number) && $activity->financeStatus && $activity->financeStatus->po_eligibility_type_id != 342) {
+										if ($invoiceAmountCalculatedActivity->asp && !empty($invoiceAmountCalculatedActivity->asp->whatsapp_number)) {
 											$invoiceAmountCalculatedActivity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 										}
 
@@ -1366,7 +1381,12 @@ class Activity extends Model {
 												$statusId = 6;
 											}
 										} else {
-											$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+											if (($caseActivity->serviceType && $caseActivity->serviceType->service_group_id == 3 && $caseActivity->towing_attachments_uploaded_on_whatsapp == 1) || $caseActivity->is_asp_data_entry_done == 1) {
+												//ASP Completed Data Entry - Waiting for L1 Individual Verification
+												$statusId = 6;
+											} else {
+												$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+											}
 										}
 										$caseActivity->update([
 											'status_id' => $statusId,

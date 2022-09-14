@@ -415,7 +415,7 @@ class CaseController extends Controller {
 						$activityLog->save();
 
 						//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
-						if ($invoiceAmountCalculatedActivity->asp && !empty($invoiceAmountCalculatedActivity->asp->whatsapp_number) && $invoiceAmountCalculatedActivity->financeStatus && $invoiceAmountCalculatedActivity->financeStatus->po_eligibility_type_id != 342) {
+						if ($invoiceAmountCalculatedActivity->asp && !empty($invoiceAmountCalculatedActivity->asp->whatsapp_number)) {
 							$invoiceAmountCalculatedActivity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 						}
 
@@ -450,7 +450,7 @@ class CaseController extends Controller {
 								$status_id = 6;
 							}
 						} else {
-							if ($activity->is_asp_data_entry_done == 1) {
+							if (($activity->serviceType && $activity->serviceType->service_group_id == 3 && $activity->towing_attachments_uploaded_on_whatsapp == 1) || $activity->is_asp_data_entry_done == 1) {
 								//ASP Completed Data Entry - Waiting for L1 Individual Verification
 								$status_id = 6;
 							} else {

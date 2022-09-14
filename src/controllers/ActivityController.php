@@ -1665,6 +1665,8 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
+
+			$sendBreakdownOrEmptyreturnChargesWhatsappSms = false;
 			//L2, L3, and L4 approver flow should be effective from April 2022 cases not for all the cases - By Sundhar / Hyder
 			if (date('Y-m-d', strtotime($activity->case->date)) >= "2022-04-01") {
 				$l2Approvers = User::where('activity_approval_level_id', 2)->pluck('id');
@@ -1747,6 +1749,7 @@ class ActivityController extends Controller {
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 						$isApproved = true;
 						$approver = '4';
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					}
 				} elseif (floatval($request->bo_net_amount) > 6000 && floatval($request->bo_net_amount) <= 10000) {
 					//GREATER THAN 6000 AND LESSER THAN OR EQUAL TO 10000
@@ -1812,11 +1815,13 @@ class ActivityController extends Controller {
 						if ($isCollectedChanged) {
 							$activity->collected_amount_changed_on_level = 3;
 						}
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					} elseif (Auth::user()->activity_approval_level_id == 4) {
 						// L4
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 						$isApproved = true;
 						$approver = '4';
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					}
 				} elseif (floatval($request->bo_net_amount) > 4000 && floatval($request->bo_net_amount) <= 6000) {
 					//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 6000
@@ -1860,6 +1865,7 @@ class ActivityController extends Controller {
 						if ($isCollectedChanged) {
 							$activity->collected_amount_changed_on_level = 2;
 						}
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					} elseif (Auth::user()->activity_approval_level_id == 3) {
 						// L3
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
@@ -1878,11 +1884,13 @@ class ActivityController extends Controller {
 						if ($isCollectedChanged) {
 							$activity->collected_amount_changed_on_level = 3;
 						}
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					} elseif (Auth::user()->activity_approval_level_id == 4) {
 						// L4
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 						$isApproved = true;
 						$approver = '4';
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					}
 				} else {
 					//LESSER THAN OR EQUAL TO 4000
@@ -1899,6 +1907,7 @@ class ActivityController extends Controller {
 						} else {
 							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 							$isApproved = true;
+							$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 						}
 						$approver = '1';
 						if ($isServiceTypeChanged) {
@@ -1932,6 +1941,7 @@ class ActivityController extends Controller {
 						if ($isCollectedChanged) {
 							$activity->collected_amount_changed_on_level = 2;
 						}
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					} elseif (Auth::user()->activity_approval_level_id == 3) {
 						// L3
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
@@ -1950,11 +1960,13 @@ class ActivityController extends Controller {
 						if ($isCollectedChanged) {
 							$activity->collected_amount_changed_on_level = 3;
 						}
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					} elseif (Auth::user()->activity_approval_level_id == 4) {
 						// L4
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 						$isApproved = true;
 						$approver = '4';
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					}
 				}
 			} else {
@@ -1970,6 +1982,7 @@ class ActivityController extends Controller {
 				} elseif (Auth::user()->activity_approval_level_id == 4) {
 					$approver = '4';
 				}
+				$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 			}
 
 			if (isset($activityStatusId)) {
@@ -2006,6 +2019,11 @@ class ActivityController extends Controller {
 
 			if ($isApproved) {
 				$this->updateActivityApprovalLog($activity, $request->case_number, 1);
+			}
+
+			//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
+			if ($sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number)) {
+				$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 			}
 
 			DB::commit();
@@ -2253,6 +2271,7 @@ class ActivityController extends Controller {
 					$bo_invoice_amount->value = $invoiceAmount;
 					$bo_invoice_amount->save();
 
+					$sendBreakdownOrEmptyreturnChargesWhatsappSms = false;
 					//L2, L3, and L4 approver flow should be effective from April 2022 cases not for all the cases - By Sundhar / Hyder
 					if (date('Y-m-d', strtotime($activity->case->date)) >= "2022-04-01") {
 						$isApproved = false;
@@ -2279,6 +2298,7 @@ class ActivityController extends Controller {
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '4';
+								$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 							}
 						} elseif (floatval($invoiceAmount) > 6000 && floatval($invoiceAmount) <= 10000) {
 							//GREATER THAN 6000 AND LESSER THAN OR EQUAL TO 10000
@@ -2297,11 +2317,13 @@ class ActivityController extends Controller {
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '3';
+								$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 							} elseif (Auth::user()->activity_approval_level_id == 4) {
 								// L4
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '4';
+								$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 							}
 						} elseif (floatval($invoiceAmount) > 4000 && floatval($invoiceAmount) <= 6000) {
 							//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 6000
@@ -2315,16 +2337,19 @@ class ActivityController extends Controller {
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '2';
+								$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 							} elseif (Auth::user()->activity_approval_level_id == 3) {
 								// L3
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '3';
+								$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 							} elseif (Auth::user()->activity_approval_level_id == 4) {
 								// L4
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '4';
+								$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 							}
 						} else {
 							//LESSER THAN OR EQUAL TO 4000
@@ -2337,6 +2362,7 @@ class ActivityController extends Controller {
 								} else {
 									$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 									$isApproved = true;
+									$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 								}
 								$approver = '1';
 							} elseif (Auth::user()->activity_approval_level_id == 2) {
@@ -2344,16 +2370,19 @@ class ActivityController extends Controller {
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '2';
+								$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 							} elseif (Auth::user()->activity_approval_level_id == 3) {
 								// L3
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '3';
+								$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 							} elseif (Auth::user()->activity_approval_level_id == 4) {
 								// L4
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '4';
+								$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 							}
 						}
 					} else {
@@ -2369,6 +2398,7 @@ class ActivityController extends Controller {
 						} elseif (Auth::user()->activity_approval_level_id == 4) {
 							$approver = '4';
 						}
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					}
 
 					if (isset($activityStatusId)) {
@@ -2405,6 +2435,11 @@ class ActivityController extends Controller {
 
 					if ($isApproved) {
 						$this->updateActivityApprovalLog($activity, $activity->case->number, 2);
+					}
+
+					//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
+					if ($sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number)) {
+						$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 					}
 				} else {
 					return response()->json([
@@ -3850,11 +3885,12 @@ class ActivityController extends Controller {
 						->where('total_amount.key_id', 182); //BO INVOICE AMOUNT
 				})
 				->leftjoin('configs as data_sources', 'data_sources.id', 'activities.data_src_id')
-				->select(
+				->select([
 					'cases.number',
 					'activities.id',
 					'activities.asp_id as asp_id',
 					'activities.crm_activity_id',
+					'activities.number as activityNumber',
 					DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
 					'activity_portal_statuses.name as status',
 					'call_centers.name as callcenter',
@@ -3868,8 +3904,8 @@ class ActivityController extends Controller {
 					'total_amount.value as total_value',
 					'total_tax_perc.value as total_tax_perc_value',
 					'total_tax_amount.value as total_tax_amount_value',
-					'data_sources.name as data_source'
-				)
+					'data_sources.name as data_source',
+				])
 				->whereIn('activities.id', $activity_ids)
 				->groupBy('activities.id')
 				->get();
@@ -4098,7 +4134,7 @@ class ActivityController extends Controller {
 				$invoice_date = new Carbon();
 			}
 
-			$invoice_c = Invoices::createInvoice($asp, $request->crm_activity_ids, $invoice_no, $invoice_date, $value, true);
+			$invoice_c = Invoices::createInvoice($asp, $request->crm_activity_ids, $invoice_no, $invoice_date, $value, false);
 			if (!$invoice_c['success']) {
 				return response()->json([
 					'success' => false,

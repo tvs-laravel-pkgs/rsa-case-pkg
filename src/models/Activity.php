@@ -1084,6 +1084,7 @@ class Activity extends Model {
 						$case->save();
 
 						$activity_save_eligible = true;
+						$newActivity = false;
 						$crm_activity_id = trim($record['crm_activity_id']);
 						$activity_exist = Activity::withTrashed()->where('crm_activity_id', $crm_activity_id)->first();
 						if (!$activity_exist) {
@@ -1091,6 +1092,7 @@ class Activity extends Model {
 								'crm_activity_id' => $crm_activity_id,
 							]);
 							$count_variable = 'new_count';
+							$newActivity = true;
 						} else {
 							$activity_belongsto_case = Activity::withTrashed()->where('crm_activity_id', $crm_activity_id)
 								->where('case_id', $case->id)
@@ -1235,6 +1237,11 @@ class Activity extends Model {
 								//Own Patrol Activity - Not Eligible for Payout
 								$activity->status_id = 16;
 								$activity->save();
+							}
+
+							//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
+							if ($newActivity && $activity->asp && !empty($activity->asp->whatsapp_number)) {
+								$activity->sendBreakdownAlertWhatsappSms();
 							}
 
 							if ($case->status_id == 3) {

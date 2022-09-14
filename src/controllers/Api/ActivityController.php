@@ -586,6 +586,11 @@ class ActivityController extends Controller {
 				}
 			}
 
+			//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
+			if ($newActivity && $activity->asp && !empty($activity->asp->whatsapp_number)) {
+				$activity->sendBreakdownAlertWhatsappSms();
+			}
+
 			// CHECK CASE IS CLOSED
 			if ($case->status_id == 4) {
 				$activity->where([
@@ -598,7 +603,7 @@ class ActivityController extends Controller {
 					]);
 
 				//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
-				if ($asp && !empty($asp->whatsapp_number) && $activity->financeStatus && $activity->financeStatus->po_eligibility_type_id != 342) {
+				if ($asp && !empty($asp->whatsapp_number) && $activity->status_id == 10) {
 					$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 				}
 			}
@@ -650,11 +655,6 @@ class ActivityController extends Controller {
 
 			//SAVE ACTIVITY API LOG
 			saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 120);
-
-			//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
-			if ($newActivity && $activity->asp && !empty($activity->asp->whatsapp_number)) {
-				$activity->sendBreakdownAlertWhatsappSms();
-			}
 
 			DB::commit();
 			return response()->json([
@@ -897,6 +897,9 @@ class ActivityController extends Controller {
 					} else {
 						//SEND ASP CHARGES REJECTION WHATSAPP SMS TO ASP
 						$activity->sendAspChargesRejectionWhatsappSms();
+
+						$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+						$activity->save();
 					}
 					//UPDATE WEBHOOK STATUS
 					$whatsappWebhookResponse->status = 'Completed';
@@ -928,7 +931,7 @@ class ActivityController extends Controller {
 
 						//CREATE INVOICE
 						$crmActivityId[] = $activity->crm_activity_id;
-						$createInvoiceResponse = Invoices::createInvoice($activity->asp, $crmActivityId, $invoiceNumber, $invoiceDate, '', false);
+						$createInvoiceResponse = Invoices::createInvoice($activity->asp, $crmActivityId, $invoiceNumber, $invoiceDate, '', true);
 
 						if (!$createInvoiceResponse['success']) {
 							DB::rollBack();
@@ -941,12 +944,6 @@ class ActivityController extends Controller {
 									$createInvoiceResponse['message'],
 								],
 							], $this->successStatus);
-						}
-
-						$invoice = Invoices::find($createInvoiceResponse['invoice']->id);
-						if ($invoice) {
-							$invoice->invoice_no = $invoice->invoice_no . '-' . $invoice->id;
-							$invoice->save();
 						}
 
 						//SEND INDIVIDUAL INVOICING WHATSAPP SMS TO ASP

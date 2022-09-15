@@ -3908,10 +3908,11 @@ class ActivityController extends Controller {
 						'error' => 'Special characters are not allowed at the end of the invoice number',
 					]);
 				}
-				if(isset($request->irn) && !empty($request->irn) && strlen($request->irn) != '64'){
-                    return response()->json([
+
+				if (isset($request->irn) && !empty($request->irn) && strlen($request->irn) != '64') {
+					return response()->json([
 						'success' => false,
-						'error' => 'Please enter at least 64 characters.',
+						'error' => 'Please enter at least 64 characters for IRN',
 					]);
 				}
 

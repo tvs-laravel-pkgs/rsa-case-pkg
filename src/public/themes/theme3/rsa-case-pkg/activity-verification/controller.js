@@ -43,6 +43,10 @@ app.component('activityVerificationList', {
                 $.extend(activities_verification_below_40_dt_config, {
                     columns: cols1,
                     ordering: true,
+                    "columnDefs": [{
+                        "orderable": false,
+                        "targets": [0, 5, 6, 12]
+                    }],
                     processing: true,
                     serverSide: true,
                     "scrollX": true,

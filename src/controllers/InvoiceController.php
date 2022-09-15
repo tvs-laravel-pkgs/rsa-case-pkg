@@ -247,6 +247,7 @@ class InvoiceController extends Controller {
 		// 	$this->data['inv_no'] = $invoice->invoice_no . '-' . $invoice->id;
 		// }
 		$this->data['inv_no'] = $invoice->invoice_no;
+		$this->data['irn'] = $invoice->irn;
 		$this->data['inv_date'] = $invoice->created_at;
 		$this->data['batch'] = "";
 		$this->data['asp'] = $asp;

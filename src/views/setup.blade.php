@@ -201,7 +201,7 @@
     var get_invoice_payment_info_url = "{{url('/rsa-case-pkg/invoice/get/payment-info/')}}";
 
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/invoice/controller.js?v=6')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/invoice/controller.js?v=7')}}"></script>
 
 <!-- RSA-BATCH GENEATION -->
 <script type="text/javascript">

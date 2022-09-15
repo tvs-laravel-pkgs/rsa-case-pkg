@@ -276,6 +276,10 @@ app.component('approvedActivityInvoicePreview', {
                     inv_date: {
                         required: true,
                     },
+                    irn: {
+                        minlength: 64,
+                        maxlength: 64,
+                    }
                 },
                 messages: {
                     invoice_no: {

@@ -3972,7 +3972,7 @@ class ActivityController extends Controller {
 	}
 
 	public function generateInvoice(Request $request) {
-		// dd($request->all());
+		//dd($request->all());
 		DB::beginTransaction();
 		try {
 			//STORE ATTACHMENT
@@ -4125,16 +4125,25 @@ class ActivityController extends Controller {
 					]);
 				}
 
+				if (isset($request->irn) && !empty($request->irn) && strlen($request->irn) != '64') {
+					return response()->json([
+						'success' => false,
+						'error' => 'Please enter at least 64 characters for IRN',
+					]);
+				}
+
 				$invoice_no = $request->invoice_no;
+				$irn = (isset($request->irn) && !empty($request->irn)) ? $request->irn : NULL;
 				$invoice_date = date('Y-m-d H:i:s', strtotime($request->inv_date));
 			} else {
 				//SYSTEM
 				//GENERATE INVOICE NUMBER
 				$invoice_no = generateInvoiceNumber();
 				$invoice_date = new Carbon();
+				$irn = NULL;
 			}
 
-			$invoice_c = Invoices::createInvoice($asp, $request->crm_activity_ids, $invoice_no, $invoice_date, $value, false);
+			$invoice_c = Invoices::createInvoice($asp, $request->crm_activity_ids, $invoice_no, $irn, $invoice_date, $value, false);
 			if (!$invoice_c['success']) {
 				return response()->json([
 					'success' => false,

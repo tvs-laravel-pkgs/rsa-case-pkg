@@ -309,6 +309,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'export-asp-unpaid-invoices',
 				'display_name' => 'Export',
 			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-unpaid-invoices',
+				'name' => 'cancel-asp-unpaid-invoices',
+				'display_name' => 'Cancel',
+			],
 
 			//PAYMENT INPROGRESS
 			[

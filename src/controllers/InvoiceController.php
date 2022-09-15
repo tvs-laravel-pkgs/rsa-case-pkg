@@ -491,17 +491,21 @@ class InvoiceController extends Controller {
 	}
 
 	public function cancel(Request $request) {
+		// dd($request->all());
 		try {
-			if (empty($request->invoice_ids)) {
+			if (empty($request->invoiceIds)) {
 				return response()->json([
-				'success' => false,
-				'errors' => ['Please select atleast one invoice'],
-			]);
+					'success' => false,
+					'errors' => [
+						'Please select atleast one invoice',
+					],
+				]);
 			}
-         Activity::whereIn('invoice_id', $request->invoice_ids)->update(['invoice_id' => NULL, 'status_id' => 6]);
-		 Invoices::whereIn('id',$request->invoice_ids)->delete();
-		    
-		return response()->json(['success' => true, 'message' => 'Invoice Cancelled Successfully']);
+			Activity::whereIn('invoice_id', $request->invoiceIds)->update(['invoice_id' => NULL, 'status_id' => 6]);
+			Invoices::whereIn('id', $request->invoiceIds)->delete();
+			return response()->json([
+				'success' => true,
+			]);
 		} catch (\Exception $e) {
 			return response()->json([
 				'success' => false,
@@ -509,7 +513,6 @@ class InvoiceController extends Controller {
 					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			]);
-
 		}
 	}
 

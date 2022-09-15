@@ -326,7 +326,8 @@ class ActivityController extends Controller {
 			'activities.id',
 			'activities.crm_activity_id',
 			'activities.number as activity_number',
-			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			// DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			DB::raw('DATE_FORMAT(cases.date,"%Y-%m-%d %H:%i:%s") as case_date'),
 			'cases.number',
 			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
 			DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
@@ -362,7 +363,7 @@ class ActivityController extends Controller {
 			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 		// ->where('activities.asp_accepted_cc_details', '!=', 1)
-			->orderBy('cases.date', 'DESC')
+		// ->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
 		;
 
@@ -446,7 +447,8 @@ class ActivityController extends Controller {
 			'activities.id',
 			'activities.crm_activity_id',
 			'activities.number as activity_number',
-			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			// DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			DB::raw('DATE_FORMAT(cases.date,"%Y-%m-%d %H:%i:%s") as case_date'),
 			'cases.number',
 			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
 			DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
@@ -482,7 +484,7 @@ class ActivityController extends Controller {
 			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 		// ->where('activities.asp_accepted_cc_details', '!=', 1)
-			->orderBy('cases.date', 'DESC')
+		// ->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
 		;
 

@@ -59,6 +59,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	Route::get('/invoice/view/{id}/{type_id}', 'InvoiceController@viewInvoice')->name('viewInvoice');
 	Route::get('/invoice/download/{id}', 'InvoiceController@downloadInvoice')->name('downloadInvoice');
 	Route::post('/invoice/export', 'InvoiceController@export')->name('exportInvoice');
+	Route::post('/invoice/cancel', 'InvoiceController@cancel')->name('cancelInvoice');
 	Route::get('/invoice/get/payment-info/{id}', 'InvoiceController@getPaymentInfo')->name('getPaymentInfo');
 
 	Route::get('/invoice/get-voucher-details', 'InvoiceController@getVoucherDetails')->name('getVoucherDetails');

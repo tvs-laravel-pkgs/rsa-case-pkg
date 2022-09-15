@@ -25,12 +25,10 @@ app.component('invoiceList', {
         self.export_invoices_url = export_invoices;
         self.csrf = token;
         self.canExport = canExport;
-
         $http.get(
             invoice_filter_url + '/' + $routeParams.type_id
         ).then(function(response) {
             self.extras = response.data.extras;
-
             if (self.type_id != 3 && self.canExport) {
                 var col1 = [
                     { data: 'action', searchable: false },
@@ -163,6 +161,46 @@ app.component('invoiceList', {
                 }
             });
 
+            //CANCEL iNVOICE
+            $scope.cancelInvoice = () => {
+                invoice_ids = [];
+                $('input[type="checkbox"]').each(function() {
+                    if ($(this).is(':checked') && this.name != 'check_all') {
+                        invoice_ids[invoice_ids.length] = this.value;
+                    }
+                });
+                console.log(invoice_ids);
+                if (invoice_ids == undefined || invoice_ids == null) {
+                    custom_noty('error', 'Please select atleast one invoice');
+                }
+                if (invoice_ids !== undefined || invoice_ids !== null) {
+                    $http({
+                        url: laravel_routes['cancelInvoice'],
+                        method: 'POST',
+                        data: { 'invoice_ids': invoice_ids }
+                    }).then(function(res) {
+                        // console.log(res);
+                        if (!res.data.success) {
+                            var errors = '';
+                            if (res.data.errors) {
+                                for (var i in res.data.errors) {
+                                    errors += '<li>' + res.data.errors[i] + '</li>';
+                                }
+                            }
+                            if (res.data.error) {
+                                errors += '<li>' + res.data.error + '</li>';
+                            }
+                            custom_noty('error', errors);
+                        } else {
+                            custom_noty('success', 'Invoice Cancelled Successfully');
+                            $('#invoice_table').DataTable().ajax.reload();
+                        }
+                    });
+                }
+            }
+
+
+            // END OF CANCEL INVOICE
 
             $rootScope.loading = false;
         });

@@ -78,6 +78,7 @@
                     </table>
                     <button ng-if="$ctrl.canExport && $ctrl.type_id != 3" type="submit" id="submit" class="approve-btn pull-right preview-batch">Export Payment Details</button>
                 </form>
+                <button class="approve-btn pull-right preview-batch" ng-model="$ctrl.invoice_ids" id="cancel_invoice" ng-click="cancelInvoice()" style="margin-right: 10px;">Cancel Invoice</button>
             </div>
         </div>
     </div>

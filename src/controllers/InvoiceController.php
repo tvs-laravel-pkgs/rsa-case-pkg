@@ -329,7 +329,6 @@ class InvoiceController extends Controller {
 			if (empty($request->invoice_ids)) {
 				return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/1')->with('error', 'Please select atleast one invoice');
 			}
-
 			$invoice_ids = $request->invoice_ids;
 
 			$activities = Activity::select(
@@ -488,6 +487,29 @@ class InvoiceController extends Controller {
 			}
 		} catch (\Exception $e) {
 			dd($e);
+		}
+	}
+
+	public function cancel(Request $request) {
+		try {
+			if (empty($request->invoice_ids)) {
+				return response()->json([
+				'success' => false,
+				'errors' => ['Please select atleast one invoice'],
+			]);
+			}
+         Activity::whereIn('invoice_id', $request->invoice_ids)->update(['invoice_id' => NULL, 'status_id' => 6]);
+		 Invoices::whereIn('id',$request->invoice_ids)->delete();
+		    
+		return response()->json(['success' => true, 'message' => 'Invoice Cancelled Successfully']);
+		} catch (\Exception $e) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
+
 		}
 	}
 

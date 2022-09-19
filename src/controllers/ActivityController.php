@@ -2874,6 +2874,17 @@ class ActivityController extends Controller {
 						],
 					]);
 				}
+				if(!empty($request->vehicle_pickup_attachment)){
+                   $extension = $request->file("vehicle_pickup_attachment")->getClientOriginalExtension();
+                   if($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png'){
+                   	return response()->json([
+						'success' => false,
+						'errors' => [
+							'Please Upload Vehicle Pickup image in jpeg, png, jpg formats',
+						],
+					]);
+                   }
+				}
 				// Vehicle Pickup image
 				if (!isset($request->vehicleDropAttachExist) && (!isset($request->vehicle_drop_attachment) || (isset($request->vehicle_drop_attachment) && empty($request->vehicle_drop_attachment)))) {
 					return response()->json([
@@ -2882,6 +2893,17 @@ class ActivityController extends Controller {
 							'Please Upload Vehicle Drop image',
 						],
 					]);
+				}
+				if(!empty($request->vehicle_pickup_attachment)){
+                   $extension = $request->file("vehicle_drop_attachment")->getClientOriginalExtension();
+                   if($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png'){
+                   	return response()->json([
+						'success' => false,
+						'errors' => [
+							'Please Upload Vehicle Drop image in jpeg, png, jpg formats',
+						],
+					]);
+                   }
 				}
 				// Vehicle Pickup image
 				if (!isset($request->inventoryJobSheetAttachExist) && (!isset($request->inventory_job_sheet_attachment) || (isset($request->inventory_job_sheet_attachment) && empty($request->inventory_job_sheet_attachment)))) {
@@ -2892,8 +2914,18 @@ class ActivityController extends Controller {
 						],
 					]);
 				}
+				if(!empty($request->vehicle_pickup_attachment)){
+                   $extension = $request->file("inventory_job_sheet_attachment")->getClientOriginalExtension();
+                   if($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png'){
+                   	return response()->json([
+						'success' => false,
+						'errors' => [
+							'Please Upload Inventory Job Sheet image in jpeg, png, jpg formats',
+						],
+					]);
+                   }
+				}
 			}
-
 			$range_limit = 0;
 			$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
 			Storage::makeDirectory($destination, 0777);

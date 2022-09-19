@@ -3042,7 +3042,6 @@ class ActivityController extends Controller {
 				}
 				$filename = "vehicle_pickup_attachment";
 				$extension = $request->file("vehicle_pickup_attachment")->getClientOriginalExtension();
-				//dd($extension);
 				//$status = $request->file("vehicle_pickup_attachment")->storeAs($destination, $filename . '.' . $extension);
 				$img = Image::make($request->file("vehicle_pickup_attachment")->getRealPath());
                 $status= $img->resize(1500, 788, function ($constraint) {

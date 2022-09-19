@@ -20,6 +20,7 @@ use App\ServiceType;
 use App\StateUser;
 use App\User;
 use Auth;
+use Image;
 use Carbon\Carbon;
 use DB;
 use Entrust;
@@ -3009,9 +3010,10 @@ class ActivityController extends Controller {
 				}
 				$filename = "vehicle_pickup_attachment";
 				$extension = $request->file("vehicle_pickup_attachment")->getClientOriginalExtension();
+				//dd($extension);
 				//$status = $request->file("vehicle_pickup_attachment")->storeAs($destination, $filename . '.' . $extension);
-				$img = \Image::make($request->file("vehicle_pickup_attachment"));
-                $status= $img->resize(2560, 1600, function ($constraint) {
+				$img = Image::make($request->file("vehicle_pickup_attachment")->getRealPath());
+                $status= $img->resize(1500, 788, function ($constraint) {
             		$constraint->aspectRatio();
         		})->save(\storage_path('app/uploads/attachments/ticket/asp/ticket-'. $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $filename . '.' . $extension));
 				$attachmentFileName = $filename . '.' . $extension;
@@ -3038,8 +3040,8 @@ class ActivityController extends Controller {
 				$filename = "vehicle_drop_attachment";
 				$extension = $request->file("vehicle_drop_attachment")->getClientOriginalExtension();
 				//$status = $request->file("vehicle_drop_attachment")->storeAs($destination, $filename . '.' . $extension);
-				$img = \Image::make($request->file("vehicle_drop_attachment"));
-                $status= $img->resize(2560, 1600, function ($constraint) {
+				$img = Image::make($request->file("vehicle_drop_attachment")->getRealPath());
+                $status= $img->resize(1500, 788, function ($constraint) {
             		$constraint->aspectRatio();
         		})->save(\storage_path('app/uploads/attachments/ticket/asp/ticket-'. $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $filename . '.' . $extension));
 				$attachmentFileName = $filename . '.' . $extension;
@@ -3066,8 +3068,8 @@ class ActivityController extends Controller {
 				$filename = "inventory_job_sheet_attachment";
 				$extension = $request->file("inventory_job_sheet_attachment")->getClientOriginalExtension();
 				//$status = $request->file("inventory_job_sheet_attachment")->storeAs($destination, $filename . '.' . $extension);
-				$img = \Image::make($request->file("inventory_job_sheet_attachment"));
-                $status= $img->resize(2560, 1600, function ($constraint) {
+				$img = Image::make($request->file("inventory_job_sheet_attachment")->getRealPath());
+                $status= $img->resize(1500, 788, function ($constraint) {
             		$constraint->aspectRatio();
         		})->save(\storage_path('app/uploads/attachments/ticket/asp/ticket-'. $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $filename . '.' . $extension));
 				$attachmentFileName = $filename . '.' . $extension;

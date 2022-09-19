@@ -1923,8 +1923,8 @@ class ActivityController extends Controller {
 				$this->updateActivityApprovalLog($activity, $request->case_number, 1);
 			}
 
-			//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
-			if ($sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number)) {
+			//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP (TOWING SERVICE ONLY)
+			if ($sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3) {
 				$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 			}
 
@@ -2330,8 +2330,8 @@ class ActivityController extends Controller {
 						$this->updateActivityApprovalLog($activity, $activity->case->number, 2);
 					}
 
-					//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
-					if ($sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number)) {
+					//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP (TOWING SERVICE ONLY)
+					if ($sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3) {
 						$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 					}
 				} else {

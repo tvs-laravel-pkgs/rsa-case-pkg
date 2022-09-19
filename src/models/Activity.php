@@ -1459,32 +1459,32 @@ class Activity extends Model {
 	}
 
 	public function sendBreakdownAlertWhatsappSms() {
-		$aspName = !empty($this->asp->name) ? $this->asp->name : '';
+		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
-		$caseDate = $this->case ? (!empty($this->case->date) ? date('d.m.Y', strtotime($this->case->date)) : '') : '';
+		$caseDate = $this->case ? (!empty($this->case->date) ? date('d.m.Y', strtotime($this->case->date)) : '--') : '--';
 		$activityNumber = $this->number;
-		$customerName = $this->case ? (!empty($this->case->customer_name) ? $this->case->customer_name : '') : '';
-		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '') : '';
-		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '') : '';
-		$model = $this->case ? ($this->case->vehicleModel ? $this->case->vehicleModel->name : '') : '';
-		$serviceType = $this->serviceType ? $this->serviceType->name : '';
-		$bdAddress = $this->case ? (!empty($this->case->bd_location) ? $this->case->bd_location : '') : '';
-		$bdMapLocation = '';
+		$customerName = $this->case ? (!empty($this->case->customer_name) ? $this->case->customer_name : '--') : '--';
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '--') : '--';
+		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
+		$model = $this->case ? ($this->case->vehicleModel ? $this->case->vehicleModel->name : '--') : '--';
+		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
+		$bdAddress = $this->case ? (!empty($this->case->bd_location) ? $this->case->bd_location : '--') : '--';
+		$bdMapLocation = '--';
 		if (!empty($this->case->bd_lat) && !empty($this->case->bd_long)) {
 			$bdMapLocation = "https://maps.google.com/maps?q=" . $this->case->bd_lat . "," . $this->case->bd_long;
 		}
-		$dropAddress = $this->detail(295) ? (!empty($this->detail(295)->value) ? $this->detail(295)->value : '') : '';
+		$dropAddress = $this->detail(295) ? (!empty($this->detail(295)->value) ? $this->detail(295)->value : '--') : '--';
 		$dropLocationLat = $this->detail(296) ? (!empty($this->detail(296)->value) ? $this->detail(296)->value : '') : '';
 		$dropLocationLong = $this->detail(297) ? (!empty($this->detail(297)->value) ? $this->detail(297)->value : '') : '';
-		$dropMapLocation = '';
+		$dropMapLocation = '--';
 		if (!empty($dropLocationLat) && !empty($dropLocationLong)) {
 			$dropMapLocation = "https://maps.google.com/maps?q=" . $dropLocationLat . "," . $dropLocationLong;
 		}
-		$tollFreeNumber = '';
+		$tollFreeNumber = '--';
 		if ($this->case && $this->case->callcenter && !empty($this->case->callcenter->toll_free_number)) {
 			$tollFreeNumber = $this->case->callcenter->toll_free_number;
 		}
-		$whatsAppNumber = '';
+		$whatsAppNumber = '--';
 		if ($this->case && $this->case->callcenter && !empty($this->case->callcenter->whatsapp_number)) {
 			$whatsAppNumber = $this->case->callcenter->whatsapp_number;
 		}
@@ -1608,10 +1608,10 @@ class Activity extends Model {
 	}
 
 	public function sendImageUploadConfirmationWhatsappSms() {
-		$aspName = !empty($this->asp->name) ? $this->asp->name : '';
+		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 		$activityNumber = $this->number;
-		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '') : '';
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '--') : '--';
 
 		$templateId = 'image_upload_confirmation_2';
 		$senderNumber = config('constants')['whatsapp_api_sender'];
@@ -1653,13 +1653,13 @@ class Activity extends Model {
 	}
 
 	public function sendBreakdownOrEmptyreturnChargesWhatsappSms() {
-		$aspName = !empty($this->asp->name) ? $this->asp->name : '';
+		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 		$activityNumber = $this->number;
-		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '') : '';
-		$serviceType = $this->serviceType ? $this->serviceType->name : '';
-		$distance = $this->detail(158) ? (!empty($this->detail(158)->value) ? $this->detail(158)->value : '') : '';
-		$payoutAmount = $this->detail(182) ? (!empty($this->detail(182)->value) ? $this->detail(182)->value : '') : '';
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '--') : '--';
+		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
+		$distance = $this->detail(158) ? (!empty($this->detail(158)->value) ? $this->detail(158)->value : '--') : '--';
+		$payoutAmount = $this->detail(182) ? (!empty($this->detail(182)->value) ? $this->detail(182)->value : '--') : '--';
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
 
@@ -1794,11 +1794,11 @@ class Activity extends Model {
 	}
 
 	public function sendAspAcceptanceChargesWhatsappSms() {
-		$aspName = !empty($this->asp->name) ? $this->asp->name : '';
+		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 		$activityNumber = $this->number;
-		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '') : '';
-		$serviceType = $this->serviceType ? $this->serviceType->name : '';
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '--') : '--';
+		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
 
@@ -1874,11 +1874,11 @@ class Activity extends Model {
 	}
 
 	public function sendAspChargesRejectionWhatsappSms() {
-		$aspName = !empty($this->asp->name) ? $this->asp->name : '';
+		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 		$activityNumber = $this->number;
-		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '') : '';
-		$serviceType = $this->serviceType ? $this->serviceType->name : '';
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '--') : '--';
+		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
 
@@ -1931,11 +1931,11 @@ class Activity extends Model {
 	}
 
 	public function sendIndividualInvoicingWhatsappSms($invoiceId) {
-		$aspName = !empty($this->asp->name) ? $this->asp->name : '';
+		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 		$activityNumber = $this->number;
-		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '') : '';
-		$serviceType = $this->serviceType ? $this->serviceType->name : '';
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '--') : '--';
+		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
 
@@ -1993,7 +1993,7 @@ class Activity extends Model {
 	}
 
 	public function sendBulkInvoicingWhatsappSms() {
-		$aspName = !empty($this->asp->name) ? $this->asp->name : '';
+		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];

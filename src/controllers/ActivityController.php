@@ -796,8 +796,8 @@ class ActivityController extends Controller {
 			$this->data['activities']['activityApprovalLevel'] = $activityApprovalLevel;
 
 			$vehiclePickupAttachment = Attachment::where([
-				['entity_id', '=', $activity_status_id],
-				['entity_type', '=', 18],
+				'entity_id' => $activity_status_id,
+				'entity_type' => 18,
 			])
 				->first();
 			$vehiclePickupAttachmentUrl = '';
@@ -818,8 +818,8 @@ class ActivityController extends Controller {
 			$this->data['activities']['vehiclePickupAttachmentUrl'] = $vehiclePickupAttachmentUrl;
 
 			$vehicleDropAttachment = Attachment::where([
-				['entity_id', '=', $activity_status_id],
-				['entity_type', '=', 19],
+				'entity_id' => $activity_status_id,
+				'entity_type' => 19,
 			])
 				->first();
 			$vehicleDropAttachmentUrl = '';
@@ -839,8 +839,8 @@ class ActivityController extends Controller {
 			$this->data['activities']['vehicleDropAttachmentUrl'] = $vehicleDropAttachmentUrl;
 
 			$inventoryJobSheetAttachment = Attachment::where([
-				['entity_id', '=', $activity_status_id],
-				['entity_type', '=', 20],
+				'entity_id' => $activity_status_id,
+				'entity_type' => 20,
 			])
 				->first();
 			$inventoryJobSheetAttachmentUrl = '';
@@ -858,6 +858,48 @@ class ActivityController extends Controller {
 			}
 			$this->data['activities']['inventoryJobSheetAttachment'] = $inventoryJobSheetAttachment;
 			$this->data['activities']['inventoryJobSheetAttachmentUrl'] = $inventoryJobSheetAttachmentUrl;
+
+			$otherAttachmentOne = Attachment::where([
+				'entity_id' => $activity_status_id,
+				'entity_type' => 24,
+			])
+				->first();
+			$otherAttachmentOneUrl = '';
+			if ($otherAttachmentOne) {
+				if ($hasccServiceType) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $ccServiceType->id . '/' . $otherAttachmentOne->attachment_file_name)) {
+						$otherAttachmentOneUrl = aspTicketAttachmentImage($otherAttachmentOne->attachment_file_name, $activity_status_id, $activity->asp->id, $ccServiceType->id);
+					}
+				}
+				if ($hasaspServiceType) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $aspServiceType->id . '/' . $otherAttachmentOne->attachment_file_name)) {
+						$otherAttachmentOneUrl = aspTicketAttachmentImage($otherAttachmentOne->attachment_file_name, $activity_status_id, $activity->asp->id, $aspServiceType->id);
+					}
+				}
+			}
+			$this->data['activities']['otherAttachmentOne'] = $otherAttachmentOne;
+			$this->data['activities']['otherAttachmentOneUrl'] = $otherAttachmentOneUrl;
+
+			$otherAttachmentTwo = Attachment::where([
+				'entity_id' => $activity_status_id,
+				'entity_type' => 25,
+			])
+				->first();
+			$otherAttachmentTwoUrl = '';
+			if ($otherAttachmentTwo) {
+				if ($hasccServiceType) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $ccServiceType->id . '/' . $otherAttachmentTwo->attachment_file_name)) {
+						$otherAttachmentTwoUrl = aspTicketAttachmentImage($otherAttachmentTwo->attachment_file_name, $activity_status_id, $activity->asp->id, $ccServiceType->id);
+					}
+				}
+				if ($hasaspServiceType) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $aspServiceType->id . '/' . $otherAttachmentTwo->attachment_file_name)) {
+						$otherAttachmentTwoUrl = aspTicketAttachmentImage($otherAttachmentTwo->attachment_file_name, $activity_status_id, $activity->asp->id, $aspServiceType->id);
+					}
+				}
+			}
+			$this->data['activities']['otherAttachmentTwo'] = $otherAttachmentTwo;
+			$this->data['activities']['otherAttachmentTwoUrl'] = $otherAttachmentTwoUrl;
 
 			$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 179, 182, 171, 175, 181];
 			foreach ($key_list as $keyw) {

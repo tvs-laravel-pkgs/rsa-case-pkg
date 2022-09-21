@@ -28,6 +28,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Image;
 use Validator;
 use Yajra\Datatables\Datatables;
 
@@ -3126,6 +3127,42 @@ class ActivityController extends Controller {
 				}
 			}
 
+			if (isset($request->vehicle_pickup_attachment) && !empty($request->vehicle_pickup_attachment)) {
+				$extension = $request->file("vehicle_pickup_attachment")->getClientOriginalExtension();
+				if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'Please Upload Vehicle Pickup image in jpeg, png, jpg formats',
+						],
+					]);
+				}
+			}
+
+			if (isset($request->vehicle_drop_attachment) && !empty($request->vehicle_drop_attachment)) {
+				$extension = $request->file("vehicle_drop_attachment")->getClientOriginalExtension();
+				if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'Please Upload Vehicle Drop image in jpeg, png, jpg formats',
+						],
+					]);
+				}
+			}
+
+			if (isset($request->inventory_job_sheet_attachment) && !empty($request->inventory_job_sheet_attachment)) {
+				$extension = $request->file("inventory_job_sheet_attachment")->getClientOriginalExtension();
+				if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'Please Upload Inventory Job Sheet image in jpeg, png, jpg formats',
+						],
+					]);
+				}
+			}
+
 			$range_limit = 0;
 			$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
 			Storage::makeDirectory($destination, 0777);
@@ -3245,10 +3282,13 @@ class ActivityController extends Controller {
 					}
 					$getVehiclePickupAttach->delete();
 				}
-
 				$filename = "vehicle_pickup_attachment";
 				$extension = $request->file("vehicle_pickup_attachment")->getClientOriginalExtension();
-				$status = $request->file("vehicle_pickup_attachment")->storeAs($destination, $filename . '.' . $extension);
+				//$status = $request->file("vehicle_pickup_attachment")->storeAs($destination, $filename . '.' . $extension);
+				$img = Image::make($request->file("vehicle_pickup_attachment")->getRealPath());
+				$status = $img->resize(1500, 788, function ($constraint) {
+					$constraint->aspectRatio();
+				})->save(\storage_path('app/uploads/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $filename . '.' . $extension));
 				$attachmentFileName = $filename . '.' . $extension;
 				$attachment = $Attachment = Attachment::create([
 					'entity_type' => config('constants.entity_types.VEHICLE_PICKUP_ATTACHMENT'),
@@ -3272,7 +3312,11 @@ class ActivityController extends Controller {
 
 				$filename = "vehicle_drop_attachment";
 				$extension = $request->file("vehicle_drop_attachment")->getClientOriginalExtension();
-				$status = $request->file("vehicle_drop_attachment")->storeAs($destination, $filename . '.' . $extension);
+				//$status = $request->file("vehicle_drop_attachment")->storeAs($destination, $filename . '.' . $extension);
+				$img = Image::make($request->file("vehicle_drop_attachment")->getRealPath());
+				$status = $img->resize(1500, 788, function ($constraint) {
+					$constraint->aspectRatio();
+				})->save(\storage_path('app/uploads/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $filename . '.' . $extension));
 				$attachmentFileName = $filename . '.' . $extension;
 				$attachment = $Attachment = Attachment::create([
 					'entity_type' => config('constants.entity_types.VEHICLE_DROP_ATTACHMENT'),
@@ -3296,7 +3340,11 @@ class ActivityController extends Controller {
 
 				$filename = "inventory_job_sheet_attachment";
 				$extension = $request->file("inventory_job_sheet_attachment")->getClientOriginalExtension();
-				$status = $request->file("inventory_job_sheet_attachment")->storeAs($destination, $filename . '.' . $extension);
+				//$status = $request->file("inventory_job_sheet_attachment")->storeAs($destination, $filename . '.' . $extension);
+				$img = Image::make($request->file("inventory_job_sheet_attachment")->getRealPath());
+				$status = $img->resize(1500, 788, function ($constraint) {
+					$constraint->aspectRatio();
+				})->save(\storage_path('app/uploads/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $filename . '.' . $extension));
 				$attachmentFileName = $filename . '.' . $extension;
 				$attachment = $Attachment = Attachment::create([
 					'entity_type' => config('constants.entity_types.INVENTORY_JOB_SHEET_ATTACHMENT'),

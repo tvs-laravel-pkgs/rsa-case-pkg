@@ -901,7 +901,7 @@ class ActivityController extends Controller {
 			$this->data['activities']['otherAttachmentTwo'] = $otherAttachmentTwo;
 			$this->data['activities']['otherAttachmentTwoUrl'] = $otherAttachmentTwoUrl;
 
-			$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 179, 182, 171, 175, 181];
+			$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 182, 171, 175, 181];
 			foreach ($key_list as $keyw) {
 				$var_key = Config::where('id', $keyw)->first();
 				$key_name = str_replace(" ", "_", strtolower($var_key->name));

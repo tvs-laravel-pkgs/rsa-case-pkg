@@ -112,10 +112,6 @@
                                     </div>
                                 </div>
                                 <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
-                                    <div ng-if="isSelf($ctrl.asp)" class="text-right">
-                                        <label class="text-right" style="font-family: 'titilliumWeb-regular';">IRN :</label>
-                                        <span style="font-family: 'titilliumWeb-regular';">{{$ctrl.irn ? $ctrl.irn : "--"}}</span>
-                                    </div>
                                     <div class="aai-head-right1">
                                         <table style="width:100%">
                                             <tr>
@@ -156,6 +152,10 @@
                                                 </td>
                                             </tr>
                                         </table>
+                                    </div>
+                                    <div ng-if="isSelf($ctrl.asp) && $ctrl.irn" class="text-right">
+                                        <label class="text-right" style="font-family: 'titilliumWeb-regular';font-size: 16px;">IRN :</label>
+                                        <span style="font-family: 'titilliumWeb-regular';font-size: 16px;">{{$ctrl.irn}}</span>
                                     </div>
                                 </div>
                             </div>

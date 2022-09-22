@@ -1730,7 +1730,7 @@ class Activity extends Model {
 		// GREATER THAN PREDEFINED AUTO APPROVAL KM THEN APPROVE ONLY FOR PREDEFINED KM
 		if (floatval($totalKm) >= floatval($autoApprovalKm)) {
 
-			$aspServiceTypeGetResponse = getActivityKMPrices($this->serviceType, $this->asp, $this->data_src_id);
+			$aspServiceTypeGetResponse = getActivityKMPrices($this->serviceType, $this->asp, $this->data_src_id, $this->case);
 			if (!$aspServiceTypeGetResponse['success']) {
 				$response['success'] = false;
 				$response['error'] = $aspServiceTypeGetResponse['error'];

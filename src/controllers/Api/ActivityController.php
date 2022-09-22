@@ -494,7 +494,7 @@ class ActivityController extends Controller {
 				if ($case->status_id == 4) {
 					// //IF MECHANICAL SERVICE GROUP - DISABLED
 					// if ($service_type->service_group_id == 2) {
-					// $is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $data_src->id, $case->vehicleModel->vehiclecategory->id);
+					// 	$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $data_src->id, $case->vehicleModel->vehiclecategory->id);
 					// 	if ($is_bulk) {
 					// 		//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 					// 		$activity->status_id = 5;

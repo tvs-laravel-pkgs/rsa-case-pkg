@@ -1,7 +1,6 @@
 <?php
 
 namespace Abs\RsaCasePkg\Api;
-use Abs\RsaCasePkg\Activity;
 use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\CaseCancelledReason;
 use Abs\RsaCasePkg\CaseStatus;
@@ -413,6 +412,12 @@ class CaseController extends Controller {
 						}
 						$activityLog->bo_approved_at = date('Y-m-d H:i:s');
 						$activityLog->save();
+
+						//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
+						if ($invoiceAmountCalculatedActivity->asp && !empty($invoiceAmountCalculatedActivity->asp->whatsapp_number)) {
+							$invoiceAmountCalculatedActivity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
+						}
+
 					}
 				}
 
@@ -432,28 +437,34 @@ class CaseController extends Controller {
 				$activities = $case->activities()->where('status_id', 17)->get();
 				if ($activities->isNotEmpty()) {
 					foreach ($activities as $key => $activity) {
-						//MECHANICAL SERVICE GROUP
-						if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
-							$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
-							$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $case->vehicleModel->vehiclecategory->id);
-							if ($is_bulk) {
-								//ASP Completed Data Entry - Waiting for L1 Bulk Verification
-								$status_id = 5;
-							} else {
-								//ASP Completed Data Entry - Waiting for L1 Individual Verification
-								$status_id = 6;
+						// ROS SERVICE
+						if ($activity->serviceType && $activity->serviceType->service_group_id != 3) {
+							$autoApprovalProcessResponse = $activity->autoApprovalProcess();
+							if (!$autoApprovalProcessResponse['success']) {
+								//SAVE CASE API LOG
+								DB::rollBack();
+								$errors[] = $autoApprovalProcessResponse['error'];
+								saveApiLog(102, $activity->case->number, $request->all(), $errors, NULL, 121);
+								return response()->json([
+									'success' => false,
+									'error' => 'Validation Error',
+									'errors' => [
+										"Case Number : " . $activity->case->number . " - " . $autoApprovalProcessResponse['error'],
+									],
+								], $this->successStatus);
 							}
 						} else {
-							if ($activity->is_asp_data_entry_done == 1) {
+							// TOW SERVICE
+							if ($activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
 								//ASP Completed Data Entry - Waiting for L1 Individual Verification
 								$status_id = 6;
 							} else {
 								$status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 							}
+							$activity->update([
+								'status_id' => $status_id,
+							]);
 						}
-						$activity->update([
-							'status_id' => $status_id,
-						]);
 					}
 				}
 			}
@@ -470,14 +481,14 @@ class CaseController extends Controller {
 		} catch (\Exception $e) {
 			DB::rollBack();
 			//SAVE CASE API LOG
-			$errors[] = $e->getMessage() . ' Line:' . $e->getLine();
+			$errors[] = $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile();
 			saveApiLog(102, $request->number, $request->all(), $errors, NULL, 121);
 
 			return response()->json([
 				'success' => false,
 				'error' => 'Exception Error',
 				'errors' => [
-					$e->getMessage() . ' Line:' . $e->getLine(),
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			], $this->successStatus);
 		}

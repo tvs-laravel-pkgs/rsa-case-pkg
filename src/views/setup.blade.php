@@ -162,7 +162,7 @@
     var asp_new_activity_update_details_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/update-details.html')}}";
     var get_activity_form_data_url = "{{route('activityNewGetFormData')}}";
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/controller.js?v=11')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/controller.js?v=12')}}"></script>
 
 <!-- RSA-DASHBOARD -->
 <script type="text/javascript">
@@ -183,7 +183,7 @@
     var activity_verification_bulk_get_list_url = "{{url('rsa-case-pkg/activity-verification/bulk/get-list/')}}";
     var activity_verification_individual_get_list_url = "{{url('rsa-case-pkg/activity-verification/individual/get-list/')}}";
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-verification/controller.js?v=7')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-verification/controller.js?v=8')}}"></script>
 
 
 <!-- RSA-INVOICE -->

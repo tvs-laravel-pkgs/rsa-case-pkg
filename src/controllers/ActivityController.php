@@ -322,11 +322,12 @@ class ActivityController extends Controller {
 	}
 
 	public function getBulkVerificationList(Request $request) {
-		$activities = Activity::select(
+		$activities = Activity::select([
 			'activities.id',
 			'activities.crm_activity_id',
 			'activities.number as activity_number',
-			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			// DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			DB::raw('DATE_FORMAT(cases.date,"%Y-%m-%d %H:%i:%s") as case_date'),
 			'cases.number',
 			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
 			DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
@@ -338,8 +339,18 @@ class ActivityController extends Controller {
 			'activity_statuses.name as activity_status',
 			'configs.name as source',
 			'clients.name as client',
-			'call_centers.name as call_center'
-		)
+			'call_centers.name as call_center',
+			DB::raw('COALESCE(bo_km_travelled.value, "--") as boKmTravelled'),
+			DB::raw('COALESCE(bo_payout_amount.value, "--") as boPayoutAmount'),
+		])
+			->leftJoin('activity_details as bo_km_travelled', function ($join) {
+				$join->on('bo_km_travelled.activity_id', 'activities.id')
+					->where('bo_km_travelled.key_id', 158); //BO KM TRAVELLED
+			})
+			->leftJoin('activity_details as bo_payout_amount', function ($join) {
+				$join->on('bo_payout_amount.activity_id', 'activities.id')
+					->where('bo_payout_amount.key_id', 182); //BO PAYOUT AMOUNT
+			})
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('users', 'users.id', 'asps.user_id')
 			->leftjoin('cases', 'cases.id', 'activities.case_id')
@@ -352,7 +363,7 @@ class ActivityController extends Controller {
 			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 		// ->where('activities.asp_accepted_cc_details', '!=', 1)
-			->orderBy('cases.date', 'DESC')
+		// ->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
 		;
 
@@ -432,11 +443,12 @@ class ActivityController extends Controller {
 	}
 
 	public function getIndividualVerificationList(Request $request) {
-		$activities = Activity::select(
+		$activities = Activity::select([
 			'activities.id',
 			'activities.crm_activity_id',
 			'activities.number as activity_number',
-			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			// DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			DB::raw('DATE_FORMAT(cases.date,"%Y-%m-%d %H:%i:%s") as case_date'),
 			'cases.number',
 			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
 			DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
@@ -448,8 +460,18 @@ class ActivityController extends Controller {
 			'activity_statuses.name as activity_status',
 			'configs.name as source',
 			'clients.name as client',
-			'call_centers.name as call_center'
-		)
+			'call_centers.name as call_center',
+			DB::raw('COALESCE(bo_km_travelled.value, "--") as boKmTravelled'),
+			DB::raw('COALESCE(bo_payout_amount.value, "--") as boPayoutAmount'),
+		])
+			->leftJoin('activity_details as bo_km_travelled', function ($join) {
+				$join->on('bo_km_travelled.activity_id', 'activities.id')
+					->where('bo_km_travelled.key_id', 158); //BO KM TRAVELLED
+			})
+			->leftJoin('activity_details as bo_payout_amount', function ($join) {
+				$join->on('bo_payout_amount.activity_id', 'activities.id')
+					->where('bo_payout_amount.key_id', 182); //BO PAYOUT AMOUNT
+			})
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('users', 'users.id', 'asps.user_id')
 			->leftjoin('cases', 'cases.id', 'activities.case_id')
@@ -462,7 +484,7 @@ class ActivityController extends Controller {
 			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 		// ->where('activities.asp_accepted_cc_details', '!=', 1)
-			->orderBy('cases.date', 'DESC')
+		// ->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
 		;
 
@@ -813,8 +835,8 @@ class ActivityController extends Controller {
 			$this->data['activities']['activityApprovalLevel'] = $activityApprovalLevel;
 
 			$vehiclePickupAttachment = Attachment::where([
-				['entity_id', '=', $activity_status_id],
-				['entity_type', '=', 18],
+				'entity_id' => $activity_status_id,
+				'entity_type' => 18,
 			])
 				->first();
 			$vehiclePickupAttachmentUrl = '';
@@ -835,8 +857,8 @@ class ActivityController extends Controller {
 			$this->data['activities']['vehiclePickupAttachmentUrl'] = $vehiclePickupAttachmentUrl;
 
 			$vehicleDropAttachment = Attachment::where([
-				['entity_id', '=', $activity_status_id],
-				['entity_type', '=', 19],
+				'entity_id' => $activity_status_id,
+				'entity_type' => 19,
 			])
 				->first();
 			$vehicleDropAttachmentUrl = '';
@@ -856,8 +878,8 @@ class ActivityController extends Controller {
 			$this->data['activities']['vehicleDropAttachmentUrl'] = $vehicleDropAttachmentUrl;
 
 			$inventoryJobSheetAttachment = Attachment::where([
-				['entity_id', '=', $activity_status_id],
-				['entity_type', '=', 20],
+				'entity_id' => $activity_status_id,
+				'entity_type' => 20,
 			])
 				->first();
 			$inventoryJobSheetAttachmentUrl = '';
@@ -876,7 +898,49 @@ class ActivityController extends Controller {
 			$this->data['activities']['inventoryJobSheetAttachment'] = $inventoryJobSheetAttachment;
 			$this->data['activities']['inventoryJobSheetAttachmentUrl'] = $inventoryJobSheetAttachmentUrl;
 
-			$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 179, 182, 171, 175, 181];
+			$otherAttachmentOne = Attachment::where([
+				'entity_id' => $activity_status_id,
+				'entity_type' => 24,
+			])
+				->first();
+			$otherAttachmentOneUrl = '';
+			if ($otherAttachmentOne) {
+				if ($hasccServiceType) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $ccServiceType->id . '/' . $otherAttachmentOne->attachment_file_name)) {
+						$otherAttachmentOneUrl = aspTicketAttachmentImage($otherAttachmentOne->attachment_file_name, $activity_status_id, $activity->asp->id, $ccServiceType->id);
+					}
+				}
+				if ($hasaspServiceType) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $aspServiceType->id . '/' . $otherAttachmentOne->attachment_file_name)) {
+						$otherAttachmentOneUrl = aspTicketAttachmentImage($otherAttachmentOne->attachment_file_name, $activity_status_id, $activity->asp->id, $aspServiceType->id);
+					}
+				}
+			}
+			$this->data['activities']['otherAttachmentOne'] = $otherAttachmentOne;
+			$this->data['activities']['otherAttachmentOneUrl'] = $otherAttachmentOneUrl;
+
+			$otherAttachmentTwo = Attachment::where([
+				'entity_id' => $activity_status_id,
+				'entity_type' => 25,
+			])
+				->first();
+			$otherAttachmentTwoUrl = '';
+			if ($otherAttachmentTwo) {
+				if ($hasccServiceType) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $ccServiceType->id . '/' . $otherAttachmentTwo->attachment_file_name)) {
+						$otherAttachmentTwoUrl = aspTicketAttachmentImage($otherAttachmentTwo->attachment_file_name, $activity_status_id, $activity->asp->id, $ccServiceType->id);
+					}
+				}
+				if ($hasaspServiceType) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $aspServiceType->id . '/' . $otherAttachmentTwo->attachment_file_name)) {
+						$otherAttachmentTwoUrl = aspTicketAttachmentImage($otherAttachmentTwo->attachment_file_name, $activity_status_id, $activity->asp->id, $aspServiceType->id);
+					}
+				}
+			}
+			$this->data['activities']['otherAttachmentTwo'] = $otherAttachmentTwo;
+			$this->data['activities']['otherAttachmentTwoUrl'] = $otherAttachmentTwoUrl;
+
+			$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 182, 171, 175, 181];
 			foreach ($key_list as $keyw) {
 				$var_key = Config::where('id', $keyw)->first();
 				$key_name = str_replace(" ", "_", strtolower($var_key->name));
@@ -1621,6 +1685,8 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
+
+			$sendBreakdownOrEmptyreturnChargesWhatsappSms = false;
 			//L2, L3, and L4 approver flow should be effective from April 2022 cases not for all the cases - By Sundhar / Hyder
 			if (date('Y-m-d', strtotime($activity->case->date)) >= "2022-04-01") {
 				$l2Approvers = User::where('activity_approval_level_id', 2)->pluck('id');
@@ -1703,6 +1769,7 @@ class ActivityController extends Controller {
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 						$isApproved = true;
 						$approver = '4';
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					}
 				} elseif (floatval($request->bo_net_amount) > 6000 && floatval($request->bo_net_amount) <= 10000) {
 					//GREATER THAN 6000 AND LESSER THAN OR EQUAL TO 10000
@@ -1768,11 +1835,13 @@ class ActivityController extends Controller {
 						if ($isCollectedChanged) {
 							$activity->collected_amount_changed_on_level = 3;
 						}
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					} elseif (Auth::user()->activity_approval_level_id == 4) {
 						// L4
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 						$isApproved = true;
 						$approver = '4';
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					}
 				} elseif (floatval($request->bo_net_amount) > 4000 && floatval($request->bo_net_amount) <= 6000) {
 					//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 6000
@@ -1816,6 +1885,7 @@ class ActivityController extends Controller {
 						if ($isCollectedChanged) {
 							$activity->collected_amount_changed_on_level = 2;
 						}
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					} elseif (Auth::user()->activity_approval_level_id == 3) {
 						// L3
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
@@ -1834,11 +1904,13 @@ class ActivityController extends Controller {
 						if ($isCollectedChanged) {
 							$activity->collected_amount_changed_on_level = 3;
 						}
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					} elseif (Auth::user()->activity_approval_level_id == 4) {
 						// L4
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 						$isApproved = true;
 						$approver = '4';
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					}
 				} else {
 					//LESSER THAN OR EQUAL TO 4000
@@ -1855,6 +1927,7 @@ class ActivityController extends Controller {
 						} else {
 							$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 							$isApproved = true;
+							$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 						}
 						$approver = '1';
 						if ($isServiceTypeChanged) {
@@ -1888,6 +1961,7 @@ class ActivityController extends Controller {
 						if ($isCollectedChanged) {
 							$activity->collected_amount_changed_on_level = 2;
 						}
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					} elseif (Auth::user()->activity_approval_level_id == 3) {
 						// L3
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
@@ -1906,11 +1980,13 @@ class ActivityController extends Controller {
 						if ($isCollectedChanged) {
 							$activity->collected_amount_changed_on_level = 3;
 						}
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					} elseif (Auth::user()->activity_approval_level_id == 4) {
 						// L4
 						$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 						$isApproved = true;
 						$approver = '4';
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					}
 				}
 			} else {
@@ -1926,6 +2002,7 @@ class ActivityController extends Controller {
 				} elseif (Auth::user()->activity_approval_level_id == 4) {
 					$approver = '4';
 				}
+				$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 			}
 
 			if (isset($activityStatusId)) {
@@ -1962,6 +2039,11 @@ class ActivityController extends Controller {
 
 			if ($isApproved) {
 				$this->updateActivityApprovalLog($activity, $request->case_number, 1);
+			}
+
+			//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP (TOWING SERVICE ONLY)
+			if ($sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3) {
+				$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 			}
 
 			DB::commit();
@@ -2207,6 +2289,7 @@ class ActivityController extends Controller {
 					$bo_invoice_amount->value = $invoiceAmount;
 					$bo_invoice_amount->save();
 
+					$sendBreakdownOrEmptyreturnChargesWhatsappSms = false;
 					//L2, L3, and L4 approver flow should be effective from April 2022 cases not for all the cases - By Sundhar / Hyder
 					if (date('Y-m-d', strtotime($activity->case->date)) >= "2022-04-01") {
 						$isApproved = false;
@@ -2233,6 +2316,7 @@ class ActivityController extends Controller {
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '4';
+								$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 							}
 						} elseif (floatval($invoiceAmount) > 6000 && floatval($invoiceAmount) <= 10000) {
 							//GREATER THAN 6000 AND LESSER THAN OR EQUAL TO 10000
@@ -2251,11 +2335,13 @@ class ActivityController extends Controller {
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '3';
+								$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 							} elseif (Auth::user()->activity_approval_level_id == 4) {
 								// L4
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '4';
+								$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 							}
 						} elseif (floatval($invoiceAmount) > 4000 && floatval($invoiceAmount) <= 6000) {
 							//GREATER THAN 4000 AND LESSER THAN OR EQUAL TO 6000
@@ -2269,16 +2355,19 @@ class ActivityController extends Controller {
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '2';
+								$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 							} elseif (Auth::user()->activity_approval_level_id == 3) {
 								// L3
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '3';
+								$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 							} elseif (Auth::user()->activity_approval_level_id == 4) {
 								// L4
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '4';
+								$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 							}
 						} else {
 							//LESSER THAN OR EQUAL TO 4000
@@ -2291,6 +2380,7 @@ class ActivityController extends Controller {
 								} else {
 									$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 									$isApproved = true;
+									$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 								}
 								$approver = '1';
 							} elseif (Auth::user()->activity_approval_level_id == 2) {
@@ -2298,16 +2388,19 @@ class ActivityController extends Controller {
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '2';
+								$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 							} elseif (Auth::user()->activity_approval_level_id == 3) {
 								// L3
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '3';
+								$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 							} elseif (Auth::user()->activity_approval_level_id == 4) {
 								// L4
 								$activityStatusId = 11; //Waiting for Invoice Generation by ASP
 								$isApproved = true;
 								$approver = '4';
+								$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 							}
 						}
 					} else {
@@ -2323,6 +2416,7 @@ class ActivityController extends Controller {
 						} elseif (Auth::user()->activity_approval_level_id == 4) {
 							$approver = '4';
 						}
+						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					}
 
 					if (isset($activityStatusId)) {
@@ -2359,6 +2453,11 @@ class ActivityController extends Controller {
 
 					if ($isApproved) {
 						$this->updateActivityApprovalLog($activity, $activity->case->number, 2);
+					}
+
+					//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP (TOWING SERVICE ONLY)
+					if ($sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3) {
+						$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 					}
 				} else {
 					return response()->json([
@@ -3785,11 +3884,12 @@ class ActivityController extends Controller {
 						->where('total_amount.key_id', 182); //BO INVOICE AMOUNT
 				})
 				->leftjoin('configs as data_sources', 'data_sources.id', 'activities.data_src_id')
-				->select(
+				->select([
 					'cases.number',
 					'activities.id',
 					'activities.asp_id as asp_id',
 					'activities.crm_activity_id',
+					'activities.number as activityNumber',
 					DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
 					'activity_portal_statuses.name as status',
 					'call_centers.name as callcenter',
@@ -3803,8 +3903,8 @@ class ActivityController extends Controller {
 					'total_amount.value as total_value',
 					'total_tax_perc.value as total_tax_perc_value',
 					'total_tax_amount.value as total_tax_amount_value',
-					'data_sources.name as data_source'
-				)
+					'data_sources.name as data_source',
+				])
 				->whereIn('activities.id', $activity_ids)
 				->groupBy('activities.id')
 				->get();
@@ -4020,7 +4120,7 @@ class ActivityController extends Controller {
 				$invoice_date = new Carbon();
 			}
 
-			$invoice_c = Invoices::createInvoice($asp, $request->crm_activity_ids, $invoice_no, $invoice_date, $value);
+			$invoice_c = Invoices::createInvoice($asp, $request->crm_activity_ids, $invoice_no, $invoice_date, $value, false);
 			if (!$invoice_c['success']) {
 				return response()->json([
 					'success' => false,
@@ -5177,4 +5277,5 @@ class ActivityController extends Controller {
 	public function searchClients(Request $request) {
 		return Client::searchClient($request);
 	}
+
 }

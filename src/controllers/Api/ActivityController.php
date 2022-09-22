@@ -7,6 +7,7 @@ use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityStatus;
+use Abs\RsaCasePkg\ActivityWhatsappLog;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
 use Abs\RsaCasePkg\AspPoRejectedReason;
 use Abs\RsaCasePkg\RsaCase;
@@ -389,7 +390,7 @@ class ActivityController extends Controller {
 				//ACTIVITY BELONGS TO SAME CASE
 				if ($activityExist->case_id === $case->id) {
 					//Allow case with intial staus and not payment processed statuses
-					if ($activityExist->status_id == 2 || $activityExist->status_id == 4 || $activityExist->status_id == 1 || $activityExist->status_id == 15 || $activityExist->status_id == 16 || $activityExist->status_id == 17) {
+					if ($activityExist->status_id == 2 || $activityExist->status_id == 4 || $activityExist->status_id == 15 || $activityExist->status_id == 16 || $activityExist->status_id == 17) {
 						//ALLOW ACTIVITY UPDATION ONLY BEFORE 90 DAYS OF THE CASE DATE
 						if (date('Y-m-d') > $caseDateAfter90Days) {
 							//SAVE ACTIVITY API LOG
@@ -460,26 +461,30 @@ class ActivityController extends Controller {
 			} else {
 				//CASE IS CLOSED
 				if ($case->status_id == 4) {
-					//IF SERVICE GROUP IS MECHANICAL
-					if ($service_type->service_group_id == 2) {
-						$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $data_src->id);
-						if ($is_bulk) {
-							//ASP Completed Data Entry - Waiting for L1 Bulk Verification
-							$activity->status_id = 5;
-						} else {
-							//ASP Completed Data Entry - Waiting for L1 Individual Verification
-							$activity->status_id = 6;
-						}
-					} else {
-						if (($service_type->service_group_id == 3 && $activity->towing_attachments_uploaded_on_whatsapp == 1) || $activity->is_asp_data_entry_done == 1) {
+					// //IF MECHANICAL SERVICE GROUP - DISABLED
+					// if ($service_type->service_group_id == 2) {
+					// 	$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $data_src->id);
+					// 	if ($is_bulk) {
+					// 		//ASP Completed Data Entry - Waiting for L1 Bulk Verification
+					// 		$activity->status_id = 5;
+					// 	} else {
+					// 		//ASP Completed Data Entry - Waiting for L1 Individual Verification
+					// 		$activity->status_id = 6;
+					// 	}
+					// }
+
+					// TOW SERVICE
+					if ($service_type->service_group_id == 3) {
+						if ($activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
 							$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 						} else {
 							$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 						}
+					} else {
+						$activity->status_id = 17; //ON HOLD
 					}
 				} else {
-					//ON HOLD
-					$activity->status_id = 17;
+					$activity->status_id = 17; //ON HOLD
 				}
 			}
 			$activity->activity_status_id = $activity_status_id;
@@ -517,7 +522,6 @@ class ActivityController extends Controller {
 			} else {
 				$response = $activity->calculatePayoutAmount('CC');
 				if (!$response['success']) {
-
 					//SAVE ACTIVITY API LOG
 					DB::rollBack();
 					$errors[] = $response['error'];
@@ -531,7 +535,6 @@ class ActivityController extends Controller {
 							$response['error'],
 						],
 					], $this->successStatus);
-
 				}
 
 				//IF DATA SRC IS CRM WEB APP
@@ -540,30 +543,33 @@ class ActivityController extends Controller {
 					if ($case->status_id == 4) {
 						//IF ROS ASP then changes status as Waitin for ASP data entry. If not change status as on hold
 						if ($asp->is_ros_asp == 1) {
-							if (($service_type->service_group_id == 3 && $activity->towing_attachments_uploaded_on_whatsapp == 1) || $activity->is_asp_data_entry_done == 1) {
-								$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+							// TOW SERVICE
+							if ($service_type->service_group_id == 3) {
+								if ($activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
+									$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+								} else {
+									$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+								}
 							} else {
-								$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+								$activity->status_id = 17; //ON HOLD
 							}
 						} else {
-							//ON HOLD
-							$activity->status_id = 17;
+							$activity->status_id = 17; //ON HOLD
 						}
 
-						//IF MECHANICAL SERVICE GROUP
-						if ($service_type->service_group_id == 2) {
-							$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id);
-							if ($is_bulk) {
-								//ASP Completed Data Entry - Waiting for L1 Bulk Verification
-								$activity->status_id = 5;
-							} else {
-								//ASP Completed Data Entry - Waiting for L1 Individual Verification
-								$activity->status_id = 6;
-							}
-						}
+						// //IF MECHANICAL SERVICE GROUP - DISABLED
+						// if ($service_type->service_group_id == 2) {
+						// 	$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id);
+						// 	if ($is_bulk) {
+						// 		//ASP Completed Data Entry - Waiting for L1 Bulk Verification
+						// 		$activity->status_id = 5;
+						// 	} else {
+						// 		//ASP Completed Data Entry - Waiting for L1 Individual Verification
+						// 		$activity->status_id = 6;
+						// 	}
+						// }
 					} else {
-						//ON HOLD
-						$activity->status_id = 17;
+						$activity->status_id = 17; //ON HOLD
 					}
 					$activity->save();
 				}
@@ -593,6 +599,12 @@ class ActivityController extends Controller {
 
 			// CHECK CASE IS CLOSED
 			if ($case->status_id == 4) {
+
+				//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
+				if ($asp && !empty($asp->whatsapp_number) && $activity->status_id == 10) {
+					$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
+				}
+
 				$activity->where([
 					// Invoice Amount Calculated - Waiting for Case Closure
 					'status_id' => 10,
@@ -602,33 +614,36 @@ class ActivityController extends Controller {
 						'status_id' => 1,
 					]);
 
-				//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
-				if ($asp && !empty($asp->whatsapp_number) && $activity->status_id == 10) {
-					$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
-				}
 			}
 
 			//RELEASE ONHOLD ACTIVITIES WITH CLOSED OR CANCELLED CASES
 			if (($case->status_id == 4 || $case->status_id == 3) && $activity->status_id == 17) {
-				//MECHANICAL SERVICE GROUP
-				if ($service_type->service_group_id == 2) {
-					$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id);
-					if ($is_bulk) {
-						//ASP Completed Data Entry - Waiting for L1 Bulk Verification
-						$statusId = 5;
-					} else {
-						//ASP Completed Data Entry - Waiting for L1 Individual Verification
-						$statusId = 6;
+				// ROS SERVICE
+				if ($service_type->service_group_id != 3) {
+					$autoApprovalProcessResponse = $activity->autoApprovalProcess();
+					if (!$autoApprovalProcessResponse['success']) {
+						//SAVE ACTIVITY API LOG
+						DB::rollBack();
+						$errors[] = $autoApprovalProcessResponse['error'];
+						saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+						return response()->json([
+							'success' => false,
+							'error' => 'Validation Error',
+							'errors' => [
+								$autoApprovalProcessResponse['error'],
+							],
+						], $this->successStatus);
 					}
 				} else {
-					if (($service_type->service_group_id == 3 && $activity->towing_attachments_uploaded_on_whatsapp == 1) || $activity->is_asp_data_entry_done == 1) {
+					// TOW SERVICE
+					if ($activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
 						$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 					} else {
 						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 					}
+					$activity->status_id = $statusId;
+					$activity->save();
 				}
-				$activity->status_id = $statusId;
-				$activity->save();
 			}
 
 			//UPDATE LOG ACTIVITY AND LOG MESSAGE
@@ -891,23 +906,40 @@ class ActivityController extends Controller {
 
 			if ($payload->type == "Breakdown Charges") {
 				if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
-					if ($payload->value == 'Yes') {
-						//SEND ASP ACCEPTANCE CHARGES WHATSAPP SMS TO ASP
-						$activity->sendAspAcceptanceChargesWhatsappSms();
-					} else {
-						//SEND ASP CHARGES REJECTION WHATSAPP SMS TO ASP
-						$activity->sendAspChargesRejectionWhatsappSms();
+					$breakdownChargesAlreadyResponded = ActivityWhatsappLog::where('activity_id', $activity->id)
+						->whereIn('type_id', [1195, 1196])
+						->first();
+					if (!$breakdownChargesAlreadyResponded) {
+						if ($payload->value == 'Yes') {
+							//SEND ASP ACCEPTANCE CHARGES WHATSAPP SMS TO ASP
+							$activity->sendAspAcceptanceChargesWhatsappSms();
+						} else {
+							//SEND ASP CHARGES REJECTION WHATSAPP SMS TO ASP
+							$activity->sendAspChargesRejectionWhatsappSms();
 
-						$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
-						$activity->save();
+							$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+							$activity->save();
+						}
+						//UPDATE WEBHOOK STATUS
+						$whatsappWebhookResponse->status = 'Completed';
+						$whatsappWebhookResponse->save();
+						DB::commit();
+						return response()->json([
+							'success' => true,
+						], $this->successStatus);
+					} else {
+						//UPDATE WEBHOOK STATUS
+						$whatsappWebhookResponse->status = 'Failed';
+						$whatsappWebhookResponse->errors = "ASP already responded to breakdown or empty charges";
+						$whatsappWebhookResponse->save();
+						DB::commit();
+						return response()->json([
+							'success' => false,
+							'errors' => [
+								'ASP already responded to breakdown or empty charges',
+							],
+						], $this->successStatus);
 					}
-					//UPDATE WEBHOOK STATUS
-					$whatsappWebhookResponse->status = 'Completed';
-					$whatsappWebhookResponse->save();
-					DB::commit();
-					return response()->json([
-						'success' => true,
-					], $this->successStatus);
 				} else {
 					//UPDATE WEBHOOK STATUS
 					$whatsappWebhookResponse->status = 'Failed';
@@ -923,42 +955,59 @@ class ActivityController extends Controller {
 				}
 			} elseif ($payload->type == "ASP Charges Acceptance") {
 				if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
-					if ($payload->value == 'Yes') {
+					$aspChargesAcceptanceAlreadyResponded = ActivityWhatsappLog::where('activity_id', $activity->id)
+						->whereIn('type_id', [1197, 1198])
+						->first();
+					if (!$aspChargesAcceptanceAlreadyResponded) {
+						if ($payload->value == 'Yes') {
 
-						//GENERATE INVOICE NUMBER
-						$invoiceNumber = generateInvoiceNumber();
-						$invoiceDate = new Carbon();
+							//GENERATE INVOICE NUMBER
+							$invoiceNumber = generateInvoiceNumber();
+							$invoiceDate = new Carbon();
 
-						//CREATE INVOICE
-						$crmActivityId[] = $activity->crm_activity_id;
-						$createInvoiceResponse = Invoices::createInvoice($activity->asp, $crmActivityId, $invoiceNumber, NULL, $invoiceDate, '', true);
+							//CREATE INVOICE
+							$crmActivityId[] = $activity->crm_activity_id;
+							$createInvoiceResponse = Invoices::createInvoice($activity->asp, $crmActivityId, $invoiceNumber, NULL, $invoiceDate, '', true);
 
-						if (!$createInvoiceResponse['success']) {
-							DB::rollBack();
-							$whatsappWebhookResponse->status = 'Failed';
-							$whatsappWebhookResponse->errors = $createInvoiceResponse['message'];
-							$whatsappWebhookResponse->save();
-							return response()->json([
-								'success' => false,
-								'errors' => [
-									$createInvoiceResponse['message'],
-								],
-							], $this->successStatus);
+							if (!$createInvoiceResponse['success']) {
+								DB::rollBack();
+								$whatsappWebhookResponse->status = 'Failed';
+								$whatsappWebhookResponse->errors = $createInvoiceResponse['message'];
+								$whatsappWebhookResponse->save();
+								return response()->json([
+									'success' => false,
+									'errors' => [
+										$createInvoiceResponse['message'],
+									],
+								], $this->successStatus);
+							}
+
+							//SEND INDIVIDUAL INVOICING WHATSAPP SMS TO ASP
+							$activity->sendIndividualInvoicingWhatsappSms($createInvoiceResponse['invoice']->id);
+						} else {
+							//SEND BULK INVOICING WHATSAPP SMS TO ASP
+							$activity->sendBulkInvoicingWhatsappSms();
 						}
-
-						//SEND INDIVIDUAL INVOICING WHATSAPP SMS TO ASP
-						$activity->sendIndividualInvoicingWhatsappSms($createInvoiceResponse['invoice']->id);
+						//UPDATE WEBHOOK STATUS
+						$whatsappWebhookResponse->status = 'Completed';
+						$whatsappWebhookResponse->save();
+						DB::commit();
+						return response()->json([
+							'success' => true,
+						], $this->successStatus);
 					} else {
-						//SEND BULK INVOICING WHATSAPP SMS TO ASP
-						$activity->sendBulkInvoicingWhatsappSms();
+						//UPDATE WEBHOOK STATUS
+						$whatsappWebhookResponse->status = 'Failed';
+						$whatsappWebhookResponse->errors = "ASP already responded to acceptance charges";
+						$whatsappWebhookResponse->save();
+						DB::commit();
+						return response()->json([
+							'success' => false,
+							'errors' => [
+								'ASP already responded to acceptance charges',
+							],
+						], $this->successStatus);
 					}
-					//UPDATE WEBHOOK STATUS
-					$whatsappWebhookResponse->status = 'Completed';
-					$whatsappWebhookResponse->save();
-					DB::commit();
-					return response()->json([
-						'success' => true,
-					], $this->successStatus);
 				} else {
 					//UPDATE WEBHOOK STATUS
 					$whatsappWebhookResponse->status = 'Failed';
@@ -1003,19 +1052,31 @@ class ActivityController extends Controller {
 				'vehicle_pickup_image' => [
 					'required:true',
 					'file',
-					'mimes:jpg,jpeg,png,pdf',
+					'mimes:jpg,jpeg,png',
 					'max:1024',
 				],
 				'vehicle_drop_image' => [
 					'required:true',
 					'file',
-					'mimes:jpg,jpeg,png,pdf',
+					'mimes:jpg,jpeg,png',
 					'max:1024',
 				],
 				'inventory_job_sheet_image' => [
 					'required:true',
 					'file',
-					'mimes:jpg,jpeg,png,pdf',
+					'mimes:jpg,jpeg,png',
+					'max:1024',
+				],
+				'other_image_1' => [
+					'nullable',
+					'file',
+					'mimes:jpg,jpeg,png',
+					'max:1024',
+				],
+				'other_image_2' => [
+					'nullable',
+					'file',
+					'mimes:jpg,jpeg,png',
 					'max:1024',
 				],
 			]);
@@ -1148,6 +1209,60 @@ class ActivityController extends Controller {
 				]);
 			}
 
+			//OTHER ATTACHMENT ONE
+			if (!empty($request->other_image_1) && $request->hasFile("other_image_1")) {
+				//REMOVE EXISTING ATTACHMENT
+				$inventoryJobSheetAttachExist = Attachment::where('entity_id', $activity->id)
+					->where('entity_type', config('constants.entity_types.OTHER_ATTACHMENT_ONE'))
+					->first();
+				if ($inventoryJobSheetAttachExist) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $inventoryJobSheetAttachExist->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $inventoryJobSheetAttachExist->attachment_file_name));
+					}
+					$inventoryJobSheetAttachExist->delete();
+				}
+
+				$filename = "other_attachment_one";
+				$extension = $request->file("other_image_1")->getClientOriginalExtension();
+
+				//STORE FILE
+				$request->file("other_image_1")->storeAs($destination, $filename . '.' . $extension);
+
+				//SAVE IN TABLE
+				Attachment::create([
+					'entity_type' => config('constants.entity_types.OTHER_ATTACHMENT_ONE'),
+					'entity_id' => $activity->id,
+					'attachment_file_name' => $filename . '.' . $extension,
+				]);
+			}
+
+			//OTHER ATTACHMENT TWO
+			if (!empty($request->other_image_2) && $request->hasFile("other_image_2")) {
+				//REMOVE EXISTING ATTACHMENT
+				$inventoryJobSheetAttachExist = Attachment::where('entity_id', $activity->id)
+					->where('entity_type', config('constants.entity_types.OTHER_ATTACHMENT_TWO'))
+					->first();
+				if ($inventoryJobSheetAttachExist) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $inventoryJobSheetAttachExist->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $inventoryJobSheetAttachExist->attachment_file_name));
+					}
+					$inventoryJobSheetAttachExist->delete();
+				}
+
+				$filename = "other_attachment_two";
+				$extension = $request->file("other_image_2")->getClientOriginalExtension();
+
+				//STORE FILE
+				$request->file("other_image_2")->storeAs($destination, $filename . '.' . $extension);
+
+				//SAVE IN TABLE
+				Attachment::create([
+					'entity_type' => config('constants.entity_types.OTHER_ATTACHMENT_TWO'),
+					'entity_id' => $activity->id,
+					'attachment_file_name' => $filename . '.' . $extension,
+				]);
+			}
+
 			//UPLOAD TOW IMAGE API LOG
 			saveApiLog(111, NULL, $request->all(), $errors, NULL, 120);
 
@@ -1156,6 +1271,10 @@ class ActivityController extends Controller {
 				$activity->sendImageUploadConfirmationWhatsappSms();
 			}
 
+			// IF CASE ALREADY CLOSED
+			if ($activity->case->status_id == 4) {
+				$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+			}
 			$activity->towing_attachments_uploaded_on_whatsapp = 1; //UPLOADED
 			$activity->save();
 

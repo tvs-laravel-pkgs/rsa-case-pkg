@@ -465,7 +465,7 @@ class ActivityController extends Controller {
 							$activity->status_id = 6;
 						}
 					} else {
-						if ($activity->is_asp_data_entry_done == 1) {
+						if ($asp->is_corporate == 1 || $activity->is_asp_data_entry_done == 1) {
 							$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 						} else {
 							$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
@@ -561,6 +561,8 @@ class ActivityController extends Controller {
 							} else {
 								$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 							}
+						} elseif ($asp->is_corporate == 1) {
+							$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 						} else {
 							//ON HOLD
 							$activity->status_id = 17;
@@ -598,7 +600,7 @@ class ActivityController extends Controller {
 						$statusId = 6;
 					}
 				} else {
-					if ($activity->is_asp_data_entry_done == 1) {
+					if ($asp->is_corporate == 1 || $activity->is_asp_data_entry_done == 1) {
 						$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 					} else {
 						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry

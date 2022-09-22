@@ -1177,7 +1177,11 @@ class Activity extends Model {
 											$activity->status_id = 6;
 										}
 									} else {
-										$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+										if ($asp->is_corporate == 1 || $activity->is_asp_data_entry_done == 1) {
+											$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+										} else {
+											$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+										}
 									}
 								} else {
 									//ON HOLD
@@ -1252,7 +1256,13 @@ class Activity extends Model {
 									if ($case->status_id == 4) {
 										//IF ROS ASP then changes status as Waitin for ASP data entry. If not change status as on hold
 										if ($asp->is_ros_asp == 1) {
-											$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+											if ($activity->is_asp_data_entry_done == 1) {
+												$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+											} else {
+												$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+											}
+										} elseif ($asp->is_corporate == 1) {
+											$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 										} else {
 											//ON HOLD
 											$activity->status_id = 17;
@@ -1301,7 +1311,12 @@ class Activity extends Model {
 												$statusId = 6;
 											}
 										} else {
-											$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+											if ($caseActivity->asp->is_corporate == 1 || $caseActivity->is_asp_data_entry_done == 1) {
+												//ASP Completed Data Entry - Waiting for L1 Individual Verification
+												$statusId = 6;
+											} else {
+												$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+											}
 										}
 										$caseActivity->update([
 											'status_id' => $statusId,

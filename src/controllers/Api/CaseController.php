@@ -438,7 +438,7 @@ class CaseController extends Controller {
 							}
 						} else {
 							// TOW SERVICE
-							if ($activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
+							if ($activity->asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
 								//ASP Completed Data Entry - Waiting for L1 Individual Verification
 								$status_id = 6;
 							} else {

@@ -991,6 +991,20 @@ class ActivityController extends Controller {
 						->first();
 					if (!$aspChargesAcceptanceAlreadyResponded) {
 						if ($payload->value == 'Yes') {
+							//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND Waiting for Invoice Generation by ASP)
+							if ($activity->status_id != 1 && $activity->status_id != 11) {
+								//UPDATE WEBHOOK STATUS
+								$whatsappWebhookResponse->status = 'Failed';
+								$whatsappWebhookResponse->errors = 'ASP not accepted / case not closed';
+								$whatsappWebhookResponse->save();
+								DB::commit();
+								return response()->json([
+									'success' => false,
+									'errors' => [
+										'ASP not accepted / case not closed',
+									],
+								], $this->successStatus);
+							}
 
 							//GENERATE INVOICE NUMBER
 							$invoiceNumber = generateInvoiceNumber();
@@ -1123,7 +1137,9 @@ class ActivityController extends Controller {
 				], $this->successStatus);
 			}
 
-			$activity = Activity::where('number', $request->activity_id)->first();
+			$activity = Activity::where('number', $request->activity_id)
+				->whereIn('status_id', [2, 17]) //ASP Rejected CC Details - Waiting for ASP Data Entry OR On Hold
+				->first();
 
 			if (!$activity) {
 				//UPLOAD TOW IMAGE API LOG

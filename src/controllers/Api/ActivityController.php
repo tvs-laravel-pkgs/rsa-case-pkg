@@ -1107,7 +1107,9 @@ class ActivityController extends Controller {
 				], $this->successStatus);
 			}
 
-			$activity = Activity::where('number', $request->activity_id)->first();
+			$activity = Activity::where('number', $request->activity_id)
+				->whereIn('status_id', [2, 17]) //ASP Rejected CC Details - Waiting for ASP Data Entry OR On Hold
+				->first();
 
 			if (!$activity) {
 				//UPLOAD TOW IMAGE API LOG

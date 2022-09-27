@@ -677,6 +677,11 @@ class ActivityController extends Controller {
 				}
 			}
 
+			//IF ACTIVITY CANCELLED THEN SEND ACTIVITY CANCELLED WHATSAPP SMS TO ASP
+			if (!empty($activity_status_id) && $activity_status_id == 4 && $activity->asp && !empty($activity->asp->whatsapp_number)) {
+				$activity->sendActivityCancelledWhatsappSms();
+			}
+
 			//UPDATE LOG ACTIVITY AND LOG MESSAGE
 			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
 				'Status' => 'Imported through API',
@@ -959,6 +964,9 @@ class ActivityController extends Controller {
 							'success' => true,
 						], $this->successStatus);
 					} else {
+						//SEND MORE THAN ONE INPUT REPLAY WHATSAPP SMS TO ASP
+						$activity->sendMorethanOneInputFromQuickReplyWhatsappSms();
+
 						//UPDATE WEBHOOK STATUS
 						$whatsappWebhookResponse->status = 'Failed';
 						$whatsappWebhookResponse->errors = "ASP already responded to breakdown or empty charges";
@@ -1040,6 +1048,9 @@ class ActivityController extends Controller {
 							'success' => true,
 						], $this->successStatus);
 					} else {
+						//SEND MORE THAN ONE INPUT REPLAY WHATSAPP SMS TO ASP
+						$activity->sendMorethanOneInputFromQuickReplyWhatsappSms();
+
 						//UPDATE WEBHOOK STATUS
 						$whatsappWebhookResponse->status = 'Failed';
 						$whatsappWebhookResponse->errors = "ASP already responded to acceptance charges";

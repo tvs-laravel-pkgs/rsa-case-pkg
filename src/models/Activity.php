@@ -2014,7 +2014,7 @@ class Activity extends Model {
 		];
 
 		//SEND WHATSAPP SMS
-		sendWhatsappSMS($this->id, 1198, $inputRequests);
+		sendWhatsappSMS($this->id, 1199, $inputRequests);
 	}
 
 	public function sendMorethanOneInputFromQuickReplyWhatsappSms() {
@@ -2062,7 +2062,7 @@ class Activity extends Model {
 		];
 
 		//SEND WHATSAPP SMS
-		sendWhatsappSMS($this->id, 1198, $inputRequests);
+		sendWhatsappSMS($this->id, 1200, $inputRequests);
 	}
 
 }

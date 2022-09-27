@@ -1542,18 +1542,19 @@ class Activity extends Model {
 			// TOWING SERVICE
 			$templateId = 'case_assignment_tow';
 			$bodyParameterValues = new \stdClass();
-			$bodyParameterValues->{'0'} = $caseDate;
-			$bodyParameterValues->{'1'} = $activityNumber;
-			$bodyParameterValues->{'2'} = $customerName;
-			$bodyParameterValues->{'3'} = $vehicleNumber;
-			$bodyParameterValues->{'4'} = $vin;
-			$bodyParameterValues->{'5'} = $model;
-			$bodyParameterValues->{'6'} = $serviceType;
-			$bodyParameterValues->{'7'} = $bdAddress;
-			$bodyParameterValues->{'8'} = $bdMapLocation;
-			$bodyParameterValues->{'9'} = $dropAddress;
-			$bodyParameterValues->{'10'} = $dropMapLocation;
-			$bodyParameterValues->{'11'} = $tollFreeNumber;
+			$bodyParameterValues->{'0'} = $aspName;
+			$bodyParameterValues->{'1'} = $caseDate;
+			$bodyParameterValues->{'2'} = $activityNumber;
+			$bodyParameterValues->{'3'} = $customerName;
+			$bodyParameterValues->{'4'} = $vehicleNumber;
+			$bodyParameterValues->{'5'} = $vin;
+			$bodyParameterValues->{'6'} = $model;
+			$bodyParameterValues->{'7'} = $serviceType;
+			$bodyParameterValues->{'8'} = $bdAddress;
+			$bodyParameterValues->{'9'} = $bdMapLocation;
+			$bodyParameterValues->{'10'} = $dropAddress;
+			$bodyParameterValues->{'11'} = $dropMapLocation;
+			$bodyParameterValues->{'12'} = $tollFreeNumber;
 
 			$inputRequests = [
 				"message" => [

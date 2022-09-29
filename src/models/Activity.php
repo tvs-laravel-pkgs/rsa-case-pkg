@@ -1544,7 +1544,7 @@ class Activity extends Model {
 			];
 		} else {
 			// TOWING SERVICE
-			$templateId = 'case_assignment_tow';
+			$templateId = 'case_assignment_tow_upload_image_bt';
 			$bodyParameterValues = new \stdClass();
 			$bodyParameterValues->{'0'} = $aspName;
 			$bodyParameterValues->{'1'} = $caseDate;

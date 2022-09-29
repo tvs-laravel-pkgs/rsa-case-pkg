@@ -1624,6 +1624,12 @@ class Activity extends Model {
 			$bodyParameterValues->{'11'} = $dropMapLocation;
 			$bodyParameterValues->{'12'} = $tollFreeNumber;
 
+			$payloadIndex = [
+				"value" => "Upload Images",
+				"activity_id" => $this->number,
+				"type" => "New Breakdown Alert",
+			];
+
 			$inputRequests = [
 				"message" => [
 					"channel" => "WABA",
@@ -1633,6 +1639,14 @@ class Activity extends Model {
 						"mediaTemplate" => [
 							"templateId" => $templateId,
 							"bodyParameterValues" => $bodyParameterValues,
+							"buttons" => [
+								"quickReplies" => [
+									[
+										"index" => "0",
+										"payload" => json_encode($payloadIndex),
+									],
+								],
+							],
 						],
 					],
 					"recipient" => [

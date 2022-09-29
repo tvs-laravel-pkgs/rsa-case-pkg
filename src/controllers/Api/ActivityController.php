@@ -1042,39 +1042,29 @@ class ActivityController extends Controller {
 		try {
 			$validator = Validator::make($request->all(), [
 				'activity_id' => [
-					'required:true',
+					'required',
 					'string',
 					'exists:activities,number',
 				],
-				'vehicle_pickup_image' => [
-					'required:true',
-					'file',
-					'mimes:jpg,jpeg,png',
-					'max:1024',
+				'vehicle_pickup_image_url' => [
+					'required',
+					'string',
 				],
-				'vehicle_drop_image' => [
-					'required:true',
-					'file',
-					'mimes:jpg,jpeg,png',
-					'max:1024',
+				'vehicle_drop_image_url' => [
+					'required',
+					'string',
 				],
-				'inventory_job_sheet_image' => [
-					'required:true',
-					'file',
-					'mimes:jpg,jpeg,png',
-					'max:1024',
+				'inventory_job_sheet_image_url' => [
+					'required',
+					'string',
 				],
-				'other_image_1' => [
+				'other_image_one_url' => [
 					'nullable',
-					'file',
-					'mimes:jpg,jpeg,png',
-					'max:1024',
+					'string',
 				],
-				'other_image_2' => [
+				'other_image_two_url' => [
 					'nullable',
-					'file',
-					'mimes:jpg,jpeg,png',
-					'max:1024',
+					'string',
 				],
 			]);
 			if ($validator->fails()) {
@@ -1126,7 +1116,7 @@ class ActivityController extends Controller {
 			Storage::makeDirectory($destination, 0777);
 
 			//VEHICLE PICKUP ATTACHMENT
-			if ($request->hasFile("vehicle_pickup_image")) {
+			if (!empty($request->vehicle_pickup_image_url)) {
 				//REMOVE EXISTING ATTACHMENT
 				$vehiclePickupAttachExist = Attachment::where('entity_id', $activity->id)
 					->where('entity_type', config('constants.entity_types.VEHICLE_PICKUP_ATTACHMENT'))
@@ -1138,22 +1128,23 @@ class ActivityController extends Controller {
 					$vehiclePickupAttachExist->delete();
 				}
 
-				$filename = "vehicle_pickup_attachment";
-				$extension = $request->file("vehicle_pickup_image")->getClientOriginalExtension();
-
 				//STORE FILE
-				$request->file("vehicle_pickup_image")->storeAs($destination, $filename . '.' . $extension);
+				$vehiclePickeupImageUrl = $request->vehicle_pickup_image_url;
+				$vehiclePickeupImageContents = file_get_contents($vehiclePickeupImageUrl);
+				$vehiclePickeupImageName = "vehicle-pickeup-image-" . substr($vehiclePickeupImageUrl, strrpos($vehiclePickeupImageUrl, '/') + 1);
+				$vehiclePickeupImagepath = $destination . "/" . $vehiclePickeupImageName;
+				Storage::disk('local')->put($vehiclePickeupImagepath, $vehiclePickeupImageContents);
 
 				//SAVE IN TABLE
 				Attachment::create([
 					'entity_type' => config('constants.entity_types.VEHICLE_PICKUP_ATTACHMENT'),
 					'entity_id' => $activity->id,
-					'attachment_file_name' => $filename . '.' . $extension,
+					'attachment_file_name' => $vehiclePickeupImageName,
 				]);
 			}
 
 			//VEHICLE DROP ATTACHMENT
-			if ($request->hasFile("vehicle_drop_image")) {
+			if (!empty($request->vehicle_drop_image_url)) {
 				//REMOVE EXISTING ATTACHMENT
 				$vehicleDropAttachExist = Attachment::where('entity_id', $activity->id)
 					->where('entity_type', config('constants.entity_types.VEHICLE_DROP_ATTACHMENT'))
@@ -1165,22 +1156,23 @@ class ActivityController extends Controller {
 					$vehicleDropAttachExist->delete();
 				}
 
-				$filename = "vehicle_drop_attachment";
-				$extension = $request->file("vehicle_drop_image")->getClientOriginalExtension();
-
 				//STORE FILE
-				$request->file("vehicle_drop_image")->storeAs($destination, $filename . '.' . $extension);
+				$vehicleDropImageUrl = $request->vehicle_drop_image_url;
+				$vehicleDropImageContents = file_get_contents($vehicleDropImageUrl);
+				$vehicleDropImageName = "vehicle-drop-image-" . substr($vehicleDropImageUrl, strrpos($vehicleDropImageUrl, '/') + 1);
+				$vehicleDropImagepath = $destination . "/" . $vehicleDropImageName;
+				Storage::disk('local')->put($vehicleDropImagepath, $vehicleDropImageContents);
 
 				//SAVE IN TABLE
 				Attachment::create([
 					'entity_type' => config('constants.entity_types.VEHICLE_DROP_ATTACHMENT'),
 					'entity_id' => $activity->id,
-					'attachment_file_name' => $filename . '.' . $extension,
+					'attachment_file_name' => $vehicleDropImageName,
 				]);
 			}
 
 			//INVENTORY JOB SHEET ATTACHMENT
-			if ($request->hasFile("inventory_job_sheet_image")) {
+			if (!empty($request->inventory_job_sheet_image_url)) {
 				//REMOVE EXISTING ATTACHMENT
 				$inventoryJobSheetAttachExist = Attachment::where('entity_id', $activity->id)
 					->where('entity_type', config('constants.entity_types.INVENTORY_JOB_SHEET_ATTACHMENT'))
@@ -1192,71 +1184,74 @@ class ActivityController extends Controller {
 					$inventoryJobSheetAttachExist->delete();
 				}
 
-				$filename = "inventory_job_sheet_attachment";
-				$extension = $request->file("inventory_job_sheet_image")->getClientOriginalExtension();
-
 				//STORE FILE
-				$request->file("inventory_job_sheet_image")->storeAs($destination, $filename . '.' . $extension);
+				$inventoryJobSheetImageUrl = $request->inventory_job_sheet_image_url;
+				$inventoryJobSheetImageContents = file_get_contents($inventoryJobSheetImageUrl);
+				$inventoryJobSheetImageName = "inventory-job-sheet-image-" . substr($inventoryJobSheetImageUrl, strrpos($inventoryJobSheetImageUrl, '/') + 1);
+				$inventoryJobSheetImagepath = $destination . "/" . $inventoryJobSheetImageName;
+				Storage::disk('local')->put($inventoryJobSheetImagepath, $inventoryJobSheetImageContents);
 
 				//SAVE IN TABLE
 				Attachment::create([
 					'entity_type' => config('constants.entity_types.INVENTORY_JOB_SHEET_ATTACHMENT'),
 					'entity_id' => $activity->id,
-					'attachment_file_name' => $filename . '.' . $extension,
+					'attachment_file_name' => $inventoryJobSheetImageName,
 				]);
 			}
 
 			//OTHER ATTACHMENT ONE
-			if (!empty($request->other_image_1) && $request->hasFile("other_image_1")) {
+			if (!empty($request->other_image_one_url)) {
 				//REMOVE EXISTING ATTACHMENT
-				$inventoryJobSheetAttachExist = Attachment::where('entity_id', $activity->id)
+				$otherAttachmentOneExist = Attachment::where('entity_id', $activity->id)
 					->where('entity_type', config('constants.entity_types.OTHER_ATTACHMENT_ONE'))
 					->first();
-				if ($inventoryJobSheetAttachExist) {
-					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $inventoryJobSheetAttachExist->attachment_file_name)) {
-						unlink(storage_path('app/' . $destination . '/' . $inventoryJobSheetAttachExist->attachment_file_name));
+				if ($otherAttachmentOneExist) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $otherAttachmentOneExist->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $otherAttachmentOneExist->attachment_file_name));
 					}
-					$inventoryJobSheetAttachExist->delete();
+					$otherAttachmentOneExist->delete();
 				}
 
-				$filename = "other_attachment_one";
-				$extension = $request->file("other_image_1")->getClientOriginalExtension();
-
 				//STORE FILE
-				$request->file("other_image_1")->storeAs($destination, $filename . '.' . $extension);
+				$otherAttachmentOneImageUrl = $request->other_image_one_url;
+				$otherAttachmentOneImageContents = file_get_contents($otherAttachmentOneImageUrl);
+				$otherAttachmentOneImageName = "other-attachment-one-image-" . substr($otherAttachmentOneImageUrl, strrpos($otherAttachmentOneImageUrl, '/') + 1);
+				$otherAttachmentOneImagepath = $destination . "/" . $otherAttachmentOneImageName;
+				Storage::disk('local')->put($otherAttachmentOneImagepath, $otherAttachmentOneImageContents);
 
 				//SAVE IN TABLE
 				Attachment::create([
 					'entity_type' => config('constants.entity_types.OTHER_ATTACHMENT_ONE'),
 					'entity_id' => $activity->id,
-					'attachment_file_name' => $filename . '.' . $extension,
+					'attachment_file_name' => $otherAttachmentOneImageName,
 				]);
 			}
 
 			//OTHER ATTACHMENT TWO
-			if (!empty($request->other_image_2) && $request->hasFile("other_image_2")) {
+			if (!empty($request->other_image_two_url)) {
 				//REMOVE EXISTING ATTACHMENT
-				$inventoryJobSheetAttachExist = Attachment::where('entity_id', $activity->id)
+				$otherAttachmentTwoExist = Attachment::where('entity_id', $activity->id)
 					->where('entity_type', config('constants.entity_types.OTHER_ATTACHMENT_TWO'))
 					->first();
-				if ($inventoryJobSheetAttachExist) {
-					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $inventoryJobSheetAttachExist->attachment_file_name)) {
-						unlink(storage_path('app/' . $destination . '/' . $inventoryJobSheetAttachExist->attachment_file_name));
+				if ($otherAttachmentTwoExist) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $otherAttachmentTwoExist->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $otherAttachmentTwoExist->attachment_file_name));
 					}
-					$inventoryJobSheetAttachExist->delete();
+					$otherAttachmentTwoExist->delete();
 				}
 
-				$filename = "other_attachment_two";
-				$extension = $request->file("other_image_2")->getClientOriginalExtension();
-
 				//STORE FILE
-				$request->file("other_image_2")->storeAs($destination, $filename . '.' . $extension);
+				$otherAttachmentTwoImageUrl = $request->other_image_two_url;
+				$otherAttachmentTwoImageContents = file_get_contents($otherAttachmentTwoImageUrl);
+				$otherAttachmentTwoImageName = "other-attachment-two-image-" . substr($otherAttachmentTwoImageUrl, strrpos($otherAttachmentTwoImageUrl, '/') + 1);
+				$otherAttachmentTwoImagepath = $destination . "/" . $otherAttachmentTwoImageName;
+				Storage::disk('local')->put($otherAttachmentTwoImagepath, $otherAttachmentTwoImageContents);
 
 				//SAVE IN TABLE
 				Attachment::create([
 					'entity_type' => config('constants.entity_types.OTHER_ATTACHMENT_TWO'),
 					'entity_id' => $activity->id,
-					'attachment_file_name' => $filename . '.' . $extension,
+					'attachment_file_name' => $otherAttachmentTwoImageName,
 				]);
 			}
 

@@ -759,6 +759,38 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Unbilled Dealer Commission Invoice',
 			],
 
+			//DEALER COMMISSION CREDIT NOTE
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'dealer-commission-credit-note',
+				'display_name' => 'Dealer Commission Credit Note',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'dealer-commission-credit-note',
+				'name' => 'view-dealer-commission-credit-note',
+				'display_name' => 'View',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'dealer-commission-credit-note',
+				'name' => 'own-dealer-commission-credit-note',
+				'display_name' => 'Own Only',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'dealer-commission-credit-note',
+				'name' => 'own-dealers-commission-credit-note',
+				'display_name' => 'Own Dealers',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'dealer-commission-credit-note',
+				'name' => 'all-dealer-commission-credit-note',
+				'display_name' => 'All',
+			],
+
 			//TAX CODES
 			[
 				'display_order' => 99,

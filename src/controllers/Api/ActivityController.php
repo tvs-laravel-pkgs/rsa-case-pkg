@@ -1131,7 +1131,8 @@ class ActivityController extends Controller {
 				//STORE FILE
 				$vehiclePickeupImageUrl = $request->vehicle_pickup_image_url;
 				$vehiclePickeupImageContents = file_get_contents($vehiclePickeupImageUrl);
-				$vehiclePickeupImageName = "vehicle-pickeup-image-" . substr($vehiclePickeupImageUrl, strrpos($vehiclePickeupImageUrl, '/') + 1);
+				$vehiclePickeupImageExtension = pathinfo(parse_url($vehiclePickeupImageUrl, PHP_URL_PATH), PATHINFO_EXTENSION);
+				$vehiclePickeupImageName = "vehicle-pickeup-image." . $vehiclePickeupImageExtension;
 				$vehiclePickeupImagepath = $destination . "/" . $vehiclePickeupImageName;
 				Storage::disk('local')->put($vehiclePickeupImagepath, $vehiclePickeupImageContents);
 
@@ -1159,7 +1160,8 @@ class ActivityController extends Controller {
 				//STORE FILE
 				$vehicleDropImageUrl = $request->vehicle_drop_image_url;
 				$vehicleDropImageContents = file_get_contents($vehicleDropImageUrl);
-				$vehicleDropImageName = "vehicle-drop-image-" . substr($vehicleDropImageUrl, strrpos($vehicleDropImageUrl, '/') + 1);
+				$vehicleDropImageExtension = pathinfo(parse_url($vehicleDropImageUrl, PHP_URL_PATH), PATHINFO_EXTENSION);
+				$vehicleDropImageName = "vehicle-drop-image." . $vehicleDropImageExtension;
 				$vehicleDropImagepath = $destination . "/" . $vehicleDropImageName;
 				Storage::disk('local')->put($vehicleDropImagepath, $vehicleDropImageContents);
 
@@ -1187,7 +1189,8 @@ class ActivityController extends Controller {
 				//STORE FILE
 				$inventoryJobSheetImageUrl = $request->inventory_job_sheet_image_url;
 				$inventoryJobSheetImageContents = file_get_contents($inventoryJobSheetImageUrl);
-				$inventoryJobSheetImageName = "inventory-job-sheet-image-" . substr($inventoryJobSheetImageUrl, strrpos($inventoryJobSheetImageUrl, '/') + 1);
+				$inventoryJobSheetImageExtension = pathinfo(parse_url($inventoryJobSheetImageUrl, PHP_URL_PATH), PATHINFO_EXTENSION);
+				$inventoryJobSheetImageName = "inventory-job-sheet-image." . $inventoryJobSheetImageExtension;
 				$inventoryJobSheetImagepath = $destination . "/" . $inventoryJobSheetImageName;
 				Storage::disk('local')->put($inventoryJobSheetImagepath, $inventoryJobSheetImageContents);
 
@@ -1215,7 +1218,8 @@ class ActivityController extends Controller {
 				//STORE FILE
 				$otherAttachmentOneImageUrl = $request->other_image_one_url;
 				$otherAttachmentOneImageContents = file_get_contents($otherAttachmentOneImageUrl);
-				$otherAttachmentOneImageName = "other-attachment-one-image-" . substr($otherAttachmentOneImageUrl, strrpos($otherAttachmentOneImageUrl, '/') + 1);
+				$otherAttachmentOneImageExtension = pathinfo(parse_url($otherAttachmentOneImageUrl, PHP_URL_PATH), PATHINFO_EXTENSION);
+				$otherAttachmentOneImageName = "other-attachment-one-image." . $otherAttachmentOneImageExtension;
 				$otherAttachmentOneImagepath = $destination . "/" . $otherAttachmentOneImageName;
 				Storage::disk('local')->put($otherAttachmentOneImagepath, $otherAttachmentOneImageContents);
 
@@ -1243,7 +1247,8 @@ class ActivityController extends Controller {
 				//STORE FILE
 				$otherAttachmentTwoImageUrl = $request->other_image_two_url;
 				$otherAttachmentTwoImageContents = file_get_contents($otherAttachmentTwoImageUrl);
-				$otherAttachmentTwoImageName = "other-attachment-two-image-" . substr($otherAttachmentTwoImageUrl, strrpos($otherAttachmentTwoImageUrl, '/') + 1);
+				$otherAttachmentTwoImageExtension = pathinfo(parse_url($otherAttachmentTwoImageUrl, PHP_URL_PATH), PATHINFO_EXTENSION);
+				$otherAttachmentTwoImageName = "other-attachment-two-image." . $otherAttachmentTwoImageExtension;
 				$otherAttachmentTwoImagepath = $destination . "/" . $otherAttachmentTwoImageName;
 				Storage::disk('local')->put($otherAttachmentTwoImagepath, $otherAttachmentTwoImageContents);
 

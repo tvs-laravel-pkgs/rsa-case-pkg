@@ -1592,7 +1592,7 @@ class Activity extends Model {
 						],
 					],
 					"recipient" => [
-						"to" => $aspWhatsAppNumber,
+						"to" => "91" . $aspWhatsAppNumber,
 						"recipient_type" => "individual",
 					],
 					"sender" => [
@@ -1650,7 +1650,7 @@ class Activity extends Model {
 						],
 					],
 					"recipient" => [
-						"to" => $aspWhatsAppNumber,
+						"to" => "91" . $aspWhatsAppNumber,
 						"recipient_type" => "individual",
 					],
 					"sender" => [
@@ -1696,7 +1696,7 @@ class Activity extends Model {
 					],
 				],
 				"recipient" => [
-					"to" => $aspWhatsAppNumber,
+					"to" => "91" . $aspWhatsAppNumber,
 					"recipient_type" => "individual",
 				],
 				"sender" => [
@@ -1913,7 +1913,7 @@ class Activity extends Model {
 					],
 				],
 				"recipient" => [
-					"to" => $aspWhatsAppNumber,
+					"to" => "91" . $aspWhatsAppNumber,
 					"recipient_type" => "individual",
 				],
 				"sender" => [
@@ -1990,7 +1990,7 @@ class Activity extends Model {
 					],
 				],
 				"recipient" => [
-					"to" => $aspWhatsAppNumber,
+					"to" => "91" . $aspWhatsAppNumber,
 					"recipient_type" => "individual",
 				],
 				"sender" => [
@@ -2044,7 +2044,7 @@ class Activity extends Model {
 					],
 				],
 				"recipient" => [
-					"to" => $aspWhatsAppNumber,
+					"to" => "91" . $aspWhatsAppNumber,
 					"recipient_type" => "individual",
 				],
 				"sender" => [
@@ -2103,7 +2103,7 @@ class Activity extends Model {
 					],
 				],
 				"recipient" => [
-					"to" => $aspWhatsAppNumber,
+					"to" => "91" . $aspWhatsAppNumber,
 					"recipient_type" => "individual",
 				],
 				"sender" => [
@@ -2153,7 +2153,7 @@ class Activity extends Model {
 					],
 				],
 				"recipient" => [
-					"to" => $aspWhatsAppNumber,
+					"to" => "91" . $aspWhatsAppNumber,
 					"recipient_type" => "individual",
 				],
 				"sender" => [
@@ -2203,7 +2203,7 @@ class Activity extends Model {
 					],
 				],
 				"recipient" => [
-					"to" => $aspWhatsAppNumber,
+					"to" => "91" . $aspWhatsAppNumber,
 					"recipient_type" => "individual",
 				],
 				"sender" => [
@@ -2251,7 +2251,7 @@ class Activity extends Model {
 					],
 				],
 				"recipient" => [
-					"to" => $aspWhatsAppNumber,
+					"to" => "91" . $aspWhatsAppNumber,
 					"recipient_type" => "individual",
 				],
 				"sender" => [

@@ -1046,23 +1046,23 @@ class ActivityController extends Controller {
 					'string',
 					'exists:activities,number',
 				],
-				'vehicle_pickup_image_url' => [
+				'vehicle_pickup_image' => [
 					'required',
 					'string',
 				],
-				'vehicle_drop_image_url' => [
+				'vehicle_drop_image' => [
 					'required',
 					'string',
 				],
-				'inventory_job_sheet_image_url' => [
+				'inventory_job_sheet_image' => [
 					'required',
 					'string',
 				],
-				'other_image_one_url' => [
+				'other_image_one' => [
 					'nullable',
 					'string',
 				],
-				'other_image_two_url' => [
+				'other_image_two' => [
 					'nullable',
 					'string',
 				],
@@ -1116,7 +1116,7 @@ class ActivityController extends Controller {
 			Storage::makeDirectory($destination, 0777);
 
 			//VEHICLE PICKUP ATTACHMENT
-			if (!empty($request->vehicle_pickup_image_url)) {
+			if (!empty($request->vehicle_pickup_image)) {
 				//REMOVE EXISTING ATTACHMENT
 				$vehiclePickupAttachExist = Attachment::where('entity_id', $activity->id)
 					->where('entity_type', config('constants.entity_types.VEHICLE_PICKUP_ATTACHMENT'))
@@ -1129,9 +1129,10 @@ class ActivityController extends Controller {
 				}
 
 				//STORE FILE
-				$vehiclePickeupImageUrl = $request->vehicle_pickup_image_url;
-				$vehiclePickeupImageContents = file_get_contents($vehiclePickeupImageUrl);
-				$vehiclePickeupImageExtension = pathinfo(parse_url($vehiclePickeupImageUrl, PHP_URL_PATH), PATHINFO_EXTENSION);
+				$vehiclePickeupBase64Image = explode(";base64,", $request->vehicle_pickup_image);
+				$vehiclePickeupExplodeImage = explode("image/", $vehiclePickeupBase64Image[0]);
+				$vehiclePickeupImageExtension = $vehiclePickeupExplodeImage[1];
+				$vehiclePickeupImageContents = file_get_contents($request->vehicle_pickup_image);
 				$vehiclePickeupImageName = "vehicle-pickeup-image." . $vehiclePickeupImageExtension;
 				$vehiclePickeupImagepath = $destination . "/" . $vehiclePickeupImageName;
 				Storage::disk('local')->put($vehiclePickeupImagepath, $vehiclePickeupImageContents);
@@ -1145,7 +1146,7 @@ class ActivityController extends Controller {
 			}
 
 			//VEHICLE DROP ATTACHMENT
-			if (!empty($request->vehicle_drop_image_url)) {
+			if (!empty($request->vehicle_drop_image)) {
 				//REMOVE EXISTING ATTACHMENT
 				$vehicleDropAttachExist = Attachment::where('entity_id', $activity->id)
 					->where('entity_type', config('constants.entity_types.VEHICLE_DROP_ATTACHMENT'))
@@ -1158,9 +1159,10 @@ class ActivityController extends Controller {
 				}
 
 				//STORE FILE
-				$vehicleDropImageUrl = $request->vehicle_drop_image_url;
-				$vehicleDropImageContents = file_get_contents($vehicleDropImageUrl);
-				$vehicleDropImageExtension = pathinfo(parse_url($vehicleDropImageUrl, PHP_URL_PATH), PATHINFO_EXTENSION);
+				$vehicleDropBase64Image = explode(";base64,", $request->vehicle_drop_image);
+				$vehicleDropExplodeImage = explode("image/", $vehicleDropBase64Image[0]);
+				$vehicleDropImageExtension = $vehicleDropExplodeImage[1];
+				$vehicleDropImageContents = file_get_contents($request->vehicle_drop_image);
 				$vehicleDropImageName = "vehicle-drop-image." . $vehicleDropImageExtension;
 				$vehicleDropImagepath = $destination . "/" . $vehicleDropImageName;
 				Storage::disk('local')->put($vehicleDropImagepath, $vehicleDropImageContents);
@@ -1174,7 +1176,7 @@ class ActivityController extends Controller {
 			}
 
 			//INVENTORY JOB SHEET ATTACHMENT
-			if (!empty($request->inventory_job_sheet_image_url)) {
+			if (!empty($request->inventory_job_sheet_image)) {
 				//REMOVE EXISTING ATTACHMENT
 				$inventoryJobSheetAttachExist = Attachment::where('entity_id', $activity->id)
 					->where('entity_type', config('constants.entity_types.INVENTORY_JOB_SHEET_ATTACHMENT'))
@@ -1187,9 +1189,10 @@ class ActivityController extends Controller {
 				}
 
 				//STORE FILE
-				$inventoryJobSheetImageUrl = $request->inventory_job_sheet_image_url;
-				$inventoryJobSheetImageContents = file_get_contents($inventoryJobSheetImageUrl);
-				$inventoryJobSheetImageExtension = pathinfo(parse_url($inventoryJobSheetImageUrl, PHP_URL_PATH), PATHINFO_EXTENSION);
+				$inventoryJobSheetBase64Image = explode(";base64,", $request->inventory_job_sheet_image);
+				$inventoryJobSheetExplodeImage = explode("image/", $inventoryJobSheetBase64Image[0]);
+				$inventoryJobSheetImageExtension = $inventoryJobSheetExplodeImage[1];
+				$inventoryJobSheetImageContents = file_get_contents($request->inventory_job_sheet_image);
 				$inventoryJobSheetImageName = "inventory-job-sheet-image." . $inventoryJobSheetImageExtension;
 				$inventoryJobSheetImagepath = $destination . "/" . $inventoryJobSheetImageName;
 				Storage::disk('local')->put($inventoryJobSheetImagepath, $inventoryJobSheetImageContents);
@@ -1203,7 +1206,7 @@ class ActivityController extends Controller {
 			}
 
 			//OTHER ATTACHMENT ONE
-			if (!empty($request->other_image_one_url)) {
+			if (!empty($request->other_image_one)) {
 				//REMOVE EXISTING ATTACHMENT
 				$otherAttachmentOneExist = Attachment::where('entity_id', $activity->id)
 					->where('entity_type', config('constants.entity_types.OTHER_ATTACHMENT_ONE'))
@@ -1216,9 +1219,10 @@ class ActivityController extends Controller {
 				}
 
 				//STORE FILE
-				$otherAttachmentOneImageUrl = $request->other_image_one_url;
-				$otherAttachmentOneImageContents = file_get_contents($otherAttachmentOneImageUrl);
-				$otherAttachmentOneImageExtension = pathinfo(parse_url($otherAttachmentOneImageUrl, PHP_URL_PATH), PATHINFO_EXTENSION);
+				$otherAttachmentOneBase64Image = explode(";base64,", $request->other_image_one);
+				$otherAttachmentOneExplodeImage = explode("image/", $otherAttachmentOneBase64Image[0]);
+				$otherAttachmentOneImageExtension = $otherAttachmentOneExplodeImage[1];
+				$otherAttachmentOneImageContents = file_get_contents($request->other_image_one);
 				$otherAttachmentOneImageName = "other-attachment-one-image." . $otherAttachmentOneImageExtension;
 				$otherAttachmentOneImagepath = $destination . "/" . $otherAttachmentOneImageName;
 				Storage::disk('local')->put($otherAttachmentOneImagepath, $otherAttachmentOneImageContents);
@@ -1232,7 +1236,7 @@ class ActivityController extends Controller {
 			}
 
 			//OTHER ATTACHMENT TWO
-			if (!empty($request->other_image_two_url)) {
+			if (!empty($request->other_image_two)) {
 				//REMOVE EXISTING ATTACHMENT
 				$otherAttachmentTwoExist = Attachment::where('entity_id', $activity->id)
 					->where('entity_type', config('constants.entity_types.OTHER_ATTACHMENT_TWO'))
@@ -1245,9 +1249,10 @@ class ActivityController extends Controller {
 				}
 
 				//STORE FILE
-				$otherAttachmentTwoImageUrl = $request->other_image_two_url;
-				$otherAttachmentTwoImageContents = file_get_contents($otherAttachmentTwoImageUrl);
-				$otherAttachmentTwoImageExtension = pathinfo(parse_url($otherAttachmentTwoImageUrl, PHP_URL_PATH), PATHINFO_EXTENSION);
+				$otherAttachmentTwoBase64Image = explode(";base64,", $request->other_image_two);
+				$otherAttachmentTwoExplodeImage = explode("image/", $otherAttachmentTwoBase64Image[0]);
+				$otherAttachmentTwoImageExtension = $otherAttachmentTwoExplodeImage[1];
+				$otherAttachmentTwoImageContents = file_get_contents($request->other_image_two);
 				$otherAttachmentTwoImageName = "other-attachment-two-image." . $otherAttachmentTwoImageExtension;
 				$otherAttachmentTwoImagepath = $destination . "/" . $otherAttachmentTwoImageName;
 				Storage::disk('local')->put($otherAttachmentTwoImagepath, $otherAttachmentTwoImageContents);

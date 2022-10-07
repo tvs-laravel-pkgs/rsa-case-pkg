@@ -675,7 +675,7 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_order' => 27,
 				'parent' => 'membership',
 				'name' => 'update-membership',
-				'display_name' => 'Update Membership',
+				'display_name' => 'Update',
 			],
 
 			//Dealer Invoice Menu

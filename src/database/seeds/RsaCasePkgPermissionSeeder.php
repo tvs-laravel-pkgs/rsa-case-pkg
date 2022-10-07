@@ -671,6 +671,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'nm-dealers-report-membership',
 				'display_name' => 'Own NM Dealers Report',
 			],
+			[
+				'display_order' => 27,
+				'parent' => 'membership',
+				'name' => 'update-membership',
+				'display_name' => 'Update Membership',
+			],
 
 			//Dealer Invoice Menu
 			[

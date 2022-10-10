@@ -7,16 +7,21 @@ use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityStatus;
+use Abs\RsaCasePkg\ActivityWhatsappLog;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
 use Abs\RsaCasePkg\AspPoRejectedReason;
 use Abs\RsaCasePkg\RsaCase;
+use Abs\RsaCasePkg\WhatsappWebhookResponse;
 use App\Asp;
+use App\Attachment;
 use App\Config;
 use App\Http\Controllers\Controller;
+use App\Invoices;
 use App\ServiceType;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Validator;
 
@@ -357,6 +362,7 @@ class ActivityController extends Controller {
 			$caseDate = Carbon::parse($case_date);
 			$caseDateAfter90Days = date('Y-m-d', strtotime($caseDate->addDays(90)));
 
+			$newActivity = false;
 			$activityExist = Activity::withTrashed()->where('crm_activity_id', $request->crm_activity_id)
 				->first();
 			if (!$activityExist) {
@@ -378,6 +384,7 @@ class ActivityController extends Controller {
 					$activity = new Activity([
 						'crm_activity_id' => $request->crm_activity_id,
 					]);
+					$newActivity = true;
 				}
 			} else {
 				//ACTIVITY BELONGS TO SAME CASE
@@ -465,7 +472,7 @@ class ActivityController extends Controller {
 							$activity->status_id = 6;
 						}
 					} else {
-						if ($activity->is_asp_data_entry_done == 1) {
+						if (($service_type->service_group_id == 3 && $activity->towing_attachments_uploaded_on_whatsapp == 1) || $activity->is_asp_data_entry_done == 1) {
 							$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 						} else {
 							$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
@@ -490,28 +497,6 @@ class ActivityController extends Controller {
 			}
 			$activity->number = 'ACT' . $activity->id;
 			$activity->save();
-
-			if ($case->status_id == 3) {
-				if ($activity->financeStatus->po_eligibility_type_id == 342) {
-					//CANCELLED
-					$activity->update([
-						// Not Eligible for Payout
-						'status_id' => 15,
-					]);
-				}
-			}
-
-			// CHECK CASE IS CLOSED
-			if ($case->status_id == 4) {
-				$activity->where([
-					// Invoice Amount Calculated - Waiting for Case Closure
-					'status_id' => 10,
-				])
-					->update([
-						// Case Closed - Waiting for ASP to Generate Invoice
-						'status_id' => 1,
-					]);
-			}
 
 			//SAVING ACTIVITY DETAILS
 			$activity_fields = Config::where('entity_type_id', 23)->get();
@@ -556,7 +541,7 @@ class ActivityController extends Controller {
 					if ($case->status_id == 4) {
 						//IF ROS ASP then changes status as Waitin for ASP data entry. If not change status as on hold
 						if ($asp->is_ros_asp == 1) {
-							if ($activity->is_asp_data_entry_done == 1) {
+							if (($service_type->service_group_id == 3 && $activity->towing_attachments_uploaded_on_whatsapp == 1) || $activity->is_asp_data_entry_done == 1) {
 								$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 							} else {
 								$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
@@ -585,6 +570,45 @@ class ActivityController extends Controller {
 				}
 			}
 
+			//MARKING AS OWN PATROL ACTIVITY
+			if ($activity->asp->workshop_type == 1) {
+				//Own Patrol Activity - Not Eligible for Payout
+				$activity->status_id = 16;
+				$activity->save();
+			}
+
+			if ($case->status_id == 3) {
+				if ($activity->financeStatus->po_eligibility_type_id == 342) {
+					//CANCELLED
+					$activity->update([
+						// Not Eligible for Payout
+						'status_id' => 15,
+					]);
+				}
+			}
+
+			//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
+			if ($newActivity && $activity->asp && !empty($activity->asp->whatsapp_number)) {
+				$activity->sendBreakdownAlertWhatsappSms();
+			}
+
+			// CHECK CASE IS CLOSED
+			if ($case->status_id == 4) {
+				$activity->where([
+					// Invoice Amount Calculated - Waiting for Case Closure
+					'status_id' => 10,
+				])
+					->update([
+						// Case Closed - Waiting for ASP to Generate Invoice
+						'status_id' => 1,
+					]);
+
+				//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
+				if ($asp && !empty($asp->whatsapp_number) && $activity->status_id == 10) {
+					$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
+				}
+			}
+
 			//RELEASE ONHOLD ACTIVITIES WITH CLOSED OR CANCELLED CASES
 			if (($case->status_id == 4 || $case->status_id == 3) && $activity->status_id == 17) {
 				//MECHANICAL SERVICE GROUP
@@ -598,7 +622,7 @@ class ActivityController extends Controller {
 						$statusId = 6;
 					}
 				} else {
-					if ($activity->is_asp_data_entry_done == 1) {
+					if (($service_type->service_group_id == 3 && $activity->towing_attachments_uploaded_on_whatsapp == 1) || $activity->is_asp_data_entry_done == 1) {
 						$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 					} else {
 						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
@@ -608,11 +632,9 @@ class ActivityController extends Controller {
 				$activity->save();
 			}
 
-			//MARKING AS OWN PATROL ACTIVITY
-			if ($activity->asp->workshop_type == 1) {
-				//Own Patrol Activity - Not Eligible for Payout
-				$activity->status_id = 16;
-				$activity->save();
+			//IF ACTIVITY CANCELLED THEN SEND ACTIVITY CANCELLED WHATSAPP SMS TO ASP
+			if (!empty($activity_status_id) && $activity_status_id == 4 && $activity->asp && !empty($activity->asp->whatsapp_number)) {
+				$activity->sendActivityCancelledWhatsappSms();
 			}
 
 			//UPDATE LOG ACTIVITY AND LOG MESSAGE
@@ -820,6 +842,463 @@ class ActivityController extends Controller {
 					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			], $this->successStatus);
+		}
+	}
+
+	public function whatsappWebhookResponse(Request $request) {
+		// dd($request->payload);
+		$whatsappWebhookResponse = new WhatsappWebhookResponse();
+		$whatsappWebhookResponse->payload = json_encode($request->all());
+		$whatsappWebhookResponse->status = 'Started';
+		$whatsappWebhookResponse->save();
+		// return response()->json([
+		// 	'success' => true,
+		// ], $this->successStatus);
+
+		DB::beginTransaction();
+		try {
+			if (!isset($request->payload) || (isset($request->payload) && empty($request->payload))) {
+				$whatsappWebhookResponse->errors = 'Payload not found';
+				$whatsappWebhookResponse->save();
+				DB::commit();
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Payload not found',
+					],
+				], $this->successStatus);
+			}
+
+			$payload = json_decode(stripslashes($request->payload));
+			if (empty($payload)) {
+				$whatsappWebhookResponse->errors = 'Payload is empty';
+				$whatsappWebhookResponse->save();
+				DB::commit();
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Payload is empty',
+					],
+				], $this->successStatus);
+			}
+
+			$activity = Activity::where('number', $payload->activity_id)->first();
+			if (!$activity) {
+				$whatsappWebhookResponse->errors = 'Activity not found';
+				$whatsappWebhookResponse->save();
+				DB::commit();
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Activity not found',
+					],
+				], $this->successStatus);
+			}
+
+			if ($payload->type == "Breakdown Charges") {
+				if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
+					$breakdownChargesAlreadyResponded = ActivityWhatsappLog::where('activity_id', $activity->id)
+						->whereIn('type_id', [1195, 1196])
+						->first();
+					if (!$breakdownChargesAlreadyResponded) {
+						if ($payload->value == 'Yes') {
+							//SEND ASP ACCEPTANCE CHARGES WHATSAPP SMS TO ASP
+							$activity->sendAspAcceptanceChargesWhatsappSms();
+						} else {
+							//SEND ASP CHARGES REJECTION WHATSAPP SMS TO ASP
+							$activity->sendAspChargesRejectionWhatsappSms();
+
+							$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+							$activity->save();
+						}
+						//UPDATE WEBHOOK STATUS
+						$whatsappWebhookResponse->status = 'Completed';
+						$whatsappWebhookResponse->save();
+						DB::commit();
+						return response()->json([
+							'success' => true,
+						], $this->successStatus);
+					} else {
+						//SEND MORE THAN ONE INPUT REPLAY WHATSAPP SMS TO ASP
+						$activity->sendMorethanOneInputFromQuickReplyWhatsappSms();
+
+						//UPDATE WEBHOOK STATUS
+						$whatsappWebhookResponse->status = 'Failed';
+						$whatsappWebhookResponse->errors = "ASP already responded to breakdown or empty charges";
+						$whatsappWebhookResponse->save();
+						DB::commit();
+						return response()->json([
+							'success' => false,
+							'errors' => [
+								'ASP already responded to breakdown or empty charges',
+							],
+						], $this->successStatus);
+					}
+				} else {
+					//UPDATE WEBHOOK STATUS
+					$whatsappWebhookResponse->status = 'Failed';
+					$whatsappWebhookResponse->errors = "ASP not having whatsapp number";
+					$whatsappWebhookResponse->save();
+					DB::commit();
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'ASP not having whatsapp number',
+						],
+					], $this->successStatus);
+				}
+			} elseif ($payload->type == "ASP Charges Acceptance") {
+				if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
+					$aspChargesAcceptanceAlreadyResponded = ActivityWhatsappLog::where('activity_id', $activity->id)
+						->whereIn('type_id', [1197, 1198])
+						->first();
+					if (!$aspChargesAcceptanceAlreadyResponded) {
+						if ($payload->value == 'Yes') {
+
+							//GENERATE INVOICE NUMBER
+							$invoiceNumber = generateInvoiceNumber();
+							$invoiceDate = new Carbon();
+
+							//CREATE INVOICE
+							$crmActivityId[] = $activity->crm_activity_id;
+							$createInvoiceResponse = Invoices::createInvoice($activity->asp, $crmActivityId, $invoiceNumber, $invoiceDate, '', true);
+
+							if (!$createInvoiceResponse['success']) {
+								DB::rollBack();
+								$whatsappWebhookResponse->status = 'Failed';
+								$whatsappWebhookResponse->errors = $createInvoiceResponse['message'];
+								$whatsappWebhookResponse->save();
+								return response()->json([
+									'success' => false,
+									'errors' => [
+										$createInvoiceResponse['message'],
+									],
+								], $this->successStatus);
+							}
+
+							//SEND INDIVIDUAL INVOICING WHATSAPP SMS TO ASP
+							$activity->sendIndividualInvoicingWhatsappSms($createInvoiceResponse['invoice']->id);
+						} else {
+							//SEND BULK INVOICING WHATSAPP SMS TO ASP
+							$activity->sendBulkInvoicingWhatsappSms();
+						}
+						//UPDATE WEBHOOK STATUS
+						$whatsappWebhookResponse->status = 'Completed';
+						$whatsappWebhookResponse->save();
+						DB::commit();
+						return response()->json([
+							'success' => true,
+						], $this->successStatus);
+					} else {
+						//SEND MORE THAN ONE INPUT REPLAY WHATSAPP SMS TO ASP
+						$activity->sendMorethanOneInputFromQuickReplyWhatsappSms();
+
+						//UPDATE WEBHOOK STATUS
+						$whatsappWebhookResponse->status = 'Failed';
+						$whatsappWebhookResponse->errors = "ASP already responded to acceptance charges";
+						$whatsappWebhookResponse->save();
+						DB::commit();
+						return response()->json([
+							'success' => false,
+							'errors' => [
+								'ASP already responded to acceptance charges',
+							],
+						], $this->successStatus);
+					}
+				} else {
+					//UPDATE WEBHOOK STATUS
+					$whatsappWebhookResponse->status = 'Failed';
+					$whatsappWebhookResponse->errors = "ASP not having whatsapp number";
+					$whatsappWebhookResponse->save();
+					DB::commit();
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'ASP not having whatsapp number',
+						],
+					], $this->successStatus);
+				}
+			}
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			//UPDATE WEBHOOK STATUS
+			$whatsappWebhookResponse->status = 'Failed';
+			$whatsappWebhookResponse->errors = $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile();
+			$whatsappWebhookResponse->save();
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
+		}
+	}
+
+	public function uploadTowImages(Request $request) {
+		// dd($request->all());
+		$errors = [];
+		DB::beginTransaction();
+		try {
+			$validator = Validator::make($request->all(), [
+				'activity_id' => [
+					'required',
+					'string',
+					'exists:activities,number',
+				],
+				'vehicle_pickup_image' => [
+					'required',
+					'string',
+				],
+				'vehicle_drop_image' => [
+					'required',
+					'string',
+				],
+				'inventory_job_sheet_image' => [
+					'required',
+					'string',
+				],
+				'other_image_one' => [
+					'nullable',
+					'string',
+				],
+				'other_image_two' => [
+					'nullable',
+					'string',
+				],
+			]);
+			if ($validator->fails()) {
+				//UPLOAD TOW IMAGE API LOG
+				$errors = $validator->errors()->all();
+				saveApiLog(111, NULL, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => $validator->errors()->all(),
+				], $this->successStatus);
+			}
+
+			$activity = Activity::where('number', $request->activity_id)->first();
+
+			if (!$activity) {
+				//UPLOAD TOW IMAGE API LOG
+				$errors[] = "Activity not found";
+				saveApiLog(111, NULL, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						'Activity not found',
+					],
+				], $this->successStatus);
+			}
+
+			if ($activity && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id != 3) {
+				//UPLOAD TOW IMAGE API LOG
+				$errors = $validator->errors()->all();
+				saveApiLog(111, NULL, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						'Activity is not a towing service',
+					],
+				], $this->successStatus);
+			}
+
+			$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
+			Storage::makeDirectory($destination, 0777);
+
+			//VEHICLE PICKUP ATTACHMENT
+			if (!empty($request->vehicle_pickup_image)) {
+				//REMOVE EXISTING ATTACHMENT
+				$vehiclePickupAttachExist = Attachment::where('entity_id', $activity->id)
+					->where('entity_type', config('constants.entity_types.VEHICLE_PICKUP_ATTACHMENT'))
+					->first();
+				if ($vehiclePickupAttachExist) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $vehiclePickupAttachExist->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $vehiclePickupAttachExist->attachment_file_name));
+					}
+					$vehiclePickupAttachExist->delete();
+				}
+
+				//STORE FILE
+				$vehiclePickeupBase64Image = explode(";base64,", $request->vehicle_pickup_image);
+				$vehiclePickeupExplodeImage = explode("image/", $vehiclePickeupBase64Image[0]);
+				$vehiclePickeupImageExtension = $vehiclePickeupExplodeImage[1];
+				$vehiclePickeupImageContents = file_get_contents($request->vehicle_pickup_image);
+				$vehiclePickeupImageName = "vehicle-pickeup-image." . $vehiclePickeupImageExtension;
+				$vehiclePickeupImagepath = $destination . "/" . $vehiclePickeupImageName;
+				Storage::disk('local')->put($vehiclePickeupImagepath, $vehiclePickeupImageContents);
+
+				//SAVE IN TABLE
+				Attachment::create([
+					'entity_type' => config('constants.entity_types.VEHICLE_PICKUP_ATTACHMENT'),
+					'entity_id' => $activity->id,
+					'attachment_file_name' => $vehiclePickeupImageName,
+				]);
+			}
+
+			//VEHICLE DROP ATTACHMENT
+			if (!empty($request->vehicle_drop_image)) {
+				//REMOVE EXISTING ATTACHMENT
+				$vehicleDropAttachExist = Attachment::where('entity_id', $activity->id)
+					->where('entity_type', config('constants.entity_types.VEHICLE_DROP_ATTACHMENT'))
+					->first();
+				if ($vehicleDropAttachExist) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $vehicleDropAttachExist->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $vehicleDropAttachExist->attachment_file_name));
+					}
+					$vehicleDropAttachExist->delete();
+				}
+
+				//STORE FILE
+				$vehicleDropBase64Image = explode(";base64,", $request->vehicle_drop_image);
+				$vehicleDropExplodeImage = explode("image/", $vehicleDropBase64Image[0]);
+				$vehicleDropImageExtension = $vehicleDropExplodeImage[1];
+				$vehicleDropImageContents = file_get_contents($request->vehicle_drop_image);
+				$vehicleDropImageName = "vehicle-drop-image." . $vehicleDropImageExtension;
+				$vehicleDropImagepath = $destination . "/" . $vehicleDropImageName;
+				Storage::disk('local')->put($vehicleDropImagepath, $vehicleDropImageContents);
+
+				//SAVE IN TABLE
+				Attachment::create([
+					'entity_type' => config('constants.entity_types.VEHICLE_DROP_ATTACHMENT'),
+					'entity_id' => $activity->id,
+					'attachment_file_name' => $vehicleDropImageName,
+				]);
+			}
+
+			//INVENTORY JOB SHEET ATTACHMENT
+			if (!empty($request->inventory_job_sheet_image)) {
+				//REMOVE EXISTING ATTACHMENT
+				$inventoryJobSheetAttachExist = Attachment::where('entity_id', $activity->id)
+					->where('entity_type', config('constants.entity_types.INVENTORY_JOB_SHEET_ATTACHMENT'))
+					->first();
+				if ($inventoryJobSheetAttachExist) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $inventoryJobSheetAttachExist->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $inventoryJobSheetAttachExist->attachment_file_name));
+					}
+					$inventoryJobSheetAttachExist->delete();
+				}
+
+				//STORE FILE
+				$inventoryJobSheetBase64Image = explode(";base64,", $request->inventory_job_sheet_image);
+				$inventoryJobSheetExplodeImage = explode("image/", $inventoryJobSheetBase64Image[0]);
+				$inventoryJobSheetImageExtension = $inventoryJobSheetExplodeImage[1];
+				$inventoryJobSheetImageContents = file_get_contents($request->inventory_job_sheet_image);
+				$inventoryJobSheetImageName = "inventory-job-sheet-image." . $inventoryJobSheetImageExtension;
+				$inventoryJobSheetImagepath = $destination . "/" . $inventoryJobSheetImageName;
+				Storage::disk('local')->put($inventoryJobSheetImagepath, $inventoryJobSheetImageContents);
+
+				//SAVE IN TABLE
+				Attachment::create([
+					'entity_type' => config('constants.entity_types.INVENTORY_JOB_SHEET_ATTACHMENT'),
+					'entity_id' => $activity->id,
+					'attachment_file_name' => $inventoryJobSheetImageName,
+				]);
+			}
+
+			//OTHER ATTACHMENT ONE
+			if (!empty($request->other_image_one)) {
+				//REMOVE EXISTING ATTACHMENT
+				$otherAttachmentOneExist = Attachment::where('entity_id', $activity->id)
+					->where('entity_type', config('constants.entity_types.OTHER_ATTACHMENT_ONE'))
+					->first();
+				if ($otherAttachmentOneExist) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $otherAttachmentOneExist->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $otherAttachmentOneExist->attachment_file_name));
+					}
+					$otherAttachmentOneExist->delete();
+				}
+
+				//STORE FILE
+				$otherAttachmentOneBase64Image = explode(";base64,", $request->other_image_one);
+				$otherAttachmentOneExplodeImage = explode("image/", $otherAttachmentOneBase64Image[0]);
+				$otherAttachmentOneImageExtension = $otherAttachmentOneExplodeImage[1];
+				$otherAttachmentOneImageContents = file_get_contents($request->other_image_one);
+				$otherAttachmentOneImageName = "other-attachment-one-image." . $otherAttachmentOneImageExtension;
+				$otherAttachmentOneImagepath = $destination . "/" . $otherAttachmentOneImageName;
+				Storage::disk('local')->put($otherAttachmentOneImagepath, $otherAttachmentOneImageContents);
+
+				//SAVE IN TABLE
+				Attachment::create([
+					'entity_type' => config('constants.entity_types.OTHER_ATTACHMENT_ONE'),
+					'entity_id' => $activity->id,
+					'attachment_file_name' => $otherAttachmentOneImageName,
+				]);
+			}
+
+			//OTHER ATTACHMENT TWO
+			if (!empty($request->other_image_two)) {
+				//REMOVE EXISTING ATTACHMENT
+				$otherAttachmentTwoExist = Attachment::where('entity_id', $activity->id)
+					->where('entity_type', config('constants.entity_types.OTHER_ATTACHMENT_TWO'))
+					->first();
+				if ($otherAttachmentTwoExist) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $otherAttachmentTwoExist->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $otherAttachmentTwoExist->attachment_file_name));
+					}
+					$otherAttachmentTwoExist->delete();
+				}
+
+				//STORE FILE
+				$otherAttachmentTwoBase64Image = explode(";base64,", $request->other_image_two);
+				$otherAttachmentTwoExplodeImage = explode("image/", $otherAttachmentTwoBase64Image[0]);
+				$otherAttachmentTwoImageExtension = $otherAttachmentTwoExplodeImage[1];
+				$otherAttachmentTwoImageContents = file_get_contents($request->other_image_two);
+				$otherAttachmentTwoImageName = "other-attachment-two-image." . $otherAttachmentTwoImageExtension;
+				$otherAttachmentTwoImagepath = $destination . "/" . $otherAttachmentTwoImageName;
+				Storage::disk('local')->put($otherAttachmentTwoImagepath, $otherAttachmentTwoImageContents);
+
+				//SAVE IN TABLE
+				Attachment::create([
+					'entity_type' => config('constants.entity_types.OTHER_ATTACHMENT_TWO'),
+					'entity_id' => $activity->id,
+					'attachment_file_name' => $otherAttachmentTwoImageName,
+				]);
+			}
+
+			//UPLOAD TOW IMAGE API LOG
+			saveApiLog(111, NULL, $request->all(), $errors, NULL, 120);
+
+			//SEND IMAGE UPLOAD CONFIRMATION WHATSAPP SMS TO ASP
+			if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
+				$activity->sendImageUploadConfirmationWhatsappSms();
+			}
+
+			// IF CASE ALREADY CLOSED
+			if ($activity->case->status_id == 4) {
+				$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+			}
+			$activity->towing_attachments_uploaded_on_whatsapp = 1; //UPLOADED
+			$activity->save();
+
+			DB::commit();
+			return response()->json([
+				'success' => true,
+				'message' => 'Towing images uploaded successfully',
+			], $this->successStatus);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			//UPLOAD TOW IMAGE API LOG
+			$errors[] = $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile();
+			saveApiLog(111, NULL, $request->all(), $errors, NULL, 121);
+
+			return response()->json([
+				'success' => false,
+				'error' => 'Exception Error',
+				'errors' => [
+					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
 		}
 	}
 

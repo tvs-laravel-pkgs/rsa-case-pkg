@@ -163,7 +163,7 @@
     var asp_new_activity_update_details_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/update-details.html')}}";
     var get_activity_form_data_url = "{{route('activityNewGetFormData')}}";
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/controller.js?v=11')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/controller.js?v=12')}}"></script>
 
 <!-- RSA-DASHBOARD -->
 <script type="text/javascript">

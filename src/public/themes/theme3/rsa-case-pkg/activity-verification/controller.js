@@ -42,7 +42,11 @@ app.component('activityVerificationList', {
             $('#below40-table').DataTable(
                 $.extend(activities_verification_below_40_dt_config, {
                     columns: cols1,
-                    ordering: false,
+                    ordering: true,
+                    "columnDefs": [{
+                        "orderable": false,
+                        "targets": [0, 5, 6, 12]
+                    }],
                     processing: true,
                     serverSide: true,
                     "scrollX": true,
@@ -190,7 +194,11 @@ app.component('activityVerificationList', {
             $('#above40-table').DataTable(
                 $.extend(activities_verification_above_40_dt_config, {
                     columns: cols2,
-                    ordering: false,
+                    ordering: true,
+                    "columnDefs": [{
+                        "orderable": false,
+                        "targets": [4, 5, 11]
+                    }],
                     processing: true,
                     serverSide: true,
                     "scrollX": true,

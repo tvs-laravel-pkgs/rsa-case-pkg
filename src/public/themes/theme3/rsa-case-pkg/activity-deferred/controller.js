@@ -169,7 +169,6 @@ app.component('deferredActivityUpdate', {
             self.bd_location = response.data.case.bd_location;
             self.dropDealer = response.data.dropDealer;
             self.dropLocation = response.data.dropLocation;
-
             self.vehiclePickupAttach = response.data.vehiclePickupAttach;
             self.vehicleDropAttach = response.data.vehicleDropAttach;
             self.inventoryJobSheetAttach = response.data.inventoryJobSheetAttach;
@@ -333,7 +332,7 @@ app.component('deferredActivityUpdate', {
         $scope.getServiceTypeDetail = () => {
             if (self.service_type_id) {
                 $.ajax({
-                        url: getActivityServiceTypeDetail + '/' + self.service_type_id,
+                        url: getActivityServiceTypeDetail + '/' + self.service_type_id + '/' + self.activity.id,
                         method: "GET",
                     })
                     .done(function(res) {
@@ -346,6 +345,7 @@ app.component('deferredActivityUpdate', {
                             return;
                         } else {
                             //TOWING
+                            console.log(res);
                             if (res.serviceType.service_group_id == 3) {
                                 self.showTowingAttachment = true;
                             } else {
@@ -360,6 +360,7 @@ app.component('deferredActivityUpdate', {
                     });
             }
         }
+
 
         $.validator.addMethod('imageFileSize', function(value, element, param) {
             return this.optional(element) || (element.files[0].size <= param)

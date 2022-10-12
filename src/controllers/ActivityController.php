@@ -2789,7 +2789,7 @@ class ActivityController extends Controller {
 		return response()->json($this->data);
 	}
 
-	public function activityNewGetServiceTypeDetail($id) {
+	public function activityNewGetServiceTypeDetail($id,$activity_id) {
 		try {
 			$serviceType = ServiceType::select([
 				'id',
@@ -2797,6 +2797,14 @@ class ActivityController extends Controller {
 			])
 				->where('id', $id)
 				->first();
+
+			if($serviceType->service_group_id == 3){
+				Activity::where('id',$activity_id)->where('finance_status_id',1)->where('is_towing_attachments_mandatory','=',0)
+				->update([
+					'is_towing_attachments_mandatory' => 1,
+					'towing_attachments_mandatory_by_id' => Auth::id(),
+				]);
+			}
 			if (!$serviceType) {
 				return response()->json([
 					'success' => false,
@@ -2820,7 +2828,7 @@ class ActivityController extends Controller {
 	}
 
 	public function updateActivity(Request $request) {
-		// dd($request->all());
+		//dd($request->all());
 		DB::beginTransaction();
 		try {
 			$activity = Activity::findOrFail($request->activity_id);
@@ -2864,7 +2872,6 @@ class ActivityController extends Controller {
 					$checkTowingAttachmentMandatory = true;
 				}
 			}
-
 			if ($checkTowingAttachmentMandatory) {
 				// Vehicle Pickup image
 				if (!isset($request->vehiclePickupAttachExist) && (!isset($request->vehicle_pickup_attachment) || (isset($request->vehicle_pickup_attachment) && empty($request->vehicle_pickup_attachment)))) {
@@ -2894,7 +2901,6 @@ class ActivityController extends Controller {
 					]);
 				}
 			}
-
 			$range_limit = 0;
 			$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
 			Storage::makeDirectory($destination, 0777);
@@ -2973,7 +2979,6 @@ class ActivityController extends Controller {
 					}
 				}
 			}
-
 			$cc_service_type_exist = ActivityDetail::where('activity_id', $activity->id)
 				->where('key_id', 153)
 				->first();

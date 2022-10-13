@@ -259,6 +259,7 @@ class ActivityController extends Controller {
 			//ASP Rejected CC Details - Waiting for ASP Data Entry
 			if ($request->ticket_status_id == '1') {
 				$activity->status_id = 2;
+				$activity->is_asp_data_entry_done = NULL;
 				$activity->backstep_reason = makeUrltoLinkInString($request->backstep_reason);
 				$activity->backstepped_at = Carbon::now();
 				$activity->backstep_by_id = Auth::user()->id;
@@ -676,6 +677,7 @@ class ActivityController extends Controller {
 					DB::raw('IF(activities.bo_comments IS NULL,"-",bo_comments) as bo_comments'),
 					DB::raw('IF(activities.defer_reason IS NULL,"-",defer_reason) as defer_reason'),
 					'cases.number',
+					'cases.membership_type',
 					'cases.customer_name as customer_name',
 					'cases.vin_no',
 					'cases.km_during_breakdown',

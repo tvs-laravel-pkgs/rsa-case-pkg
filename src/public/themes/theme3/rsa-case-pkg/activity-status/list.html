@@ -25,7 +25,6 @@
                 <div class="col-xs-12 col-sm-8">
                     <div class="dataTable-top--right_wrapper">
                         <ul class="dataTable-top--right_group list-inline">
-                            <!-- <div class="float-right"> -->
                             <li ng-if="$ctrl.canImportActivity">
                                 <a href="#!/import-cron-job-pkg/import-job/form/1" class="addNew-data">
                                     Import
@@ -34,14 +33,15 @@
                             <li ng-if="$ctrl.hasPermission('export-activities') || $ctrl.hasPermission('export-own-activities') || $ctrl.hasPermission('export-own-rm-asp-activities') || $ctrl.hasPermission('export-own-zm-asp-activities') || $ctrl.hasPermission('export-own-nm-asp-activities')">
                                 <button class="btn btn-md preview-batch export" data-toggle="modal" data-target="#asp_excel_export">Export</button>
                             </li>
-                            <li ng-if="$ctrl.auth_user_details && $ctrl.auth_user_details.id == '72' && $ctrl.hasPermission('release-onhold-case')">
+                            <!-- NOT USED NOW -->
+                            <!-- <li ng-if="$ctrl.auth_user_details && $ctrl.auth_user_details.id == '72' && $ctrl.hasPermission('release-onhold-case')">
                                 <button class="btn btn-md preview-batch export" data-toggle="modal" data-target="#release-onhold-case">
                                     Release OnHold
                                 </button>
+                            </li> -->
+                            <li>
+                                <input class="filterTable" type="text" placeholder="Search">
                             </li>
-                            <!-- </div> -->
-                            <!-- <li><a href="javascript:void(0)" class="btn btn-md" ng-click="">Export</a></li> -->
-                            <li><input class="filterTable" type="text" placeholder="Search"></li>
                             <li>
                                 <img src="<% $ctrl.filter_img_url %>" class="filterToggle">
                                 <div class="filter-wrapper" id='filterticket'>

@@ -19,7 +19,10 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web', 'auth'], 
 	Route::post('activity-status/activity-status-change', 'ActivityController@activityBackAsp')->name('activityBackAspUpdate');
 	Route::post('activity-status/search-asps', 'ActivityController@searchAsps')->name('activityStatusSearchAsps');
 	Route::post('activity-status/search-clients', 'ActivityController@searchClients')->name('activityStatusSearchClients');
+
 	Route::post('activity/onhold/release', 'ActivityController@releaseOnHold')->name('releaseOnHold');
+	Route::get('/onhold-activity/release/{id}', 'ActivityController@releaseOnHoldActivity')->name('releaseOnHoldActivity');
+
 	Route::post('activity-status/closing-date/update', 'ActivityController@updateCaseSubmissionClosingDate')->name('updateCaseSubmissionClosingDate');
 	Route::post('activity-status/towing-images-required/update', 'ActivityController@towingImagesRequiredUpdated')->name('activityTowingImagesRequiredUpdated');
 	Route::post('activity-status/not-eligible-for-payout/move', 'ActivityController@moveToNotEligibleForPayout')->name('moveToNotEligibleForPayout');

@@ -187,6 +187,49 @@ app.component('activityStatusList', {
                     }
                 });
             }
+
+
+            $scope.releaseOnHoldCase = activityId => {
+                bootbox.confirm({
+                    message: 'Do you want to release this activity?',
+                    className: 'action-confirm-modal',
+                    buttons: {
+                        confirm: {
+                            label: 'Yes',
+                            className: 'btn-success'
+                        },
+                        cancel: {
+                            label: 'No',
+                            className: 'btn-danger'
+                        }
+                    },
+                    callback: function(result) {
+                        if (result) {
+                            $.ajax({
+                                    url: releaseOnHoldActivity + '/' + activityId,
+                                    method: "GET",
+                                })
+                                .done(function(res) {
+                                    if (!res.success) {
+                                        var errors = '';
+                                        for (var i in res.errors) {
+                                            errors += '<li>' + res.errors[i] + '</li>';
+                                        }
+                                        custom_noty('error', errors);
+                                        return;
+                                    }
+                                    custom_noty('success', res.message);
+                                    $('#activities_status_table').DataTable().ajax.reload();
+                                })
+                                .fail(function(xhr) {
+                                    custom_noty('error', 'Something went wrong at server');
+                                    console.log(xhr);
+                                });
+                        }
+                    }
+                });
+            }
+
             $('.filterToggle').click(function() {
                 $('#filterticket').toggleClass('open');
             });
@@ -277,6 +320,7 @@ app.component('activityStatusList', {
                 }
                 self.status_ids = r_list;
             }
+
             $("form[name='export_excel_form']").validate({
                 ignore: '',
                 rules: {

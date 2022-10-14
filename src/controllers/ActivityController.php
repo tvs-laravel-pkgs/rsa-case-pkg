@@ -238,6 +238,7 @@ class ActivityController extends Controller {
 			//ASP Rejected CC Details - Waiting for ASP Data Entry
 			if ($request->ticket_status_id == '1') {
 				$activity->status_id = 2;
+				$activity->is_asp_data_entry_done = NULL;
 				$activity->backstep_reason = $request->backstep_reason;
 				$activity->backstepped_at = Carbon::now();
 				$activity->backstep_by_id = Auth::user()->id;

@@ -1965,8 +1965,10 @@ class ActivityController extends Controller {
 				$this->updateActivityApprovalLog($activity, $request->case_number, 1);
 			}
 
+			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
+
 			//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP (TOWING SERVICE ONLY)
-			if ($sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3) {
+			if ($sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3 && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 				$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 			}
 
@@ -2108,6 +2110,7 @@ class ActivityController extends Controller {
 			$l2Approvers = User::where('activity_approval_level_id', 2)->pluck('id');
 			$l3Approvers = User::where('activity_approval_level_id', 3)->pluck('id');
 			$l4Approvers = User::where('activity_approval_level_id', 4)->pluck('id');
+			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
 
 			foreach ($activities as $key => $activity) {
 
@@ -2373,7 +2376,7 @@ class ActivityController extends Controller {
 					}
 
 					//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP (TOWING SERVICE ONLY)
-					if ($sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3) {
+					if ($sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3 && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 						$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 					}
 				} else {

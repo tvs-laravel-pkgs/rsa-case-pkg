@@ -1131,8 +1131,9 @@ class Activity extends Model {
 							// if ($request->asp_accepted_cc_details && $activity_status_id == 7) {
 							//ASP ACCEPTED CC DETAILS == 1
 							if ($record['asp_accepted_cc_details']) {
-								//Invoice Amount Calculated - Waiting for Case Closure
-								$activity->status_id = 10;
+								//DISABLED DUE NEW WHATSAPP PROCESS
+								// $activity->status_id = 10; //Invoice Amount Calculated - Waiting for Case Closure
+								$activity->status_id = 17; //ON HOLD
 							} else {
 								//CASE IS CLOSED
 								if ($case->status_id == 4) {
@@ -1247,8 +1248,10 @@ class Activity extends Model {
 								$activity->save();
 							}
 
+							$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
+
 							//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
-							if ($newActivity && $activity->asp && !empty($activity->asp->whatsapp_number)) {
+							if ($newActivity && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 								$activity->sendBreakdownAlertWhatsappSms();
 							}
 
@@ -1291,7 +1294,7 @@ class Activity extends Model {
 										$activityLog->save();
 
 										//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
-										if ($invoiceAmountCalculatedActivity->asp && !empty($invoiceAmountCalculatedActivity->asp->whatsapp_number)) {
+										if ($invoiceAmountCalculatedActivity->asp && !empty($invoiceAmountCalculatedActivity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $invoiceAmountCalculatedActivity->asp->has_whatsapp_flow == 1))) {
 											$invoiceAmountCalculatedActivity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 										}
 
@@ -1337,7 +1340,7 @@ class Activity extends Model {
 							}
 
 							//IF ACTIVITY CANCELLED THEN SEND ACTIVITY CANCELLED WHATSAPP SMS TO ASP
-							if (!empty($activity_status_id) && $activity_status_id == 4 && $activity->asp && !empty($activity->asp->whatsapp_number)) {
+							if (!empty($activity_status_id) && $activity_status_id == 4 && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 								$activity->sendActivityCancelledWhatsappSms();
 							}
 
@@ -1746,7 +1749,8 @@ class Activity extends Model {
 
 		$this->updateApprovalLog();
 
-		if ($this->asp && !empty($this->asp->whatsapp_number)) {
+		$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
+		if ($this->asp && !empty($this->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $this->asp->has_whatsapp_flow == 1))) {
 			$this->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 		}
 

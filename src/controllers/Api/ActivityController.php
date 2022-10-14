@@ -456,8 +456,9 @@ class ActivityController extends Controller {
 			// if ($request->asp_accepted_cc_details && $activity_status_id == 7) {
 			//ASP ACCEPTED CC DETAILS == 1
 			if ($request->asp_accepted_cc_details) {
-				//Invoice Amount Calculated - Waiting for Case Closure
-				$activity->status_id = 10;
+				//DISABLED DUE NEW WHATSAPP PROCESS
+				// $activity->status_id = 10; //Invoice Amount Calculated - Waiting for Case Closure
+				$activity->status_id = 17; //ON HOLD
 			} else {
 				//CASE IS CLOSED
 				if ($case->status_id == 4) {
@@ -594,21 +595,17 @@ class ActivityController extends Controller {
 
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
 
-			if (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp && $activity->asp->has_whatsapp_flow == 1)) {
-				//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
-				if ($newActivity && $activity->asp && !empty($activity->asp->whatsapp_number)) {
-					$activity->sendBreakdownAlertWhatsappSms();
-				}
+			//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
+			if ($newActivity && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+				$activity->sendBreakdownAlertWhatsappSms();
 			}
 
 			// CHECK CASE IS CLOSED
 			if ($case->status_id == 4) {
 
-				if (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp && $activity->asp->has_whatsapp_flow == 1)) {
-					//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
-					if ($asp && !empty($asp->whatsapp_number) && $activity->status_id == 10) {
-						$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
-					}
+				//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
+				if ($asp && !empty($asp->whatsapp_number) && $activity->status_id == 10 && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $asp->has_whatsapp_flow == 1))) {
+					$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 				}
 
 				$activity->where([
@@ -652,11 +649,9 @@ class ActivityController extends Controller {
 				}
 			}
 
-			if (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp && $activity->asp->has_whatsapp_flow == 1)) {
-				//IF ACTIVITY CANCELLED THEN SEND ACTIVITY CANCELLED WHATSAPP SMS TO ASP
-				if (!empty($activity_status_id) && $activity_status_id == 4 && $activity->asp && !empty($activity->asp->whatsapp_number)) {
-					$activity->sendActivityCancelledWhatsappSms();
-				}
+			//IF ACTIVITY CANCELLED THEN SEND ACTIVITY CANCELLED WHATSAPP SMS TO ASP
+			if (!empty($activity_status_id) && $activity_status_id == 4 && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+				$activity->sendActivityCancelledWhatsappSms();
 			}
 
 			//UPDATE LOG ACTIVITY AND LOG MESSAGE
@@ -916,144 +911,158 @@ class ActivityController extends Controller {
 					],
 				], $this->successStatus);
 			}
+			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
+			if (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp && $activity->asp->has_whatsapp_flow == 1)) {
+				if ($payload->type == "Breakdown Charges") {
+					if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
+						$breakdownChargesAlreadyResponded = ActivityWhatsappLog::where('activity_id', $activity->id)
+							->whereIn('type_id', [1195, 1196])
+							->first();
+						if (!$breakdownChargesAlreadyResponded) {
+							if ($payload->value == 'Yes') {
+								//SEND ASP ACCEPTANCE CHARGES WHATSAPP SMS TO ASP
+								$activity->sendAspAcceptanceChargesWhatsappSms();
+							} else {
+								//SEND ASP CHARGES REJECTION WHATSAPP SMS TO ASP
+								$activity->sendAspChargesRejectionWhatsappSms();
 
-			if ($payload->type == "Breakdown Charges") {
-				if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
-					$breakdownChargesAlreadyResponded = ActivityWhatsappLog::where('activity_id', $activity->id)
-						->whereIn('type_id', [1195, 1196])
-						->first();
-					if (!$breakdownChargesAlreadyResponded) {
-						if ($payload->value == 'Yes') {
-							//SEND ASP ACCEPTANCE CHARGES WHATSAPP SMS TO ASP
-							$activity->sendAspAcceptanceChargesWhatsappSms();
+								$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+								$activity->save();
+							}
+							//UPDATE WEBHOOK STATUS
+							$whatsappWebhookResponse->status = 'Completed';
+							$whatsappWebhookResponse->save();
+							DB::commit();
+							return response()->json([
+								'success' => true,
+							], $this->successStatus);
 						} else {
-							//SEND ASP CHARGES REJECTION WHATSAPP SMS TO ASP
-							$activity->sendAspChargesRejectionWhatsappSms();
+							//SEND MORE THAN ONE INPUT REPLAY WHATSAPP SMS TO ASP
+							$activity->sendMorethanOneInputFromQuickReplyWhatsappSms();
 
-							$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
-							$activity->save();
+							//UPDATE WEBHOOK STATUS
+							$whatsappWebhookResponse->status = 'Failed';
+							$whatsappWebhookResponse->errors = "ASP already responded to breakdown or empty charges";
+							$whatsappWebhookResponse->save();
+							DB::commit();
+							return response()->json([
+								'success' => false,
+								'errors' => [
+									'ASP already responded to breakdown or empty charges',
+								],
+							], $this->successStatus);
 						}
-						//UPDATE WEBHOOK STATUS
-						$whatsappWebhookResponse->status = 'Completed';
-						$whatsappWebhookResponse->save();
-						DB::commit();
-						return response()->json([
-							'success' => true,
-						], $this->successStatus);
 					} else {
-						//SEND MORE THAN ONE INPUT REPLAY WHATSAPP SMS TO ASP
-						$activity->sendMorethanOneInputFromQuickReplyWhatsappSms();
-
 						//UPDATE WEBHOOK STATUS
 						$whatsappWebhookResponse->status = 'Failed';
-						$whatsappWebhookResponse->errors = "ASP already responded to breakdown or empty charges";
+						$whatsappWebhookResponse->errors = "ASP not having whatsapp number";
 						$whatsappWebhookResponse->save();
 						DB::commit();
 						return response()->json([
 							'success' => false,
 							'errors' => [
-								'ASP already responded to breakdown or empty charges',
+								'ASP not having whatsapp number',
 							],
 						], $this->successStatus);
 					}
-				} else {
-					//UPDATE WEBHOOK STATUS
-					$whatsappWebhookResponse->status = 'Failed';
-					$whatsappWebhookResponse->errors = "ASP not having whatsapp number";
-					$whatsappWebhookResponse->save();
-					DB::commit();
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							'ASP not having whatsapp number',
-						],
-					], $this->successStatus);
-				}
-			} elseif ($payload->type == "ASP Charges Acceptance") {
-				if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
-					$aspChargesAcceptanceAlreadyResponded = ActivityWhatsappLog::where('activity_id', $activity->id)
-						->whereIn('type_id', [1197, 1198])
-						->first();
-					if (!$aspChargesAcceptanceAlreadyResponded) {
-						if ($payload->value == 'Yes') {
-							//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND Waiting for Invoice Generation by ASP)
-							if ($activity->status_id != 1 && $activity->status_id != 11) {
-								//UPDATE WEBHOOK STATUS
-								$whatsappWebhookResponse->status = 'Failed';
-								$whatsappWebhookResponse->errors = 'ASP not accepted / case not closed';
-								$whatsappWebhookResponse->save();
-								DB::commit();
-								return response()->json([
-									'success' => false,
-									'errors' => [
-										'ASP not accepted / case not closed',
-									],
-								], $this->successStatus);
+				} elseif ($payload->type == "ASP Charges Acceptance") {
+					if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
+						$aspChargesAcceptanceAlreadyResponded = ActivityWhatsappLog::where('activity_id', $activity->id)
+							->whereIn('type_id', [1197, 1198])
+							->first();
+						if (!$aspChargesAcceptanceAlreadyResponded) {
+							if ($payload->value == 'Yes') {
+								//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND Waiting for Invoice Generation by ASP)
+								if ($activity->status_id != 1 && $activity->status_id != 11) {
+									//UPDATE WEBHOOK STATUS
+									$whatsappWebhookResponse->status = 'Failed';
+									$whatsappWebhookResponse->errors = 'ASP not accepted / case not closed';
+									$whatsappWebhookResponse->save();
+									DB::commit();
+									return response()->json([
+										'success' => false,
+										'errors' => [
+											'ASP not accepted / case not closed',
+										],
+									], $this->successStatus);
+								}
+
+								//GENERATE INVOICE NUMBER
+								$invoiceNumber = generateInvoiceNumber();
+								$invoiceDate = new Carbon();
+
+								//CREATE INVOICE
+								$crmActivityId[] = $activity->crm_activity_id;
+								$createInvoiceResponse = Invoices::createInvoice($activity->asp, $crmActivityId, $invoiceNumber, $invoiceDate, '', true);
+
+								if (!$createInvoiceResponse['success']) {
+									DB::rollBack();
+									$whatsappWebhookResponse->status = 'Failed';
+									$whatsappWebhookResponse->errors = $createInvoiceResponse['message'];
+									$whatsappWebhookResponse->save();
+									return response()->json([
+										'success' => false,
+										'errors' => [
+											$createInvoiceResponse['message'],
+										],
+									], $this->successStatus);
+								}
+
+								//SEND INDIVIDUAL INVOICING WHATSAPP SMS TO ASP
+								$activity->sendIndividualInvoicingWhatsappSms($createInvoiceResponse['invoice']->id);
+							} else {
+								//SEND BULK INVOICING WHATSAPP SMS TO ASP
+								$activity->sendBulkInvoicingWhatsappSms();
 							}
-
-							//GENERATE INVOICE NUMBER
-							$invoiceNumber = generateInvoiceNumber();
-							$invoiceDate = new Carbon();
-
-							//CREATE INVOICE
-							$crmActivityId[] = $activity->crm_activity_id;
-							$createInvoiceResponse = Invoices::createInvoice($activity->asp, $crmActivityId, $invoiceNumber, $invoiceDate, '', true);
-
-							if (!$createInvoiceResponse['success']) {
-								DB::rollBack();
-								$whatsappWebhookResponse->status = 'Failed';
-								$whatsappWebhookResponse->errors = $createInvoiceResponse['message'];
-								$whatsappWebhookResponse->save();
-								return response()->json([
-									'success' => false,
-									'errors' => [
-										$createInvoiceResponse['message'],
-									],
-								], $this->successStatus);
-							}
-
-							//SEND INDIVIDUAL INVOICING WHATSAPP SMS TO ASP
-							$activity->sendIndividualInvoicingWhatsappSms($createInvoiceResponse['invoice']->id);
+							//UPDATE WEBHOOK STATUS
+							$whatsappWebhookResponse->status = 'Completed';
+							$whatsappWebhookResponse->save();
+							DB::commit();
+							return response()->json([
+								'success' => true,
+							], $this->successStatus);
 						} else {
-							//SEND BULK INVOICING WHATSAPP SMS TO ASP
-							$activity->sendBulkInvoicingWhatsappSms();
-						}
-						//UPDATE WEBHOOK STATUS
-						$whatsappWebhookResponse->status = 'Completed';
-						$whatsappWebhookResponse->save();
-						DB::commit();
-						return response()->json([
-							'success' => true,
-						], $this->successStatus);
-					} else {
-						//SEND MORE THAN ONE INPUT REPLAY WHATSAPP SMS TO ASP
-						$activity->sendMorethanOneInputFromQuickReplyWhatsappSms();
+							//SEND MORE THAN ONE INPUT REPLAY WHATSAPP SMS TO ASP
+							$activity->sendMorethanOneInputFromQuickReplyWhatsappSms();
 
+							//UPDATE WEBHOOK STATUS
+							$whatsappWebhookResponse->status = 'Failed';
+							$whatsappWebhookResponse->errors = "ASP already responded to acceptance charges";
+							$whatsappWebhookResponse->save();
+							DB::commit();
+							return response()->json([
+								'success' => false,
+								'errors' => [
+									'ASP already responded to acceptance charges',
+								],
+							], $this->successStatus);
+						}
+					} else {
 						//UPDATE WEBHOOK STATUS
 						$whatsappWebhookResponse->status = 'Failed';
-						$whatsappWebhookResponse->errors = "ASP already responded to acceptance charges";
+						$whatsappWebhookResponse->errors = "ASP not having whatsapp number";
 						$whatsappWebhookResponse->save();
 						DB::commit();
 						return response()->json([
 							'success' => false,
 							'errors' => [
-								'ASP already responded to acceptance charges',
+								'ASP not having whatsapp number',
 							],
 						], $this->successStatus);
 					}
-				} else {
-					//UPDATE WEBHOOK STATUS
-					$whatsappWebhookResponse->status = 'Failed';
-					$whatsappWebhookResponse->errors = "ASP not having whatsapp number";
-					$whatsappWebhookResponse->save();
-					DB::commit();
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							'ASP not having whatsapp number',
-						],
-					], $this->successStatus);
 				}
+			} else {
+				//UPDATE WEBHOOK STATUS
+				$whatsappWebhookResponse->status = 'Failed';
+				$whatsappWebhookResponse->errors = "ASP does not have a Whatsapp flow";
+				$whatsappWebhookResponse->save();
+				DB::commit();
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'ASP does not have a Whatsapp flow',
+					],
+				], $this->successStatus);
 			}
 
 		} catch (\Exception $e) {
@@ -1306,8 +1315,10 @@ class ActivityController extends Controller {
 			//UPLOAD TOW IMAGE API LOG
 			saveApiLog(111, NULL, $request->all(), $errors, NULL, 120);
 
+			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
+
 			//SEND IMAGE UPLOAD CONFIRMATION WHATSAPP SMS TO ASP
-			if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
+			if ($activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 				$activity->sendImageUploadConfirmationWhatsappSms();
 			}
 

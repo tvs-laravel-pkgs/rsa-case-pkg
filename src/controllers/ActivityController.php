@@ -4345,7 +4345,7 @@ class ActivityController extends Controller {
 				return response()->json([
 					'success' => false,
 					'errors' => [
-						'Activity not found',
+						'Ticket not found',
 					],
 				]);
 			}

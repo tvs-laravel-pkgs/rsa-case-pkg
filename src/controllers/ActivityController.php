@@ -4053,6 +4053,14 @@ class ActivityController extends Controller {
 			$activity = Activity::withTrashed()->whereNotIn('status_id', [12, 13, 14, 15, 16])
 				->where('id', $request->activity_id)
 				->first();
+			if (!$activity) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Activity not found',
+					],
+				]);
+			}
 			$activity->not_eligible_moved_by_id = Auth::user()->id;
 			$activity->not_eligible_moved_at = Carbon::now();
 			$activity->not_eligible_reason = $request->not_eligible_reason;

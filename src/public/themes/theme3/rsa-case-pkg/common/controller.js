@@ -283,6 +283,11 @@ app.component('billingDetails', {
                 self.activity_back_asp_update_route = activity_back_asp_update;
                 self.backstepReason = '';
                 self.csrf = token;
+                if (self.data.activity_portal_status_id == 6 || self.data.activity_portal_status_id == 9) {
+                    self.data.raw_bo_collected = 0;
+                    self.data.raw_bo_not_collected = 0;
+                    self.data.raw_bo_km_travelled = 0;
+                }
 
                 self.show_km = 0;
                 if (self.data.verification == 1) {
@@ -322,7 +327,6 @@ app.component('billingDetails', {
                         custom_noty('error', 'Service is required');
                         return;
                     }
-
                     if (self.data.raw_bo_km_travelled !== 0 && self.data.raw_bo_km_travelled === '') {
                         custom_noty('error', 'KM Travelled is required');
                         return;

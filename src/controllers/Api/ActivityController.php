@@ -592,17 +592,23 @@ class ActivityController extends Controller {
 				}
 			}
 
-			//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
-			if ($newActivity && $activity->asp && !empty($activity->asp->whatsapp_number)) {
-				$activity->sendBreakdownAlertWhatsappSms();
+			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
+
+			if (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp && $activity->asp->has_whatsapp_flow == 1)) {
+				//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
+				if ($newActivity && $activity->asp && !empty($activity->asp->whatsapp_number)) {
+					$activity->sendBreakdownAlertWhatsappSms();
+				}
 			}
 
 			// CHECK CASE IS CLOSED
 			if ($case->status_id == 4) {
 
-				//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
-				if ($asp && !empty($asp->whatsapp_number) && $activity->status_id == 10) {
-					$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
+				if (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp && $activity->asp->has_whatsapp_flow == 1)) {
+					//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
+					if ($asp && !empty($asp->whatsapp_number) && $activity->status_id == 10) {
+						$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
+					}
 				}
 
 				$activity->where([
@@ -646,9 +652,11 @@ class ActivityController extends Controller {
 				}
 			}
 
-			//IF ACTIVITY CANCELLED THEN SEND ACTIVITY CANCELLED WHATSAPP SMS TO ASP
-			if (!empty($activity_status_id) && $activity_status_id == 4 && $activity->asp && !empty($activity->asp->whatsapp_number)) {
-				$activity->sendActivityCancelledWhatsappSms();
+			if (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp && $activity->asp->has_whatsapp_flow == 1)) {
+				//IF ACTIVITY CANCELLED THEN SEND ACTIVITY CANCELLED WHATSAPP SMS TO ASP
+				if (!empty($activity_status_id) && $activity_status_id == 4 && $activity->asp && !empty($activity->asp->whatsapp_number)) {
+					$activity->sendActivityCancelledWhatsappSms();
+				}
 			}
 
 			//UPDATE LOG ACTIVITY AND LOG MESSAGE

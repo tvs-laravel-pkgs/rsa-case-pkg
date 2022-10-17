@@ -200,22 +200,22 @@ class ActivityController extends Controller {
 						            </a>';
 				}
 
-				//RELEASE ON HOLD CASES
-				if (Entrust::can('release-onhold-case')) {
-					$onholdCaseReleaseIcon = asset('public/img/content/table/release.svg');
-					if ($activity->status_id == 17) {
-						$action .= '<a href="javascript:;" onclick="angular.element(this).scope().releaseOnHoldCase(' . $activity->id . ')" title="Release On Hold Case">
-                						<img src="' . $onholdCaseReleaseIcon . '" alt="Release On Hold Case" class="img-responsive">
-                					</a>';
-					}
-				}
-
 				//MOVE CASE TO NOT ELIGIBLE FOR PAYOUT
 				if (Entrust::can('move-activity-to-not-eligible-payout')) {
 					$notEligibleIcon = asset('public/img/content/table/noteligible.svg');
 					if ($activity->status_id != 15 && $activity->status_id != 16 && $activity->status_id != 12 && $activity->status_id != 13 && $activity->status_id != 14) {
 						$action .= '<a href="javascript:;" onclick="angular.element(this).scope().moveToNotEligibleForPayout(' . $activity->id . ')" title="Move To Not Eligible">
                 						<img src="' . $notEligibleIcon . '" alt="Move To Not Eligible" class="img-responsive">
+                					</a>';
+					}
+				}
+
+				//RELEASE ON HOLD CASES
+				if (Entrust::can('release-onhold-case')) {
+					$onholdCaseReleaseIcon = asset('public/img/content/table/release.svg');
+					if ($activity->status_id == 17) {
+						$action .= '<a href="javascript:;" onclick="angular.element(this).scope().releaseOnHoldCase(' . $activity->id . ')" title="Release On Hold Case">
+                						<img src="' . $onholdCaseReleaseIcon . '" alt="Release On Hold Case" class="img-responsive">
                 					</a>';
 					}
 				}
@@ -1572,7 +1572,7 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24])
+			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24, 5, 8, 18, 20, 23])
 				->where('id', $request->activity_id)
 				->first();
 			if (!$activity) {

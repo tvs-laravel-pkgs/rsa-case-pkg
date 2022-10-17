@@ -538,7 +538,7 @@ app.component('billingDetails', {
                 }
                 $scope.calculate();
                 $scope.$apply()
-            }, 2500);
+            }, 3000);
         };
     }
 });

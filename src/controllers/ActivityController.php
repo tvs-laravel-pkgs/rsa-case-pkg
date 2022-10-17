@@ -2395,7 +2395,7 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24])
+			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24, 5, 8, 18, 20, 23])
 				->where('id', $request->activity_id)
 				->first();
 

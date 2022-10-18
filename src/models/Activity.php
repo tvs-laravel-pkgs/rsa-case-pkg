@@ -1323,19 +1323,47 @@ class Activity extends Model {
 								$caseActivities = $case->activities()->where('status_id', 17)->get();
 								if ($caseActivities->isNotEmpty()) {
 									foreach ($caseActivities as $key => $caseActivity) {
-										// ROS SERVICE
-										if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id != 3) {
-											$autoApprovalProcessResponse = $caseActivity->autoApprovalProcess();
-											if (!$autoApprovalProcessResponse['success']) {
-												$status['errors'][] = "Case Number : " . $caseActivity->case->number . " - " . $autoApprovalProcessResponse['error'];
+
+										//WHATSAPP FLOW
+										if ($caseActivity->asp && !empty($caseActivity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $caseActivity->asp->has_whatsapp_flow == 1))) {
+											// ROS SERVICE
+											if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id != 3) {
+												$autoApprovalProcessResponse = $caseActivity->autoApprovalProcess();
+												if (!$autoApprovalProcessResponse['success']) {
+													$status['errors'][] = "Case Number : " . $caseActivity->case->number . " - " . $autoApprovalProcessResponse['error'];
+												}
+											} else {
+												// TOW SERVICE
+												if ($caseActivity->towing_attachments_uploaded_on_whatsapp == 1 || $caseActivity->is_asp_data_entry_done == 1) {
+													//ASP Completed Data Entry - Waiting for L1 Individual Verification
+													$statusId = 6;
+												} else {
+													$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+												}
+												$caseActivity->update([
+													'status_id' => $statusId,
+												]);
 											}
 										} else {
-											// TOW SERVICE
-											if ($caseActivity->towing_attachments_uploaded_on_whatsapp == 1 || $caseActivity->is_asp_data_entry_done == 1) {
-												//ASP Completed Data Entry - Waiting for L1 Individual Verification
-												$statusId = 6;
+											// NORMAL FLOW
+
+											//MECHANICAL SERVICE GROUP
+											if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id == 2) {
+												$cc_total_km = $caseActivity->detail(280) ? $caseActivity->detail(280)->value : 0;
+												$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id);
+												if ($isBulk) {
+													//ASP Completed Data Entry - Waiting for L1 Bulk Verification
+													$statusId = 5;
+												} else {
+													//ASP Completed Data Entry - Waiting for L1 Individual Verification
+													$statusId = 6;
+												}
 											} else {
-												$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+												if ($caseActivity->is_asp_data_entry_done == 1) {
+													$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+												} else {
+													$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+												}
 											}
 											$caseActivity->update([
 												'status_id' => $statusId,

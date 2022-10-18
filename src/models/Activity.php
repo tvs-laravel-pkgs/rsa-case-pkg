@@ -65,6 +65,12 @@ class Activity extends Model {
 		'is_exceptional_check',
 		'exceptional_reason',
 		'general_remarks',
+		'not_eligible_moved_by_id',
+		'not_eligible_moved_at',
+		'not_eligible_reason',
+		'towing_attachments_mandatory_by_id',
+		'onhold_released_by_id',
+		'onhold_released_at',
 	];
 
 	// Relationships --------------------------------------------------------------

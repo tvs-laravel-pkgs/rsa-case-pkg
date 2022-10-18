@@ -173,7 +173,7 @@ class ActivityController extends Controller {
 				$status_id = 1;
 				$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24];
 
-				$action = '<div class="dataTable-actions">
+				$action = '<div class="dataTable-actions" style="min-width: 125px;">
 				<a href="#!/rsa-case-pkg/activity-status/' . $status_id . '/view/' . $activity->id . '">
 					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
 					            </a>';
@@ -197,6 +197,26 @@ class ActivityController extends Controller {
 					$action .= '<a onclick="angular.element(this).scope().towingImageRequiredBtn(' . $activity->id . ',' . $activity->is_towing_attachments_mandatory . ')" href="javascript:void(0)">
 										<i class="dataTable-icon--edit-1" data-cl-id =' . $activity->id . ' aria-hidden="true"><img class="" src="resources/assets/images/edit-note.svg"></i>
 						            </a>';
+				}
+
+				//MOVE CASE TO NOT ELIGIBLE FOR PAYOUT
+				if (Entrust::can('move-activity-to-not-eligible-payout')) {
+					$notEligibleIcon = asset('public/img/content/table/noteligible.svg');
+					if ($activity->status_id != 15 && $activity->status_id != 16 && $activity->status_id != 12 && $activity->status_id != 13 && $activity->status_id != 14) {
+						$action .= '<a href="javascript:;" onclick="angular.element(this).scope().moveToNotEligibleForPayout(' . $activity->id . ')" title="Move To Not Eligible">
+                						<img src="' . $notEligibleIcon . '" alt="Move To Not Eligible" class="img-responsive">
+                					</a>';
+					}
+				}
+
+				//RELEASE ON HOLD CASES
+				if (Entrust::can('release-onhold-case')) {
+					$onholdCaseReleaseIcon = asset('public/img/content/table/release.svg');
+					if ($activity->status_id == 17) {
+						$action .= '<a href="javascript:;" onclick="angular.element(this).scope().releaseOnHoldCase(' . $activity->id . ')" title="Release On Hold Case">
+                						<img src="' . $onholdCaseReleaseIcon . '" alt="Release On Hold Case" class="img-responsive">
+                					</a>';
+					}
 				}
 
 				$action .= '</div>';
@@ -239,7 +259,7 @@ class ActivityController extends Controller {
 			if ($request->ticket_status_id == '1') {
 				$activity->status_id = 2;
 				$activity->is_asp_data_entry_done = NULL;
-				$activity->backstep_reason = $request->backstep_reason;
+				$activity->backstep_reason = makeUrltoLinkInString($request->backstep_reason);
 				$activity->backstepped_at = Carbon::now();
 				$activity->backstep_by_id = Auth::user()->id;
 				$activity->updated_at = Carbon::now();
@@ -271,7 +291,7 @@ class ActivityController extends Controller {
 			} elseif ($request->ticket_status_id == '2') {
 				//BO Rejected - Waiting for ASP Data Re-Entry
 				$activity->status_id = 7;
-				$activity->backstep_reason = $request->backstep_reason;
+				$activity->backstep_reason = makeUrltoLinkInString($request->backstep_reason);
 				$activity->backstepped_at = Carbon::now();
 				$activity->backstep_by_id = Auth::user()->id;
 				$activity->updated_at = Carbon::now();
@@ -617,6 +637,7 @@ class ActivityController extends Controller {
 					DB::raw('IF(activities.bo_comments IS NULL,"-",bo_comments) as bo_comments'),
 					DB::raw('IF(activities.defer_reason IS NULL,"-",defer_reason) as defer_reason'),
 					'cases.number',
+					'cases.membership_type',
 					'cases.customer_name as customer_name',
 					'cases.vin_no',
 					'cases.km_during_breakdown',
@@ -1492,7 +1513,9 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$activity = Activity::findOrFail($request->activity_id);
+			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24, 5, 8, 18, 20, 23])
+				->where('id', $request->activity_id)
+				->first();
 			if (!$activity) {
 				return response()->json([
 					'success' => false,
@@ -1565,30 +1588,30 @@ class ActivityController extends Controller {
 					//L1
 					if (Auth::user()->activity_approval_level_id == 1) {
 						if (!empty($exceptionalReason)) {
-							$exceptionalReason .= nl2br("<hr> L1 Approver : " . $request->exceptional_reason);
+							$exceptionalReason .= nl2br("<hr> L1 Approver : " . makeUrltoLinkInString($request->exceptional_reason));
 						} else {
-							$exceptionalReason = 'L1 Approver : ' . $request->exceptional_reason;
+							$exceptionalReason = 'L1 Approver : ' . makeUrltoLinkInString($request->exceptional_reason);
 						}
 					} elseif (Auth::user()->activity_approval_level_id == 2) {
 						//L2
 						if (!empty($exceptionalReason)) {
-							$exceptionalReason .= nl2br("<hr> L2 Approver : " . $request->exceptional_reason);
+							$exceptionalReason .= nl2br("<hr> L2 Approver : " . makeUrltoLinkInString($request->exceptional_reason));
 						} else {
-							$exceptionalReason = 'L2 Approver : ' . $request->exceptional_reason;
+							$exceptionalReason = 'L2 Approver : ' . makeUrltoLinkInString($request->exceptional_reason);
 						}
 					} elseif (Auth::user()->activity_approval_level_id == 3) {
 						//L3
 						if (!empty($exceptionalReason)) {
-							$exceptionalReason .= nl2br("<hr> L3 Approver : " . $request->exceptional_reason);
+							$exceptionalReason .= nl2br("<hr> L3 Approver : " . makeUrltoLinkInString($request->exceptional_reason));
 						} else {
-							$exceptionalReason = 'L3 Approver : ' . $request->exceptional_reason;
+							$exceptionalReason = 'L3 Approver : ' . makeUrltoLinkInString($request->exceptional_reason);
 						}
 					} elseif (Auth::user()->activity_approval_level_id == 4) {
 						//L4
 						if (!empty($exceptionalReason)) {
-							$exceptionalReason .= nl2br("<hr> L4 Approver : " . $request->exceptional_reason);
+							$exceptionalReason .= nl2br("<hr> L4 Approver : " . makeUrltoLinkInString($request->exceptional_reason));
 						} else {
-							$exceptionalReason = 'L4 Approver : ' . $request->exceptional_reason;
+							$exceptionalReason = 'L4 Approver : ' . makeUrltoLinkInString($request->exceptional_reason);
 						}
 					}
 					$activity->exceptional_reason = $exceptionalReason;
@@ -2100,8 +2123,10 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$activities = Activity::whereIn('id', $request->activity_ids)->get();
-			if (count($activities) == 0) {
+			$activities = Activity::whereIn('id', $request->activity_ids)
+				->whereIn('status_id', [5, 8, 18, 20, 23])
+				->get();
+			if ($activities->isEmpty()) {
 				return response()->json([
 					'success' => false,
 					'error' => 'Activities not found',
@@ -2450,7 +2475,18 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$activity = Activity::findOrFail($request->activity_id);
+			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24, 5, 8, 18, 20, 23])
+				->where('id', $request->activity_id)
+				->first();
+
+			if (!$activity) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Activity not found',
+					],
+				]);
+			}
 
 			$eligleForAspReEntry = false;
 			$deferReason = $activity->defer_reason;
@@ -2459,9 +2495,9 @@ class ActivityController extends Controller {
 				$activityStatusId = 7; //BO Rejected - Waiting for ASP Data Re-Entry
 				$eligleForAspReEntry = true;
 				if (!empty($deferReason)) {
-					$deferReason .= nl2br("<hr> L1 Approver : " . $request->defer_reason);
+					$deferReason .= nl2br("<hr> L1 Approver : " . makeUrltoLinkInString($request->defer_reason));
 				} else {
-					$deferReason = "L1 Approver : " . $request->defer_reason;
+					$deferReason = "L1 Approver : " . makeUrltoLinkInString($request->defer_reason);
 				}
 				$activity->service_type_changed_on_level = NULL;
 				$activity->l1_changed_service_type_id = NULL;
@@ -2474,27 +2510,27 @@ class ActivityController extends Controller {
 				// L2
 				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
 				if (!empty($deferReason)) {
-					$deferReason .= nl2br("<hr> L2 Approver : " . $request->defer_reason);
+					$deferReason .= nl2br("<hr> L2 Approver : " . makeUrltoLinkInString($request->defer_reason));
 				} else {
-					$deferReason = "L2 Approver : " . $request->defer_reason;
+					$deferReason = "L2 Approver : " . makeUrltoLinkInString($request->defer_reason);
 				}
 				$activity->l2_changed_service_type_id = NULL;
 			} elseif (Auth::user()->activity_approval_level_id == 3) {
 				// L3
 				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
 				if (!empty($deferReason)) {
-					$deferReason .= nl2br("<hr> L3 Approver : " . $request->defer_reason);
+					$deferReason .= nl2br("<hr> L3 Approver : " . makeUrltoLinkInString($request->defer_reason));
 				} else {
-					$deferReason = "L3 Approver : " . $request->defer_reason;
+					$deferReason = "L3 Approver : " . makeUrltoLinkInString($request->defer_reason);
 				}
 				$activity->l3_changed_service_type_id = NULL;
 			} elseif (Auth::user()->activity_approval_level_id == 4) {
 				// L4
 				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
 				if (!empty($deferReason)) {
-					$deferReason .= nl2br("<hr> L4 Approver : " . $request->defer_reason);
+					$deferReason .= nl2br("<hr> L4 Approver : " . makeUrltoLinkInString($request->defer_reason));
 				} else {
-					$deferReason = "L4 Approver : " . $request->defer_reason;
+					$deferReason = "L4 Approver : " . makeUrltoLinkInString($request->defer_reason);
 				}
 			}
 
@@ -2904,7 +2940,9 @@ class ActivityController extends Controller {
 		// dd($request->all());
 		DB::beginTransaction();
 		try {
-			$activity = Activity::findOrFail($request->activity_id);
+			$activity = Activity::whereIn('status_id', [2, 4, 7, 17])
+				->where('id', $request->activity_id)
+				->first();
 			if (!$activity) {
 				return response()->json([
 					'success' => false,
@@ -3072,10 +3110,6 @@ class ActivityController extends Controller {
 				->first();
 			if ($aspServiceType) {
 				$range_limit = $aspServiceType->range_limit;
-			}
-
-			if (!empty($request->comments)) {
-				$activity->asp_resolve_comments = $request->comments;
 			}
 
 			//VEHICLE PICKUP ATTACHMENT
@@ -3283,7 +3317,7 @@ class ActivityController extends Controller {
 
 			if (!empty($request->comments)) {
 				//$activity->comments = $request->comments;
-				$activity->asp_resolve_comments = $request->comments;
+				$activity->asp_resolve_comments = makeUrltoLinkInString($request->comments);
 			}
 
 			if (floatval($asp_other) >= 31) {
@@ -3317,12 +3351,12 @@ class ActivityController extends Controller {
 				}
 
 				if (!empty($request->remarks_not_collected)) {
-					$activity->remarks = $request->remarks_not_collected;
+					$activity->remarks = makeUrltoLinkInString(strip_tags($request->remarks_not_collected));
 				}
 			}
 
 			if (!empty($request->general_remarks)) {
-				$activity->general_remarks = $request->general_remarks;
+				$activity->general_remarks = makeUrltoLinkInString($request->general_remarks);
 			}
 			$activity->updated_by_id = Auth::user()->id;
 			$activity->save();
@@ -3886,13 +3920,14 @@ class ActivityController extends Controller {
 				'status_id',
 			])
 				->whereIn('crm_activity_id', $request->crm_activity_ids)
+				->whereIn('status_id', [11, 1]) //Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
 				->get();
 
 			//CUSTOM VALIDATION SAID BY BUSINESS TEAM
 			$aug21ToNov21caseExist = false;
 			$afterDec21caseExist = false;
 
-			if (!empty($activities)) {
+			if ($activities->isNotEmpty()) {
 				foreach ($activities as $key => $activity) {
 					//CHECK ASP MATCHES WITH ACTIVITY ASP
 					if ($activity->asp_id != $asp->id) {
@@ -3936,7 +3971,6 @@ class ActivityController extends Controller {
 					'error' => 'Activity not found',
 				]);
 			}
-
 			if ($aug21ToNov21caseExist && $afterDec21caseExist) {
 				return response()->json([
 					'success' => false,
@@ -4077,6 +4111,63 @@ class ActivityController extends Controller {
 				'success' => false,
 				'errors' => [
 					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
+		}
+	}
+
+	public function moveToNotEligibleForPayout(Request $request) {
+		// dd($request->all());
+		DB::beginTransaction();
+		try {
+			$validator = Validator::make($request->all(), [
+				'activity_id' => [
+					'required',
+					'integer',
+					'exists:activities,id',
+				],
+				'not_eligible_reason' => [
+					'required',
+					'string',
+				],
+			]);
+
+			if ($validator->fails()) {
+				return response()->json([
+					'success' => false,
+					'errors' => $validator->errors()->all(),
+				]);
+			}
+
+			$activity = Activity::withTrashed()->whereNotIn('status_id', [12, 13, 14, 15, 16])
+				->where('id', $request->activity_id)
+				->first();
+			if (!$activity) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Ticket not found',
+					],
+				]);
+			}
+			$activity->not_eligible_moved_by_id = Auth::user()->id;
+			$activity->not_eligible_moved_at = Carbon::now();
+			$activity->not_eligible_reason = $request->not_eligible_reason;
+			$activity->status_id = 15; //Not Eligible for Payout
+			$activity->save();
+			DB::commit();
+
+			return response()->json([
+				'success' => true,
+				'message' => 'Activity moved to not eligible for payout',
+			]);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			]);
 		}
@@ -4734,12 +4825,12 @@ class ActivityController extends Controller {
 						$activity->service_type,
 						$activity->activity_portal_status,
 						$activity->activity_status,
-						$activity->remarks != NULL ? $activity->remarks : '',
-						$activity->general_remarks != NULL ? $activity->general_remarks : '',
-						$activity->bo_comments != NULL ? $activity->bo_comments : '',
-						$activity->deduction_reason != NULL ? $activity->deduction_reason : '',
-						$activity->defer_reason != NULL ? $activity->defer_reason : '',
-						$activity->asp_resolve_comments != NULL ? $activity->asp_resolve_comments : '',
+						!empty($activity->remarks) ? strip_tags($activity->remarks) : '',
+						!empty($activity->general_remarks) ? strip_tags($activity->general_remarks) : '',
+						!empty($activity->bo_comments) ? $activity->bo_comments : '',
+						!empty($activity->deduction_reason) ? $activity->deduction_reason : '',
+						!empty($activity->defer_reason) ? strip_tags($activity->defer_reason) : '',
+						!empty($activity->asp_resolve_comments) ? strip_tags($activity->asp_resolve_comments) : '',
 						$activity->invoice_no,
 						$inv_created_at,
 						$activity->invoice_status,
@@ -4792,18 +4883,18 @@ class ActivityController extends Controller {
 						!empty($activity->asp_po_rejected_reason) ? $activity->asp_po_rejected_reason : '',
 						$activity->activity_portal_status,
 						$activity->activity_status,
-						$activity->description != NULL ? $activity->description : '',
+						!empty($activity->description) ? $activity->description : '',
 						$activity->is_towing_attachments_mandatory,
 						$activity->towingAttachmentMandatoryBy ? $activity->towingAttachmentMandatoryBy->name : '',
-						$activity->remarks != NULL ? $activity->remarks : '',
-						$activity->manual_uploading_remarks != NULL ? $activity->manual_uploading_remarks : '',
-						$activity->general_remarks != NULL ? $activity->general_remarks : '',
-						$activity->bo_comments != NULL ? $activity->bo_comments : '',
-						$activity->deduction_reason != NULL ? $activity->deduction_reason : '',
-						$activity->defer_reason != NULL ? strip_tags($activity->defer_reason) : '',
-						$activity->asp_resolve_comments != NULL ? $activity->asp_resolve_comments : '',
+						!empty($activity->remarks) ? strip_tags($activity->remarks) : '',
+						!empty($activity->manual_uploading_remarks) ? $activity->manual_uploading_remarks : '',
+						!empty($activity->general_remarks) ? strip_tags($activity->general_remarks) : '',
+						!empty($activity->bo_comments) ? $activity->bo_comments : '',
+						!empty($activity->deduction_reason) ? $activity->deduction_reason : '',
+						!empty($activity->defer_reason) ? strip_tags($activity->defer_reason) : '',
+						!empty($activity->asp_resolve_comments) ? strip_tags($activity->asp_resolve_comments) : '',
 						$activity->is_exceptional_check == 1 ? 'Yes' : 'No',
-						$activity->exceptional_reason != NULL ? strip_tags($activity->exceptional_reason) : '',
+						!empty($activity->exceptional_reason) ? strip_tags($activity->exceptional_reason) : '',
 						// $activity->invoice ? ($activity->asp->has_gst == 1 && $activity->asp->is_auto_invoice == 0 ? ($activity->invoice->invoice_no) : ($activity->invoice->invoice_no . '-' . $activity->invoice->id)) : '',
 						$activity->invoice_no,
 						$inv_created_at,
@@ -5056,6 +5147,7 @@ class ActivityController extends Controller {
 		}
 	}
 
+	// NOT USED NOW
 	public function releaseOnHold(Request $r) {
 		// dd($r->all());
 		DB::beginTransaction();
@@ -5125,6 +5217,62 @@ class ActivityController extends Controller {
 			]);
 		}
 	}
+
+	public function releaseOnHoldActivity($activityId) {
+		// dd($activityId);
+		DB::beginTransaction();
+		try {
+			$activity = Activity::withTrashed()->where('status_id', 17) //ONHOLD
+				->find($activityId);
+			if (!$activity) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Ticket not found',
+					],
+				]);
+			}
+
+			//MECHANICAL SERVICE GROUP
+			if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
+				$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
+				$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+				if ($is_bulk) {
+					$statusId = 5; //ASP Completed Data Entry - Waiting for L1 Bulk Verification
+				} else {
+					$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+				}
+			} else {
+				if ($activity->is_asp_data_entry_done == 1) {
+					$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+				} else {
+					$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+				}
+			}
+			$activity->update([
+				'status_id' => $statusId,
+				'onhold_released_by_id' => Auth::user()->id,
+				'onhold_released_at' => Carbon::now(),
+				'updated_by_id' => Auth::user()->id,
+			]);
+
+			DB::commit();
+			return response()->json([
+				'success' => true,
+				'message' => 'Activity released successfully',
+			]);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
+		}
+	}
+
 	public static function findDifference($date1, $date2) {
 		$date1 = date_create(date('Y-m-d', strtotime($date1)));
 		$date2 = date_create(date('Y-m-d', strtotime($date2)));

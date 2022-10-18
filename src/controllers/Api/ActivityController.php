@@ -619,8 +619,8 @@ class ActivityController extends Controller {
 
 			}
 
-			//RELEASE ONHOLD ACTIVITIES WITH CLOSED OR CANCELLED CASES
-			if (($case->status_id == 4 || $case->status_id == 3) && $activity->status_id == 17) {
+			//RELEASE ONHOLD / ASP COMPLETED DATA ENTRY - WAITING FOR CALL CENTER DATA ENTRY ACTIVITIES WITH CLOSED OR CANCELLED CASES
+			if (($case->status_id == 4 || $case->status_id == 3) && ($activity->status_id == 17 || $activity->status_id == 26)) {
 
 				//WHATSAPP FLOW
 				if ($activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
@@ -946,14 +946,30 @@ class ActivityController extends Controller {
 							->first();
 						if (!$breakdownChargesAlreadyResponded) {
 							if ($payload->value == 'Yes') {
+
+								$activity->status_id = 11; // Waiting for Invoice Generation by ASP
+								$activity->save();
+
+								//LOG SAVE
+								$activityLog = ActivityLog::firstOrNew([
+									'activity_id' => $activity->id,
+								]);
+								$activityLog->bo_approved_at = Carbon::now();
+								$activityLog->bo_approved_by_id = 72;
+								$activityLog->updated_by_id = 72;
+								$activityLog->updated_at = Carbon::now();
+								$activityLog->save();
+
+								$activity->updateApprovalLog();
+
 								//SEND ASP ACCEPTANCE CHARGES WHATSAPP SMS TO ASP
 								$activity->sendAspAcceptanceChargesWhatsappSms();
 							} else {
+								$activity->status_id = 2; // ASP Rejected CC Details - Waiting for ASP Data Entry
+								$activity->save();
+
 								//SEND ASP CHARGES REJECTION WHATSAPP SMS TO ASP
 								$activity->sendAspChargesRejectionWhatsappSms();
-
-								$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
-								$activity->save();
 							}
 							//UPDATE WEBHOOK STATUS
 							$whatsappWebhookResponse->status = 'Completed';

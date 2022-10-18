@@ -1318,9 +1318,9 @@ class Activity extends Model {
 									]);
 							}
 
-							//RELEASE ONHOLD ACTIVITIES WITH CLOSED OR CANCELLED CASES
+							//RELEASE ONHOLD / ASP COMPLETED DATA ENTRY - WAITING FOR CALL CENTER DATA ENTRY ACTIVITIES WITH CLOSED OR CANCELLED CASES
 							if ($case->status_id == 4 || $case->status_id == 3) {
-								$caseActivities = $case->activities()->where('status_id', 17)->get();
+								$caseActivities = $case->activities()->whereIn('status_id', [17, 26])->get();
 								if ($caseActivities->isNotEmpty()) {
 									foreach ($caseActivities as $key => $caseActivity) {
 
@@ -1767,22 +1767,10 @@ class Activity extends Model {
 		}
 
 		// UPDATE STATUS
-		$this->status_id = 11; // Waiting for Invoice Generation by ASP
+		$this->status_id = 25; // Waiting for Charges Acceptance by ASP
 		$this->updated_by_id = 72;
 		$this->updated_at = Carbon::now();
 		$this->save();
-
-		//LOG SAVE
-		$activityLog = ActivityLog::firstOrNew([
-			'activity_id' => $this->id,
-		]);
-		$activityLog->bo_approved_at = Carbon::now();
-		$activityLog->bo_approved_by_id = 72;
-		$activityLog->updated_by_id = 72;
-		$activityLog->updated_at = Carbon::now();
-		$activityLog->save();
-
-		$this->updateApprovalLog();
 
 		$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
 		if ($this->asp && !empty($this->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $this->asp->has_whatsapp_flow == 1))) {

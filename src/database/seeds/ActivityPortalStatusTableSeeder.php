@@ -105,6 +105,10 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 				'name' => 'Waiting for L4 Individual Verification',
 				'company_id' => 1,
 			],
+			25 => [
+				'name' => 'Waiting for Charges Acceptance by ASP',
+				'company_id' => 1,
+			],
 		];
 
 		foreach ($activity_portal_statuses as $id => $activity_portal_status_val) {

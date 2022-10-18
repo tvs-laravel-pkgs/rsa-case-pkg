@@ -1611,7 +1611,7 @@ class Activity extends Model {
 			];
 		} else {
 			// TOWING SERVICE
-			$templateId = 'case_assignment_tow_upload_image_bt';
+			$templateId = 'case_assignment_tow_upload_image_bt_new';
 			$bodyParameterValues = new \stdClass();
 			$bodyParameterValues->{'0'} = $aspName;
 			$bodyParameterValues->{'1'} = $caseDate;
@@ -1630,6 +1630,7 @@ class Activity extends Model {
 			$payloadIndex = [
 				"value" => "Upload Images",
 				"activity_id" => $this->number,
+				"vehicle_no" => $vehicleNumber,
 				"type" => "New Breakdown Alert",
 			];
 
@@ -1868,7 +1869,7 @@ class Activity extends Model {
 
 			//ROS SERVICE
 			if ($this->serviceType && !empty($this->serviceType->service_group_id) && $this->serviceType->service_group_id != 3) {
-				$templateId = 'empty_return_charges_ros';
+				$templateId = 'empty_return_charges_ros_new';
 			} else {
 				//TOW SERVICE
 				$templateId = 'empty_return_charges_tow';
@@ -1886,11 +1887,13 @@ class Activity extends Model {
 		$payloadIndexOne = [
 			"value" => "Yes",
 			"activity_id" => $this->number,
+			"vehicle_no" => $vehicleNumber,
 			"type" => "Breakdown Charges",
 		];
 		$payloadIndexTwo = [
 			"value" => "No",
 			"activity_id" => $this->number,
+			"vehicle_no" => $vehicleNumber,
 			"type" => "Breakdown Charges",
 		];
 		$inputRequests = [
@@ -1950,7 +1953,7 @@ class Activity extends Model {
 			$templateId = 'asp_charges_acceptance_ros';
 		} else {
 			//TOW SERVICE
-			$templateId = 'asp_charges_acceptance_tow';
+			$templateId = 'asp_charges_acceptance_tow_new';
 		}
 
 		$bodyParameterValues = new \stdClass();
@@ -1962,11 +1965,13 @@ class Activity extends Model {
 		$payloadIndexOne = [
 			"value" => "Yes",
 			"activity_id" => $this->number,
+			"vehicle_no" => $vehicleNumber,
 			"type" => "ASP Charges Acceptance",
 		];
 		$payloadIndexTwo = [
 			"value" => "No",
 			"activity_id" => $this->number,
+			"vehicle_no" => $vehicleNumber,
 			"type" => "ASP Charges Acceptance",
 		];
 

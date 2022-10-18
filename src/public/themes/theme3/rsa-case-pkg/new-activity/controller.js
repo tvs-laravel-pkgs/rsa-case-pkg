@@ -74,6 +74,11 @@ app.component('newActivityUpdateDetails', {
                 $location.path('/rsa-case-pkg/new-activity')
                 return;
             }
+            if (response.data.activity.status_id != 2 && response.data.activity.status_id != 4 && response.data.activity.status_id != 17) {
+                custom_noty('error', "Ticket not eligible for data entry");
+                $location.path('/rsa-case-pkg/new-activity')
+                return;
+            }
             self.service_types_list = response.data.service_types;
             self.for_deffer_activity = response.data.for_deffer_activity;
             //self.actual_km = response.data.activity.total_km;

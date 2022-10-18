@@ -146,6 +146,12 @@ app.component('deferredActivityUpdate', {
                 return;
             }
 
+            if (response.data.activity.status_id != 7) {
+                custom_noty('error', "Ticket not eligible for data re-entry");
+                $location.path('/rsa-case-pkg/deferred-activity/list')
+                return;
+            }
+
             self.service_types_list = response.data.service_types;
             self.for_deffer_activity = response.data.for_deffer_activity;
             self.activity = response.data.activity;

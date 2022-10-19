@@ -894,9 +894,6 @@ class ActivityController extends Controller {
 		$whatsappWebhookResponse->payload = json_encode($request->all());
 		$whatsappWebhookResponse->status = 'Started';
 		$whatsappWebhookResponse->save();
-		// return response()->json([
-		// 	'success' => true,
-		// ], $this->successStatus);
 
 		DB::beginTransaction();
 		try {
@@ -966,6 +963,7 @@ class ActivityController extends Controller {
 								$activity->sendAspAcceptanceChargesWhatsappSms();
 							} else {
 								$activity->status_id = 2; // ASP Rejected CC Details - Waiting for ASP Data Entry
+								$activity->is_asp_data_entry_done = NULL;
 								$activity->save();
 
 								//SEND ASP CHARGES REJECTION WHATSAPP SMS TO ASP

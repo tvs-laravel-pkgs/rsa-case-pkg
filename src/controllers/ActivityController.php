@@ -1953,47 +1953,56 @@ class ActivityController extends Controller {
 				$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 			}
 
-			if (isset($activityStatusId)) {
-				$activity->status_id = $activityStatusId;
-			}
-			$activity->updated_by_id = Auth::user()->id;
-			$activity->updated_at = Carbon::now();
-			$activity->save();
-
-			//LOG SAVE
-			$activityLog = ActivityLog::firstOrNew([
-				'activity_id' => $activity->id,
-			]);
-			//L1
-			if ($approver == '1') {
-				$activityLog->bo_approved_at = Carbon::now();
-				$activityLog->bo_approved_by_id = Auth::id();
-			} elseif ($approver == '2') {
-				//L2
-				$activityLog->l2_approved_at = Carbon::now();
-				$activityLog->l2_approved_by_id = Auth::id();
-			} elseif ($approver == '3') {
-				//L3
-				$activityLog->l3_approved_at = Carbon::now();
-				$activityLog->l3_approved_by_id = Auth::id();
-			} elseif ($approver == '4') {
-				//L4
-				$activityLog->l4_approved_at = Carbon::now();
-				$activityLog->l4_approved_by_id = Auth::id();
-			}
-			$activityLog->updated_by_id = Auth::id();
-			$activityLog->updated_at = Carbon::now();
-			$activityLog->save();
-
-			if ($isApproved) {
-				$this->updateActivityApprovalLog($activity, $request->case_number, 1);
-			}
-
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
 
-			//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP (TOWING SERVICE ONLY)
+			// WHATSAPP FLOW
 			if ($sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3 && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+
+				$activity->status_id = 25; // Waiting for Charges Acceptance by ASP
+				$activity->updated_by_id = Auth::user()->id;
+				$activity->updated_at = Carbon::now();
+				$activity->save();
+
+				// SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP (TOWING SERVICE ONLY)
 				$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
+			} else {
+				//NORMAL FLOW
+
+				if (isset($activityStatusId)) {
+					$activity->status_id = $activityStatusId;
+				}
+				$activity->updated_by_id = Auth::user()->id;
+				$activity->updated_at = Carbon::now();
+				$activity->save();
+
+				//LOG SAVE
+				$activityLog = ActivityLog::firstOrNew([
+					'activity_id' => $activity->id,
+				]);
+				//L1
+				if ($approver == '1') {
+					$activityLog->bo_approved_at = Carbon::now();
+					$activityLog->bo_approved_by_id = Auth::id();
+				} elseif ($approver == '2') {
+					//L2
+					$activityLog->l2_approved_at = Carbon::now();
+					$activityLog->l2_approved_by_id = Auth::id();
+				} elseif ($approver == '3') {
+					//L3
+					$activityLog->l3_approved_at = Carbon::now();
+					$activityLog->l3_approved_by_id = Auth::id();
+				} elseif ($approver == '4') {
+					//L4
+					$activityLog->l4_approved_at = Carbon::now();
+					$activityLog->l4_approved_by_id = Auth::id();
+				}
+				$activityLog->updated_by_id = Auth::id();
+				$activityLog->updated_at = Carbon::now();
+				$activityLog->save();
+
+				if ($isApproved) {
+					$this->updateActivityApprovalLog($activity, $request->case_number, 1);
+				}
 			}
 
 			DB::commit();
@@ -2365,45 +2374,54 @@ class ActivityController extends Controller {
 						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					}
 
-					if (isset($activityStatusId)) {
-						$activity->status_id = $activityStatusId;
-					}
-					$activity->updated_by_id = Auth::user()->id;
-					$activity->updated_at = Carbon::now();
-					$activity->save();
-
-					//LOG SAVE
-					$activityLog = ActivityLog::firstOrNew([
-						'activity_id' => $activity->id,
-					]);
-					//L1
-					if ($approver == '1') {
-						$activityLog->bo_approved_at = Carbon::now();
-						$activityLog->bo_approved_by_id = Auth::id();
-					} elseif ($approver == '2') {
-						//L2
-						$activityLog->l2_approved_at = Carbon::now();
-						$activityLog->l2_approved_by_id = Auth::id();
-					} elseif ($approver == '3') {
-						//L3
-						$activityLog->l3_approved_at = Carbon::now();
-						$activityLog->l3_approved_by_id = Auth::id();
-					} elseif ($approver == '4') {
-						//L4
-						$activityLog->l4_approved_at = Carbon::now();
-						$activityLog->l4_approved_by_id = Auth::id();
-					}
-					$activityLog->updated_by_id = Auth::id();
-					$activityLog->updated_at = Carbon::now();
-					$activityLog->save();
-
-					if ($isApproved) {
-						$this->updateActivityApprovalLog($activity, $activity->case->number, 2);
-					}
-
-					//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP (TOWING SERVICE ONLY)
+					// WHATSAPP FLOW
 					if ($sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3 && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+
+						$activity->status_id = 25; // Waiting for Charges Acceptance by ASP
+						$activity->updated_by_id = Auth::user()->id;
+						$activity->updated_at = Carbon::now();
+						$activity->save();
+
+						//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP (TOWING SERVICE ONLY)
 						$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
+					} else {
+						// NORMAL FLOW
+
+						if (isset($activityStatusId)) {
+							$activity->status_id = $activityStatusId;
+						}
+						$activity->updated_by_id = Auth::user()->id;
+						$activity->updated_at = Carbon::now();
+						$activity->save();
+
+						//LOG SAVE
+						$activityLog = ActivityLog::firstOrNew([
+							'activity_id' => $activity->id,
+						]);
+						//L1
+						if ($approver == '1') {
+							$activityLog->bo_approved_at = Carbon::now();
+							$activityLog->bo_approved_by_id = Auth::id();
+						} elseif ($approver == '2') {
+							//L2
+							$activityLog->l2_approved_at = Carbon::now();
+							$activityLog->l2_approved_by_id = Auth::id();
+						} elseif ($approver == '3') {
+							//L3
+							$activityLog->l3_approved_at = Carbon::now();
+							$activityLog->l3_approved_by_id = Auth::id();
+						} elseif ($approver == '4') {
+							//L4
+							$activityLog->l4_approved_at = Carbon::now();
+							$activityLog->l4_approved_by_id = Auth::id();
+						}
+						$activityLog->updated_by_id = Auth::id();
+						$activityLog->updated_at = Carbon::now();
+						$activityLog->save();
+
+						if ($isApproved) {
+							$this->updateActivityApprovalLog($activity, $activity->case->number, 2);
+						}
 					}
 				} else {
 					return response()->json([

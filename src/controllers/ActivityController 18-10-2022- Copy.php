@@ -146,13 +146,8 @@ class ActivityController extends Controller {
 				$activities->whereIn('asps.state_id', $states);
 			}
 			if (Entrust::can('view-own-activities')) {
-             	if(Auth::user()->asp->is_finance_admin == 1){
-					$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
-					$aspIds[] = Auth::user()->asp->id;
-	                $activities->whereIn('asps.id', $aspIds)->whereNotIn('activities.status_id', [2, 4, 15, 16, 17]);
-                }else{
-                	$activities->where('users.id', Auth::id())->whereNotIn('activities.status_id', [2, 4, 15, 16, 17]);
-                }
+				$activities->where('users.id', Auth::id())
+					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17]);
 			}
 			if (Entrust::can('own-rm-asp-activities')) {
 				$aspIds = Asp::where('regional_manager_id', Auth::user()->id)->pluck('id')->toArray();
@@ -2532,7 +2527,7 @@ class ActivityController extends Controller {
 		}
 	}
 	public function verifyActivity(Request $request) {
-	    //dd($request->all());
+		// dd($request->all());
 		$number = str_replace(' ', '', $request->number);
 		$validator = Validator::make($request->all(), [
 			'number' => 'required',
@@ -2573,23 +2568,15 @@ class ActivityController extends Controller {
 			});
 
 		$caseExistQuery = clone $query;
-			$case = $caseExistQuery->where('activities.asp_id', Auth::user()->asp->id)
+		$case = $caseExistQuery->where('activities.asp_id', Auth::user()->asp->id)
 			->first();
 		if ($case && !empty($case->submission_closing_date)) {
 			$submission_closing_extended = true;
 		}
 
 		$query1 = clone $query;
-		$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
-		$aspIds[] = Auth::user()->asp->id;
 		$tickets = $query1->whereIn('activities.status_id', [2, 4, 17]) // WAITING FOR ASP DATA ENTRY AND ON HOLD
-		    ->where(function ($q) use ($aspIds) {
-				if (Auth::user()->asp->is_finance_admin == 1) {
-					$q->whereIn('activities.asp_id', $aspIds);
-				}else{
-					$q->where('activities.asp_id', Auth::user()->asp->id);
-				}
-			})
+			->where('activities.asp_id', Auth::user()->asp->id)
 			->whereNull('activities.is_asp_data_entry_done') //FOR ONHOLD STATUS PURPOSE
 			->orderBy('activities.id', 'ASC')
 			->get();
@@ -3438,7 +3425,7 @@ class ActivityController extends Controller {
 
 				//sending notification to all ASP STATE MAPPED BO users
 				//$bo_users = User::where('users.role_id', 6)->pluck('users.id'); //6 - Bo User role ID
-				 $state_id = Auth::user()->asp->state_id;
+				$state_id = Auth::user()->asp->state_id;
 				// $bo_users = StateUser::where('state_id', $state_id)->pluck('user_id');
 				$bo_users = DB::table('state_user')
 					->join('users', 'users.id', 'state_user.user_id')
@@ -3473,8 +3460,6 @@ class ActivityController extends Controller {
 	}
 
 	public function getDeferredList(Request $request) {
-		$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
-		$aspIds[] = Auth::user()->asp->id;
 		$activities = Activity::select(
 			'activities.id',
 			'activities.crm_activity_id',
@@ -3503,13 +3488,7 @@ class ActivityController extends Controller {
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 			->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
-			->where(function ($q) use ($aspIds) {
-				if (Auth::user()->asp->is_finance_admin == 1) {
-					$q->whereIn('asps.id', $aspIds);
-				}else{
-					$q->where('users.id', Auth::id());
-				}
-			})
+			->where('users.id', Auth::id())
 			->where('activities.status_id', 7) //BO Rejected - Waiting for ASP Data Re-Entry
 		;
 
@@ -3570,8 +3549,6 @@ class ActivityController extends Controller {
 	}
 
 	public function getApprovedList(Request $request) {
-		$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
-		$aspIds[] = Auth::user()->asp->id;
 		$activities = Activity::select(
 			'activities.id',
 			'activities.crm_activity_id',
@@ -3619,13 +3596,7 @@ class ActivityController extends Controller {
 			})
 			->orderBy('cases.date', 'ASC')
 			->groupBy('activities.id')
-			->where(function ($q) use ($aspIds) {
-				if (Auth::user()->asp->is_finance_admin == 1) {
-					$q->whereIn('asps.id', $aspIds);
-				}else{
-					$q->where('users.id', Auth::id());
-				}
-			})
+			->where('users.id', Auth::id())
 			->whereIn('activities.status_id', [11, 1]) //Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
 		;
 
@@ -3650,6 +3621,7 @@ class ActivityController extends Controller {
 		if ($request->get('client_id')) {
 			$activities->where('cases.client_id', $request->get('client_id'));
 		}
+
 		return Datatables::of($activities)
 			->setRowAttr([
 				'id' => function ($activities) {
@@ -3855,7 +3827,8 @@ class ActivityController extends Controller {
 			}
 
 			//GET ASP
-			$asp = ASP::where('id', Auth::user()->asp->id)->first();
+			$asp = ASP::where('id', $request->asp_id)->first();
+
 			//CHECK IF INVOICE ALREADY CREATED FOR ACTIVITY
 			$activities = Activity::select([
 				'invoice_id',
@@ -3875,16 +3848,13 @@ class ActivityController extends Controller {
 
 			if ($activities->isNotEmpty()) {
 				foreach ($activities as $key => $activity) {
-					$aspId = Asp::where('finance_admin_id', Auth::user()->asp->id)->where('id',$activity->asp_id)->pluck('id')->first();
 					//CHECK ASP MATCHES WITH ACTIVITY ASP
-				if(Auth::user()->asp->is_finance_admin != 1 && !$aspId){
 					if ($activity->asp_id != $asp->id) {
 						return response()->json([
 							'success' => false,
 							'error' => 'ASP not matched for activity ID ' . $activity->crm_activity_id,
 						]);
 					}
-				}
 					//CHECK IF INVOICE ALREADY CREATED FOR ACTIVITY
 					if (!empty($activity->invoice_id)) {
 						return response()->json([

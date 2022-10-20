@@ -206,8 +206,9 @@ class Activity extends Model {
 		if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
 			$isMobile = 1;
 		}
-
-		$data['service_types'] = Asp::where('asps.user_id', Auth::id())
+		$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+		$aspIds[] = Auth::user()->asp->id;
+		$data['service_types'] = Asp::whereIn('asps.id', $aspIds)
 			->where('asp_service_types.is_mobile', $isMobile)
 			->join('asp_service_types', 'asp_service_types.asp_id', '=', 'asps.id')
 			->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')

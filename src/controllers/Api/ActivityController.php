@@ -940,6 +940,7 @@ class ActivityController extends Controller {
 					if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
 						$breakdownChargesAlreadyResponded = ActivityWhatsappLog::where('activity_id', $activity->id)
 							->whereIn('type_id', [1195, 1196])
+							->where('is_new', 1)
 							->first();
 						if (!$breakdownChargesAlreadyResponded) {
 							if ($payload->value == 'Yes') {
@@ -1009,6 +1010,7 @@ class ActivityController extends Controller {
 					if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
 						$aspChargesAcceptanceAlreadyResponded = ActivityWhatsappLog::where('activity_id', $activity->id)
 							->whereIn('type_id', [1197, 1198])
+							->where('is_new', 1)
 							->first();
 						if (!$aspChargesAcceptanceAlreadyResponded) {
 

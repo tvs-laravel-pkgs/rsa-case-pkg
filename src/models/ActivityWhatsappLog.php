@@ -8,6 +8,7 @@ class ActivityWhatsappLog extends Model {
 	protected $fillable = [
 		'activity_id',
 		'type_id',
+		'is_new',
 		'request',
 		'response',
 		'remarks',

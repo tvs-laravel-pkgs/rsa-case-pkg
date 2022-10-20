@@ -10,6 +10,7 @@ use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityRatecard;
 use Abs\RsaCasePkg\ActivityStatus;
+use Abs\RsaCasePkg\ActivityWhatsappLog;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
 use Abs\RsaCasePkg\AspPoRejectedReason;
 use Abs\RsaCasePkg\CaseCancelledReason;
@@ -1893,6 +1894,15 @@ class Activity extends Model {
 			],
 		];
 
+		// UPDATE ALREADY RESPONDED LOGS TO OLD
+		ActivityWhatsappLog::whereIn('type_id', [1195, 1196])->where([
+			'activity_id' => $this->id,
+			'is_new' => 1,
+		])
+			->update([
+				'is_new' => 0,
+			]);
+
 		//SEND WHATSAPP SMS
 		sendWhatsappSMS($this->id, $typeId, $inputRequests);
 	}
@@ -1971,6 +1981,15 @@ class Activity extends Model {
 				"version" => "v1.0.9",
 			],
 		];
+
+		// UPDATE ALREADY RESPONDED LOGS TO OLD
+		ActivityWhatsappLog::whereIn('type_id', [1197, 1198])->where([
+			'activity_id' => $this->id,
+			'is_new' => 1,
+		])
+			->update([
+				'is_new' => 0,
+			]);
 
 		//SEND WHATSAPP SMS
 		sendWhatsappSMS($this->id, 1195, $inputRequests);

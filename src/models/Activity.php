@@ -1831,7 +1831,7 @@ class Activity extends Model {
 				$templateId = 'empty_return_charges_ros_new';
 			} else {
 				//TOW SERVICE
-				$templateId = 'empty_return_charges_tow';
+				$templateId = 'empty_return_charges_tow_new';
 			}
 		}
 

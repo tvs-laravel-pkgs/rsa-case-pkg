@@ -2139,6 +2139,56 @@ class Activity extends Model {
 		sendWhatsappSMS($this->id, 1198, $inputRequests);
 	}
 
+	public function sendInvoiceAlreadyGeneratedWhatsappSms() {
+		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
+		$aspWhatsAppNumber = $this->asp->whatsapp_number;
+		$activityNumber = $this->number;
+
+		$senderNumber = config('constants')['whatsapp_api_sender'];
+
+		//ROS SERVICE
+		if ($this->serviceType && !empty($this->serviceType->service_group_id) && $this->serviceType->service_group_id != 3) {
+			$templateId = 'asp_for_bulk_invoicing_ros';
+		} else {
+			//TOW SERVICE
+			$templateId = 'asp_for_bulk_invoicing_tow';
+		}
+
+		$bodyParameterValues = new \stdClass();
+		$bodyParameterValues->{'0'} = $aspName;
+		$bodyParameterValues->{'1'} = $activityNumber;
+
+		$inputRequests = [
+			"message" => [
+				"channel" => "WABA",
+				"content" => [
+					"preview_url" => false,
+					"type" => "MEDIA_TEMPLATE",
+					"mediaTemplate" => [
+						"templateId" => $templateId,
+						"bodyParameterValues" => $bodyParameterValues,
+					],
+				],
+				"recipient" => [
+					"to" => "91" . $aspWhatsAppNumber,
+					"recipient_type" => "individual",
+				],
+				"sender" => [
+					"from" => $senderNumber,
+				],
+				"preferences" => [
+					"webHookDNId" => "1001",
+				],
+			],
+			"metaData" => [
+				"version" => "v1.0.9",
+			],
+		];
+
+		//SEND WHATSAPP SMS
+		sendWhatsappSMS($this->id, 1201, $inputRequests);
+	}
+
 	public function sendActivityCancelledWhatsappSms() {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;

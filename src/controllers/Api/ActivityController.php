@@ -1011,6 +1011,26 @@ class ActivityController extends Controller {
 							->whereIn('type_id', [1197, 1198])
 							->first();
 						if (!$aspChargesAcceptanceAlreadyResponded) {
+
+							// CHECK INVOICE ALREADY GENERATED
+							if ($activity->status_id == 12 || $activity->status_id == 13 || $activity->status_id == 14) {
+
+								//SEND INVOICE ALREADY GENERATED WHATSAPP SMS TO ASP - ENABLE AFTER TEMPLATE GIVEN BY BUSINESS TEAM
+								// $activity->sendInvoiceAlreadyGeneratedWhatsappSms();
+
+								//UPDATE WEBHOOK STATUS
+								$whatsappWebhookResponse->status = 'Failed';
+								$whatsappWebhookResponse->errors = 'Invoice already been generated';
+								$whatsappWebhookResponse->save();
+								DB::commit();
+								return response()->json([
+									'success' => false,
+									'errors' => [
+										'Invoice already been generated',
+									],
+								], $this->successStatus);
+							}
+
 							if ($payload->value == 'Yes') {
 								//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND Waiting for Invoice Generation by ASP)
 								if ($activity->status_id != 1 && $activity->status_id != 11) {

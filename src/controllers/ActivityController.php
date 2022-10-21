@@ -1476,7 +1476,7 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24])
+			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24, 5, 8, 18, 20, 23])
 				->where('id', $request->activity_id)
 				->first();
 			if (!$activity) {
@@ -2400,7 +2400,7 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24])
+			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24, 5, 8, 18, 20, 23])
 				->where('id', $request->activity_id)
 				->first();
 
@@ -4101,7 +4101,13 @@ class ActivityController extends Controller {
 			}
 			$activity->not_eligible_moved_by_id = Auth::user()->id;
 			$activity->not_eligible_moved_at = Carbon::now();
-			$activity->not_eligible_reason = $request->not_eligible_reason;
+			$exceptionalReason = $activity->exceptional_reason;
+			if (!empty($exceptionalReason)) {
+				$exceptionalReason .= nl2br("<hr> Not eligible Reason : " . makeUrltoLinkInString($request->not_eligible_reason) . ". Done by: " . Auth::user()->name . " at " . date('d-m-Y g:i A', strtotime($activity->not_eligible_moved_at)));
+			} else {
+				$exceptionalReason = 'Not eligible Reason : ' . makeUrltoLinkInString($request->not_eligible_reason) . ". Done by: " . Auth::user()->name . " at " . date('d-m-Y g:i A', strtotime($activity->not_eligible_moved_at));
+			}
+			$activity->exceptional_reason = $exceptionalReason;
 			$activity->status_id = 15; //Not Eligible for Payout
 			$activity->save();
 			DB::commit();

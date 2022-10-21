@@ -50,7 +50,7 @@
                                         {{$ctrl.data.bo_service_type}}
                                     </td>
                                     <td ng-if="$ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 1 || $ctrl.data.activityApprovalLevel == 3)" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.service_type_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.service_type_changed_on_level == 3}">
-                                        <md-select ng-model="$ctrl.data.boServiceTypeId" ng-change="getServiceTypeRateCardDetail()">
+                                        <md-select ng-model="$ctrl.data.boServiceTypeId" ng-change="getServiceTypeRateCardDetail()" aria-label="Select Service">
                                             <md-option ng-repeat="val in $ctrl.data.serviceTypes" ng-value="val.id">
                                                 {{ val.name }}
                                             </md-option>

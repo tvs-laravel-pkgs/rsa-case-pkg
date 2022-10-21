@@ -2555,6 +2555,15 @@ class ActivityController extends Controller {
 
 		$submission_closing_extended = false;
 
+		$aspIds = [];
+		//ASP FINANCE ADMIN
+		if (Auth::user()->asp->is_finance_admin == 1) {
+			$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+			$aspIds[] = Auth::user()->asp->id;
+		} else {
+			$aspIds[] = Auth::user()->asp->id;
+		}
+
 		//CHECK TICKET EXIST WITH DATA ENTRY STATUS & DATE FOR ASP
 		$query = Activity::select([
 			'activities.id as id',
@@ -2574,23 +2583,16 @@ class ActivityController extends Controller {
 			});
 
 		$caseExistQuery = clone $query;
-		$case = $caseExistQuery->where('activities.asp_id', Auth::user()->asp->id)
+		$case = $caseExistQuery->whereIn('activities.asp_id', $aspIds)
+			->orderBy('activities.id', 'ASC')
 			->first();
 		if ($case && !empty($case->submission_closing_date)) {
 			$submission_closing_extended = true;
 		}
 
 		$query1 = clone $query;
-		$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
-		$aspIds[] = Auth::user()->asp->id;
 		$tickets = $query1->whereIn('activities.status_id', [2, 4, 17]) // WAITING FOR ASP DATA ENTRY AND ON HOLD
-			->where(function ($q) use ($aspIds) {
-				if (Auth::user()->asp->is_finance_admin == 1) {
-					$q->whereIn('activities.asp_id', $aspIds);
-				} else {
-					$q->where('activities.asp_id', Auth::user()->asp->id);
-				}
-			})
+			->whereIn('activities.asp_id', $aspIds)
 			->whereNull('activities.is_asp_data_entry_done') //FOR ONHOLD STATUS PURPOSE
 			->orderBy('activities.id', 'ASC')
 			->get();
@@ -2622,15 +2624,20 @@ class ActivityController extends Controller {
 		if ($ticket_exist) {
 
 			$query3 = clone $query;
-			//CHECK TICKET IS BELONGS TO ASP
-			$asp_has_activity = $query3->where('activities.asp_id', Auth::user()->asp->id)
-				->first();
 
+			//CHECK TICKET IS BELONGS TO ASP
+			$asp_has_activity = $query3->whereIn('activities.asp_id', $aspIds)->first();
 			if (!$asp_has_activity) {
+				//ASP FINANCE ADMIN
+				if (Auth::user()->asp->is_finance_admin == 1) {
+					$errorMessage = "The ticket is not attended by your ASP as per CRM";
+				} else {
+					$errorMessage = "The ticket is not attended by " . Auth::user()->asp->asp_code . " as per CRM";
+				}
 				return response()->json([
 					'success' => false,
 					'errors' => [
-						"Ticket is not attended by " . Auth::user()->asp->asp_code . " as per CRM",
+						$errorMessage,
 					],
 				]);
 			} else {
@@ -2641,7 +2648,7 @@ class ActivityController extends Controller {
 					'cases.created_at',
 				])
 					->whereIn('activities.status_id', [2, 4])
-					->where('activities.asp_id', Auth::user()->asp->id)
+					->whereIn('activities.asp_id', $aspIds)
 					->get();
 
 				if ($tickets->isNotEmpty()) {
@@ -2674,7 +2681,7 @@ class ActivityController extends Controller {
 						$q->where('cases.created_at', '<', $threeMonthsBefore);
 					}
 				})
-					->where('activities.asp_id', Auth::user()->asp->id)
+					->whereIn('activities.asp_id', $aspIds)
 					->first();
 				if ($check_ticket_date) {
 					$checkTicketDateError = "Please contact administrator.";
@@ -2699,7 +2706,7 @@ class ActivityController extends Controller {
 				})
 					->where('activities.status_id', 17) //ON HOLD
 					->whereNotNull('activities.is_asp_data_entry_done')
-					->where('activities.asp_id', Auth::user()->asp->id)
+					->whereIn('activities.asp_id', $aspIds)
 					->first();
 				if ($activity_on_hold) {
 					// $activityOnHoldError = "Ticket On Hold";
@@ -2727,7 +2734,7 @@ class ActivityController extends Controller {
 					}
 				})
 					->whereIn('activities.status_id', [15, 16]) // NOT ELIGIBLE FOR PAYOUT
-					->where('activities.asp_id', Auth::user()->asp->id)
+					->whereIn('activities.asp_id', $aspIds)
 					->first();
 				if ($activity_not_eligible_for_payment) {
 					$activityNotEligibleForPaymentError = 'Ticket not found';
@@ -2751,7 +2758,7 @@ class ActivityController extends Controller {
 					}
 				})
 					->whereIn('activities.status_id', [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 18, 19, 20, 21, 22])
-					->where('activities.asp_id', Auth::user()->asp->id)
+					->whereIn('activities.asp_id', $aspIds)
 					->first();
 				if ($activity_already_completed) {
 					$activityAlreadyCompletedError = "Ticket already submitted. Case : " . $activity_already_completed->case_number . "(" . $activity_already_completed->case_date . ")";
@@ -2775,7 +2782,7 @@ class ActivityController extends Controller {
 							$q->where('cases.created_at', '>=', $threeMonthsBefore);
 						}
 					})
-					->where('activities.asp_id', Auth::user()->asp->id)
+					->whereIn('activities.asp_id', $aspIds)
 					->first();
 				if ($case_with_cancelled_status) {
 					$caseWithCancelledStatusError = "Ticket is cancelled";
@@ -2798,7 +2805,7 @@ class ActivityController extends Controller {
 							$q->where('cases.created_at', '>=', $threeMonthsBefore);
 						}
 					})
-					->where('activities.asp_id', Auth::user()->asp->id)
+					->whereIn('activities.asp_id', $aspIds)
 					->first();
 				if ($case_with_closed_status) {
 					$caseWithClosedStatusError = "Ticket is closed";
@@ -3439,7 +3446,7 @@ class ActivityController extends Controller {
 
 				//sending notification to all ASP STATE MAPPED BO users
 				//$bo_users = User::where('users.role_id', 6)->pluck('users.id'); //6 - Bo User role ID
-				$state_id = Auth::user()->asp->state_id;
+				$state_id = $activity->asp->state_id;
 				// $bo_users = StateUser::where('state_id', $state_id)->pluck('user_id');
 				$bo_users = DB::table('state_user')
 					->join('users', 'users.id', 'state_user.user_id')

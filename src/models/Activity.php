@@ -206,13 +206,15 @@ class Activity extends Model {
 		if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
 			$isMobile = 1;
 		}
-		$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
-		$aspIds[] = Auth::user()->asp->id;
-		$data['service_types'] = Asp::whereIn('asps.id', $aspIds)
-			->where('asp_service_types.is_mobile', $isMobile)
+		$data['service_types'] = Asp::select([
+			'service_types.name',
+			'asp_service_types.service_type_id as id',
+		])
 			->join('asp_service_types', 'asp_service_types.asp_id', '=', 'asps.id')
 			->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')
-			->select('service_types.name', 'asp_service_types.service_type_id as id')
+			->where('asp_service_types.is_mobile', $isMobile)
+			->where('asps.id', $activity->asp_id)
+			->groupBy('service_types.id')
 			->get();
 		if ($for_deffer_activity) {
 			$asp_km_travelled = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 154]])->first();

@@ -936,8 +936,54 @@ class ActivityController extends Controller {
 			}
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
 			if (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp && $activity->asp->has_whatsapp_flow == 1)) {
-				if ($payload->type == "Breakdown Charges") {
+				if ($payload->type == "Breakdown Charges" || $payload->type == "Revised Breakdown Charges") {
 					if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
+
+						// INITIAL CHARGES
+						if ($payload->type == "Breakdown Charges") {
+							$chargesSmsActive = ActivityWhatsappLog::where('activity_id', $activity->id)
+								->whereIn('type_id', [1193, 1194])
+								->where('is_new', 1)
+								->first();
+							if (!$chargesSmsActive) {
+								//SEND MORE THAN ONE INPUT REPLAY WHATSAPP SMS TO ASP
+								$activity->sendMorethanOneInputFromQuickReplyWhatsappSms();
+
+								//UPDATE WEBHOOK STATUS
+								$whatsappWebhookResponse->status = 'Failed';
+								$whatsappWebhookResponse->errors = "ASP already responded to breakdown or empty charges";
+								$whatsappWebhookResponse->save();
+								DB::commit();
+								return response()->json([
+									'success' => false,
+									'errors' => [
+										'ASP already responded to breakdown or empty charges',
+									],
+								], $this->successStatus);
+							}
+						} else {
+							// REVISED CHARGES
+							$revisedChargesSmsActive = ActivityWhatsappLog::where('activity_id', $activity->id)
+								->whereIn('type_id', [1202, 1203])
+								->where('is_new', 1)
+								->first();
+							if (!$revisedChargesSmsActive) {
+								//SEND MORE THAN ONE INPUT REPLAY WHATSAPP SMS TO ASP
+								$activity->sendMorethanOneInputFromQuickReplyWhatsappSms();
+
+								//UPDATE WEBHOOK STATUS
+								$whatsappWebhookResponse->status = 'Failed';
+								$whatsappWebhookResponse->errors = "ASP already responded to breakdown or empty charges";
+								$whatsappWebhookResponse->save();
+								DB::commit();
+								return response()->json([
+									'success' => false,
+									'errors' => [
+										'ASP already responded to breakdown or empty charges',
+									],
+								], $this->successStatus);
+							}
+						}
 						$breakdownChargesAlreadyResponded = ActivityWhatsappLog::where('activity_id', $activity->id)
 							->whereIn('type_id', [1195, 1196])
 							->where('is_new', 1)
@@ -1008,6 +1054,27 @@ class ActivityController extends Controller {
 					}
 				} elseif ($payload->type == "ASP Charges Acceptance") {
 					if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
+						$chargesAcceptanceSmsActive = ActivityWhatsappLog::where('activity_id', $activity->id)
+							->where('type_id', 1195)
+							->where('is_new', 1)
+							->first();
+						if (!$chargesAcceptanceSmsActive) {
+							//SEND MORE THAN ONE INPUT REPLAY WHATSAPP SMS TO ASP
+							$activity->sendMorethanOneInputFromQuickReplyWhatsappSms();
+
+							//UPDATE WEBHOOK STATUS
+							$whatsappWebhookResponse->status = 'Failed';
+							$whatsappWebhookResponse->errors = "ASP already responded to acceptance charges";
+							$whatsappWebhookResponse->save();
+							DB::commit();
+							return response()->json([
+								'success' => false,
+								'errors' => [
+									'ASP already responded to acceptance charges',
+								],
+							], $this->successStatus);
+						}
+
 						$aspChargesAcceptanceAlreadyResponded = ActivityWhatsappLog::where('activity_id', $activity->id)
 							->whereIn('type_id', [1197, 1198])
 							->where('is_new', 1)
@@ -1016,9 +1083,8 @@ class ActivityController extends Controller {
 
 							// CHECK INVOICE ALREADY GENERATED
 							if ($activity->status_id == 12 || $activity->status_id == 13 || $activity->status_id == 14) {
-
 								//SEND INVOICE ALREADY GENERATED WHATSAPP SMS TO ASP - ENABLE AFTER TEMPLATE GIVEN BY BUSINESS TEAM
-								// $activity->sendInvoiceAlreadyGeneratedWhatsappSms();
+								$activity->sendInvoiceAlreadyGeneratedWhatsappSms();
 
 								//UPDATE WEBHOOK STATUS
 								$whatsappWebhookResponse->status = 'Failed';

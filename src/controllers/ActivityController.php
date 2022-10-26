@@ -1964,7 +1964,16 @@ class ActivityController extends Controller {
 				$activity->save();
 
 				// SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP (TOWING SERVICE ONLY)
-				$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
+				$chargesSmsAlreadySent = ActivityWhatsappLog::where('activity_id', $activity->id)
+					->whereIn('type_id', [1193, 1194])
+					->first();
+				if ($chargesSmsAlreadySent) {
+					// SEND REVISED BREAKDOWN OR EMPTY RETURN CHARGES
+					$activity->sendRevisedBreakdownOrEmptyreturnChargesWhatsappSms();
+				} else {
+					// SEND BREAKDOWN OR EMPTY RETURN CHARGES
+					$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
+				}
 			} else {
 				//NORMAL FLOW
 
@@ -2383,7 +2392,16 @@ class ActivityController extends Controller {
 						$activity->save();
 
 						//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP (TOWING SERVICE ONLY)
-						$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
+						$chargesSmsAlreadySent = ActivityWhatsappLog::where('activity_id', $activity->id)
+							->whereIn('type_id', [1193, 1194])
+							->first();
+						if ($chargesSmsAlreadySent) {
+							// SEND REVISED BREAKDOWN OR EMPTY RETURN CHARGES
+							$activity->sendRevisedBreakdownOrEmptyreturnChargesWhatsappSms();
+						} else {
+							// SEND BREAKDOWN OR EMPTY RETURN CHARGES
+							$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
+						}
 					} else {
 						// NORMAL FLOW
 

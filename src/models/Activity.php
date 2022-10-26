@@ -1895,7 +1895,100 @@ class Activity extends Model {
 		];
 
 		// UPDATE ALREADY RESPONDED LOGS TO OLD
-		ActivityWhatsappLog::whereIn('type_id', [1195, 1196])->where([
+		ActivityWhatsappLog::whereIn('type_id', [1193, 1194, 1195, 1196, 1197, 1198])->where([
+			'activity_id' => $this->id,
+			'is_new' => 1,
+		])
+			->update([
+				'is_new' => 0,
+			]);
+
+		//SEND WHATSAPP SMS
+		sendWhatsappSMS($this->id, $typeId, $inputRequests);
+	}
+
+	public function sendRevisedBreakdownOrEmptyreturnChargesWhatsappSms() {
+		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
+		$aspWhatsAppNumber = $this->asp->whatsapp_number;
+		$activityNumber = $this->number;
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '--') : '--';
+		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
+		$distance = $this->detail(158) ? (!empty($this->detail(158)->value) ? $this->detail(158)->value : '--') : '--';
+		$payoutAmount = $this->detail(182) ? (!empty($this->detail(182)->value) ? $this->detail(182)->value : '--') : '--';
+
+		$senderNumber = config('constants')['whatsapp_api_sender'];
+
+		//NORMAL PAYOUT (BREAKDOWN CHARGES)
+		if ($this->financeStatus && $this->financeStatus->id == 1) {
+			$typeId = 1202;
+			$templateId = 'revised_bd_charges';
+		} else {
+			//EMPTY RETURN PAYOUT (EMPTY RETURN CHARGES)
+			$typeId = 1203;
+			$templateId = 'revised_empty_return_charges';
+		}
+
+		$bodyParameterValues = new \stdClass();
+		$bodyParameterValues->{'0'} = $aspName;
+		$bodyParameterValues->{'1'} = $vehicleNumber;
+		$bodyParameterValues->{'2'} = $serviceType;
+		$bodyParameterValues->{'3'} = $activityNumber;
+		$bodyParameterValues->{'4'} = $distance;
+		$bodyParameterValues->{'5'} = $payoutAmount;
+
+		$payloadIndexOne = [
+			"value" => "Yes",
+			"activity_id" => $this->number,
+			"vehicle_no" => $vehicleNumber,
+			"type" => "Revised Breakdown Charges",
+		];
+		$payloadIndexTwo = [
+			"value" => "No",
+			"activity_id" => $this->number,
+			"vehicle_no" => $vehicleNumber,
+			"type" => "Revised Breakdown Charges",
+		];
+		$inputRequests = [
+			"message" => [
+				"channel" => "WABA",
+				"content" => [
+					"preview_url" => false,
+					"type" => "MEDIA_TEMPLATE",
+					"mediaTemplate" => [
+						"templateId" => $templateId,
+						"bodyParameterValues" => $bodyParameterValues,
+						"buttons" => [
+							"quickReplies" => [
+								[
+									"index" => "0",
+									"payload" => json_encode($payloadIndexOne),
+								],
+								[
+									"index" => "1",
+									"payload" => json_encode($payloadIndexTwo),
+								],
+							],
+						],
+					],
+				],
+				"recipient" => [
+					"to" => "91" . $aspWhatsAppNumber,
+					"recipient_type" => "individual",
+				],
+				"sender" => [
+					"from" => $senderNumber,
+				],
+				"preferences" => [
+					"webHookDNId" => "1001",
+				],
+			],
+			"metaData" => [
+				"version" => "v1.0.9",
+			],
+		];
+
+		// UPDATE ALREADY RESPONDED LOGS TO OLD
+		ActivityWhatsappLog::whereIn('type_id', [1193, 1194, 1195, 1196, 1197, 1198, 1202, 1203])->where([
 			'activity_id' => $this->id,
 			'is_new' => 1,
 		])
@@ -2161,21 +2254,16 @@ class Activity extends Model {
 	public function sendInvoiceAlreadyGeneratedWhatsappSms() {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '--') : '--';
 		$activityNumber = $this->number;
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
-
-		//ROS SERVICE
-		if ($this->serviceType && !empty($this->serviceType->service_group_id) && $this->serviceType->service_group_id != 3) {
-			$templateId = 'asp_for_bulk_invoicing_ros';
-		} else {
-			//TOW SERVICE
-			$templateId = 'asp_for_bulk_invoicing_tow';
-		}
+		$templateId = 'invoice_generated_2110';
 
 		$bodyParameterValues = new \stdClass();
 		$bodyParameterValues->{'0'} = $aspName;
-		$bodyParameterValues->{'1'} = $activityNumber;
+		$bodyParameterValues->{'1'} = $vehicleNumber;
+		$bodyParameterValues->{'2'} = $activityNumber;
 
 		$inputRequests = [
 			"message" => [

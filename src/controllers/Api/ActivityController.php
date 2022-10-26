@@ -1453,6 +1453,8 @@ class ActivityController extends Controller {
 			// IF CASE ALREADY CLOSED
 			if ($activity->case->status_id == 4) {
 				$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+			} else {
+				$activity->status_id = 26; //ASP Completed Data Entry - Waiting for Call Center Data Entry
 			}
 			$activity->towing_attachments_uploaded_on_whatsapp = 1; //UPLOADED
 			$activity->save();

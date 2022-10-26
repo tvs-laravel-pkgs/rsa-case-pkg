@@ -2069,7 +2069,7 @@ class Activity extends Model {
 
 		//ROS SERVICE
 		if ($this->serviceType && !empty($this->serviceType->service_group_id) && $this->serviceType->service_group_id != 3) {
-			$templateId = 'asp_charges_acceptance_ros_new';
+			$templateId = '_asp_charges_acceptance_ros_new';
 		} else {
 			//TOW SERVICE
 			$templateId = 'asp_charges_acceptance_tow_new';

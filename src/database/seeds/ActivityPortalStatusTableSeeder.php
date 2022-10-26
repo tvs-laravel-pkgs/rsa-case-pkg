@@ -109,6 +109,10 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 				'name' => 'Waiting for Charges Acceptance by ASP',
 				'company_id' => 1,
 			],
+			26 => [
+				'name' => 'ASP Completed Data Entry - Waiting for Call Center Data Entry',
+				'company_id' => 1,
+			],
 		];
 
 		foreach ($activity_portal_statuses as $id => $activity_portal_status_val) {

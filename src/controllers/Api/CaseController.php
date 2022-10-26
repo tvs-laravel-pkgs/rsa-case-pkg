@@ -435,9 +435,9 @@ class CaseController extends Controller {
 					]);
 			}
 
-			//RELEASE ONHOLD ACTIVITIES WITH CLOSED OR CANCELLED CASES
+			//RELEASE ONHOLD / ASP COMPLETED DATA ENTRY - WAITING FOR CALL CENTER DATA ENTRY ACTIVITIES WITH CLOSED OR CANCELLED CASES
 			if ($case->status_id == 4 || $case->status_id == 3) {
-				$activities = $case->activities()->where('status_id', 17)->get();
+				$activities = $case->activities()->whereIn('status_id', [17, 26])->get();
 				if ($activities->isNotEmpty()) {
 					foreach ($activities as $key => $activity) {
 

@@ -148,17 +148,17 @@ class ActivityController extends Controller {
 			}
 			if (Entrust::can('view-own-activities')) {
 				$activities->where('users.id', Auth::id())
-					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17]);
+					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
 			}
 			if (Entrust::can('own-rm-asp-activities')) {
 				$aspIds = Asp::where('regional_manager_id', Auth::user()->id)->pluck('id')->toArray();
 				$activities->whereIn('asps.id', $aspIds)
-					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17]);
+					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
 			}
 			if (Entrust::can('own-zm-asp-activities')) {
 				$aspIds = Asp::where('zm_id', Auth::user()->id)->pluck('id')->toArray();
 				$activities->whereIn('asps.id', $aspIds)
-					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17]);
+					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
 			}
 			if (Entrust::can('own-nm-asp-activities')) {
 				$aspIds = Asp::where('nm_id', Auth::user()->id)->pluck('id')->toArray();
@@ -172,7 +172,7 @@ class ActivityController extends Controller {
 			})
 			->addColumn('action', function ($activity) {
 				$status_id = 1;
-				$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24];
+				$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24, 25, 26];
 
 				$action = '<div class="dataTable-actions" style="min-width: 125px;">
 				<a href="#!/rsa-case-pkg/activity-status/' . $status_id . '/view/' . $activity->id . '">
@@ -210,10 +210,10 @@ class ActivityController extends Controller {
 					}
 				}
 
-				//RELEASE ON HOLD CASES
+				//RELEASE ON HOLD / ASP COMPLETED DATA ENTRY - WAITING FOR CALL CENTER DATA ENTRY CASES
 				if (Entrust::can('release-onhold-case')) {
 					$onholdCaseReleaseIcon = asset('public/img/content/table/release.svg');
-					if ($activity->status_id == 17) {
+					if ($activity->status_id == 17 || $activity->status_id == 26) {
 						$action .= '<a href="javascript:;" onclick="angular.element(this).scope().releaseOnHoldCase(' . $activity->id . ')" title="Release On Hold Case">
                 						<img src="' . $onholdCaseReleaseIcon . '" alt="Release On Hold Case" class="img-responsive">
                 					</a>';
@@ -230,7 +230,7 @@ class ActivityController extends Controller {
 		// dd($request->all());
 		try {
 			$activity = Activity::findOrFail($request->activty_id);
-			$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24];
+			$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24, 25, 26];
 
 			if (!$activity) {
 				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
@@ -1076,7 +1076,7 @@ class ActivityController extends Controller {
 			//Activity creation datetime greater than effective datetime
 			if (date('Y-m-d H:i:s', strtotime($activity->activity_date)) > $casewiseRatecardEffectDatetime) {
 				//Activity that is initiated for payment process & not eligible
-				if ($activity->activity_portal_status_id == 1 || $activity->activity_portal_status_id == 10 || $activity->activity_portal_status_id == 11 || $activity->activity_portal_status_id == 12 || $activity->activity_portal_status_id == 13 || $activity->activity_portal_status_id == 14 || $activity->activity_portal_status_id == 15 || $activity->activity_portal_status_id == 16 || $activity->activity_portal_status_id == 17) {
+				if ($activity->activity_portal_status_id == 1 || $activity->activity_portal_status_id == 10 || $activity->activity_portal_status_id == 11 || $activity->activity_portal_status_id == 12 || $activity->activity_portal_status_id == 13 || $activity->activity_portal_status_id == 14 || $activity->activity_portal_status_id == 15 || $activity->activity_portal_status_id == 16 || $activity->activity_portal_status_id == 17 || $activity->activity_portal_status_id == 25) {
 					$activityRatecard = ActivityRatecard::select([
 						'range_limit',
 						'below_range_price',
@@ -1350,7 +1350,7 @@ class ActivityController extends Controller {
 					$boServiceTypeId = $boServiceType->id;
 				}
 			}
-			$eligibleBackstepStatusIds = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24];
+			$eligibleBackstepStatusIds = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24, 25, 26];
 			$eligibleForBackstep = false;
 			if (Entrust::can('backstep-activity') && in_array($activity->activity_portal_status_id, $eligibleBackstepStatusIds)) {
 				$eligibleForBackstep = true;
@@ -2030,47 +2030,65 @@ class ActivityController extends Controller {
 				$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 			}
 
-			if (isset($activityStatusId)) {
-				$activity->status_id = $activityStatusId;
-			}
-			$activity->updated_by_id = Auth::user()->id;
-			$activity->updated_at = Carbon::now();
-			$activity->save();
-
-			//LOG SAVE
-			$activityLog = ActivityLog::firstOrNew([
-				'activity_id' => $activity->id,
-			]);
-			//L1
-			if ($approver == '1') {
-				$activityLog->bo_approved_at = Carbon::now();
-				$activityLog->bo_approved_by_id = Auth::id();
-			} elseif ($approver == '2') {
-				//L2
-				$activityLog->l2_approved_at = Carbon::now();
-				$activityLog->l2_approved_by_id = Auth::id();
-			} elseif ($approver == '3') {
-				//L3
-				$activityLog->l3_approved_at = Carbon::now();
-				$activityLog->l3_approved_by_id = Auth::id();
-			} elseif ($approver == '4') {
-				//L4
-				$activityLog->l4_approved_at = Carbon::now();
-				$activityLog->l4_approved_by_id = Auth::id();
-			}
-			$activityLog->updated_by_id = Auth::id();
-			$activityLog->updated_at = Carbon::now();
-			$activityLog->save();
-
-			if ($isApproved) {
-				$this->updateActivityApprovalLog($activity, $request->case_number, 1);
-			}
-
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
 
-			//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP (TOWING SERVICE ONLY)
+			// WHATSAPP FLOW
 			if ($sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3 && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
-				$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
+
+				$activity->status_id = 25; // Waiting for Charges Acceptance by ASP
+				$activity->updated_by_id = Auth::user()->id;
+				$activity->updated_at = Carbon::now();
+				$activity->save();
+
+				// SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP (TOWING SERVICE ONLY)
+				$chargesSmsAlreadySent = ActivityWhatsappLog::where('activity_id', $activity->id)
+					->whereIn('type_id', [1193, 1194])
+					->first();
+				if ($chargesSmsAlreadySent) {
+					// SEND REVISED BREAKDOWN OR EMPTY RETURN CHARGES
+					$activity->sendRevisedBreakdownOrEmptyreturnChargesWhatsappSms();
+				} else {
+					// SEND BREAKDOWN OR EMPTY RETURN CHARGES
+					$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
+				}
+			} else {
+				//NORMAL FLOW
+
+				if (isset($activityStatusId)) {
+					$activity->status_id = $activityStatusId;
+				}
+				$activity->updated_by_id = Auth::user()->id;
+				$activity->updated_at = Carbon::now();
+				$activity->save();
+
+				//LOG SAVE
+				$activityLog = ActivityLog::firstOrNew([
+					'activity_id' => $activity->id,
+				]);
+				//L1
+				if ($approver == '1') {
+					$activityLog->bo_approved_at = Carbon::now();
+					$activityLog->bo_approved_by_id = Auth::id();
+				} elseif ($approver == '2') {
+					//L2
+					$activityLog->l2_approved_at = Carbon::now();
+					$activityLog->l2_approved_by_id = Auth::id();
+				} elseif ($approver == '3') {
+					//L3
+					$activityLog->l3_approved_at = Carbon::now();
+					$activityLog->l3_approved_by_id = Auth::id();
+				} elseif ($approver == '4') {
+					//L4
+					$activityLog->l4_approved_at = Carbon::now();
+					$activityLog->l4_approved_by_id = Auth::id();
+				}
+				$activityLog->updated_by_id = Auth::id();
+				$activityLog->updated_at = Carbon::now();
+				$activityLog->save();
+
+				if ($isApproved) {
+					$this->updateActivityApprovalLog($activity, $request->case_number, 1);
+				}
 			}
 
 			DB::commit();
@@ -2449,45 +2467,63 @@ class ActivityController extends Controller {
 						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					}
 
-					if (isset($activityStatusId)) {
-						$activity->status_id = $activityStatusId;
-					}
-					$activity->updated_by_id = Auth::user()->id;
-					$activity->updated_at = Carbon::now();
-					$activity->save();
-
-					//LOG SAVE
-					$activityLog = ActivityLog::firstOrNew([
-						'activity_id' => $activity->id,
-					]);
-					//L1
-					if ($approver == '1') {
-						$activityLog->bo_approved_at = Carbon::now();
-						$activityLog->bo_approved_by_id = Auth::id();
-					} elseif ($approver == '2') {
-						//L2
-						$activityLog->l2_approved_at = Carbon::now();
-						$activityLog->l2_approved_by_id = Auth::id();
-					} elseif ($approver == '3') {
-						//L3
-						$activityLog->l3_approved_at = Carbon::now();
-						$activityLog->l3_approved_by_id = Auth::id();
-					} elseif ($approver == '4') {
-						//L4
-						$activityLog->l4_approved_at = Carbon::now();
-						$activityLog->l4_approved_by_id = Auth::id();
-					}
-					$activityLog->updated_by_id = Auth::id();
-					$activityLog->updated_at = Carbon::now();
-					$activityLog->save();
-
-					if ($isApproved) {
-						$this->updateActivityApprovalLog($activity, $activity->case->number, 2);
-					}
-
-					//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP (TOWING SERVICE ONLY)
+					// WHATSAPP FLOW
 					if ($sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3 && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
-						$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
+
+						$activity->status_id = 25; // Waiting for Charges Acceptance by ASP
+						$activity->updated_by_id = Auth::user()->id;
+						$activity->updated_at = Carbon::now();
+						$activity->save();
+
+						//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP (TOWING SERVICE ONLY)
+						$chargesSmsAlreadySent = ActivityWhatsappLog::where('activity_id', $activity->id)
+							->whereIn('type_id', [1193, 1194])
+							->first();
+						if ($chargesSmsAlreadySent) {
+							// SEND REVISED BREAKDOWN OR EMPTY RETURN CHARGES
+							$activity->sendRevisedBreakdownOrEmptyreturnChargesWhatsappSms();
+						} else {
+							// SEND BREAKDOWN OR EMPTY RETURN CHARGES
+							$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
+						}
+					} else {
+						// NORMAL FLOW
+
+						if (isset($activityStatusId)) {
+							$activity->status_id = $activityStatusId;
+						}
+						$activity->updated_by_id = Auth::user()->id;
+						$activity->updated_at = Carbon::now();
+						$activity->save();
+
+						//LOG SAVE
+						$activityLog = ActivityLog::firstOrNew([
+							'activity_id' => $activity->id,
+						]);
+						//L1
+						if ($approver == '1') {
+							$activityLog->bo_approved_at = Carbon::now();
+							$activityLog->bo_approved_by_id = Auth::id();
+						} elseif ($approver == '2') {
+							//L2
+							$activityLog->l2_approved_at = Carbon::now();
+							$activityLog->l2_approved_by_id = Auth::id();
+						} elseif ($approver == '3') {
+							//L3
+							$activityLog->l3_approved_at = Carbon::now();
+							$activityLog->l3_approved_by_id = Auth::id();
+						} elseif ($approver == '4') {
+							//L4
+							$activityLog->l4_approved_at = Carbon::now();
+							$activityLog->l4_approved_by_id = Auth::id();
+						}
+						$activityLog->updated_by_id = Auth::id();
+						$activityLog->updated_at = Carbon::now();
+						$activityLog->save();
+
+						if ($isApproved) {
+							$this->updateActivityApprovalLog($activity, $activity->case->number, 2);
+						}
 					}
 				} else {
 					return response()->json([
@@ -3467,6 +3503,7 @@ class ActivityController extends Controller {
 				$is_bulk = false;
 			}
 
+			$sendNoty = false;
 			//NOT ONHOLD TICKETS
 			if ($activity->status_id != 17) {
 				//ASP DATA RE-ENTRY - DEFERRED
@@ -3484,6 +3521,10 @@ class ActivityController extends Controller {
 						$activity->status_id = 6;
 					}
 				}
+				$sendNoty = true;
+			} else {
+				// ONHOLD TICKETS
+				$activity->status_id = 26; //ASP Completed Data Entry - Waiting for Call Center Data Entry
 			}
 
 			$activity->is_asp_data_entry_done = 1;
@@ -3669,8 +3710,7 @@ class ActivityController extends Controller {
 			$activity_log->updated_by_id = Auth::id();
 			$activity_log->save();
 
-			//NOT ONHOLD TICKETS
-			if ($activity->status_id != 17) {
+			if ($sendNoty) {
 				//sending confirmation SMS to ASP
 				$mobile_number = $activity->asp->contact_number1;
 				$sms_message = 'Tkt uptd successfully';
@@ -4640,17 +4680,17 @@ class ActivityController extends Controller {
 					$activities = $activities->whereIn('asps.state_id', $states);
 				}
 				if (Entrust::can('view-own-activities')) {
-					$activities = $activities->whereNotIn('activities.status_id', [2, 4, 15, 16, 17]);
+					$activities = $activities->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
 				}
 				if (Entrust::can('export-own-rm-asp-activities')) {
 					$aspIds = Asp::where('regional_manager_id', Auth::user()->id)->pluck('id')->toArray();
 					$activities = $activities->whereIn('asps.id', $aspIds)
-						->whereNotIn('activities.status_id', [2, 4, 15, 16, 17]);
+						->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
 				}
 				if (Entrust::can('export-own-zm-asp-activities')) {
 					$aspIds = Asp::where('zm_id', Auth::user()->id)->pluck('id')->toArray();
 					$activities = $activities->whereIn('asps.id', $aspIds)
-						->whereNotIn('activities.status_id', [2, 4, 15, 16, 17]);
+						->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
 				}
 				if (Entrust::can('export-own-nm-asp-activities')) {
 					$aspIds = Asp::where('nm_id', Auth::user()->id)->pluck('id')->toArray();
@@ -5449,7 +5489,7 @@ class ActivityController extends Controller {
 		// dd($activityId);
 		DB::beginTransaction();
 		try {
-			$activity = Activity::withTrashed()->where('status_id', 17) //ONHOLD
+			$activity = Activity::withTrashed()->whereIn('status_id', [17, 26]) // ONHOLD / ASP COMPLETED DATA ENTRY - WAITING FOR CALL CENTER DATA ENTRY
 				->find($activityId);
 			if (!$activity) {
 				return response()->json([
@@ -5460,20 +5500,50 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			//MECHANICAL SERVICE GROUP
-			if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
-				$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
-				$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->vehicleModel->vehiclecategory->id);
-				if ($is_bulk) {
-					$statusId = 5; //ASP Completed Data Entry - Waiting for L1 Bulk Verification
+			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
+
+			//WHATSAPP FLOW
+			if ($activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+				// ROS SERVICE
+				if ($activity->serviceType && $activity->serviceType->service_group_id != 3) {
+					$autoApprovalProcessResponse = $activity->autoApprovalProcess();
+					if (!$autoApprovalProcessResponse['success']) {
+						//SAVE CASE API LOG
+						DB::rollBack();
+						return response()->json([
+							'success' => false,
+							'errors' => [
+								$autoApprovalProcessResponse['error'],
+							],
+						]);
+					}
+					$statusId = 25; // Waiting for Charges Acceptance by ASP
 				} else {
-					$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+					// TOW SERVICE
+					if ($activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
+						$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+					} else {
+						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+					}
 				}
 			} else {
-				if ($activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
-					$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+				// NORMAL FLOW
+
+				//MECHANICAL SERVICE GROUP
+				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
+					$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
+					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->vehicleModel->vehiclecategory->id);
+					if ($is_bulk) {
+						$statusId = 5; //ASP Completed Data Entry - Waiting for L1 Bulk Verification
+					} else {
+						$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+					}
 				} else {
-					$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+					if ($activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
+						$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+					} else {
+						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+					}
 				}
 			}
 			$activity->update([

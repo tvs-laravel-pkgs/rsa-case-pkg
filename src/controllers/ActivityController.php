@@ -2852,7 +2852,7 @@ class ActivityController extends Controller {
 						$q->where('cases.created_at', '>=', $threeMonthsBefore);
 					}
 				})
-					->whereIn('activities.status_id', [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 18, 19, 20, 21, 22])
+					->whereIn('activities.status_id', [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 18, 19, 20, 21, 22, 26])
 					->where('activities.asp_id', Auth::user()->asp->id)
 					->first();
 				if ($activity_already_completed) {

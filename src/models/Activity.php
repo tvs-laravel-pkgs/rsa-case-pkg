@@ -1572,6 +1572,7 @@ class Activity extends Model {
 		$customerName = $this->case ? (!empty($this->case->customer_name) ? $this->case->customer_name : '--') : '--';
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '--') : '--';
 		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
+		$payloadVehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 		$model = $this->case ? ($this->case->vehicleModel ? $this->case->vehicleModel->name : '--') : '--';
 		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
 		$bdAddress = $this->case ? (!empty($this->case->bd_location) ? $this->case->bd_location : '--') : '--';
@@ -1660,7 +1661,7 @@ class Activity extends Model {
 			$payloadIndex = [
 				"value" => "Upload Images",
 				"activity_id" => $this->number,
-				"vehicle_no" => $vehicleNumber,
+				"vehicle_no" => $payloadVehicleNumber,
 				"type" => "New Breakdown Alert",
 			];
 
@@ -1708,7 +1709,8 @@ class Activity extends Model {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 		$activityNumber = $this->number;
-		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '--') : '--';
+		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 
 		$templateId = 'image_upload_confirmation_2';
 		$senderNumber = config('constants')['whatsapp_api_sender'];
@@ -1864,7 +1866,8 @@ class Activity extends Model {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 		$activityNumber = $this->number;
-		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '--') : '--';
+		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
 		$distance = $this->detail(158) ? (!empty($this->detail(158)->value) ? $this->detail(158)->value : '--') : '--';
 		$payoutAmount = $this->detail(182) ? (!empty($this->detail(182)->value) ? $this->detail(182)->value : '--') : '--';
@@ -1970,7 +1973,8 @@ class Activity extends Model {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 		$activityNumber = $this->number;
-		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '--') : '--';
+		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
 		$distance = $this->detail(158) ? (!empty($this->detail(158)->value) ? $this->detail(158)->value : '--') : '--';
 		$payoutAmount = $this->detail(182) ? (!empty($this->detail(182)->value) ? $this->detail(182)->value : '--') : '--';
@@ -2063,7 +2067,8 @@ class Activity extends Model {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 		$activityNumber = $this->number;
-		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '--') : '--';
+		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
@@ -2151,7 +2156,8 @@ class Activity extends Model {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 		$activityNumber = $this->number;
-		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '--') : '--';
+		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
@@ -2205,7 +2211,8 @@ class Activity extends Model {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 		$activityNumber = $this->number;
-		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '--') : '--';
+		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
@@ -2313,7 +2320,8 @@ class Activity extends Model {
 	public function sendInvoiceAlreadyGeneratedWhatsappSms() {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
-		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '--') : '--';
+		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
+		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 		$activityNumber = $this->number;
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];

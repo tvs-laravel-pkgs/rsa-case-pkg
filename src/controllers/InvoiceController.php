@@ -218,8 +218,8 @@ class InvoiceController extends Controller {
 					->where('total_amount.key_id', 182); //BO TOTAL AMOUNT
 			})
 			->leftjoin('configs as data_sources', 'data_sources.id', 'activities.data_src_id')
-			->select(
-				// 'activities.number',
+			->select([
+				'activities.number as activityNumber',
 				'activities.id',
 				'activities.asp_id as asp_id',
 				'cases.number',
@@ -236,8 +236,8 @@ class InvoiceController extends Controller {
 				'total_amount.value as total_value',
 				'total_tax_perc.value as total_tax_perc_value',
 				'total_tax_amount.value as total_tax_amount_value',
-				'data_sources.name as data_source'
-			)
+				'data_sources.name as data_source',
+			])
 			->where('invoice_id', $invoice_id)
 			->groupBy('activities.id')
 			->get();

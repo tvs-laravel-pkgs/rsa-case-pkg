@@ -4006,9 +4006,19 @@ class ActivityController extends Controller {
 
 			if ($activities->isNotEmpty()) {
 				foreach ($activities as $key => $activity) {
-					$aspId = Asp::where('finance_admin_id', Auth::user()->asp->id)->where('id', $activity->asp_id)->pluck('id')->first();
-					//CHECK ASP MATCHES WITH ACTIVITY ASP
-					if (Auth::user()->asp->is_finance_admin != 1 && !$aspId) {
+					//FINANCE ADMIN
+					if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
+						//CHECK ASP MATCHES WITH ACTIVITY ASP
+						$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+						$aspIds[] = Auth::user()->asp->id;
+						if (!in_array($activity->asp_id, $aspIds)) {
+							return response()->json([
+								'success' => false,
+								'error' => 'ASP not matched for activity ID ' . $activity->crm_activity_id,
+							]);
+						}
+					} else {
+						//CHECK ASP MATCHES WITH ACTIVITY ASP
 						if ($activity->asp_id != $asp->id) {
 							return response()->json([
 								'success' => false,

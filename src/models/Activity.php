@@ -232,8 +232,8 @@ class Activity extends Model {
 			->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')
 			->where('asp_service_types.is_mobile', $isMobile)
 			->where('asp_service_types.vehicle_category_id', $activity->case->vehicleModel->vehiclecategory->id)
-			->where('asps.user_id', Auth::id())
-			->groupBy('asp_service_types.service_type_id')
+			->where('asps.id', $activity->asp_id)
+			->groupBy('service_types.id')
 			->get();
 		if ($serviceTypes->isEmpty()) {
 			return $data = [

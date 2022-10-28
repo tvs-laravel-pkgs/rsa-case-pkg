@@ -3601,8 +3601,6 @@ class ActivityController extends Controller {
 	}
 
 	public function getDeferredList(Request $request) {
-		$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
-		$aspIds[] = Auth::user()->asp->id;
 		$activities = Activity::select(
 			'activities.id',
 			'activities.crm_activity_id',
@@ -3629,16 +3627,19 @@ class ActivityController extends Controller {
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
-			->orderBy('cases.date', 'DESC')
-			->groupBy('activities.id')
-			->where(function ($q) use ($aspIds) {
-				if (Auth::user()->asp->is_finance_admin == 1) {
+			->where(function ($q) {
+				// FINANCE ADMIN
+				if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
+					$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+					$aspIds[] = Auth::user()->asp->id;
 					$q->whereIn('asps.id', $aspIds);
 				} else {
 					$q->where('users.id', Auth::id());
 				}
 			})
 			->where('activities.status_id', 7) //BO Rejected - Waiting for ASP Data Re-Entry
+			->groupBy('activities.id')
+			->orderBy('cases.date', 'DESC')
 		;
 
 		if ($request->get('ticket_date')) {
@@ -3698,8 +3699,6 @@ class ActivityController extends Controller {
 	}
 
 	public function getApprovedList(Request $request) {
-		$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
-		$aspIds[] = Auth::user()->asp->id;
 		$activities = Activity::select(
 			'activities.id',
 			'activities.crm_activity_id',
@@ -3745,16 +3744,19 @@ class ActivityController extends Controller {
 				$join->on('bo_invoice_amount.activity_id', 'activities.id')
 					->where('bo_invoice_amount.key_id', 182); //BO INVOICE AMOUNT
 			})
-			->orderBy('cases.date', 'ASC')
-			->groupBy('activities.id')
-			->where(function ($q) use ($aspIds) {
-				if (Auth::user()->asp->is_finance_admin == 1) {
+			->where(function ($q) {
+				// FINANCE ADMIN
+				if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
+					$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+					$aspIds[] = Auth::user()->asp->id;
 					$q->whereIn('asps.id', $aspIds);
 				} else {
 					$q->where('users.id', Auth::id());
 				}
 			})
 			->whereIn('activities.status_id', [11, 1]) //Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
+			->groupBy('activities.id')
+			->orderBy('cases.date', 'ASC')
 		;
 
 		if ($request->get('ticket_date')) {

@@ -2673,7 +2673,7 @@ class ActivityController extends Controller {
 
 		$aspIds = [];
 		//ASP FINANCE ADMIN
-		if (Auth::user()->asp->is_finance_admin == 1) {
+		if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
 			$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
 			$aspIds[] = Auth::user()->asp->id;
 		} else {

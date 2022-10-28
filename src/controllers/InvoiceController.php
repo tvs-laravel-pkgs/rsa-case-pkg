@@ -43,8 +43,6 @@ class InvoiceController extends Controller {
 	}
 
 	public function getList(Request $request) {
-		$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
-		$aspIds[] = Auth::user()->asp->id;
 		$invoices = Invoices::select(
 			'Invoices.id',
 			'Invoices.invoice_no',
@@ -79,9 +77,11 @@ class InvoiceController extends Controller {
 					$invoices->whereIn('asps.state_id', $states);
 				}
 				if (Entrust::can('view-only-own-asp-unpaid-invoices')) {
-					if(Auth::user()->asp->is_finance_admin == 1){
-					 	$invoices->whereIn('asps.id',$aspIds);
-					}else{
+					if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
+						$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+						$aspIds[] = Auth::user()->asp->id;
+						$invoices->whereIn('asps.id', $aspIds);
+					} else {
 						$invoices->where('users.id', Auth::id());
 					}
 				}
@@ -95,12 +95,13 @@ class InvoiceController extends Controller {
 					$invoices->whereIn('asps.state_id', $states);
 				}
 				if (Entrust::can('view-only-own-asp-payment-inprogress-invoices')) {
-					if(Auth::user()->asp->is_finance_admin == 1){
-					 	$invoices->whereIn('asps.id',$aspIds);
-					}else{
+					if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
+						$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+						$aspIds[] = Auth::user()->asp->id;
+						$invoices->whereIn('asps.id', $aspIds);
+					} else {
 						$invoices->where('users.id', Auth::id());
 					}
-					
 				}
 			}
 		} elseif ($request->type_id == 3) {
@@ -112,12 +113,13 @@ class InvoiceController extends Controller {
 					$invoices->whereIn('asps.state_id', $states);
 				}
 				if (Entrust::can('view-only-own-asp-paid-invoices')) {
-					if(Auth::user()->asp->is_finance_admin == 1){
-					 	$invoices->whereIn('asps.id',$aspIds);
-					}else{
+					if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
+						$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+						$aspIds[] = Auth::user()->asp->id;
+						$invoices->whereIn('asps.id', $aspIds);
+					} else {
 						$invoices->where('users.id', Auth::id());
 					}
-					
 				}
 			}
 		}

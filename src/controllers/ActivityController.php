@@ -4850,7 +4850,18 @@ class ActivityController extends Controller {
 						}
 
 						if (!empty($request->get('asp_id'))) {
-							$activitiesSummaryCountQuery->where('activities.asp_id', $request->get('asp_id'));
+							if (Entrust::can('export-own-activities')) {
+								// ASP FINANCE ADMIN
+								if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
+									$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+									$aspIds[] = Auth::user()->asp->id;
+									$activitiesSummaryCountQuery->whereIn('activities.asp_id', $aspIds);
+								} else {
+									$activitiesSummaryCountQuery->where('activities.asp_id', $request->get('asp_id'));
+								}
+							} else {
+								$activitiesSummaryCountQuery->where('activities.asp_id', $request->get('asp_id'));
+							}
 						}
 						if (!empty($request->get('client_id'))) {
 							$activitiesSummaryCountQuery->where('cases.client_id', $request->get('client_id'));

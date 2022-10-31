@@ -141,13 +141,14 @@ app.component('deferredActivityUpdate', {
             $form_data_url
         ).then(function(response) {
             if (!response.data.success) {
-                $noty = new Noty({
-                    type: 'error',
-                    layout: 'topRight',
-                    text: response.data.error,
-                }).show();
+                custom_noty('error', response.data.error);
                 $location.path('/rsa-case-pkg/deferred-activity/list')
-                $scope.$apply()
+                return;
+            }
+
+            if (response.data.activity.status_id != 7) {
+                custom_noty('error', "Ticket not eligible for data re-entry");
+                $location.path('/rsa-case-pkg/deferred-activity/list')
                 return;
             }
 

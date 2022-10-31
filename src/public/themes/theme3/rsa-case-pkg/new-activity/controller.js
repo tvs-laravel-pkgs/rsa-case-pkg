@@ -218,7 +218,7 @@ app.component('newActivityUpdateDetails', {
         $scope.getServiceTypeDetail = () => {
             if (self.service_type_id) {
                 $.ajax({
-                        url: getActivityServiceTypeDetail + '/' + self.service_type_id,
+                        url: getActivityServiceTypeDetail + '/' + self.service_type_id + '/' + self.activity.id,
                         method: "GET",
                     })
                     .done(function(res) {
@@ -236,6 +236,7 @@ app.component('newActivityUpdateDetails', {
                             } else {
                                 self.showTowingAttachment = false;
                             }
+                            self.activity = res.activity;
                             $scope.$apply()
                         }
                     })
@@ -249,7 +250,6 @@ app.component('newActivityUpdateDetails', {
         $.validator.addMethod('imageFileSize', function(value, element, param) {
             return this.optional(element) || (element.files[0].size <= param)
         });
-
         //Jquery Validation
         var form_id = '#new-tickect-form';
         var v = jQuery(form_id).validate({

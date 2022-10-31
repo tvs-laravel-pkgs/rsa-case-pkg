@@ -3063,7 +3063,7 @@ class ActivityController extends Controller {
 		return response()->json($this->data);
 	}
 
-	public function activityNewGetServiceTypeDetail($id) {
+	public function activityNewGetServiceTypeDetail($id, $activityId) {
 		try {
 			$serviceType = ServiceType::select([
 				'id',
@@ -3071,7 +3071,18 @@ class ActivityController extends Controller {
 			])
 				->where('id', $id)
 				->first();
+
 			if (!$serviceType) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Service not found',
+					],
+				]);
+			}
+
+			$activity = Activity::find($activityId);
+			if (!$activity) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -3079,9 +3090,25 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
+
+			// UPDATE TOWING ATTACHMENT AS MANDATORY IF TOWING SERVICE AND MATURED FINANCE STATUS
+			if ($serviceType->service_group_id == 3 && $activity->financeStatus && $activity->financeStatus->po_eligibility_type_id == 340) {
+				$activity->is_towing_attachments_mandatory = 1;
+				$activity->towing_attachments_mandatory_by_id = Auth::user()->id;
+				$activity->save();
+			} else {
+				$activity->is_towing_attachments_mandatory = 0;
+				$activity->towing_attachments_mandatory_by_id = NULL;
+				$activity->save();
+			}
+
 			return response()->json([
 				'success' => true,
 				'serviceType' => $serviceType,
+				'activity' => $activity->load([
+					'case',
+					'financeStatus',
+				]),
 			]);
 		} catch (\Exception $e) {
 			return response()->json([
@@ -3094,7 +3121,7 @@ class ActivityController extends Controller {
 	}
 
 	public function updateActivity(Request $request) {
-		// dd($request->all());
+		//dd($request->all());
 		DB::beginTransaction();
 		try {
 			$activity = Activity::whereIn('status_id', [2, 4, 7, 17])
@@ -3158,7 +3185,6 @@ class ActivityController extends Controller {
 					$checkTowingAttachmentMandatory = true;
 				}
 			}
-
 			if ($checkTowingAttachmentMandatory) {
 				// Vehicle Pickup image
 				if (!isset($request->vehiclePickupAttachExist) && (!isset($request->vehicle_pickup_attachment) || (isset($request->vehicle_pickup_attachment) && empty($request->vehicle_pickup_attachment)))) {
@@ -3303,7 +3329,6 @@ class ActivityController extends Controller {
 					}
 				}
 			}
-
 			$cc_service_type_exist = ActivityDetail::where('activity_id', $activity->id)
 				->where('key_id', 153)
 				->first();

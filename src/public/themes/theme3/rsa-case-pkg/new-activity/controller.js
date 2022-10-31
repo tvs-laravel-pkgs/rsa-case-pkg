@@ -203,6 +203,7 @@ app.component('newActivityUpdateDetails', {
                             } else {
                                 self.showTowingAttachment = false;
                             }
+                            self.activity = res.activity;
                             $scope.$apply()
                         }
                     })

@@ -2789,7 +2789,7 @@ class ActivityController extends Controller {
 		return response()->json($this->data);
 	}
 
-	public function activityNewGetServiceTypeDetail($id,$activity_id) {
+	public function activityNewGetServiceTypeDetail($id, $activityId) {
 		try {
 			$serviceType = ServiceType::select([
 				'id',
@@ -2798,14 +2798,17 @@ class ActivityController extends Controller {
 				->where('id', $id)
 				->first();
 
-			if($serviceType->service_group_id == 3){
-				Activity::where('id',$activity_id)->where('finance_status_id',1)->where('is_towing_attachments_mandatory','=',0)
-				->update([
-					'is_towing_attachments_mandatory' => 1,
-					'towing_attachments_mandatory_by_id' => Auth::id(),
+			if (!$serviceType) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Service not found',
+					],
 				]);
 			}
-			if (!$serviceType) {
+
+			$activity = Activity::find($activityId);
+			if (!$activity) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -2813,9 +2816,25 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
+
+			// UPDATE TOWING ATTACHMENT AS MANDATORY IF TOWING SERVICE AND MATURED FINANCE STATUS
+			if ($serviceType->service_group_id == 3 && $activity->financeStatus && $activity->financeStatus->po_eligibility_type_id == 340) {
+				$activity->is_towing_attachments_mandatory = 1;
+				$activity->towing_attachments_mandatory_by_id = Auth::user()->id;
+				$activity->save();
+			} else {
+				$activity->is_towing_attachments_mandatory = 0;
+				$activity->towing_attachments_mandatory_by_id = NULL;
+				$activity->save();
+			}
+
 			return response()->json([
 				'success' => true,
 				'serviceType' => $serviceType,
+				'activity' => $activity->load([
+					'case',
+					'financeStatus',
+				]),
 			]);
 		} catch (\Exception $e) {
 			return response()->json([

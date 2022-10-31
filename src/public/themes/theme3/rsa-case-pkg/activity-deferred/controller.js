@@ -345,12 +345,12 @@ app.component('deferredActivityUpdate', {
                             return;
                         } else {
                             //TOWING
-                            console.log(res);
                             if (res.serviceType.service_group_id == 3) {
                                 self.showTowingAttachment = true;
                             } else {
                                 self.showTowingAttachment = false;
                             }
+                            self.activity = res.activity;
                             $scope.$apply()
                         }
                     })

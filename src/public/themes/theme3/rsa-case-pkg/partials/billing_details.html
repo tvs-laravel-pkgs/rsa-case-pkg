@@ -50,7 +50,7 @@
                                         {{$ctrl.data.bo_service_type}}
                                     </td>
                                     <td ng-if="$ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 1 || $ctrl.data.activityApprovalLevel == 3)" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.service_type_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.service_type_changed_on_level == 3}">
-                                        <md-select ng-model="$ctrl.data.boServiceTypeId" ng-change="getServiceTypeRateCardDetail()">
+                                        <md-select ng-model="$ctrl.data.boServiceTypeId" ng-change="getServiceTypeRateCardDetail()" aria-label="Select Service">
                                             <md-option ng-repeat="val in $ctrl.data.serviceTypes" ng-value="val.id">
                                                 {{ val.name }}
                                             </md-option>
@@ -129,7 +129,7 @@
                                     </td>
                                 </tr>
                                 <tr ng-show="$ctrl.data.other_charges_attachment_url.length>0">
-                                    <th scope="row">Other Attachment</th>
+                                    <th scope="row">Other Charges Attachment</th>
                                     <td colspan="{{$ctrl.data.span_value}}">
                                         <div ng-repeat="(index,other_charges_attachment) in $ctrl.data.other_charges_attachments">
                                             <a target="_blank" href="{{$ctrl.data.other_charges_attachment_url[index]}}">{{other_charges_attachment.attachment_file_name}}</a>
@@ -158,37 +158,41 @@
                                         <!-- <img height="80px" weight="80px" src="{{$ctrl.data.inventoryJobSheetAttachmentUrl}}"> -->
                                     </td>
                                 </tr>
+                                <tr ng-show="$ctrl.data.otherAttachmentOneUrl">
+                                    <th scope="row">Other Image One</th>
+                                    <td colspan="{{$ctrl.data.span_value}}">
+                                        <a target="_blank" href="{{$ctrl.data.otherAttachmentOneUrl}}">{{$ctrl.data.otherAttachmentOne.attachment_file_name}}</a>
+                                    </td>
+                                </tr>
+                                <tr ng-show="$ctrl.data.otherAttachmentTwoUrl">
+                                    <th scope="row">Other Image Two</th>
+                                    <td colspan="{{$ctrl.data.span_value}}">
+                                        <a target="_blank" href="{{$ctrl.data.otherAttachmentTwoUrl}}">{{$ctrl.data.otherAttachmentTwo.attachment_file_name}}</a>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                     <div class="row" style="border: 1px solid #e1e1e1;padding: 10px 15px;margin: 0 auto;">
                         <div class="col-xs-12 col-sm-6 col-md-6" ng-show="$ctrl.data.other_charges_attachment_url.length>0">
                             <h4>Remarks Comments for not collected charges</h4>
-                            <p style="word-wrap: break-word;max-height: 100px;overflow: auto;">
-                                {{ $ctrl.data.remarks }}
-                            </p>
+                            <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.remarks"></p>
                         </div>
                         <div class="col-xs-12 col-sm-6 col-md-6" ng-show="$ctrl.data.backstep_reason != null">
                             <h4>Backstep Reason</h4>
-                            <p style="word-wrap: break-word;max-height: 100px;overflow: auto;">
-                                {{ $ctrl.data.backstep_reason }}
-                            </p>
+                            <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.backstep_reason"></p>
                         </div>
-                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && $ctrl.data.general_remarks != null">
+                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && $ctrl.data.general_remarks != null">
                             <h4>ASP General Remarks</h4>
-                            <p style="word-wrap: break-word;max-height: 100px;overflow: auto;">
-                                {{ $ctrl.data.general_remarks }}
-                            </p>
+                            <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.general_remarks"></p>
                         </div>
-                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && $ctrl.data.defer_reason != null">
+                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && $ctrl.data.defer_reason != null">
                             <h4>BO Defer Reason</h4>
                             <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.defer_reason"></p>
                         </div>
-                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && $ctrl.data.asp_resolve_comments != null">
+                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && $ctrl.data.asp_resolve_comments != null">
                             <h4>ASP Resolve Comments</h4>
-                            <p style="word-wrap: break-word;max-height: 100px;overflow: auto;">
-                                {{ $ctrl.data.asp_resolve_comments }}
-                            </p>
+                            <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.asp_resolve_comments"></p>
                         </div>
                         <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && $ctrl.data.exceptional_reason != null">
                             <h4>Exceptional Reason</h4>
@@ -286,16 +290,16 @@
                                         Discount Reason : {{$ctrl.data.deduction_reason ? $ctrl.data.deduction_reason : 'N/A'}}
                                     </td>
                                 </tr>
-                                <tr ng-if="$ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 1 || $ctrl.data.activityApprovalLevel == 3)">
-                                    <td colspan="2">
-                                        <textarea name="bo_comments" ng-model="$ctrl.data.bo_comments" class="form-control" value="" placeholder="Enter Comments" rows="3"></textarea>
-                                    </td>
-                                </tr>
-                                <tr ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))">
-                                    <td colspan="2" class="text-left">
-                                        Comments : {{$ctrl.data.bo_comments ? $ctrl.data.bo_comments : 'N/A'}}
-                                    </td>
-                                </tr>
+                                <!-- <tr ng-if="$ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 1 || $ctrl.data.activityApprovalLevel == 3)">
+    <td colspan="2">
+        <textarea name="bo_comments" ng-model="$ctrl.data.bo_comments" class="form-control" value="" placeholder="Enter Comments" rows="3"></textarea>
+    </td>
+</tr>
+<tr ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))">
+    <td colspan="2" class="text-left">
+        Comments : {{$ctrl.data.bo_comments ? $ctrl.data.bo_comments : 'N/A'}}
+    </td>
+</tr> -->
                                 <tr class="warning">
                                     <td>Payout Amount</td>
                                     <td>

@@ -283,7 +283,9 @@ app.component('billingDetails', {
                 self.activity_back_asp_update_route = activity_back_asp_update;
                 self.backstepReason = '';
                 self.csrf = token;
-                if (self.data.activity_portal_status_id == 6 || self.data.activity_portal_status_id == 9) {
+
+                // SET BO KM, COLLECTED AND NOT COLLECTED VALUE AS ZERO FOR L1 LEVEL VERIFICATIONS
+                if (self.data.verification == 1 && (self.data.activity_portal_status_id == 5 || self.data.activity_portal_status_id == 6 || self.data.activity_portal_status_id == 8 || self.data.activity_portal_status_id == 9)) {
                     self.data.raw_bo_collected = 0;
                     self.data.raw_bo_not_collected = 0;
                     self.data.raw_bo_km_travelled = 0;

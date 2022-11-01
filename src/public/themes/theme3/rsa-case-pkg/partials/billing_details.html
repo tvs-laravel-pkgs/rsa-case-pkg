@@ -129,7 +129,7 @@
                                     </td>
                                 </tr>
                                 <tr ng-show="$ctrl.data.other_charges_attachment_url.length>0">
-                                    <th scope="row">Other Attachment</th>
+                                    <th scope="row">Other Charges Attachment</th>
                                     <td colspan="{{$ctrl.data.span_value}}">
                                         <div ng-repeat="(index,other_charges_attachment) in $ctrl.data.other_charges_attachments">
                                             <a target="_blank" href="{{$ctrl.data.other_charges_attachment_url[index]}}">{{other_charges_attachment.attachment_file_name}}</a>
@@ -156,6 +156,18 @@
                                     <td colspan="{{$ctrl.data.span_value}}">
                                         <a target="_blank" href="{{$ctrl.data.inventoryJobSheetAttachmentUrl}}">{{$ctrl.data.inventoryJobSheetAttachment.attachment_file_name}}</a>
                                         <!-- <img height="80px" weight="80px" src="{{$ctrl.data.inventoryJobSheetAttachmentUrl}}"> -->
+                                    </td>
+                                </tr>
+                                <tr ng-show="$ctrl.data.otherAttachmentOneUrl">
+                                    <th scope="row">Other Image One</th>
+                                    <td colspan="{{$ctrl.data.span_value}}">
+                                        <a target="_blank" href="{{$ctrl.data.otherAttachmentOneUrl}}">{{$ctrl.data.otherAttachmentOne.attachment_file_name}}</a>
+                                    </td>
+                                </tr>
+                                <tr ng-show="$ctrl.data.otherAttachmentTwoUrl">
+                                    <th scope="row">Other Image Two</th>
+                                    <td colspan="{{$ctrl.data.span_value}}">
+                                        <a target="_blank" href="{{$ctrl.data.otherAttachmentTwoUrl}}">{{$ctrl.data.otherAttachmentTwo.attachment_file_name}}</a>
                                     </td>
                                 </tr>
                             </tbody>

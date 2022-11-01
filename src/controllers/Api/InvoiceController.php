@@ -315,7 +315,7 @@ class InvoiceController extends Controller {
 				$value = $imageName;
 			}
 			//CREATE INVOICE
-			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $invoice_date, $value);
+			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $invoice_date, $value, false);
 
 			if (!$invoice_c['success']) {
 				//CREATE INVOICE API LOG
@@ -348,13 +348,13 @@ class InvoiceController extends Controller {
 		} catch (\Exception $e) {
 			DB::rollBack();
 			//CREATE INVOICE API LOG
-			$errors[] = $e->getMessage();
+			$errors[] = $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile();
 			saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
 
 			return response()->json([
 				'success' => false,
 				'errors' => [
-					'Exception Error' => $e->getMessage(),
+					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			]);
 		}

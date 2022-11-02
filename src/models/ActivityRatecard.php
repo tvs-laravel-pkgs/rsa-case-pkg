@@ -26,7 +26,7 @@ class ActivityRatecard extends Model {
 	// Relationships --------------------------------------------------------------
 
 	public function activity() {
-		return $this->belongsTo('App\Activity', 'activity_id');
+		return $this->belongsTo('Abs\RsaCasePkg\Activity', 'activity_id');
 	}
 
 	public function createdBy() {

@@ -287,8 +287,8 @@ app.component('billingDetails', {
                 // SET BO KM, COLLECTED AND NOT COLLECTED VALUE AS ZERO FOR L1 LEVEL VERIFICATIONS
                 if (self.data.verification == 1 && (self.data.activity_portal_status_id == 5 || self.data.activity_portal_status_id == 6 || self.data.activity_portal_status_id == 8 || self.data.activity_portal_status_id == 9)) {
                     self.data.raw_bo_collected = 0;
-                    self.data.raw_bo_not_collected = 0;
-                    self.data.raw_bo_km_travelled = 0;
+                    // self.data.raw_bo_not_collected = 0;
+                    // self.data.raw_bo_km_travelled = 0;
                 }
 
                 self.show_km = 0;

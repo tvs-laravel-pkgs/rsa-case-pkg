@@ -1,10 +1,10 @@
-<div class="viewData-wrapper" ng-show="$ctrl.data.invoice_id>0">    
-    <div class="viewData-toggle--wrapper">  
-        <div class="noToggle--inner">   
-            <div class="row">   
-                <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">  
-                    <div class="aai-head-left-title">Invoice</div>  
-                    <div class="aai-head-left-address"> 
+<div class="viewData-wrapper" ng-if="$ctrl.data.invoice_id != NULL">
+    <div class="viewData-toggle--wrapper">
+        <div class="noToggle--inner">
+            <div class="row">
+                <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                    <div class="aai-head-left-title">Invoice</div>
+                    <div class="aai-head-left-address">
                         <p ng-if="$ctrl.data.auto_assist_company_address">
                             TVS Auto Assist (India) Limited<br />9th Floor, Kochar Bliss,<br />Plot No. Super A8 & 9,<br />Thiru-Vi-Ka Industrial Estate,<br />Guindy,<br />Chennai – 600032<br /> GST- 33AANCA3184D1ZV
                         </p>
@@ -13,176 +13,176 @@
                             CIN - U34100TN2009PTC071439<br />GSTIN - 33AAGCM0329K1ZM
                         </p>
                         <p ng-if="$ctrl.data.ki_company_address">
-                            KI MOBILITY SOLUTIONS PRIVATE LIMITED <br/>10, JAWAHAR ROAD,<br/>CHOKKIKULAM,<br/>MADURAI – 625002<br/>CIN - U52590TN2018PTC125028<br/>PAN - AAKCP0950F<br/>GSTIN - 33AAKCP0950F1ZN
+                            KI MOBILITY SOLUTIONS PRIVATE LIMITED <br />10, JAWAHAR ROAD,<br />CHOKKIKULAM,<br />MADURAI – 625002<br />CIN - U52590TN2018PTC125028<br />PAN - AAKCP0950F<br />GSTIN - 33AAKCP0950F1ZN
                         </p>
-                    </div>  
-                </div>  
-                <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">  
-                    <div class="aai-head-right1">   
-                        <table style="width:100%">  
-                            <tr>    
-                                <td class="text-right">Invoice Generation :</td>    
-                                <td ng-if="isSelf($ctrl.data.asp)"><span>Self</span>   
-                                </td>   
-                                <td ng-if="isSystem($ctrl.data.asp)"><span>System</span>  
-                                </td>   
-                            </tr>   
-                            <tr>    
-                                <td class="text-right">Invoice No :</td>    
-                                <td><span>{{$ctrl.data.invoice_no}}</span>  
-                                </td>   
-                            </tr>   
-                            <tr>    
-                                <td class="text-right">Invoice Date :</td>  
-                                <td><span>{{$ctrl.data.invoice_date}}</span></td>   
-                            </tr>   
-                            <tr>    
-                                <td class="text-right">GST Registration Number :</td>   
-                                <td><span>  
-                                        {{$ctrl.data.gst_registration_number}}  
-                                    </span> 
-                                </td>   
-                            </tr>   
-                            <tr>    
-                                <td class="text-right">PAN Number :</td>    
-                                <td>    
-                                    <span ng-if="$ctrl.invoice.asp_pan_number != ''">   
-                                        {{$ctrl.data.pan_number}}   
-                                    </span> 
-                                </td>   
-                            </tr>   
-                        </table>    
-                    </div>  
-                </div>  
-            </div>  
-            <div class="row">   
-                <div class="col-md-12"> 
-                    <div id="about40" class=""> 
-                        <div class="table-responsive">  
-                            <table id="aspLogin-table" class="table" style="width:100%;">   
-                                <thead> 
-                                    <tr>    
-                                        <th>Case Number</th>    
-                                        <th>Case Date</th>  
-                                        <!-- <th>Vehicle Registration Number</th> -->   
-                                        <th>Service Type</th>   
-                                        <th>KM</th> 
-                                        <th class="text-right">KM Charge</th>   
-                                        <th class="text-right">Collected Amount</th>    
-                                        <th ng-if="$ctrl.data.asp.tax_calculation_method==1" class="text-right">Not Collected Amount</th>   
-                                        <th class="text-right">Net Amount</th>  
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                    <div class="aai-head-right1">
+                        <table style="width:100%">
+                            <tr>
+                                <td class="text-right">Invoice Generation :</td>
+                                <td ng-if="isSelf($ctrl.data.invoice.asp)"><span>Self</span>
+                                </td>
+                                <td ng-if="isSystem($ctrl.data.invoice.asp)"><span>System</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-right">Invoice No :</td>
+                                <td><span>{{$ctrl.data.invoice_no}}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-right">Invoice Date :</td>
+                                <td><span>{{$ctrl.data.invoice_date}}</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-right">GST Registration Number :</td>
+                                <td><span>
+                                        {{$ctrl.data.gst_registration_number}}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-right">PAN Number :</td>
+                                <td>
+                                    <span ng-if="$ctrl.invoice.asp_pan_number != ''">
+                                        {{$ctrl.data.pan_number}}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div id="about40" class="">
+                        <div class="table-responsive">
+                            <table id="aspLogin-table" class="table" style="width:100%;">
+                                <thead>
+                                    <tr>
+                                        <th>Case Number</th>
+                                        <th>Case Date</th>
+                                        <!-- <th>Vehicle Registration Number</th> -->
+                                        <th>Service Type</th>
+                                        <th>KM</th>
+                                        <th class="text-right">KM Charge</th>
+                                        <th class="text-right">Collected Amount</th>
+                                        <th ng-if="$ctrl.data.invoice.asp.tax_calculation_method==1" class="text-right">Not Collected Amount</th>
+                                        <th class="text-right">Net Amount</th>
                                         <th class="text-right" ng-repeat="(index, tax) in $ctrl.data.invoice_activities[0].taxes">{{tax.tax_name}} ({{tax.tax_rate}}%)</th>
-                                        <th ng-if="$ctrl.data.asp.tax_calculation_method==0" class="text-right">Not Collected Amount</th>   
-                                        <th class="text-right">Invoice Amount</th>  
-                                    </tr>   
-                                </thead>    
-                                <tbody> 
-                                    <tr ng-repeat="(index, activity) in $ctrl.data.invoice_activities"> 
-                                        <td>    
-                                            {{activity.number}} 
-                                        </td>   
-                                        <td>    
-                                            {{activity.date}}   
-                                        </td>   
+                                        <th ng-if="$ctrl.data.invoice.asp.tax_calculation_method==0" class="text-right">Not Collected Amount</th>
+                                        <th class="text-right">Invoice Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="(index, activity) in $ctrl.data.invoice_activities">
+                                        <td>
+                                            {{activity.number}}
+                                        </td>
+                                        <td>
+                                            {{activity.date}}
+                                        </td>
                                         <!-- <td>   
                                             {{activity.vehicle_registration_number}}    
-                                        </td> -->   
-                                        <td>    
-                                            {{activity.service_type}}   
-                                        </td>   
-                                        <td>    
-                                            {{activity.km_value | number : 2}}  
-                                        </td>   
-                                        <td class="text-right"> 
-                                            {{activity.km_charge_value | number : 2}}   
-                                        </td>   
-                                        <td class="text-right"> 
-                                            {{activity.collect_value | number : 2}} 
-                                        </td>   
-                                        <td ng-if="$ctrl.data.asp.tax_calculation_method==1" class="text-right">    
-                                            {{activity.not_collect_value | number : 2}} 
-                                        </td>   
-                                        <td class="text-right"> 
-                                            {{activity.net_value | number : 2}} 
-                                        </td>   
+                                        </td> -->
+                                        <td>
+                                            {{activity.service_type}}
+                                        </td>
+                                        <td>
+                                            {{activity.km_value | number : 2}}
+                                        </td>
+                                        <td class="text-right">
+                                            {{activity.km_charge_value | number : 2}}
+                                        </td>
+                                        <td class="text-right">
+                                            {{activity.collect_value | number : 2}}
+                                        </td>
+                                        <td ng-if="$ctrl.data.invoice.asp.tax_calculation_method==1" class="text-right">
+                                            {{activity.not_collect_value | number : 2}}
+                                        </td>
+                                        <td class="text-right">
+                                            {{activity.net_value | number : 2}}
+                                        </td>
                                         <td class="text-right" ng-repeat="(index, tax) in activity.taxes">
                                             {{tax.amount | number : 2}}
                                         </td>
-                                        <td ng-if="$ctrl.data.asp.tax_calculation_method==0" class="text-right">    
-                                            {{activity.not_collect_value | number : 2}} 
-                                        </td>   
-                                        <td class="text-right"> 
-                                            {{activity.total_value | number : 2}}   
-                                        </td>   
-                                    </tr>   
-                                </tbody>    
-                            </table>    
-                        </div><!-- Responsive -->   
-                        <div class="mt-20"></div>   
-                        <div class="row">   
-                            <div class="col-sm-6">  
-                                <h4 class="amountinwords-title">Amount In Words:</h4>   
-                                <div class="amountinwords">{{$ctrl.data.invoice_amount_in_word}}</div>  
-                            </div><!-- Column -->   
-                            <div class="col-sm-6">  
-                                <div class="netamount text-right">  
-                                    <span><b>Final Invoice Amount:</b></span>&nbsp;&nbsp;&nbsp;&nbsp;   
-                                    <span class="amount">   
-                                        <i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.data.invoice_amount}}  
-                                    </span> 
-                                </div>  
-                            </div>  
-                        </div><!-- Row -->  
-                        <div class="mb-30"></div>   
-                        <div class="aai_footer">    
-                            <div class="pull-left"> 
-                                <h4 class="amountinwords-title">Bank Details:</h4>  
-                                <p>Name : {{$ctrl.data.asp.workshop_name ? $ctrl.data.asp.workshop_name : 'N/A'}} | Account Number : {{$ctrl.data.asp.bank_account_number ? $ctrl.data.asp.bank_account_number : 'N/A'}} | Bank : {{$ctrl.data.asp.bank_name ? $ctrl.data.asp.bank_name : 'N/A'}} | Branch : {{$ctrl.data.asp.bank_branch_name ? $ctrl.data.asp.bank_branch_name : 'N/A'}} | IFSC : {{$ctrl.data.asp.bank_ifsc_code ? $ctrl.data.asp.bank_ifsc_code : 'N/A'}}</p>   
-                            </div>  
-                            <div ng-show="$ctrl.data.signature_attachment != ''" class="pull-right"> 
-                                <img src="{{$ctrl.data.signature_attachment_path}}/{{$ctrl.data.asp.id}}/{{$ctrl.data.signature_attachment.attachment_file_name}}" weight="80px" height="50px" alt="Authorised Signature" />  
+                                        <td ng-if="$ctrl.data.invoice.asp.tax_calculation_method==0" class="text-right">
+                                            {{activity.not_collect_value | number : 2}}
+                                        </td>
+                                        <td class="text-right">
+                                            {{activity.total_value | number : 2}}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div><!-- Responsive -->
+                        <div class="mt-20"></div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <h4 class="amountinwords-title">Amount In Words:</h4>
+                                <div class="amountinwords">{{$ctrl.data.invoice_amount_in_word}}</div>
+                            </div><!-- Column -->
+                            <div class="col-sm-6">
+                                <div class="netamount text-right">
+                                    <span><b>Final Invoice Amount:</b></span>&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <span class="amount">
+                                        <i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.data.invoice_amount}}
+                                    </span>
+                                </div>
                             </div>
-                            <div class="clearfix"></div>    
-                        </div>  
-                    </div>  
-                </div><!-- Column -->   
-            </div><!-- Row -->  
-        </div>  
-    </div>  
-    <div class="clearfix"></div>    
-</div><!-- View Date Wrapper -->                   
-<div class="viewData-wrapper bordered mt-20" ng-show="$ctrl.data.invoice_id ==NULL">
+                        </div><!-- Row -->
+                        <div class="mb-30"></div>
+                        <div class="aai_footer">
+                            <div class="pull-left">
+                                <h4 class="amountinwords-title">Bank Details:</h4>
+                                <p>Name : {{$ctrl.data.invoice.asp.workshop_name ? $ctrl.data.invoice.asp.workshop_name : 'N/A'}} | Account Number : {{$ctrl.data.invoice.asp.bank_account_number ? $ctrl.data.invoice.asp.bank_account_number : 'N/A'}} | Bank : {{$ctrl.data.invoice.asp.bank_name ? $ctrl.data.invoice.asp.bank_name : 'N/A'}} | Branch : {{$ctrl.data.invoice.asp.bank_branch_name ? $ctrl.data.invoice.asp.bank_branch_name : 'N/A'}} | IFSC : {{$ctrl.data.invoice.asp.bank_ifsc_code ? $ctrl.data.invoice.asp.bank_ifsc_code : 'N/A'}}</p>
+                            </div>
+                            <div ng-show="$ctrl.data.signature_attachment != ''" class="pull-right">
+                                <img src="{{$ctrl.data.signature_attachment_path}}/{{$ctrl.data.invoice.asp.id}}/{{$ctrl.data.signature_attachment.attachment_file_name}}" weight="80px" height="50px" alt="Authorised Signature" />
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                    </div>
+                </div><!-- Column -->
+            </div><!-- Row -->
+        </div>
+    </div>
+    <div class="clearfix"></div>
+</div><!-- View Date Wrapper -->
+<div class="viewData-wrapper bordered mt-20" ng-if="$ctrl.data.invoice_id == NULL">
     <div class="viewData-threeColumn--wrapper">
         <div class="row">
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class= "activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
                         <p>Invoice Number</p>
-                        <h3>{{$ctrl.data.invoice_no}}</h3>
+                        <h3>NA</h3>
                     </li>
                 </ul>
             </div>
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class= "activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
                         <p>Invoice Date</p>
-                        <h3>{{$ctrl.data.invoice_date}}</h3>
+                        <h3>NA</h3>
                     </li>
                 </ul>
             </div>
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class= "activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
                         <p>Invoice Amount</p>
-                        <h3>{{$ctrl.data.invoice_amount}}</h3>
+                        <h3>NA</h3>
                     </li>
                 </ul>
             </div>
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class= "activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
                         <p>Invoice Status</p>
-                        <h3>{{$ctrl.data.flow_current_status}}</h3>
+                        <h3>NA</h3>
                     </li>
                 </ul>
             </div>
@@ -192,7 +192,7 @@
         <div class="row">
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class= "activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
                         <p>Payment Date</p>
                         <h3>-</h3>
                     </li>
@@ -200,7 +200,7 @@
             </div>
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class= "activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
                         <p>Payment Mode</p>
                         <h3>-</h3>
                     </li>
@@ -208,7 +208,7 @@
             </div>
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class= "activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
                         <p>Paid Amount</p>
                         <h3>-</h3>
                     </li>

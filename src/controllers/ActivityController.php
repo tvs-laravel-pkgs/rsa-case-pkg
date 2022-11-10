@@ -4062,8 +4062,6 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			//CALCULATE TAX FOR INVOICE
-			Invoices::calculateTax($asp, $activity_ids);
 			$activities = Activity::join('cases', 'cases.id', 'activities.case_id')
 				->join('call_centers', 'call_centers.id', 'cases.call_center_id')
 				->join('service_types', 'service_types.id', 'activities.service_type_id')
@@ -4123,6 +4121,7 @@ class ActivityController extends Controller {
 					'data_sources.name as data_source',
 				])
 				->whereIn('activities.id', $activity_ids)
+				->whereIn('activities.status_id', [11, 1]) //Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
 				->groupBy('activities.id')
 				->get();
 
@@ -4134,6 +4133,9 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
+
+			//CALCULATE TAX FOR INVOICE
+			Invoices::calculateTax($asp, $activity_ids);
 
 			foreach ($activities as $key => $activity) {
 				$taxes = DB::table('activity_tax')->leftjoin('taxes', 'activity_tax.tax_id', '=', 'taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name', 'taxes.tax_rate', 'activity_tax.*')->get();

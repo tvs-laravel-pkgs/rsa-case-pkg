@@ -662,6 +662,19 @@ class ActivityController extends Controller {
 			}
 			$this->data['activities'] = $activity = Activity::with([
 				'invoice',
+				'invoice.asp' => function ($q) {
+					$q->select([
+						'id',
+						'has_gst',
+						'is_auto_invoice',
+						'tax_calculation_method',
+						'workshop_name',
+						'bank_account_number',
+						'bank_name',
+						'bank_branch_name',
+						'bank_ifsc_code',
+					]);
+				},
 				'asp',
 				'asp.rms',
 				'asp.state',
@@ -771,7 +784,7 @@ class ActivityController extends Controller {
 					DB::raw('IF(Invoices.invoice_amount IS NULL,"NA",Invoices.invoice_amount) as inv_amount'),
 					DB::raw('IF((asps.has_gst =1 && asps.is_auto_invoice=0),"NO","Yes") as auto_invoice'),
 					DB::raw('IF(Invoices.flow_current_status IS NULL,"NA",Invoices.flow_current_status) as flow_current_status'),
-					DB::raw('IF(Invoices.created_at IS NULL,"NA",DATE_FORMAT(Invoices.created_at,"%d-%m-%Y")) as invoice_date'),
+					DB::raw('IF(Invoices.created_at IS NULL,"NA",DATE_FORMAT(Invoices.created_at,"%d/%m/%Y")) as invoice_date'),
 					'activity_finance_statuses.po_eligibility_type_id',
 					'activities.finance_status_id',
 					'activities.invoice_id',
@@ -988,7 +1001,26 @@ class ActivityController extends Controller {
 			/*$this->data['activities']['invoice_activities'] = Activity::with(['case','serviceType','activityDetail'])->where('invoice_id',$activity->invoice_id)->get();*/
 			if ($activity->invoice_id) {
 
-				$this->data['activities']['invoice_activities'] = $invoice_activities = Activity::join('cases', 'cases.id', 'activities.case_id')
+				$this->data['activities']['invoice_activities'] = $invoice_activities = Activity::select([
+					'cases.number',
+					'activities.id',
+					// 'activities.asp_id',
+					'Invoices.asp_id',
+					'activities.crm_activity_id',
+					DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
+					'cases.vehicle_registration_number',
+					'service_types.name as service_type',
+					'km_charge.value as km_charge_value',
+					'km_travelled.value as km_value',
+					'not_collected_amount.value as not_collect_value',
+					'net_amount.value as net_value',
+					'collect_amount.value as collect_value',
+					'total_amount.value as total_value',
+					'total_tax_perc.value as total_tax_perc_value',
+					'total_tax_amount.value as total_tax_amount_value',
+				])
+					->join('Invoices', 'Invoices.id', 'activities.invoice_id')
+					->join('cases', 'cases.id', 'activities.case_id')
 					->join('service_types', 'service_types.id', 'activities.service_type_id')
 					->leftJoin('activity_details as km_charge', function ($join) {
 						$join->on('km_charge.activity_id', 'activities.id')
@@ -1022,23 +1054,7 @@ class ActivityController extends Controller {
 						$join->on('total_amount.activity_id', 'activities.id')
 							->where('total_amount.key_id', 182); //BO INVOICE AMOUNT
 					})
-					->select(
-						'cases.number',
-						'activities.id',
-						'activities.asp_id',
-						'activities.crm_activity_id',
-						DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
-						'cases.vehicle_registration_number',
-						'service_types.name as service_type',
-						'km_charge.value as km_charge_value',
-						'km_travelled.value as km_value',
-						'not_collected_amount.value as not_collect_value',
-						'net_amount.value as net_value',
-						'collect_amount.value as collect_value',
-						'total_amount.value as total_value',
-						'total_tax_perc.value as total_tax_perc_value',
-						'total_tax_amount.value as total_tax_amount_value'
-					)
+
 					->where('invoice_id', $activity->invoice_id)
 					->groupBy('activities.id')
 					->get();
@@ -1072,7 +1088,9 @@ class ActivityController extends Controller {
 					}
 				}
 
-				$this->data['activities']['signature_attachment'] = Attachment::where('entity_id', $invoice_activities[0]->asp_id)->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))->first();
+				$this->data['activities']['signature_attachment'] = Attachment::where('entity_id', $invoice_activities[0]->asp_id)
+					->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))
+					->first();
 
 				$this->data['activities']['signature_attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
 

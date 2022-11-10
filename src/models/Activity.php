@@ -199,6 +199,13 @@ class Activity extends Model {
 
 		$data['activity'] = $activity = self::with([
 			'case',
+			'asp' => function ($q) {
+				$q->select([
+					'id',
+					'asp_code',
+					'name',
+				]);
+			},
 			'serviceType',
 			'financeStatus',
 		])

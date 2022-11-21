@@ -203,8 +203,8 @@ class InvoiceController extends Controller {
 					->where('total_amount.key_id', 182); //BO TOTAL AMOUNT
 			})
 			->leftjoin('configs as data_sources', 'data_sources.id', 'activities.data_src_id')
-			->select(
-				// 'activities.number',
+			->select([
+				'activities.number as activityNumber',
 				'activities.id',
 				'activities.asp_id as asp_id',
 				'cases.number',
@@ -221,8 +221,8 @@ class InvoiceController extends Controller {
 				'total_amount.value as total_value',
 				'total_tax_perc.value as total_tax_perc_value',
 				'total_tax_amount.value as total_tax_amount_value',
-				'data_sources.name as data_source'
-			)
+				'data_sources.name as data_source',
+			])
 			->where('invoice_id', $invoice_id)
 			->groupBy('activities.id')
 			->get();
@@ -330,7 +330,6 @@ class InvoiceController extends Controller {
 			if (empty($request->invoice_ids)) {
 				return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/1')->with('error', 'Please select atleast one invoice');
 			}
-
 			$invoice_ids = $request->invoice_ids;
 
 			$activities = Activity::select(
@@ -489,6 +488,32 @@ class InvoiceController extends Controller {
 			}
 		} catch (\Exception $e) {
 			dd($e);
+		}
+	}
+
+	public function cancel(Request $request) {
+		// dd($request->all());
+		try {
+			if (empty($request->invoiceIds)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Please select atleast one invoice',
+					],
+				]);
+			}
+			Activity::whereIn('invoice_id', $request->invoiceIds)->update(['invoice_id' => NULL, 'status_id' => 6]);
+			Invoices::whereIn('id', $request->invoiceIds)->delete();
+			return response()->json([
+				'success' => true,
+			]);
+		} catch (\Exception $e) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
 		}
 	}
 

@@ -217,7 +217,7 @@ app.component('newActivityUpdateDetails', {
         $scope.getServiceTypeDetail = () => {
             if (self.service_type_id) {
                 $.ajax({
-                        url: getActivityServiceTypeDetail + '/' + self.service_type_id,
+                        url: getActivityServiceTypeDetail + '/' + self.service_type_id + '/' + self.activity.id,
                         method: "GET",
                     })
                     .done(function(res) {
@@ -235,6 +235,7 @@ app.component('newActivityUpdateDetails', {
                             } else {
                                 self.showTowingAttachment = false;
                             }
+                            self.activity = res.activity;
                             $scope.$apply()
                         }
                     })
@@ -248,7 +249,6 @@ app.component('newActivityUpdateDetails', {
         $.validator.addMethod('imageFileSize', function(value, element, param) {
             return this.optional(element) || (element.files[0].size <= param)
         });
-
         //Jquery Validation
         var form_id = '#new-tickect-form';
         var v = jQuery(form_id).validate({
@@ -301,19 +301,22 @@ app.component('newActivityUpdateDetails', {
                     required: function(element) {
                         return self.activity.is_towing_attachments_mandatory === 1 && !self.vehiclePickupAttach && self.activity.finance_status.po_eligibility_type_id == 340;
                     },
-                    imageFileSize: 1048576,
+                    //imageFileSize: 1048576,
+                    extension: "jpg|jpeg|png",
                 },
                 'vehicle_drop_attachment': {
                     required: function(element) {
                         return self.activity.is_towing_attachments_mandatory === 1 && !self.vehicleDropAttach && self.activity.finance_status.po_eligibility_type_id == 340;
                     },
-                    imageFileSize: 1048576,
+                    //imageFileSize: 1048576,
+                    extension: "jpg|jpeg|png",
                 },
                 'inventory_job_sheet_attachment': {
                     required: function(element) {
                         return self.activity.is_towing_attachments_mandatory === 1 && !self.inventoryJobSheetAttach && self.activity.finance_status.po_eligibility_type_id == 340;
                     },
-                    imageFileSize: 1048576,
+                    //imageFileSize: 1048576,
+                    extension: "jpg|jpeg|png",
                 }
             },
             messages: {
@@ -338,14 +341,17 @@ app.component('newActivityUpdateDetails', {
                 'vehicle_pickup_attachment': {
                     required: 'Please Upload Vehicle Pickup image',
                     imageFileSize: "Vehicle Pickup image size must be less than 1MB",
+                    extension: "Please Upload Vehicle Pickup image in jpeg, png, jpg formats",
                 },
                 'vehicle_drop_attachment': {
                     required: 'Please Upload Vehicle Drop image',
                     imageFileSize: "Vehicle Drop image size must be less than 1MB",
+                    extension: "Please Upload Vehicle Drop image in jpeg, png, jpg formats",
                 },
                 'inventory_job_sheet_attachment': {
                     required: 'Please Upload Inventory Job Sheet image',
                     imageFileSize: "Inventory Job Sheet image size must be less than 1MB",
+                    extension: "Please Upload Inventory Job Sheet image in jpeg, png, jpg formats",
                 }
             },
             errorPlacement: function(error, element) {

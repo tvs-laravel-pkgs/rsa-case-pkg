@@ -31,7 +31,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web'], 'prefix'
 		//ASP NEW ACTIVITY
 		Route::get('/new-activity/get-form-data/{id?}', 'ActivityController@activityNewGetFormData')->name('activityNewGetFormData');
 		Route::post('asp/activity/verify', 'ActivityController@verifyActivity')->name('verifyActivity');
-		Route::get('/new-activity/get-service-type-detail/{id}', 'ActivityController@activityNewGetServiceTypeDetail')->name('activityNewGetServiceTypeDetail');
+		Route::get('/new-activity/get-service-type-detail/{id}/{activityId}', 'ActivityController@activityNewGetServiceTypeDetail')->name('activityNewGetServiceTypeDetail');
 
 		//ACTIVITY DEFERRED
 		Route::get('/activity-deferred/get-filter-data', 'ActivityController@getFilterData')->name('getActivityDeferredFilterData');
@@ -63,6 +63,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web'], 'prefix'
 		Route::get('/invoice/get-list', 'InvoiceController@getList')->name('getListData');
 		Route::get('/invoice/view/{id}/{type_id}', 'InvoiceController@viewInvoice')->name('viewInvoice');
 		Route::get('/invoice/download/{id}', 'InvoiceController@downloadInvoice')->name('downloadInvoice');
+		Route::post('/invoice/cancel', 'InvoiceController@cancel')->name('cancelInvoice');
 		Route::post('/invoice/export', 'InvoiceController@export')->name('exportInvoice');
 		Route::get('/invoice/get/payment-info/{id}', 'InvoiceController@getPaymentInfo')->name('getPaymentInfo');
 

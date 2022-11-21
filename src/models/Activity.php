@@ -1158,7 +1158,7 @@ class Activity extends Model {
 
 									// TOW SERVICE
 									if ($service_type->service_group_id == 3) {
-										if ($activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
+										if ($asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
 											$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 										} else {
 											$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
@@ -1218,7 +1218,7 @@ class Activity extends Model {
 										if ($asp->is_ros_asp == 1) {
 											// TOW SERVICE
 											if ($service_type->service_group_id == 3) {
-												if ($activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
+												if ($asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
 													$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 												} else {
 													$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
@@ -1226,6 +1226,8 @@ class Activity extends Model {
 											} else {
 												$activity->status_id = 17; //ON HOLD
 											}
+										} elseif ($asp->is_corporate == 1) {
+											$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 										} else {
 											$activity->status_id = 17; //ON HOLD
 										}
@@ -1336,7 +1338,7 @@ class Activity extends Model {
 												}
 											} else {
 												// TOW SERVICE
-												if ($caseActivity->towing_attachments_uploaded_on_whatsapp == 1 || $caseActivity->is_asp_data_entry_done == 1) {
+												if ($caseActivity->asp->is_corporate == 1 || $caseActivity->towing_attachments_uploaded_on_whatsapp == 1 || $caseActivity->is_asp_data_entry_done == 1) {
 													//ASP Completed Data Entry - Waiting for L1 Individual Verification
 													$statusId = 6;
 												} else {
@@ -1361,7 +1363,7 @@ class Activity extends Model {
 													$statusId = 6;
 												}
 											} else {
-												if ($caseActivity->is_asp_data_entry_done == 1) {
+												if (($caseActivity->asp && $caseActivity->asp->is_corporate == 1) || $caseActivity->is_asp_data_entry_done == 1) {
 													$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 												} else {
 													$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry

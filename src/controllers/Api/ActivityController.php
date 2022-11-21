@@ -1121,7 +1121,7 @@ class ActivityController extends Controller {
 
 								//CREATE INVOICE
 								$crmActivityId[] = $activity->crm_activity_id;
-								$createInvoiceResponse = Invoices::createInvoice($activity->asp, $crmActivityId, $invoiceNumber, $invoiceDate, '', true);
+								$createInvoiceResponse = Invoices::createInvoice($activity->asp, $crmActivityId, $invoiceNumber, NULL, $invoiceDate, '', true);
 
 								if (!$createInvoiceResponse['success']) {
 									DB::rollBack();

@@ -27,6 +27,7 @@ class InvoiceController extends Controller {
 				'activity_id.*' => 'required|numeric|exists:activities,crm_activity_id',
 				'asp_code' => 'required|string|exists:asps,asp_code',
 				'invoice_number' => 'nullable|string|max:20',
+				'irn' => 'nullable|string|min:64|max:64',
 				'invoice_date' => 'nullable|string|date_format:"Y-m-d"',
 				'invoice_copy' => 'nullable',
 			]);
@@ -265,12 +266,14 @@ class InvoiceController extends Controller {
 
 				$invoice_no = $request->invoice_number;
 				$invoice_date = date('Y-m-d H:i:s', strtotime($request->invoice_date));
+				$irn = (isset($request->irn) && !empty($request->irn)) ? $request->irn : NULL;
 			} else {
 				//SYSTEM
 
 				//GENERATE INVOICE NUMBER
 				$invoice_no = generateAppInvoiceNumber();
 				$invoice_date = new Carbon();
+				$irn = NULL;
 			}
 
 			//STORE ATTACHMENT
@@ -315,7 +318,7 @@ class InvoiceController extends Controller {
 				$value = $imageName;
 			}
 			//CREATE INVOICE
-			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $invoice_date, $value, false);
+			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $irn, $invoice_date, $value, false);
 
 			if (!$invoice_c['success']) {
 				//CREATE INVOICE API LOG

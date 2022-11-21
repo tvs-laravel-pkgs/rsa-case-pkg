@@ -27,6 +27,7 @@ class InvoiceController extends Controller {
 				'activity_id.*' => 'required|numeric|exists:activities,crm_activity_id',
 				'asp_code' => 'required|string|exists:asps,asp_code',
 				'invoice_number' => 'nullable|string|max:20',
+				'irn' => 'nullable|string|min:64|max:64',
 				'invoice_date' => 'nullable|string|date_format:"Y-m-d"',
 				'invoice_copy' => 'nullable',
 			]);
@@ -68,12 +69,13 @@ class InvoiceController extends Controller {
 				'case_id'
 			)
 				->whereIn('crm_activity_id', $request->activity_id)
+				->whereIn('status_id', [11, 1]) //Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
 				->get();
 
 			//CUSTOM VALIDATION SAID BY BUSINESS TEAM
 			$aug21ToNov21caseExist = false;
 			$afterDec21caseExist = false;
-			if (!empty($activities)) {
+			if ($activities->isNotEmpty()) {
 				foreach ($activities as $key => $activity) {
 					//CHECK ASP MATCHES WITH ACTIVITY ASP
 					if ($activity->asp_id != $asp->id) {
@@ -150,8 +152,13 @@ class InvoiceController extends Controller {
 			}
 
 			//CHECK ACTIVITY IS ACCEPTED OR NOT
-			$activities_with_accepted = Activity::select('crm_activity_id', 'status_id')->whereIn('crm_activity_id', $request->activity_id)->get();
-			if (!empty($activities_with_accepted)) {
+			$activities_with_accepted = Activity::select([
+				'crm_activity_id',
+				'status_id',
+			])
+				->whereIn('crm_activity_id', $request->activity_id)
+				->get();
+			if ($activities_with_accepted->isNotEmpty()) {
 				foreach ($activities_with_accepted as $key => $activity_accepted) {
 					//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND Waiting for Invoice Generation by ASP)
 					if ($activity_accepted->status_id != 1 && $activity_accepted->status_id != 11) {
@@ -259,12 +266,14 @@ class InvoiceController extends Controller {
 
 				$invoice_no = $request->invoice_number;
 				$invoice_date = date('Y-m-d H:i:s', strtotime($request->invoice_date));
+				$irn = (isset($request->irn) && !empty($request->irn)) ? $request->irn : NULL;
 			} else {
 				//SYSTEM
 
 				//GENERATE INVOICE NUMBER
 				$invoice_no = generateAppInvoiceNumber();
 				$invoice_date = new Carbon();
+				$irn = NULL;
 			}
 
 			//STORE ATTACHMENT
@@ -309,7 +318,7 @@ class InvoiceController extends Controller {
 				$value = $imageName;
 			}
 			//CREATE INVOICE
-			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $invoice_date, $value);
+			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $irn, $invoice_date, $value, false);
 
 			if (!$invoice_c['success']) {
 				//CREATE INVOICE API LOG
@@ -342,13 +351,13 @@ class InvoiceController extends Controller {
 		} catch (\Exception $e) {
 			DB::rollBack();
 			//CREATE INVOICE API LOG
-			$errors[] = $e->getMessage();
+			$errors[] = $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile();
 			saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
 
 			return response()->json([
 				'success' => false,
 				'errors' => [
-					'Exception Error' => $e->getMessage(),
+					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			]);
 		}

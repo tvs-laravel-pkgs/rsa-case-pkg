@@ -136,6 +136,12 @@
                                                 </td>
                                             </tr>
                                             <tr ng-if="isSelf($ctrl.asp)">
+                                                <td class="text-right">IRN :</td>
+                                                <td style="padding-left: 15px;">
+                                                    <input id="irn" class="form-control filter-input" type="text" name="irn" placeholder="Enter IRN" autocomplete="off" minlength="64" maxlength="64">
+                                                </td>
+                                            </tr>
+                                            <tr ng-if="isSelf($ctrl.asp)">
                                                 <td class="text-right">Invoice Date :</td>
                                                 <td style="padding-left: 15px;">
                                                     <input id="ticket_date" class="form-control filter-input" type="text" name="inv_date" placeholder="Select Date" autocomplete="off" value="{{$ctrl.inv_date}}" readonly>
@@ -170,6 +176,7 @@
                                                         <th>Case Number</th>
                                                         <th>Case Date</th>
                                                         <th>Vehicle Number</th>
+                                                        <th>Activity Number</th>
                                                         <th>Source</th>
                                                         <th>Service Type</th>
                                                         <th>KM</th>
@@ -195,7 +202,10 @@
                                                             {{activity.vehicle_registration_number}}
                                                         </td>
                                                         <td>
-                                                            {{activity.data_source ? activity.data_source:''}}
+                                                            {{activity.activityNumber ? activity.activityNumber : ''}}
+                                                        </td>
+                                                        <td>
+                                                            {{activity.data_source ? activity.data_source : ''}}
                                                         </td>
                                                         <td>
                                                             {{activity.service_type}}

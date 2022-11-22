@@ -1737,7 +1737,7 @@ class Activity extends Model {
 			$arr['to_mail_ids'] = $toMailIds;
 			$arr['caseNumber'] = $caseNumber;
 			$arr['activityId'] = $activityNumber;
-			$arr['vehicleNo'] = $vehicleNumber;
+			$arr['vehicleNo'] = $payloadVehicleNumber;
 			$arr['serviceType'] = $serviceType;
 			$arr['company_header'] = view('partials/email-noty-company-header')->render();
 			$MailInstance = new ActivityWhatsappMailNoty($arr);

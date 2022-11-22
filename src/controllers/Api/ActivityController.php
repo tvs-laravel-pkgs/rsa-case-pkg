@@ -476,7 +476,7 @@ class ActivityController extends Controller {
 
 					// TOW SERVICE
 					if ($service_type->service_group_id == 3) {
-						if ($activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
+						if ($asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
 							$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 						} else {
 							$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
@@ -546,7 +546,7 @@ class ActivityController extends Controller {
 						if ($asp->is_ros_asp == 1) {
 							// TOW SERVICE
 							if ($service_type->service_group_id == 3) {
-								if ($activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
+								if ($asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
 									$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 								} else {
 									$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
@@ -554,6 +554,8 @@ class ActivityController extends Controller {
 							} else {
 								$activity->status_id = 17; //ON HOLD
 							}
+						} elseif ($asp->is_corporate == 1) {
+							$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 						} else {
 							$activity->status_id = 17; //ON HOLD
 						}
@@ -642,7 +644,7 @@ class ActivityController extends Controller {
 						}
 					} else {
 						// TOW SERVICE
-						if ($activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
+						if ($asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
 							$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 						} else {
 							$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
@@ -664,7 +666,7 @@ class ActivityController extends Controller {
 							$statusId = 6;
 						}
 					} else {
-						if ($activity->is_asp_data_entry_done == 1) {
+						if ($asp->is_corporate == 1 || $activity->is_asp_data_entry_done == 1) {
 							$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 						} else {
 							$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
@@ -1121,7 +1123,7 @@ class ActivityController extends Controller {
 
 								//CREATE INVOICE
 								$crmActivityId[] = $activity->crm_activity_id;
-								$createInvoiceResponse = Invoices::createInvoice($activity->asp, $crmActivityId, $invoiceNumber, $invoiceDate, '', true);
+								$createInvoiceResponse = Invoices::createInvoice($activity->asp, $crmActivityId, $invoiceNumber, NULL, $invoiceDate, '', true);
 
 								if (!$createInvoiceResponse['success']) {
 									DB::rollBack();

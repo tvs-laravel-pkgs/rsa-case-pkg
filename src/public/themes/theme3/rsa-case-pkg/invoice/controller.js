@@ -25,12 +25,10 @@ app.component('invoiceList', {
         self.export_invoices_url = export_invoices;
         self.csrf = token;
         self.canExport = canExport;
-
         $http.get(
             invoice_filter_url + '/' + $routeParams.type_id
         ).then(function(response) {
             self.extras = response.data.extras;
-
             if (self.type_id != 3 && self.canExport) {
                 var col1 = [
                     { data: 'action', searchable: false },
@@ -140,29 +138,50 @@ app.component('invoiceList', {
                         required: true,
                     },
                 },
-                messages: {
-                    // 'invoice_ids[]': {
-                    //     required: "Please Select Invoice",
-                    // },
-                },
                 errorPlacement: function(error, element) {
-                    $noty = new Noty({
-                        type: 'error',
-                        layout: 'topRight',
-                        text: 'Please select atleast one invoice',
-                        animation: {
-                            speed: 500 // unavailable - no need
-                        },
-                    }).show();
-                    setTimeout(function() {
-                        $noty.close();
-                    }, 1000);
+                    custom_noty('error', 'Please select atleast one invoice');
                 },
                 submitHandler: function(form) {
                     $('#invoice_export').submit();
                 }
             });
 
+            //CANCEL iNVOICE
+            $scope.cancelInvoice = () => {
+                $('#cancelInvoiceBtn').button('loading');
+                const invoiceIds = [];
+                let table = $('#invoice_table').DataTable();
+                let params = table.$('input').serializeArray();
+                $.each(params, function() {
+                    invoiceIds.push(this.value)
+                });
+
+                $.ajax({
+                        url: laravel_routes['cancelInvoice'],
+                        method: "POST",
+                        data: {
+                            invoiceIds: invoiceIds
+                        },
+                    })
+                    .done(function(res) {
+                        $('#cancelInvoiceBtn').button('reset');
+                        if (!res.success) {
+                            var errors = '';
+                            for (var i in res.errors) {
+                                errors += '<li>' + res.errors[i] + '</li>';
+                            }
+                            custom_noty('error', errors);
+                        } else {
+                            custom_noty('success', 'Invoice Cancelled Successfully');
+                            $('#invoice_table').DataTable().ajax.reload();
+                        }
+                    })
+                    .fail(function(xhr) {
+                        $('#cancelInvoiceBtn').button('reset');
+                        custom_noty('error', 'Something went wrong at server');
+                    });
+            }
+            // END OF CANCEL INVOICE
 
             $rootScope.loading = false;
         });
@@ -235,6 +254,7 @@ app.component('invoiceView', {
             self.invoice_attachment_file = response.data.invoice_attachment_file;
             self.invoice = response.data.invoice;
             self.inv_no = response.data.inv_no;
+            self.irn = response.data.irn;
             self.invoice_availability = response.data.invoice_availability;
             self.invoice_vouchers_amount = response.data.invoice_vouchers_amount;
             self.invoice_vouchers = response.data.invoice_vouchers;

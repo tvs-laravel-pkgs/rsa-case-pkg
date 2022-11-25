@@ -1660,14 +1660,14 @@ class Activity extends Model {
 		$disableActivityWhatsappMailNoty = config('rsa')['DISABLE_ACTIVITY_WHATSAPP_MAIL_NOTY'];
 		if ($sendBreakdownAlertMail && !$disableActivityWhatsappMailNoty) {
 			// LIVE PURPOSE
-			// $toMailIds = config('rsa')['ACTIVITY_WHATSAPP_MAIL_NOTY_MAIL_IDS'];
+			$toMailIds = config('rsa')['ACTIVITY_WHATSAPP_MAIL_NOTY_MAIL_IDS'];
 
 			//TESTING PURPOSE
-			$toMailIds = [
-				"ramakrishnan@uitoux.in",
-				"sridhar@uitoux.in",
-				"karthick.r@uitoux.in",
-			];
+			// $toMailIds = [
+			// 	"ramakrishnan@uitoux.in",
+			// 	"sridhar@uitoux.in",
+			// 	"karthick.r@uitoux.in",
+			// ];
 			$arr['content'] = 'The breakdown alert message has been triggered to the ASP(' . $aspCode . ') for the following case.';
 			$arr['to_mail_ids'] = $toMailIds;
 			$arr['caseNumber'] = $caseNumber;
@@ -1956,14 +1956,14 @@ class Activity extends Model {
 		$disableActivityWhatsappMailNoty = config('rsa')['DISABLE_ACTIVITY_WHATSAPP_MAIL_NOTY'];
 		if ($sendBreakdownChargesMail && !$disableActivityWhatsappMailNoty) {
 			// LIVE PURPOSE
-			// $toMailIds = config('rsa')['ACTIVITY_WHATSAPP_MAIL_NOTY_MAIL_IDS'];
+			$toMailIds = config('rsa')['ACTIVITY_WHATSAPP_MAIL_NOTY_MAIL_IDS'];
 
 			//TESTING PURPOSE
-			$toMailIds = [
-				"ramakrishnan@uitoux.in",
-				"sridhar@uitoux.in",
-				"karthick.r@uitoux.in",
-			];
+			// $toMailIds = [
+			// 	"ramakrishnan@uitoux.in",
+			// 	"sridhar@uitoux.in",
+			// 	"karthick.r@uitoux.in",
+			// ];
 			$arr['content'] = 'The breakdown charges message has been triggered to the ASP(' . $aspCode . ') for the following case.';
 			$arr['to_mail_ids'] = $toMailIds;
 			$arr['caseNumber'] = $caseNumber;

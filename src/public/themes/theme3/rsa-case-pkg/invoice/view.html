@@ -153,6 +153,10 @@
                                             </tr>
                                         </table>
                                     </div>
+                                    <div ng-if="isSelf($ctrl.asp) && $ctrl.irn" class="text-right">
+                                        <label class="text-right" style="font-family: 'titilliumWeb-regular';font-size: 16px;">IRN :</label>
+                                        <span style="font-family: 'titilliumWeb-regular';font-size: 16px;">{{$ctrl.irn}}</span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="row">

@@ -28,6 +28,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Image;
 use Validator;
 use Yajra\Datatables\Datatables;
 
@@ -2981,7 +2982,7 @@ class ActivityController extends Controller {
 		return response()->json($this->data);
 	}
 
-	public function activityNewGetServiceTypeDetail($id) {
+	public function activityNewGetServiceTypeDetail($id, $activityId) {
 		try {
 			$serviceType = ServiceType::select([
 				'id',
@@ -2989,7 +2990,18 @@ class ActivityController extends Controller {
 			])
 				->where('id', $id)
 				->first();
+
 			if (!$serviceType) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Service not found',
+					],
+				]);
+			}
+
+			$activity = Activity::find($activityId);
+			if (!$activity) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -2997,9 +3009,25 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
+
+			// UPDATE TOWING ATTACHMENT AS MANDATORY IF TOWING SERVICE AND MATURED FINANCE STATUS
+			if ($serviceType->service_group_id == 3 && $activity->financeStatus && $activity->financeStatus->po_eligibility_type_id == 340) {
+				$activity->is_towing_attachments_mandatory = 1;
+				$activity->towing_attachments_mandatory_by_id = Auth::user()->id;
+				$activity->save();
+			} else {
+				$activity->is_towing_attachments_mandatory = 0;
+				$activity->towing_attachments_mandatory_by_id = NULL;
+				$activity->save();
+			}
+
 			return response()->json([
 				'success' => true,
 				'serviceType' => $serviceType,
+				'activity' => $activity->load([
+					'case',
+					'financeStatus',
+				]),
 			]);
 		} catch (\Exception $e) {
 			return response()->json([
@@ -3012,7 +3040,7 @@ class ActivityController extends Controller {
 	}
 
 	public function updateActivity(Request $request) {
-		// dd($request->all());
+		//dd($request->all());
 		DB::beginTransaction();
 		try {
 			$activity = Activity::whereIn('status_id', [2, 4, 7, 17])
@@ -3058,7 +3086,6 @@ class ActivityController extends Controller {
 					$checkTowingAttachmentMandatory = true;
 				}
 			}
-
 			if ($checkTowingAttachmentMandatory) {
 				// Vehicle Pickup image
 				if (!isset($request->vehiclePickupAttachExist) && (!isset($request->vehicle_pickup_attachment) || (isset($request->vehicle_pickup_attachment) && empty($request->vehicle_pickup_attachment)))) {
@@ -3084,6 +3111,42 @@ class ActivityController extends Controller {
 						'success' => false,
 						'errors' => [
 							'Please Upload Inventory Job Sheet image',
+						],
+					]);
+				}
+			}
+
+			if (isset($request->vehicle_pickup_attachment) && !empty($request->vehicle_pickup_attachment)) {
+				$extension = $request->file("vehicle_pickup_attachment")->getClientOriginalExtension();
+				if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'Please Upload Vehicle Pickup image in jpeg, png, jpg formats',
+						],
+					]);
+				}
+			}
+
+			if (isset($request->vehicle_drop_attachment) && !empty($request->vehicle_drop_attachment)) {
+				$extension = $request->file("vehicle_drop_attachment")->getClientOriginalExtension();
+				if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'Please Upload Vehicle Drop image in jpeg, png, jpg formats',
+						],
+					]);
+				}
+			}
+
+			if (isset($request->inventory_job_sheet_attachment) && !empty($request->inventory_job_sheet_attachment)) {
+				$extension = $request->file("inventory_job_sheet_attachment")->getClientOriginalExtension();
+				if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'Please Upload Inventory Job Sheet image in jpeg, png, jpg formats',
 						],
 					]);
 				}
@@ -3167,7 +3230,6 @@ class ActivityController extends Controller {
 					}
 				}
 			}
-
 			$cc_service_type_exist = ActivityDetail::where('activity_id', $activity->id)
 				->where('key_id', 153)
 				->first();
@@ -3199,10 +3261,13 @@ class ActivityController extends Controller {
 					}
 					$getVehiclePickupAttach->delete();
 				}
-
 				$filename = "vehicle_pickup_attachment";
 				$extension = $request->file("vehicle_pickup_attachment")->getClientOriginalExtension();
-				$status = $request->file("vehicle_pickup_attachment")->storeAs($destination, $filename . '.' . $extension);
+				//$status = $request->file("vehicle_pickup_attachment")->storeAs($destination, $filename . '.' . $extension);
+				$img = Image::make($request->file("vehicle_pickup_attachment")->getRealPath());
+				$status = $img->resize(1500, 788, function ($constraint) {
+					$constraint->aspectRatio();
+				})->save(\storage_path('app/uploads/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $filename . '.' . $extension));
 				$attachmentFileName = $filename . '.' . $extension;
 				$attachment = $Attachment = Attachment::create([
 					'entity_type' => config('constants.entity_types.VEHICLE_PICKUP_ATTACHMENT'),
@@ -3226,7 +3291,11 @@ class ActivityController extends Controller {
 
 				$filename = "vehicle_drop_attachment";
 				$extension = $request->file("vehicle_drop_attachment")->getClientOriginalExtension();
-				$status = $request->file("vehicle_drop_attachment")->storeAs($destination, $filename . '.' . $extension);
+				//$status = $request->file("vehicle_drop_attachment")->storeAs($destination, $filename . '.' . $extension);
+				$img = Image::make($request->file("vehicle_drop_attachment")->getRealPath());
+				$status = $img->resize(1500, 788, function ($constraint) {
+					$constraint->aspectRatio();
+				})->save(\storage_path('app/uploads/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $filename . '.' . $extension));
 				$attachmentFileName = $filename . '.' . $extension;
 				$attachment = $Attachment = Attachment::create([
 					'entity_type' => config('constants.entity_types.VEHICLE_DROP_ATTACHMENT'),
@@ -3250,7 +3319,11 @@ class ActivityController extends Controller {
 
 				$filename = "inventory_job_sheet_attachment";
 				$extension = $request->file("inventory_job_sheet_attachment")->getClientOriginalExtension();
-				$status = $request->file("inventory_job_sheet_attachment")->storeAs($destination, $filename . '.' . $extension);
+				//$status = $request->file("inventory_job_sheet_attachment")->storeAs($destination, $filename . '.' . $extension);
+				$img = Image::make($request->file("inventory_job_sheet_attachment")->getRealPath());
+				$status = $img->resize(1500, 788, function ($constraint) {
+					$constraint->aspectRatio();
+				})->save(\storage_path('app/uploads/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $filename . '.' . $extension));
 				$attachmentFileName = $filename . '.' . $extension;
 				$attachment = $Attachment = Attachment::create([
 					'entity_type' => config('constants.entity_types.INVENTORY_JOB_SHEET_ATTACHMENT'),
@@ -3985,7 +4058,7 @@ class ActivityController extends Controller {
 	}
 
 	public function generateInvoice(Request $request) {
-		// dd($request->all());
+		//dd($request->all());
 		DB::beginTransaction();
 		try {
 			//STORE ATTACHMENT
@@ -4137,16 +4210,25 @@ class ActivityController extends Controller {
 					]);
 				}
 
+				if (isset($request->irn) && !empty($request->irn) && strlen($request->irn) != '64') {
+					return response()->json([
+						'success' => false,
+						'error' => 'Please enter at least 64 characters for IRN',
+					]);
+				}
+
 				$invoice_no = $request->invoice_no;
+				$irn = (isset($request->irn) && !empty($request->irn)) ? $request->irn : NULL;
 				$invoice_date = date('Y-m-d H:i:s', strtotime($request->inv_date));
 			} else {
 				//SYSTEM
 				//GENERATE INVOICE NUMBER
 				$invoice_no = generateInvoiceNumber();
 				$invoice_date = new Carbon();
+				$irn = NULL;
 			}
 
-			$invoice_c = Invoices::createInvoice($asp, $request->crm_activity_ids, $invoice_no, $invoice_date, $value, false);
+			$invoice_c = Invoices::createInvoice($asp, $request->crm_activity_ids, $invoice_no, $irn, $invoice_date, $value, false);
 			if (!$invoice_c['success']) {
 				return response()->json([
 					'success' => false,
@@ -5391,7 +5473,7 @@ class ActivityController extends Controller {
 					$statusId = 25; // Waiting for Charges Acceptance by ASP
 				} else {
 					// TOW SERVICE
-					if ($activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
+					if ($activity->asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
 						$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 					} else {
 						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
@@ -5410,7 +5492,7 @@ class ActivityController extends Controller {
 						$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 					}
 				} else {
-					if ($activity->is_asp_data_entry_done == 1) {
+					if (($activity->asp && $activity->asp->is_corporate == 1) || $activity->is_asp_data_entry_done == 1) {
 						$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
 					} else {
 						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry

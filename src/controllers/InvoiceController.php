@@ -264,6 +264,7 @@ class InvoiceController extends Controller {
 		// 	$this->data['inv_no'] = $invoice->invoice_no . '-' . $invoice->id;
 		// }
 		$this->data['inv_no'] = $invoice->invoice_no;
+		$this->data['irn'] = $invoice->irn;
 		$this->data['inv_date'] = $invoice->created_at;
 		$this->data['batch'] = "";
 		$this->data['asp'] = $asp;
@@ -346,7 +347,6 @@ class InvoiceController extends Controller {
 			if (empty($request->invoice_ids)) {
 				return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/1')->with('error', 'Please select atleast one invoice');
 			}
-
 			$invoice_ids = $request->invoice_ids;
 
 			$activities = Activity::select(
@@ -505,6 +505,32 @@ class InvoiceController extends Controller {
 			}
 		} catch (\Exception $e) {
 			dd($e);
+		}
+	}
+
+	public function cancel(Request $request) {
+		// dd($request->all());
+		try {
+			if (empty($request->invoiceIds)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Please select atleast one invoice',
+					],
+				]);
+			}
+			Activity::whereIn('invoice_id', $request->invoiceIds)->update(['invoice_id' => NULL, 'status_id' => 6]);
+			Invoices::whereIn('id', $request->invoiceIds)->delete();
+			return response()->json([
+				'success' => true,
+			]);
+		} catch (\Exception $e) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
 		}
 	}
 

@@ -230,6 +230,7 @@ app.component('invoiceView', {
             self.invoice_attachment_file = response.data.invoice_attachment_file;
             self.invoice = response.data.invoice;
             self.inv_no = response.data.inv_no;
+            self.irn = response.data.irn;
             self.invoice_availability = response.data.invoice_availability;
             self.invoice_vouchers_amount = response.data.invoice_vouchers_amount;
             self.invoice_vouchers = response.data.invoice_vouchers;

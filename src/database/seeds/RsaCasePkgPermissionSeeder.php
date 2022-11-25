@@ -802,6 +802,30 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'all-dealer-commission-credit-note',
 				'display_name' => 'All',
 			],
+			[
+				'display_order' => 5,
+				'parent' => 'dealer-commission-credit-note',
+				'name' => 'finance-export-dealer-commission-credit-note',
+				'display_name' => 'Finance Export All',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'dealer-commission-credit-note',
+				'name' => 'finance-export-own-only-dealer-commission-credit-note',
+				'display_name' => 'Finance Export Own Only',
+			],
+			[
+				'display_order' => 7,
+				'parent' => 'dealer-commission-credit-note',
+				'name' => 'finance-export-own-dealer-commission-credit-note',
+				'display_name' => 'Finance Export Own Dealer',
+			],
+			[
+				'display_order' => 8,
+				'parent' => 'dealer-commission-credit-note',
+				'name' => 'finance-export-own-dealers-commission-credit-note',
+				'display_name' => 'Finance Export Own Dealers',
+			],
 
 			//TAX CODES
 			[

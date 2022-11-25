@@ -23,6 +23,7 @@ use App\CallCenter;
 use App\Client;
 use App\Company;
 use App\Config;
+use App\Mail\ActivityWhatsappMailNoty;
 use App\ServiceType;
 use App\Subject;
 use App\VehicleMake;
@@ -32,6 +33,7 @@ use Carbon\Carbon;
 use DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use URL;
 use Validator;
@@ -199,6 +201,13 @@ class Activity extends Model {
 
 		$data['activity'] = $activity = self::with([
 			'case',
+			'asp' => function ($q) {
+				$q->select([
+					'id',
+					'asp_code',
+					'name',
+				]);
+			},
 			'serviceType',
 			'financeStatus',
 		])
@@ -209,12 +218,15 @@ class Activity extends Model {
 		if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
 			$isMobile = 1;
 		}
-
-		$data['service_types'] = Asp::where('asps.user_id', Auth::id())
-			->where('asp_service_types.is_mobile', $isMobile)
+		$data['service_types'] = Asp::select([
+			'service_types.name',
+			'asp_service_types.service_type_id as id',
+		])
 			->join('asp_service_types', 'asp_service_types.asp_id', '=', 'asps.id')
 			->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')
-			->select('service_types.name', 'asp_service_types.service_type_id as id')
+			->where('asp_service_types.is_mobile', $isMobile)
+			->where('asps.id', $activity->asp_id)
+			->groupBy('service_types.id')
 			->get();
 		if ($for_deffer_activity) {
 			$asp_km_travelled = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 154]])->first();
@@ -1510,7 +1522,9 @@ class Activity extends Model {
 
 	public function sendBreakdownAlertWhatsappSms() {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
+		$aspCode = !empty($this->asp->asp_code) ? $this->asp->asp_code : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
+		$caseNumber = $this->case ? (!empty($this->case->number) ? $this->case->number : '--') : '--';
 		$caseDate = $this->case ? (!empty($this->case->date) ? date('d.m.Y', strtotime($this->case->date)) : '--') : '--';
 		$activityNumber = $this->number;
 		$customerName = $this->case ? (!empty($this->case->customer_name) ? $this->case->customer_name : '--') : '--';
@@ -1541,6 +1555,8 @@ class Activity extends Model {
 		}
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
+
+		$sendBreakdownAlertMail = false;
 
 		//ROS(Repaid Onsite) SERVICE
 		if ($this->serviceType && !empty($this->serviceType->service_group_id) && $this->serviceType->service_group_id != 3) {
@@ -1586,6 +1602,8 @@ class Activity extends Model {
 			];
 		} else {
 			// TOWING SERVICE
+
+			$sendBreakdownAlertMail = true;
 			$templateId = 'case_assignment_tow_upload_image_bt_new';
 			$bodyParameterValues = new \stdClass();
 			$bodyParameterValues->{'0'} = $aspName;
@@ -1647,6 +1665,32 @@ class Activity extends Model {
 
 		//SEND WHATSAPP SMS
 		sendWhatsappSMS($this->id, 1191, $inputRequests);
+
+		//SEND BREAKDOWN ALERT EMAIL TO BUSINESS USERS
+		$disableActivityWhatsappMailNoty = config('rsa')['DISABLE_ACTIVITY_WHATSAPP_MAIL_NOTY'];
+		if ($sendBreakdownAlertMail && !$disableActivityWhatsappMailNoty) {
+			// LIVE PURPOSE
+			$toMailIds = config('rsa')['ACTIVITY_WHATSAPP_MAIL_NOTY_MAIL_IDS'];
+
+			//TESTING PURPOSE
+			// $toMailIds = [
+			// 	"ramakrishnan@uitoux.in",
+			// 	"sridhar@uitoux.in",
+			// 	"karthick.r@uitoux.in",
+			// ];
+			$arr['content'] = 'The breakdown alert message has been triggered to the ASP(' . $aspCode . ') for the following case.';
+			$arr['to_mail_ids'] = $toMailIds;
+			$arr['caseNumber'] = $caseNumber;
+			$arr['activityId'] = $activityNumber;
+			$arr['vehicleNo'] = $payloadVehicleNumber;
+			$arr['serviceType'] = $serviceType;
+			$arr['company_header'] = view('partials/email-noty-company-header')->render();
+			$MailInstance = new ActivityWhatsappMailNoty($arr);
+			try {
+				$Mail = Mail::send($MailInstance);
+			} catch (\Exception $e) {
+			}
+		}
 	}
 
 	public function sendImageUploadConfirmationWhatsappSms() {
@@ -1808,7 +1852,9 @@ class Activity extends Model {
 
 	public function sendBreakdownOrEmptyreturnChargesWhatsappSms() {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
+		$aspCode = !empty($this->asp->asp_code) ? $this->asp->asp_code : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
+		$caseNumber = $this->case ? (!empty($this->case->number) ? $this->case->number : '--') : '--';
 		$activityNumber = $this->number;
 		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
@@ -1818,12 +1864,15 @@ class Activity extends Model {
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
 
+		$sendBreakdownChargesMail = false;
+
 		//NORMAL PAYOUT (BREAKDOWN CHARGES)
 		if ($this->financeStatus && $this->financeStatus->id == 1) {
 			$typeId = 1193;
 			//ROS SERVICE
 			if ($this->serviceType && !empty($this->serviceType->service_group_id) && $this->serviceType->service_group_id != 3) {
 				$templateId = 'charges_details_ros';
+				$sendBreakdownChargesMail = true;
 			} else {
 				//TOW SERVICE
 				$templateId = 'charges_details_tow';
@@ -1835,6 +1884,7 @@ class Activity extends Model {
 			//ROS SERVICE
 			if ($this->serviceType && !empty($this->serviceType->service_group_id) && $this->serviceType->service_group_id != 3) {
 				$templateId = 'empty_return_charges_ros_new';
+				$sendBreakdownChargesMail = true;
 			} else {
 				//TOW SERVICE
 				$templateId = 'empty_return_charges_tow_new';
@@ -1911,6 +1961,32 @@ class Activity extends Model {
 
 		//SEND WHATSAPP SMS
 		sendWhatsappSMS($this->id, $typeId, $inputRequests);
+
+		//SEND BREAKDOWN CHARGES EMAIL TO BUSINESS USERS
+		$disableActivityWhatsappMailNoty = config('rsa')['DISABLE_ACTIVITY_WHATSAPP_MAIL_NOTY'];
+		if ($sendBreakdownChargesMail && !$disableActivityWhatsappMailNoty) {
+			// LIVE PURPOSE
+			$toMailIds = config('rsa')['ACTIVITY_WHATSAPP_MAIL_NOTY_MAIL_IDS'];
+
+			//TESTING PURPOSE
+			// $toMailIds = [
+			// 	"ramakrishnan@uitoux.in",
+			// 	"sridhar@uitoux.in",
+			// 	"karthick.r@uitoux.in",
+			// ];
+			$arr['content'] = 'The breakdown charges message has been triggered to the ASP(' . $aspCode . ') for the following case.';
+			$arr['to_mail_ids'] = $toMailIds;
+			$arr['caseNumber'] = $caseNumber;
+			$arr['activityId'] = $activityNumber;
+			$arr['vehicleNo'] = $vehicleNumber;
+			$arr['serviceType'] = $serviceType;
+			$arr['company_header'] = view('partials/email-noty-company-header')->render();
+			$MailInstance = new ActivityWhatsappMailNoty($arr);
+			try {
+				$Mail = Mail::send($MailInstance);
+			} catch (\Exception $e) {
+			}
+		}
 	}
 
 	public function sendRevisedBreakdownOrEmptyreturnChargesWhatsappSms() {

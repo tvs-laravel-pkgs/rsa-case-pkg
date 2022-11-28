@@ -31,7 +31,7 @@ use Illuminate\Support\Str;
 use Validator;
 use Yajra\Datatables\Datatables;
 
-class ActivityController extends Controller {
+class ActivityController18102022 extends Controller {
 
 	public function getFilterData() {
 		$this->data['extras'] = [

@@ -283,6 +283,48 @@ class Activity extends Model {
 		$data['cc_other_charge'] = $cc_other_charge->value;
 		$data['cc_km_travelled'] = $cc_km_travelled->value;
 
+		$border_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 307]])->first();
+		if (!$border_charges) {
+			return $data = [
+				'success' => false,
+				'error' => 'Activity border charges not found',
+			];
+		}
+		$green_tax_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 306]])->first();
+		if (!$border_charges) {
+			return $data = [
+				'success' => false,
+				'error' => 'Activity green tax charges not found',
+			];
+		} 
+		$toll_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 305]])->first();
+		if (!$border_charges) {
+			return $data = [
+				'success' => false,
+				'error' => 'Activity toll charges not found',
+			];
+		}
+		$eatable_item_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 304]])->first();
+		if (!$border_charges) {
+			return $data = [
+				'success' => false,
+				'error' => 'Activity eatable item charges not found',
+			];
+		}
+		$fuel_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 310]])->first();
+		if (!$border_charges) {
+			return $data = [
+				'success' => false,
+				'error' => 'Activity fuel charges not found',
+			];
+		}
+
+		$data['border_charges'] = $border_charges->value;
+		$data['green_tax_charges'] = $green_tax_charges->value;
+		$data['toll_charges'] = $toll_charges->value;
+		$data['eatable_item_charges'] = $eatable_item_charges->value;
+		$data['fuel_charges'] = $fuel_charges->value;
+
 		$range_limit = "";
 		$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 			->where('service_type_id', $activity->service_type_id)

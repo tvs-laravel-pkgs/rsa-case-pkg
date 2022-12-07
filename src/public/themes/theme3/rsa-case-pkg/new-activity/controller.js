@@ -109,6 +109,11 @@ app.component('newActivityUpdateDetails', {
             self.bd_location = response.data.case_details.bd_location;
             self.dropDealer = response.data.dropDealer;
             self.dropLocation = response.data.dropLocation;
+            self.border_charge = response.data.border_charges;
+            self.green_tax_charge = response.data.green_tax_charges;
+            self.toll_charge = response.data.toll_charges;
+            self.eatable_item_charge = response.data.eatable_item_charges;
+            self.fuel_charge = response.data.fuel_charges;
             $rootScope.loading = false;
             if (self.for_deffer_activity) {
                 $('.resolve_comment').show();
@@ -187,7 +192,6 @@ app.component('newActivityUpdateDetails', {
             var entry_val = self.other_charge;
             var other_not_collected = self.unpaid_amount;
             var other_charge = self.other_charge;
-
             if ($.isNumeric(other_charge)) {
                 if (entry_val) {
                     //DISABLED
@@ -213,6 +217,15 @@ app.component('newActivityUpdateDetails', {
                 $(".other_charge").val("");
             }
         });
+        $('body').on('focusout', '.other_charges_total', function() {
+             let sum = 0;       
+           $('.other_charges_total').each(function(){
+                if(this.value)
+                    sum += parseFloat(this.value);
+                $('#other_charge').val(sum);
+           });  
+        });
+        
 
         $scope.getServiceTypeDetail = () => {
             if (self.service_type_id) {

@@ -3529,14 +3529,24 @@ class ActivityController extends Controller {
 				//ASP
 				157 => $activity->serviceType->name,
 				154 => $request->km_travelled,
-				156 => $request->other_charge,
+				156 => ($request->border_charge + $request->green_tax_charge + $request->toll_charge + $request->eatable_item_charge + $request->fuel_charge),
 				155 => $request->asp_collected_charges,
+
+				//other charges non collected
+				307 => $request->border_charge,
+				306 => $request->green_tax_charge,
+				305 => $request->toll_charge,
+				304 => $request->eatable_item_charge,
+				310 => $request->fuel_charge,
+				279 => $request->waiting_time,
+
 				//BO
 				//BO
 				161 => $activity->serviceType->name,
 				158 => $request->km_travelled,
 				160 => $request->other_charge,
 				159 => $request->asp_collected_charges,
+				
 			];
 			foreach ($asp_key_ids as $key_id => $value) {
 				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $activity->id, 'key_id' => $key_id, 'company_id' => 1], ['value' => $value]);

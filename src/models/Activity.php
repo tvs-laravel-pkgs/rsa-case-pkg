@@ -291,31 +291,38 @@ class Activity extends Model {
 			];
 		}
 		$green_tax_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 306]])->first();
-		if (!$border_charges) {
+		if (!$green_tax_charges) {
 			return $data = [
 				'success' => false,
 				'error' => 'Activity green tax charges not found',
 			];
 		} 
 		$toll_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 305]])->first();
-		if (!$border_charges) {
+		if (!$toll_charges) {
 			return $data = [
 				'success' => false,
 				'error' => 'Activity toll charges not found',
 			];
 		}
 		$eatable_item_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 304]])->first();
-		if (!$border_charges) {
+		if (!$eatable_item_charges) {
 			return $data = [
 				'success' => false,
 				'error' => 'Activity eatable item charges not found',
 			];
 		}
 		$fuel_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 310]])->first();
-		if (!$border_charges) {
+		if (!$fuel_charges) {
 			return $data = [
 				'success' => false,
 				'error' => 'Activity fuel charges not found',
+			];
+		}
+		$waiting_time = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 279]])->first();
+		if (!$waiting_time) {
+			return $data = [
+				'success' => false,
+				'error' => 'Activity waiting time not found',
 			];
 		}
 
@@ -324,6 +331,7 @@ class Activity extends Model {
 		$data['toll_charges'] = $toll_charges->value;
 		$data['eatable_item_charges'] = $eatable_item_charges->value;
 		$data['fuel_charges'] = $fuel_charges->value;
+		$data['waiting_time'] = $waiting_time->value;
 
 		$range_limit = "";
 		$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)

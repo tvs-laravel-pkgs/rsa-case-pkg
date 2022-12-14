@@ -175,6 +175,13 @@ app.component('deferredActivityUpdate', {
             self.inventoryJobSheetAttach = response.data.inventoryJobSheetAttach;
             self.towingAttachmentsMandatoryLabel = response.data.towingAttachmentsMandatoryLabel;
             self.towingAttachmentSamplePhoto = 1;
+            
+            self.border_charge = response.data.border_charges;
+            self.green_tax_charge = response.data.green_tax_charges;
+            self.toll_charge = response.data.toll_charges;
+            self.eatable_item_charge = response.data.eatable_item_charges;
+            self.fuel_charge = response.data.fuel_charges;
+            self.waiting_time = response.data.waiting_time;
             //TOWING GROUP
             if (self.activity.service_type.service_group_id == 3) {
                 self.showTowingAttachment = true;
@@ -300,9 +307,9 @@ app.component('deferredActivityUpdate', {
             }
         }
 
-        $('body').on('focusout', '.other_charge', function() {
-            self.otherChargeHideShow();
-        });
+        // $('body').on('focusout', '.other_charge', function() {
+        //     self.otherChargeHideShow();
+        // });
 
 
         $('body').on('focusout', '.asp_collected_charges', function() {
@@ -312,6 +319,18 @@ app.component('deferredActivityUpdate', {
             }
         });
 
+        $('body').on('focusout', '.other_charges_total', function() {
+            let sum = 0;       
+           $('.other_charges_total').each(function(){
+                if(this.value)
+                    sum += parseFloat(this.value);
+                $('#other_charge').val(sum);
+           });
+
+            self.asp_other_charge= $('#other_charge').val();
+            self.otherChargeHideShow();
+
+        });
         $.validator.addMethod("check_other_attach", function(number, element) {
             var other_attached = $(".close_other").attr('id');
             var other_attaching_now = $(".other_attachment_data").val();

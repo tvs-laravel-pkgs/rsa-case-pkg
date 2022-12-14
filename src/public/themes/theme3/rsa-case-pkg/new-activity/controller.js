@@ -100,7 +100,7 @@ app.component('newActivityUpdateDetails', {
                 self.showTowingAttachment = false;
             }
             self.case_details = response.data.case_details;
-            self.unpaid_amount = response.data.cc_other_charge;
+            self.other_charge = self.unpaid_amount = response.data.cc_other_charge;
             self.actual_km = response.data.cc_km_travelled;
             self.collected_charges = response.data.cc_collected_charges;
             //self.data.unpaid_amount = response.data.activity.unpaid_amount;
@@ -114,6 +114,7 @@ app.component('newActivityUpdateDetails', {
             self.toll_charge = response.data.toll_charges;
             self.eatable_item_charge = response.data.eatable_item_charges;
             self.fuel_charge = response.data.fuel_charges;
+            self.waiting_time = response.data.waiting_time;
             $rootScope.loading = false;
             if (self.for_deffer_activity) {
                 $('.resolve_comment').show();
@@ -217,13 +218,43 @@ app.component('newActivityUpdateDetails', {
                 $(".other_charge").val("");
             }
         });
+
         $('body').on('focusout', '.other_charges_total', function() {
              let sum = 0;       
            $('.other_charges_total').each(function(){
                 if(this.value)
                     sum += parseFloat(this.value);
                 $('#other_charge').val(sum);
-           });  
+           });
+
+            var entry_val = $('#other_charge').val();
+            var other_not_collected = self.unpaid_amount;
+            var other_charge = $('#other_charge').val();
+            if ($.isNumeric(other_charge)) {
+                if (entry_val) {
+                    //DISABLED
+                    // if (entry_val > other_not_collected) {
+                    //NEW LOGIC BY CLIENT
+                    if (parseFloat(entry_val) >= 31) {
+                        $(".other_attachment").show();
+                        $(".remarks_notcollected").show();
+                        $(".for_differ_other").val(1);
+                    } else {
+                        $(".other_attachment").hide();
+                        $(".remarks_notcollected").hide();
+                        $(".for_differ_other").val(0);
+                    }
+                } else {
+                    $(".other_attachment").hide();
+                    $(".remarks_notcollected").hide();
+                    $(".for_differ_other").val(0);
+                }
+            } else {
+                $(".other_attachment").hide();
+                $(".remarks_notcollected").hide();
+                $(".other_charge").val("");
+            }
+
         });
         
 

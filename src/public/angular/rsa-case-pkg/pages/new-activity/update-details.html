@@ -37,24 +37,24 @@
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
                                         <label>KM Travelled <span class="mandatory">*</span></label>
-                                        <input type="number" name="km_travelled" class="km_travel form-control customForm-input" ng-model="$ctrl.km_travelled" autocomplete='off' oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                        <input type="number" name="km_travelled" class="km_travel form-control customForm-input" ng-model="$ctrl.km_travelled" autocomplete='off' placeholder="Enter KM Travelled" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
-                                        <label>Other charges (Not Collected) <span class="mandatory">*</span></label>
-                                        <input type="number" class="form-control other_charge customForm-input" name="other_charge" pattern="[0-9]*" ng-model="$ctrl.other_charge" autocomplete='off' oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                        <label>Other Charges (Not Collected) <span class="mandatory">*</span></label>
+                                        <input type="number" class="form-control other_charge customForm-input" name="other_charge" pattern="[0-9]*" ng-model="$ctrl.other_charge" autocomplete='off' placeholder="Enter Other Charges" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
-                                        <label>Collected amount from Customer <span class="mandatory">*</span></label>
-                                        <input type="number" class="form-control asp_collected_charges customForm-input" name="asp_collected_charges" autocomplete='off' ng-model="$ctrl.asp_collected_charges" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                        <label>Collected Amount from Customer <span class="mandatory">*</span></label>
+                                        <input type="number" class="form-control asp_collected_charges customForm-input" name="asp_collected_charges" autocomplete='off' placeholder="Enter Collected Amount" ng-model="$ctrl.asp_collected_charges" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
-                                        <label>Services <span class="mandatory">*</span></label>
+                                        <label>Services<span class="mandatory">*</span></label>
                                         <md-select ng-model="$ctrl.service_type_id">
                                             <md-option ng-repeat="val in $ctrl.service_types_list" value="<% val.id %>">
                                                 <% val.name %>
@@ -83,7 +83,7 @@
                                 <div class="col-sm-3 remarks_notcollected" style="display: none;">
                                     <div class="input-text form-group">
                                         <label>Remarks for Charges Not Collected <sup class="req" style="color:red">*</sup></label>
-                                        <textarea class="form-control remarks_not_collected" rows="1" name="remarks_not_collected" ng-model="$ctrl.remarks_not_collected" autocomplete='off'></textarea>
+                                        <textarea class="form-control remarks_not_collected" rows="1" name="remarks_not_collected" ng-model="$ctrl.remarks_not_collected" autocomplete='off' placeholder="Enter Remarks for Charges Not Collected"></textarea>
                                     </div><!-- Field -->
                                 </div>
                                 <div class="col-sm-3 other_attachment" style="display: none;">
@@ -128,7 +128,7 @@
                                 <div class="col-sm-3 resolve_comment" style="display:none;">
                                     <div class="input-text form-group">
                                         <label>Resolve Comments</label>
-                                        <textarea name="comments" class="comments form-control" autocomplete='off' ng-model="$ctrl.comments"></textarea>
+                                        <textarea name="comments" class="comments form-control" autocomplete='off' ng-model="$ctrl.comments" placeholder="Enter Resolve Comments"></textarea>
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-xs-12 col-sm-12">

@@ -14,7 +14,12 @@
                 <div class="row">
                     <div class="col-xs-12 col-sm-12">
                         <div class="dataTable--left_wrapper">
-                            <h2 class="dataTable-title customForm-title">Update Ticket - {{$ctrl.case_details.number}}({{$ctrl.case_details.date}})</h2>
+                            <h2 class="dataTable-title customForm-title" ng-if="!$ctrl.activity.asp">
+                                Update Ticket - {{$ctrl.case_details.number}}({{$ctrl.case_details.date}})
+                            </h2>
+                            <h2 class="dataTable-title customForm-title" ng-if="$ctrl.activity.asp">
+                                Update Ticket({{$ctrl.activity.asp.asp_code}}) - {{$ctrl.case_details.number}}({{$ctrl.case_details.date}})
+                            </h2>
                         </div>
                     </div>
                 </div>
@@ -26,6 +31,9 @@
                     <input type="hidden" name="for_update_deferred" value="<%$ctrl.for_deffer_activity%>" ng-model="$ctrl.for_deffer_activity">
                     <input type="hidden" name="modal" value="no">
                     <input type="hidden" name="data_reentry" value="0">
+                    <input type='hidden' name='vehiclePickupAttachRemovelIds' id="vehiclePickupAttachRemovelIds" value="">
+                    <input type='hidden' name='vehicleDropAttachRemovelIds' id="vehicleDropAttachRemovelIds" value="">
+                    <input type='hidden' name='inventoryJobSheetAttachRemovelIds' id="inventoryJobSheetAttachRemovelIds" value="">
                     <!-- Defer ticket update hidden values-->
                     <div class="defer_hidden"></div>
                     <div class="alert alert-danger" style="display: none;"></div>
@@ -37,19 +45,19 @@
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
                                         <label>KM Travelled <span class="mandatory">*</span></label>
-                                        <input type="number" name="km_travelled" class="km_travel form-control customForm-input" ng-model="$ctrl.km_travelled" autocomplete='off' oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                        <input type="number" name="km_travelled" class="km_travel form-control customForm-input" ng-model="$ctrl.km_travelled" autocomplete='off' placeholder="Enter KM Travelled" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
-                                        <label>Other charges (Not Collected) <span class="mandatory">*</span></label>
-                                        <input type="number" class="form-control other_charge customForm-input" name="other_charge" pattern="[0-9]*" ng-model="$ctrl.other_charge" autocomplete='off' oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                        <label>Other Charges (Not Collected) <span class="mandatory">*</span></label>
+                                        <input type="number" class="form-control other_charge customForm-input" name="other_charge" pattern="[0-9]*" ng-model="$ctrl.other_charge" autocomplete='off' placeholder="Enter Other Charges" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
-                                        <label>Collected amount from Customer <span class="mandatory">*</span></label>
-                                        <input type="number" class="form-control asp_collected_charges customForm-input" name="asp_collected_charges" autocomplete='off' ng-model="$ctrl.asp_collected_charges" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                        <label>Collected Amount from Customer <span class="mandatory">*</span></label>
+                                        <input type="number" class="form-control asp_collected_charges customForm-input" name="asp_collected_charges" autocomplete='off' ng-model="$ctrl.asp_collected_charges" placeholder="Enter Collected Amount" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
@@ -66,7 +74,7 @@
                                 <div class="col-sm-3 remarks_notcollected" style="display: none;">
                                     <div class="input-text form-group">
                                         <label>Remarks for Charges Not Collected <sup class="req" style="color:red">*</sup></label>
-                                        <textarea class="form-control remarks_not_collected" rows="1" name="remarks_not_collected" ng-model="$ctrl.remarks_not_collected" autocomplete='off'></textarea>
+                                        <textarea class="form-control remarks_not_collected" rows="1" name="remarks_not_collected" ng-model="$ctrl.remarks_not_collected" autocomplete='off' placeholder="Enter Remarks for Charges Not Collected"></textarea>
                                     </div><!-- Field -->
                                 </div>
                                 <div class="col-sm-3 other_attachment" style="display: none;">
@@ -103,13 +111,13 @@
                                 <div class="col-sm-3 resolve_comment" style="display:none;">
                                     <div class="input-text form-group">
                                         <label>Resolve Comments</label>
-                                        <textarea name="comments" class="comments form-control" autocomplete='off' ng-model="$ctrl.comments"></textarea>
+                                        <textarea name="comments" class="comments form-control" autocomplete='off' ng-model="$ctrl.comments" placeholder="Enter Resolve Comments"></textarea>
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
                                         <label>General Remarks </label>
-                                        <textarea class="form-control" rows="3" name="general_remarks" ng-model="$ctrl.general_remarks" autocomplete='off'></textarea>
+                                        <textarea class="form-control" rows="3" name="general_remarks" ng-model="$ctrl.general_remarks" autocomplete='off' placeholder="Enter General Remarks"></textarea>
                                     </div><!-- Field -->
                                 </div>
                                 <div class="col-sm-3">
@@ -118,18 +126,18 @@
                                         <textarea type="textarea" class="form-control" rows="3" ng-model="$ctrl.bd_location" disabled autocomplete='off'></textarea>
                                     </div><!-- Field -->
                                 </div>
-                                <div class="col-sm-3">
+                               <!--  <div class="col-sm-3">
                                     <div class="input-text form-group">
                                         <label>Drop Dealer</label>
                                         <textarea type="textarea" class="form-control" rows="3" ng-model="$ctrl.dropDealer" disabled autocomplete='off'></textarea>
-                                    </div><!-- Field -->
+                                    </div>!-- Field --
                                 </div>
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
                                         <label>Drop Location</label>
                                         <textarea type="textarea" class="form-control" rows="3" ng-model="$ctrl.dropLocation" disabled autocomplete='off'></textarea>
-                                    </div><!-- Field -->
-                                </div>
+                                    </div>!-- Field --
+                                </div> -->
                             </div>
                             <div class="row" ng-show="$ctrl.showTowingAttachment">
                                 <div class="col-xs-12 col-sm-12">
@@ -156,6 +164,11 @@
                                             <img class="img-responsive" src="resources/assets/images/info_icon_red.svg" style="align-self: flex-start;">
                                             <span style="color:#333332;padding-left: 4px;">View of customer vehicle number plate with vehicle towing mode is mandatory. {{$ctrl.towingAttachmentsMandatoryLabel}}</span>
                                         </div>
+                                        <div ng-if="$ctrl.vehiclePickupAttach">
+                                            {{ $ctrl.vehiclePickupAttach.attachment_file_name }}
+                                            <button class='close_other' id="{{$ctrl.vehiclePickupAttach.id}}" type='button' ng-click="$ctrl.closeVehiclePickupAttach(index, $ctrl.vehiclePickupAttach.id)">X</button>
+                                            <input type="hidden" name="vehiclePickupAttachExist" value="1">
+                                        </div>
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
@@ -175,6 +188,11 @@
                                             <img class="img-responsive" src="resources/assets/images/info_icon_red.svg" style="align-self: flex-start;">
                                             <span style="color:#333332;padding-left: 4px;">View of Dealer workshop with customer vehicle is mandatory. {{$ctrl.towingAttachmentsMandatoryLabel}}</span>
                                         </div>
+                                        <div ng-if="$ctrl.vehicleDropAttach">
+                                            {{ $ctrl.vehicleDropAttach.attachment_file_name }}
+                                            <button class='close_other' id="{{$ctrl.vehicleDropAttach.id}}" type='button' ng-click="$ctrl.closeVehicleDropAttach(index, $ctrl.vehicleDropAttach.id)">X</button>
+                                            <input type="hidden" name="vehicleDropAttachExist" value="1">
+                                        </div>
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
@@ -193,6 +211,11 @@
                                         <div style="margin-top: 5px;display: flex;flex-wrap: nowrap;">
                                             <img class="img-responsive" src="resources/assets/images/info_icon_red.svg" style="align-self: flex-start;">
                                             <span style="color:#333332;padding-left: 4px;">Dealer seal is mandatory. {{$ctrl.towingAttachmentsMandatoryLabel}}</span>
+                                        </div>
+                                        <div ng-if="$ctrl.inventoryJobSheetAttach">
+                                            {{ $ctrl.inventoryJobSheetAttach.attachment_file_name }}
+                                            <button class='close_other' id="{{$ctrl.inventoryJobSheetAttach.id}}" type='button' ng-click="$ctrl.closeInventoryJobSheetAttach(index, $ctrl.inventoryJobSheetAttach.id)">X</button>
+                                            <input type="hidden" name="inventoryJobSheetAttachExist" value="1">
                                         </div>
                                     </div><!-- Field -->
                                 </div><!-- Column -->

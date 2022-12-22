@@ -143,6 +143,7 @@ class ActivityController extends Controller {
 				'excess_charges' => 'nullable|numeric',
 				'amount_collected_from_customer' => 'nullable|numeric',
 				'amount_refused_by_customer' => 'nullable|numeric',
+				'fuel_charges' => 'nullable|numeric',
 			]);
 
 			if ($validator->fails()) {

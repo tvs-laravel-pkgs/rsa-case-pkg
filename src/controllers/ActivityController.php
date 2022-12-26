@@ -1349,6 +1349,10 @@ class ActivityController extends Controller {
 			if (Entrust::can('backstep-activity') && in_array($activity->activity_portal_status_id, $eligibleBackstepStatusIds)) {
 				$eligibleForBackstep = true;
 			}
+			
+			if(empty($this->data['activities']['bo_waiting_time_charges']) || $this->data['activities']['bo_waiting_time_charges'] == '-')
+				$this->data['activities']['bo_waiting_time_charges'] = 0;
+
 			$this->data['activities']['eligibleForBackstep'] = $eligibleForBackstep;
 			$this->data['activities']['serviceTypes'] = $serviceTypes;
 			$this->data['activities']['boServiceTypeId'] = $boServiceTypeId;
@@ -3152,7 +3156,7 @@ class ActivityController extends Controller {
 				}
 			}
 
-			$range_limit = 0;
+			$range_limit = $waiting_charge_per_hour = 0;
 			$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
 			Storage::makeDirectory($destination, 0777);
 
@@ -3247,6 +3251,7 @@ class ActivityController extends Controller {
 				->first();
 			if ($aspServiceType) {
 				$range_limit = $aspServiceType->range_limit;
+				$waiting_charge_per_hour  = $aspServiceType->waiting_charge_per_hour;
 			}
 
 			//VEHICLE PICKUP ATTACHMENT
@@ -3523,6 +3528,10 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
+			if(empty($request->waiting_time) || $request->waiting_time ==0 )
+				$request->waiting_time = $asp_waiting_charge = 0;
+			else
+				$asp_waiting_charge = $request->waiting_time * $waiting_charge_per_hour;
 
 			//UPDATE ASP ACTIVITY DETAILS & CALCULATE INVOICE AMOUNT FOR ASP & BO BASED ON ASP ENTERTED DETAILS
 			$asp_key_ids = [
@@ -3531,21 +3540,28 @@ class ActivityController extends Controller {
 				154 => $request->km_travelled,
 				156 => ($request->border_charge + $request->green_tax_charge + $request->toll_charge + $request->eatable_item_charge + $request->fuel_charge),
 				155 => $request->asp_collected_charges,
+				//ASP other charges non collected
+				312 => $request->border_charge,
+				313 => $request->green_tax_charge,
+				314 => $request->toll_charge,
+				315 => $request->eatable_item_charge,
+				316 => $request->fuel_charge,
+				322 => $request->waiting_time,
+				325 => $asp_waiting_charge,
 
-				//other charges non collected
-				307 => $request->border_charge,
-				306 => $request->green_tax_charge,
-				305 => $request->toll_charge,
-				304 => $request->eatable_item_charge,
-				310 => $request->fuel_charge,
-				279 => $request->waiting_time,
-
-				//BO
 				//BO
 				161 => $activity->serviceType->name,
 				158 => $request->km_travelled,
-				160 => $request->other_charge,
+				160 => ($request->border_charge + $request->green_tax_charge + $request->toll_charge + $request->eatable_item_charge + $request->fuel_charge),
 				159 => $request->asp_collected_charges,
+				//BO other charges non collected
+				317 => $request->border_charge,
+				318 => $request->green_tax_charge,
+				319 => $request->toll_charge,
+				320 => $request->eatable_item_charge,
+				321 => $request->fuel_charge,
+				323 => $request->waiting_time,
+				326 => $asp_waiting_charge,
 				
 			];
 			foreach ($asp_key_ids as $key_id => $value) {
@@ -3589,7 +3605,7 @@ class ActivityController extends Controller {
 			// }
 
 			$payout_amount = $km_charge;
-			$net_amount = $payout_amount + $not_collected - $collected;
+			$net_amount = $payout_amount + $not_collected + $asp_waiting_charge - $collected;
 			$invoice_amount = $net_amount;
 
 			$asp_po_amount = ActivityDetail::firstOrNew([

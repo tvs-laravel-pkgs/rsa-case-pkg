@@ -175,13 +175,6 @@ app.component('deferredActivityUpdate', {
             self.inventoryJobSheetAttach = response.data.inventoryJobSheetAttach;
             self.towingAttachmentsMandatoryLabel = response.data.towingAttachmentsMandatoryLabel;
             self.towingAttachmentSamplePhoto = 1;
-            
-            self.border_charge = response.data.border_charges;
-            self.green_tax_charge = response.data.green_tax_charges;
-            self.toll_charge = response.data.toll_charges;
-            self.eatable_item_charge = response.data.eatable_item_charges;
-            self.fuel_charge = response.data.fuel_charges;
-            self.waiting_time = response.data.waiting_time;
             //TOWING GROUP
             if (self.activity.service_type.service_group_id == 3) {
                 self.showTowingAttachment = true;

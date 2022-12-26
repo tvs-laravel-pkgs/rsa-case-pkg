@@ -479,7 +479,7 @@ app.component('billingDetails', {
                 }
 
                 $scope.calculatePO = function() {
-                    total = parseFloat(self.data.bo_po_amount) + parseFloat(self.data.raw_bo_not_collected) - parseFloat(self.data.raw_bo_collected);
+                    total = parseFloat(self.data.bo_po_amount) + parseFloat(self.data.bo_waiting_time_charges) + parseFloat(self.data.raw_bo_not_collected) - parseFloat(self.data.raw_bo_collected);
                     if (self.data.bo_deduction) {
                         total -= parseFloat(self.data.bo_deduction);
                     }
@@ -537,7 +537,7 @@ app.component('billingDetails', {
                         }
                         // self.data.bo_deduction = parseFloat(adjustment);
                         self.data.bo_deduction = parseFloat(boDeduction);
-                        var total = (parseFloat(amount) + parseFloat(self.data.raw_bo_not_collected)) - parseFloat(self.data.raw_bo_collected) - parseFloat(self.data.bo_deduction);
+                        var total = ( parseFloat(amount) + parseFloat(self.data.raw_bo_not_collected) + parseFloat(self.data.bo_waiting_time_charges) ) - parseFloat(self.data.raw_bo_collected) - parseFloat(self.data.bo_deduction);
 
                         self.data.bo_net_amount = self.data.bo_amount = total;
                     }

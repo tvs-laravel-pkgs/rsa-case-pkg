@@ -27,7 +27,6 @@
                     <!-- <price-comparison data="$ctrl.data"></price-comparison> -->
                     <!-- @else -->
                     <h3 class=" mb-20 mt-0">Data Comparision</h3>
-                    <div class="table-responsive">
                         <table class="table table-responsive table-bordered table-wide style-normal">
                             <thead>
                                 <tr>
@@ -87,8 +86,39 @@
                                         {{$ctrl.data.cc_not_collected_amount}}
                                     </td>
                                     <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')" ng-class="{'alert-danger': $ctrl.data.verification == 1 && !$ctrl.data.is_not_collected_eligible }">
-                                        {{$ctrl.data.asp_not_collected}}
-                                        <button class="btn btn-default btn-xs" data-toggle="collapse" data-target="#other_charge_split" class="accordion-toggle"><span class="glyphicon glyphicon-chevron-down"></span></button>
+                                        <div class="d-flex flex-end">
+                                            <div>{{$ctrl.data.asp_not_collected}}</div>
+                                            <div class="dropdown">
+                                                <button class="btn btn-default btn-xs btn-info-icon"  class="accordion-toggle"aria-haspopup="true" aria-expanded="false"  data-toggle="dropdown"> <i class="glyphicon glyphicon-info-sign"></i></button>
+                                                <div class="dropdown-menu  dropdown-menu-right table-dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                                  <table class="table table-responsive">
+                                                          <tbody>
+                                                            <tr>
+                                                                <td>Border Charges</td>
+                                                                <td><b>{{$ctrl.data.asp_border_charges}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Green Tax Charges</td>
+                                                                <td><b>{{$ctrl.data.asp_green_tax_charges}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Toll Charges</td>
+                                                                <td><b>{{$ctrl.data.asp_toll_charges}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Eatable Item Charges</td>
+                                                                <td><b>{{$ctrl.data.asp_eatable_items_charges}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Fuel Charges</td>
+                                                                <td><b>{{$ctrl.data.asp_fuel_charges}}</b></td>
+                                                            </tr>
+                                                          </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     </td>
                                     <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 3}">
                                         {{$ctrl.data.bo_not_collected}}
@@ -99,37 +129,6 @@
                                         <span class="color-red" ng-show="$ctrl.data.raw_bo_not_collected !== 0 && $ctrl.data.raw_bo_not_collected === ''">
                                             Charges not collected is required
                                         </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    
-                                    <td colspan="12" class="hiddenRow">
-                                        <div class="accordian-body collapse" id="other_charge_split"> 
-                                          <table class="table table-striped">
-                                                  <tbody>
-                                                    <tr>
-                                                        <td class="col-md-10" style="text-align: right;">Border Charges</td>
-                                                        <td class="col-md-2" style="text-align: left;">{{$ctrl.data.border_charges}}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="col-md-10" style="text-align: right;">Green Tax Charges</td>
-                                                        <td class="col-md-2" style="text-align: left;">{{$ctrl.data.green_tax_charges}}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="col-md-10" style="text-align: right;">Toll Charges</td>
-                                                        <td class="col-md-2" style="text-align: left;">{{$ctrl.data.toll_charges}}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="col-md-10" style="text-align: right;">Eatable Item Charges</td>
-                                                        <td class="col-md-2" style="text-align: left;">{{$ctrl.data.eatable_items_charges}}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="col-md-10" style="text-align: right;">Fuel Charges</td>
-                                                        <td class="col-md-2" style="text-align: left;">{{$ctrl.data.fuel_charges}}</td>
-                                                    </tr>
-                                                  </tbody>
-                                            </table>
-                                      </div> 
                                     </td>
                                 </tr>
                                 <tr>
@@ -204,7 +203,6 @@
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
                     <div class="row" style="border: 1px solid #e1e1e1;padding: 10px 15px;margin: 0 auto;">
                         <div class="col-xs-12 col-sm-6 col-md-6" ng-show="$ctrl.data.other_charges_attachment_url.length>0">
                             <h4>Remarks Comments for not collected charges</h4>
@@ -301,6 +299,12 @@
                                     <td>Charges Collected From Customer (-)</td>
                                     <td>
                                         <div>{{$ctrl.data.raw_bo_collected | currency:"₹"}}</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Waiting Charge (+)</td>
+                                    <td>
+                                        <div>{{$ctrl.data.asp_waiting_time_charges | currency :"₹"}}</div>
                                     </td>
                                 </tr>
                                 <tr style="text-align: right;">
@@ -466,6 +470,7 @@
                 <input type="hidden" name="activity_id" ng-model="$ctrl.data.id" value="{{$ctrl.data.id}}">
                 <input type="hidden" ng-model="$ctrl.data.bo_comments">
                 <input type="hidden" ng-model="$ctrl.data.deduction_reason">
+                <input type="hidden" ng-model="$ctrl.data.bo_waiting_time_charges" value="{{$ctrl.data.bo_waiting_time_charges}}">
                 <div class="modal-body">
                     <img class="uploadMsg-img" src="{{$ctrl.data.style_checked_image_url}}">
                     <h2 class="uploadMsg-title">

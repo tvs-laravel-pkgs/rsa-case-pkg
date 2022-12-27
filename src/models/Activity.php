@@ -1872,6 +1872,16 @@ class Activity extends Model {
 		$this->updated_at = Carbon::now();
 		$this->save();
 
+		//LOG SAVE
+		$activityLog = ActivityLog::firstOrNew([
+			'activity_id' => $this->id,
+		]);
+		$activityLog->bo_approved_at = Carbon::now();
+		$activityLog->bo_approved_by_id = 72;
+		$activityLog->updated_by_id = 72;
+		$activityLog->updated_at = Carbon::now();
+		$activityLog->save();
+
 		$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
 		if ($this->asp && !empty($this->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $this->asp->has_whatsapp_flow == 1))) {
 			$this->sendBreakdownOrEmptyreturnChargesWhatsappSms();

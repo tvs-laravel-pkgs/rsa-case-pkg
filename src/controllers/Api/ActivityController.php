@@ -997,16 +997,6 @@ class ActivityController extends Controller {
 								$activity->status_id = 11; // Waiting for Invoice Generation by ASP
 								$activity->save();
 
-								//LOG SAVE
-								$activityLog = ActivityLog::firstOrNew([
-									'activity_id' => $activity->id,
-								]);
-								$activityLog->bo_approved_at = Carbon::now();
-								$activityLog->bo_approved_by_id = 72;
-								$activityLog->updated_by_id = 72;
-								$activityLog->updated_at = Carbon::now();
-								$activityLog->save();
-
 								$activity->updateApprovalLog();
 
 								//SEND ASP ACCEPTANCE CHARGES WHATSAPP SMS TO ASP

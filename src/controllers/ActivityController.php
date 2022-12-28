@@ -3532,13 +3532,13 @@ class ActivityController extends Controller {
 				$request->waiting_time = $asp_waiting_charge = 0;
 			else
 				$asp_waiting_charge = $request->waiting_time * $waiting_charge_per_hour;
-
+			$request->other_charge = $request->border_charge + $request->green_tax_charge + $request->toll_charge + $request->eatable_item_charge + $request->fuel_charge;
 			//UPDATE ASP ACTIVITY DETAILS & CALCULATE INVOICE AMOUNT FOR ASP & BO BASED ON ASP ENTERTED DETAILS
 			$asp_key_ids = [
 				//ASP
 				157 => $activity->serviceType->name,
 				154 => $request->km_travelled,
-				156 => ($request->border_charge + $request->green_tax_charge + $request->toll_charge + $request->eatable_item_charge + $request->fuel_charge),
+				156 => $request->other_charge,
 				155 => $request->asp_collected_charges,
 				//ASP other charges non collected
 				312 => $request->border_charge,
@@ -3552,7 +3552,7 @@ class ActivityController extends Controller {
 				//BO
 				161 => $activity->serviceType->name,
 				158 => $request->km_travelled,
-				160 => ($request->border_charge + $request->green_tax_charge + $request->toll_charge + $request->eatable_item_charge + $request->fuel_charge),
+				160 => $request->other_charge,
 				159 => $request->asp_collected_charges,
 				//BO other charges non collected
 				317 => $request->border_charge,
@@ -3980,6 +3980,10 @@ class ActivityController extends Controller {
 					$join->on('not_collected_amount.activity_id', 'activities.id')
 						->where('not_collected_amount.key_id', 160); //BO NOT COLLECT AMOUNT
 				})
+				->leftJoin('activity_details as waiting_charges', function ($join) {
+					$join->on('waiting_charges.activity_id', 'activities.id')
+						->where('waiting_charges.key_id', 326); //BO waiting charges
+				})
 				->leftJoin('activity_details as total_tax_perc', function ($join) {
 					$join->on('total_tax_perc.activity_id', 'activities.id')
 						->where('total_tax_perc.key_id', 185); //BO TOTAL TAX PERC
@@ -4007,6 +4011,7 @@ class ActivityController extends Controller {
 					'km_charge.value as km_charge_value',
 					'km_travelled.value as km_value',
 					'not_collected_amount.value as not_collect_value',
+					'waiting_charges.value as waiting_charges',
 					'net_amount.value as net_value',
 					'collect_amount.value as collect_value',
 					'total_amount.value as total_value',

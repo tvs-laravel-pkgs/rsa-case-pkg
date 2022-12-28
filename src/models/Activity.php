@@ -283,42 +283,42 @@ class Activity extends Model {
 		$data['cc_other_charge'] = $cc_other_charge->value;
 		$data['cc_km_travelled'] = $cc_km_travelled->value;
 
-		$border_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 307]])->first();
+		$border_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 312]])->first();
 		if (!$border_charges) {
 			return $data = [
 				'success' => false,
 				'error' => 'Activity border charges not found',
 			];
 		}
-		$green_tax_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 306]])->first();
+		$green_tax_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 313]])->first();
 		if (!$green_tax_charges) {
 			return $data = [
 				'success' => false,
 				'error' => 'Activity green tax charges not found',
 			];
 		} 
-		$toll_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 305]])->first();
+		$toll_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 314]])->first();
 		if (!$toll_charges) {
 			return $data = [
 				'success' => false,
 				'error' => 'Activity toll charges not found',
 			];
 		}
-		$eatable_item_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 304]])->first();
+		$eatable_item_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 315]])->first();
 		if (!$eatable_item_charges) {
 			return $data = [
 				'success' => false,
 				'error' => 'Activity eatable item charges not found',
 			];
 		}
-		$fuel_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 310]])->first();
+		$fuel_charges = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 316]])->first();
 		if (!$fuel_charges) {
 			return $data = [
 				'success' => false,
 				'error' => 'Activity fuel charges not found',
 			];
 		}
-		$waiting_time = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 279]])->first();
+		$waiting_time = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 322]])->first();
 		if (!$waiting_time) {
 			return $data = [
 				'success' => false,

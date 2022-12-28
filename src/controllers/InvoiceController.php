@@ -207,6 +207,10 @@ class InvoiceController extends Controller {
 				$join->on('not_collected_amount.activity_id', 'activities.id')
 					->where('not_collected_amount.key_id', 160); //BO NOT COLLECT AMOUNT
 			})
+			->leftJoin('activity_details as waiting_charges', function ($join) {
+				$join->on('waiting_charges.activity_id', 'activities.id')
+					->where('waiting_charges.key_id', 326); //BO waiting charges
+			})
 			->leftJoin('activity_details as total_tax_perc', function ($join) {
 				$join->on('total_tax_perc.activity_id', 'activities.id')
 					->where('total_tax_perc.key_id', 185); //BO TOTAL TAX PERC
@@ -233,6 +237,7 @@ class InvoiceController extends Controller {
 				'km_charge.value as km_charge_value',
 				'km_travelled.value as km_value',
 				'not_collected_amount.value as not_collect_value',
+				'waiting_charges.value as waiting_charges',
 				'net_amount.value as net_value',
 				'collect_amount.value as collect_value',
 				'total_amount.value as total_value',

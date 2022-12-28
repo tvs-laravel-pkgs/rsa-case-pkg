@@ -51,17 +51,27 @@ app.component('activityStatusList', {
                 $('input[name="date_range_period"]').daterangepicker({
                     startDate: moment().startOf('month'),
                     endDate: moment().endOf('month'),
-                    locale: {
-                        cancelLabel: 'Clear',
-                        format: "DD-MM-YYYY"
+                    opens: 'left',
+                    ranges: {
+                        'Today': [moment(), moment()],
+                        'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                        'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                        'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                        'This Month': [moment().startOf('month'), moment().endOf('month')],
+                        'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
                     }
                 });
             } else {
                 $('input[name="date_range_period"]').daterangepicker({
                     autoUpdateInput: false,
-                    locale: {
-                        cancelLabel: 'Clear',
-                        format: "DD-MM-YYYY"
+                    opens: 'left',
+                    ranges: {
+                        'Today': [moment(), moment()],
+                        'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                        'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                        'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                        'This Month': [moment().startOf('month'), moment().endOf('month')],
+                        'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
                     }
                 });
             }
@@ -168,7 +178,7 @@ app.component('activityStatusList', {
 
             $scope.deleteConfirm = function($id) {
                 bootbox.confirm({
-                    message: 'Do you want to delete this activity?',
+                    message: 'Do you want to delete thisactivity?',
                     className: 'action-confirm-modal',
                     buttons: {
                         confirm: {

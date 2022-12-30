@@ -1349,9 +1349,6 @@ class ActivityController extends Controller {
 			if (Entrust::can('backstep-activity') && in_array($activity->activity_portal_status_id, $eligibleBackstepStatusIds)) {
 				$eligibleForBackstep = true;
 			}
-			
-			if(empty($this->data['activities']['bo_waiting_time_charges']) || $this->data['activities']['bo_waiting_time_charges'] == '-')
-				$this->data['activities']['bo_waiting_time_charges'] = 0;
 
 			$this->data['activities']['eligibleForBackstep'] = $eligibleForBackstep;
 			$this->data['activities']['serviceTypes'] = $serviceTypes;
@@ -3039,7 +3036,7 @@ class ActivityController extends Controller {
 	}
 
 	public function updateActivity(Request $request) {
-		//dd($request->all());
+		dd($request->all());
 		DB::beginTransaction();
 		try {
 			$activity = Activity::whereIn('status_id', [2, 4, 7, 17])
@@ -3246,7 +3243,7 @@ class ActivityController extends Controller {
 				->first();
 			if ($aspServiceType) {
 				$range_limit = $aspServiceType->range_limit;
-				$waiting_charge_per_hour  = $aspServiceType->waiting_charge_per_hour;
+				$waiting_charge_per_hour = $aspServiceType->waiting_charge_per_hour;
 			}
 
 			//VEHICLE PICKUP ATTACHMENT
@@ -3523,10 +3520,12 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
-			if(empty($request->waiting_time) || $request->waiting_time ==0 )
+			if (empty($request->waiting_time) || $request->waiting_time == 0) {
 				$request->waiting_time = $asp_waiting_charge = 0;
-			else
+			} else {
 				$asp_waiting_charge = $request->waiting_time * $waiting_charge_per_hour;
+			}
+
 			$request->other_charge = $request->border_charge + $request->green_tax_charge + $request->toll_charge + $request->eatable_item_charge + $request->fuel_charge;
 			//UPDATE ASP ACTIVITY DETAILS & CALCULATE INVOICE AMOUNT FOR ASP & BO BASED ON ASP ENTERTED DETAILS
 			$asp_key_ids = [
@@ -3557,7 +3556,7 @@ class ActivityController extends Controller {
 				321 => $request->fuel_charge,
 				323 => $request->waiting_time,
 				326 => $asp_waiting_charge,
-				
+
 			];
 			foreach ($asp_key_ids as $key_id => $value) {
 				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $activity->id, 'key_id' => $key_id, 'company_id' => 1], ['value' => $value]);

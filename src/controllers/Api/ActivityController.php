@@ -516,6 +516,8 @@ class ActivityController extends Controller {
 				$detail->save();
 			}
 
+			$activity->saveActivityChargesDetails();
+
 			//CALCULATE PAYOUT ONLY IF FINANCE STATUS OF ACTIVITY IS ELIBLE FOR PO
 			if ($activity->financeStatus->po_eligibility_type_id == 342) {
 				//No Payout status

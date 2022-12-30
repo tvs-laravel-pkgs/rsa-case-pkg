@@ -213,23 +213,20 @@ app.component('newActivityUpdateDetails', {
             }
         });
 
-        $('body').on('focusout', '.other_charges_total', function() {
-             let sum = 0;       
-           $('.other_charges_total').each(function(){
-                if(this.value)
-                    sum += parseFloat(this.value);
-                $('#other_charge').val(sum);
-           });
+        $scope.calculateOtherCharges = () => {
+            let otherCharge = 0;
+            let borderCharge = parseFloat(self.border_charge) || 0;
+            let greenTaxCharge = parseFloat(self.green_tax_charge) || 0;
+            let tollCharge = parseFloat(self.toll_charge) || 0;
+            let eatableItemCharge = parseFloat(self.eatable_item_charge) || 0;
+            let fuelCharge = parseFloat(self.fuel_charge) || 0;
 
-            var entry_val = $('#other_charge').val();
-            var other_not_collected = self.unpaid_amount;
-            var other_charge = $('#other_charge').val();
-            if ($.isNumeric(other_charge)) {
-                if (entry_val) {
-                    //DISABLED
-                    // if (entry_val > other_not_collected) {
-                    //NEW LOGIC BY CLIENT
-                    if (parseFloat(entry_val) >= 31) {
+            otherCharge = borderCharge + greenTaxCharge + tollCharge + eatableItemCharge + fuelCharge;
+            self.other_charge = parseFloat(otherCharge).toFixed(2);
+
+            if ($.isNumeric(otherCharge)) {
+                if (otherCharge) {
+                    if (parseFloat(otherCharge) >= 31) {
                         $(".other_attachment").show();
                         $(".remarks_notcollected").show();
                         $(".for_differ_other").val(1);
@@ -248,9 +245,8 @@ app.component('newActivityUpdateDetails', {
                 $(".remarks_notcollected").hide();
                 $(".other_charge").val("");
             }
+        }
 
-        });
-        
 
         $scope.getServiceTypeDetail = () => {
             if (self.service_type_id) {

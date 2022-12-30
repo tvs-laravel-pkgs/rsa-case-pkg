@@ -3036,7 +3036,7 @@ class ActivityController extends Controller {
 	}
 
 	public function updateActivity(Request $request) {
-		dd($request->all());
+		// dd($request->all());
 		DB::beginTransaction();
 		try {
 			$activity = Activity::whereIn('status_id', [2, 4, 7, 17])
@@ -3520,13 +3520,12 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
-			if (empty($request->waiting_time) || $request->waiting_time == 0) {
-				$request->waiting_time = $asp_waiting_charge = 0;
-			} else {
-				$asp_waiting_charge = $request->waiting_time * $waiting_charge_per_hour;
+
+			$waitingCharge = 0;
+			if (!empty($request->waiting_time)) {
+				$waitingCharge = floatval($request->waiting_time / 60) * floatval($waiting_charge_per_hour);
 			}
 
-			$request->other_charge = $request->border_charge + $request->green_tax_charge + $request->toll_charge + $request->eatable_item_charge + $request->fuel_charge;
 			//UPDATE ASP ACTIVITY DETAILS & CALCULATE INVOICE AMOUNT FOR ASP & BO BASED ON ASP ENTERTED DETAILS
 			$asp_key_ids = [
 				//ASP
@@ -3534,28 +3533,30 @@ class ActivityController extends Controller {
 				154 => $request->km_travelled,
 				156 => $request->other_charge,
 				155 => $request->asp_collected_charges,
-				//ASP other charges non collected
-				312 => $request->border_charge,
-				313 => $request->green_tax_charge,
+
+				//ASP OTHER CHARGES (SPLIT UPs)
+				316 => $request->border_charge,
+				315 => $request->green_tax_charge,
 				314 => $request->toll_charge,
-				315 => $request->eatable_item_charge,
-				316 => $request->fuel_charge,
-				322 => $request->waiting_time,
-				325 => $asp_waiting_charge,
+				313 => $request->eatable_item_charge,
+				319 => $request->fuel_charge,
+				329 => $request->waiting_time,
+				332 => $waitingCharge,
 
 				//BO
 				161 => $activity->serviceType->name,
 				158 => $request->km_travelled,
 				160 => $request->other_charge,
 				159 => $request->asp_collected_charges,
-				//BO other charges non collected
-				317 => $request->border_charge,
-				318 => $request->green_tax_charge,
-				319 => $request->toll_charge,
-				320 => $request->eatable_item_charge,
-				321 => $request->fuel_charge,
-				323 => $request->waiting_time,
-				326 => $asp_waiting_charge,
+
+				//BO OTHER CHARGES (SPLIT UPs)
+				325 => $request->border_charge,
+				324 => $request->green_tax_charge,
+				323 => $request->toll_charge,
+				322 => $request->eatable_item_charge,
+				328 => $request->fuel_charge,
+				330 => $request->waiting_time,
+				333 => $waitingCharge,
 
 			];
 			foreach ($asp_key_ids as $key_id => $value) {
@@ -3586,7 +3587,7 @@ class ActivityController extends Controller {
 			}
 
 			$above_range_price = ($total_km > $price->range_limit) ? ($total_km - $price->range_limit) * $price->above_range_price : 0;
-			$km_charge = $below_range_price + $above_range_price;
+			$km_charge = floatval($below_range_price + $above_range_price);
 
 			//FORMULAE DISABLED AS PER CLIENT REQUEST
 			// if ($price->adjustment_type == 1) {
@@ -3599,7 +3600,7 @@ class ActivityController extends Controller {
 			// }
 
 			$payout_amount = $km_charge;
-			$net_amount = $payout_amount + $not_collected + $asp_waiting_charge - $collected;
+			$net_amount = floatval(($payout_amount + $not_collected + $waitingCharge) - $collected);
 			$invoice_amount = $net_amount;
 
 			$asp_po_amount = ActivityDetail::firstOrNew([

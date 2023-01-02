@@ -45,7 +45,7 @@
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
                                         <label>KM Travelled <span class="mandatory">*</span></label>
-                                        <input type="number" name="km_travelled" class="km_travel form-control customForm-input" ng-model="$ctrl.km_travelled" autocomplete='off' placeholder="Enter KM Travelled" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                        <input type="text" name="km_travelled" class="km_travel form-control customForm-input" ng-model="$ctrl.km_travelled" autocomplete='off' placeholder="Enter KM Travelled" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-change="onChangeKmTravelled()">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
@@ -87,13 +87,13 @@
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
                                         <label>Collected Amount from Customer <span class="mandatory">*</span></label>
-                                        <input type="number" class="form-control asp_collected_charges customForm-input" name="asp_collected_charges" autocomplete='off' ng-model="$ctrl.asp_collected_charges" placeholder="Enter Collected Amount" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                        <input type="text" class="form-control asp_collected_charges customForm-input" name="asp_collected_charges" autocomplete='off' ng-model="$ctrl.asp_collected_charges" placeholder="Enter Collected Amount" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
                                         <label>Waiting Time (In Mins)</label>
-                                        <input type="text" class="form-control customForm-input" name="waiting_time" id="waiting_time" pattern="[0-9]*" ng-model="$ctrl.waiting_time" autocomplete='off' placeholder="Enter Waiting Time">
+                                        <input type="text" class="form-control customForm-input" name="waiting_time" id="waiting_time" ng-model="$ctrl.waiting_time" autocomplete='off' placeholder="Enter Waiting Time" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">

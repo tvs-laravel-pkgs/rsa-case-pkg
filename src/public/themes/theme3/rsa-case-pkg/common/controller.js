@@ -283,6 +283,7 @@ app.component('billingDetails', {
                 self.activity_back_asp_update_route = activity_back_asp_update;
                 self.backstepReason = '';
                 self.csrf = token;
+                self.data.raw_bo_waiting_charges = self.data.raw_bo_waiting_charges ? self.data.raw_bo_waiting_charges : 0.00;
 
                 // SET BO KM, COLLECTED AND NOT COLLECTED VALUE AS ZERO FOR L1 LEVEL VERIFICATIONS
                 if (self.data.verification == 1 && (self.data.activity_portal_status_id == 5 || self.data.activity_portal_status_id == 6 || self.data.activity_portal_status_id == 8 || self.data.activity_portal_status_id == 9)) {
@@ -479,7 +480,7 @@ app.component('billingDetails', {
                 }
 
                 $scope.calculatePO = function() {
-                    total = parseFloat(self.data.bo_po_amount) + parseFloat(self.data.raw_bo_waiting_charges) + parseFloat(self.data.raw_bo_not_collected) - parseFloat(self.data.raw_bo_collected);
+                    total = (parseFloat(self.data.bo_po_amount) + parseFloat(self.data.raw_bo_waiting_charges) + parseFloat(self.data.raw_bo_not_collected)) - parseFloat(self.data.raw_bo_collected);
                     if (self.data.bo_deduction) {
                         total -= parseFloat(self.data.bo_deduction);
                     }

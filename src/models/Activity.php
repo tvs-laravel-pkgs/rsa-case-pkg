@@ -475,37 +475,47 @@ class Activity extends Model {
 
 		// GET CC DETAILS -----------------------------------------------------------
 
-		$ccWaitingTime = $this->detail(279)->value;
-		$ccServiceCharges = $this->detail(302)->value;
-		$ccMembershipCharges = $this->detail(303)->value;
-		$ccEatableItemsCharges = $this->detail(304)->value;
-		$ccTollCharges = $this->detail(305)->value;
-		$ccGreenTaxCharges = $this->detail(306)->value;
-		$ccBorderCharges = $this->detail(307)->value;
-		$ccOctroiCharges = $this->detail(308)->value;
-		$ccExcessCharges = $this->detail(309)->value;
-		$ccFuelCharges = $this->detail(310)->value;
+		$ccWaitingTime = !empty($this->detail(279)->value) ? $this->detail(279)->value : 0;
+		$ccServiceCharges = !empty($this->detail(302)->value) ? numberFormatToDecimalConversion(floatval($this->detail(302)->value)) : 0;
+		$ccMembershipCharges = !empty($this->detail(303)->value) ? numberFormatToDecimalConversion(floatval($this->detail(303)->value)) : 0;
+		$ccEatableItemsCharges = !empty($this->detail(304)->value) ? numberFormatToDecimalConversion(floatval($this->detail(304)->value)) : 0;
+		$ccTollCharges = !empty($this->detail(305)->value) ? numberFormatToDecimalConversion(floatval($this->detail(305)->value)) : 0;
+		$ccGreenTaxCharges = !empty($this->detail(306)->value) ? numberFormatToDecimalConversion(floatval($this->detail(306)->value)) : 0;
+		$ccBorderCharges = !empty($this->detail(307)->value) ? numberFormatToDecimalConversion(floatval($this->detail(307)->value)) : 0;
+		$ccOctroiCharges = !empty($this->detail(308)->value) ? numberFormatToDecimalConversion(floatval($this->detail(308)->value)) : 0;
+		$ccExcessCharges = !empty($this->detail(309)->value) ? numberFormatToDecimalConversion(floatval($this->detail(309)->value)) : 0;
+		$ccFuelCharges = !empty($this->detail(310)->value) ? numberFormatToDecimalConversion(floatval($this->detail(310)->value)) : 0;
 
 		// SAVE AGAINST ASP & BO ----------------------------------------------------
 
+		$ccWaitingTime = $this->saveActivityDetail(279, $ccWaitingTime);
 		$aspWaitingTime = $this->saveActivityDetail(329, $ccWaitingTime);
 		$boWaitingTime = $this->saveActivityDetail(330, $ccWaitingTime);
+		$ccServiceCharges = $this->saveActivityDetail(302, $ccServiceCharges);
 		$aspServiceCharges = $this->saveActivityDetail(311, $ccServiceCharges);
 		$boServiceCharges = $this->saveActivityDetail(320, $ccServiceCharges);
+		$ccMembershipCharges = $this->saveActivityDetail(303, $ccMembershipCharges);
 		$aspMembershipCharges = $this->saveActivityDetail(312, $ccMembershipCharges);
 		$boMembershipCharges = $this->saveActivityDetail(321, $ccMembershipCharges);
+		$ccEatableItemsCharges = $this->saveActivityDetail(304, $ccEatableItemsCharges);
 		$aspEatableItemsCharges = $this->saveActivityDetail(313, $ccEatableItemsCharges);
 		$boEatableItemsCharges = $this->saveActivityDetail(322, $ccEatableItemsCharges);
+		$ccTollCharges = $this->saveActivityDetail(305, $ccTollCharges);
 		$aspTollCharges = $this->saveActivityDetail(314, $ccTollCharges);
 		$boTollCharges = $this->saveActivityDetail(323, $ccTollCharges);
+		$ccGreenTaxCharges = $this->saveActivityDetail(306, $ccGreenTaxCharges);
 		$aspGreenTaxCharges = $this->saveActivityDetail(315, $ccGreenTaxCharges);
 		$boGreenTaxCharges = $this->saveActivityDetail(324, $ccGreenTaxCharges);
+		$ccBorderCharges = $this->saveActivityDetail(307, $ccBorderCharges);
 		$aspBorderCharges = $this->saveActivityDetail(316, $ccBorderCharges);
 		$boBorderCharges = $this->saveActivityDetail(325, $ccBorderCharges);
+		$ccOctroiCharges = $this->saveActivityDetail(308, $ccOctroiCharges);
 		$aspOctroiCharges = $this->saveActivityDetail(317, $ccOctroiCharges);
 		$boOctroiCharges = $this->saveActivityDetail(326, $ccOctroiCharges);
+		$ccExcessCharges = $this->saveActivityDetail(309, $ccExcessCharges);
 		$aspExcessCharges = $this->saveActivityDetail(318, $ccExcessCharges);
 		$boExcessCharges = $this->saveActivityDetail(327, $ccExcessCharges);
+		$ccFuelCharges = $this->saveActivityDetail(310, $ccFuelCharges);
 		$aspFuelCharges = $this->saveActivityDetail(319, $ccFuelCharges);
 		$boFuelCharges = $this->saveActivityDetail(328, $ccFuelCharges);
 	}
@@ -547,16 +557,16 @@ class Activity extends Model {
 				];
 			}
 
-			$total_km = !empty($this->detail(280)->value) ? floatval($this->detail(280)->value) : 0; //cc_total_km
-			$collected = !empty($this->detail(281)->value) ? floatval($this->detail(281)->value) : 0; //cc_colleced_amount
-			$not_collected = !empty($this->detail(282)->value) ? floatval($this->detail(282)->value) : 0; //cc_not_collected_amount
+			$total_km = !empty($this->detail(280)->value) ? numberFormatToDecimalConversion(floatval($this->detail(280)->value)) : 0; //cc_total_km
+			$collected = !empty($this->detail(281)->value) ? numberFormatToDecimalConversion(floatval($this->detail(281)->value)) : 0; //cc_colleced_amount
+			$not_collected = !empty($this->detail(282)->value) ? numberFormatToDecimalConversion(floatval($this->detail(282)->value)) : 0; //cc_not_collected_amount
 
 			//CALCULATE WAITING CHARGES AND STORE -----------------------------------------
 
 			$ccWaitingTime = !empty($this->detail(279)->value) ? floatval($this->detail(279)->value) : 0;
 			$ccWaitingCharge = 0;
-			if (!empty($response['asp_service_price']->waiting_charge_per_hour)) {
-				$ccWaitingCharge = floatval($ccWaitingTime / 60) * floatval($response['asp_service_price']->waiting_charge_per_hour);
+			if (!empty($response['asp_service_price']->waiting_charge_per_hour) && !empty($ccWaitingTime)) {
+				$ccWaitingCharge = numberFormatToDecimalConversion(floatval($ccWaitingTime / 60) * floatval($response['asp_service_price']->waiting_charge_per_hour));
 			}
 			$this->saveActivityDetail(331, $ccWaitingCharge); //CC WAITING CHARGE
 			$this->saveActivityDetail(332, $ccWaitingCharge); //ASP WAITING CHARGE
@@ -566,7 +576,7 @@ class Activity extends Model {
 
 			$km_charge = $this->calculateKMCharge($response['asp_service_price'], $total_km);
 			$payout_amount = $km_charge;
-			$net_amount = floatval(($payout_amount + $not_collected + $ccWaitingCharge) - $collected);
+			$net_amount = numberFormatToDecimalConversion(floatval(($payout_amount + $not_collected + $ccWaitingCharge) - $collected));
 			$invoice_amount = $net_amount;
 
 			$cc_service_type = ActivityDetail::firstOrNew([
@@ -1589,7 +1599,7 @@ class Activity extends Model {
 		}
 
 		$above_range_price = ($km > $price->range_limit) ? ($km - $price->range_limit) * $price->above_range_price : 0;
-		$km_charge = floatval($below_range_price + $above_range_price);
+		$km_charge = numberFormatToDecimalConversion(floatval($below_range_price + $above_range_price));
 
 		//FORMULAE DISABLED AS PER CLIENT REQUEST
 		// if ($price->adjustment_type == 1) {

@@ -2202,9 +2202,16 @@ class ActivityController extends Controller {
 
 				if ($aspServiceType) {
 					// $bo_km_charge = $activity->detail(172) ? $activity->detail(172)->value : 0;
-					$bo_km_travelled = $activity->detail(158) ? $activity->detail(158)->value : 0;
-					$bo_km_collected = $activity->detail(159) ? $activity->detail(159)->value : 0;
-					$bo_km_not_collected = $activity->detail(160) ? $activity->detail(160)->value : 0;
+					$bo_km_travelled = $activity->detail(158) ? numberFormatToDecimalConversion(floatval($activity->detail(158)->value)) : 0;
+					$bo_km_collected = $activity->detail(159) ? numberFormatToDecimalConversion(floatval($activity->detail(159)->value)) : 0;
+					$bo_km_not_collected = $activity->detail(160) ? numberFormatToDecimalConversion(floatval($activity->detail(160)->value)) : 0;
+
+					$boWaitingTime = 0;
+					if ($activity->detail(330) && !empty($activity->detail(330)->value)) {
+						$boWaitingTime = floatval($activity->detail(330)->value);
+					} elseif ($activity->detail(279) && !empty($activity->detail(279)->value)) {
+						$boWaitingTime = floatval($activity->detail(279)->value);
+					}
 
 					if (floatval($bo_km_travelled) <= 0) {
 						return response()->json([
@@ -2217,6 +2224,11 @@ class ActivityController extends Controller {
 
 					$price = $response['asp_service_price'];
 
+					$boWaitingCharge = 0;
+					if (!empty($price->waiting_charge_per_hour) && !empty($boWaitingTime)) {
+						$boWaitingCharge = numberFormatToDecimalConversion(floatval($boWaitingTime / 60) * floatval($price->waiting_charge_per_hour));
+					}
+
 					if ($activity->financeStatus->po_eligibility_type_id == 341) {
 						// Empty Return Payout
 						$below_range_price = $bo_km_travelled == 0 ? 0 : $price->empty_return_range_price;
@@ -2225,7 +2237,7 @@ class ActivityController extends Controller {
 					}
 
 					$above_range_price = ($bo_km_travelled > $price->range_limit) ? ($bo_km_travelled - $price->range_limit) * $price->above_range_price : 0;
-					$km_charge = $below_range_price + $above_range_price;
+					$km_charge = numberFormatToDecimalConversion(floatval($below_range_price + $above_range_price));
 
 					$boDeduction = 0;
 					//DISABLED AS THERE IS NO ADJUSTMENT TYPE IN FUTURE
@@ -2235,7 +2247,7 @@ class ActivityController extends Controller {
 					// 	$boDeduction = floatval($km_charge) * floatval($aspServiceType->adjustment / 100);
 					// }
 
-					$invoiceAmount = (floatval($km_charge) + floatval($bo_km_not_collected)) - floatval($boDeduction) - floatval($bo_km_collected);
+					$invoiceAmount = numberFormatToDecimalConversion(floatval(($km_charge + $bo_km_not_collected + $boWaitingCharge) - $boDeduction - $bo_km_collected));
 
 					if (floatval($invoiceAmount) <= 0) {
 						return response()->json([
@@ -2243,6 +2255,22 @@ class ActivityController extends Controller {
 							'error' => 'Payout amount should be greater than zero for the case - ' . $activity->case->number,
 						]);
 					}
+
+					$bo_waiting_time = ActivityDetail::firstOrNew([
+						'company_id' => 1,
+						'activity_id' => $activity->id,
+						'key_id' => 330,
+					]);
+					$bo_waiting_time->value = $boWaitingTime;
+					$bo_waiting_time->save();
+
+					$bo_waiting_charge = ActivityDetail::firstOrNew([
+						'company_id' => 1,
+						'activity_id' => $activity->id,
+						'key_id' => 333,
+					]);
+					$bo_waiting_charge->value = $boWaitingCharge;
+					$bo_waiting_charge->save();
 
 					$bo_km_charge = ActivityDetail::firstOrNew([
 						'company_id' => 1,
@@ -3523,39 +3551,49 @@ class ActivityController extends Controller {
 
 			$waitingCharge = 0;
 			if (!empty($request->waiting_time)) {
-				$waitingCharge = floatval($request->waiting_time / 60) * floatval($waiting_charge_per_hour);
+				$waitingCharge = numberFormatToDecimalConversion(floatval($request->waiting_time / 60) * floatval($waiting_charge_per_hour));
 			}
+
+			$kmTravelled = numberFormatToDecimalConversion(floatval($request->km_travelled)); //ASP ENTERED KM
+			$collected = numberFormatToDecimalConversion(floatval($request->asp_collected_charges)); //ASP COLLECTED
+			$not_collected = numberFormatToDecimalConversion(floatval($request->other_charge)); //ASP NOT COLLECTED
+			$aspBorderCharge = numberFormatToDecimalConversion(floatval($request->border_charge));
+			$aspGreenTaxCharge = numberFormatToDecimalConversion(floatval($request->green_tax_charge));
+			$aspTollCharge = numberFormatToDecimalConversion(floatval($request->toll_charge));
+			$aspEatableItemCharge = numberFormatToDecimalConversion(floatval($request->eatable_item_charge));
+			$aspFuelCharge = numberFormatToDecimalConversion(floatval($request->fuel_charge));
+			$aspWaitingTime = floatval($request->waiting_time);
 
 			//UPDATE ASP ACTIVITY DETAILS & CALCULATE INVOICE AMOUNT FOR ASP & BO BASED ON ASP ENTERTED DETAILS
 			$asp_key_ids = [
 				//ASP
 				157 => $activity->serviceType->name,
-				154 => $request->km_travelled,
-				156 => $request->other_charge,
-				155 => $request->asp_collected_charges,
+				154 => $kmTravelled,
+				156 => $not_collected,
+				155 => $collected,
 
 				//ASP OTHER CHARGES (SPLIT UPs)
-				316 => $request->border_charge,
-				315 => $request->green_tax_charge,
-				314 => $request->toll_charge,
-				313 => $request->eatable_item_charge,
-				319 => $request->fuel_charge,
-				329 => $request->waiting_time,
+				316 => $aspBorderCharge,
+				315 => $aspGreenTaxCharge,
+				314 => $aspTollCharge,
+				313 => $aspEatableItemCharge,
+				319 => $aspFuelCharge,
+				329 => $aspWaitingTime,
 				332 => $waitingCharge,
 
 				//BO
 				161 => $activity->serviceType->name,
-				158 => $request->km_travelled,
-				160 => $request->other_charge,
-				159 => $request->asp_collected_charges,
+				158 => $kmTravelled,
+				160 => $not_collected,
+				159 => $collected,
 
 				//BO OTHER CHARGES (SPLIT UPs)
-				325 => $request->border_charge,
-				324 => $request->green_tax_charge,
-				323 => $request->toll_charge,
-				322 => $request->eatable_item_charge,
-				328 => $request->fuel_charge,
-				330 => $request->waiting_time,
+				325 => $aspBorderCharge,
+				324 => $aspGreenTaxCharge,
+				323 => $aspTollCharge,
+				322 => $aspEatableItemCharge,
+				328 => $aspFuelCharge,
+				330 => $aspWaitingTime,
 				333 => $waitingCharge,
 
 			];
@@ -3574,20 +3612,16 @@ class ActivityController extends Controller {
 			}
 
 			$price = $response['asp_service_price'];
-			$total_km = $request->km_travelled; //ASP ENTERED KM
-			$collected = $request->asp_collected_charges; //ASP COLLECTED
-			$not_collected = $request->other_charge; //ASP NOT COLLECTED
-
 			//INV AMOUNT FORMULA
 			if ($activity->financeStatus->po_eligibility_type_id == 341) {
 				// Empty Return Payout
-				$below_range_price = $total_km == 0 ? 0 : $price->empty_return_range_price;
+				$below_range_price = $kmTravelled == 0 ? 0 : $price->empty_return_range_price;
 			} else {
-				$below_range_price = $total_km == 0 ? 0 : $price->below_range_price;
+				$below_range_price = $kmTravelled == 0 ? 0 : $price->below_range_price;
 			}
 
-			$above_range_price = ($total_km > $price->range_limit) ? ($total_km - $price->range_limit) * $price->above_range_price : 0;
-			$km_charge = floatval($below_range_price + $above_range_price);
+			$above_range_price = ($kmTravelled > $price->range_limit) ? ($kmTravelled - $price->range_limit) * $price->above_range_price : 0;
+			$km_charge = numberFormatToDecimalConversion(floatval($below_range_price + $above_range_price));
 
 			//FORMULAE DISABLED AS PER CLIENT REQUEST
 			// if ($price->adjustment_type == 1) {
@@ -3600,7 +3634,7 @@ class ActivityController extends Controller {
 			// }
 
 			$payout_amount = $km_charge;
-			$net_amount = floatval(($payout_amount + $not_collected + $waitingCharge) - $collected);
+			$net_amount = numberFormatToDecimalConversion(floatval(($payout_amount + $not_collected + $waitingCharge) - $collected));
 			$invoice_amount = $net_amount;
 
 			$asp_po_amount = ActivityDetail::firstOrNew([
@@ -3650,8 +3684,6 @@ class ActivityController extends Controller {
 			]);
 			$bo_invoice_amount->value = $invoice_amount;
 			$bo_invoice_amount->save();
-
-			//TicketActivity::saveLog($log);
 
 			//log message
 			$log_status = config('rsa.LOG_STATUES_TEMPLATES.ASP_DATA_ENTRY_DONE');

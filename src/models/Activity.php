@@ -1864,9 +1864,9 @@ class Activity extends Model {
 
 	public function autoApprovalProcess() {
 		$response = [];
-		$totalKm = $this->detail(280)->value; // CC TOTAL KM
-		$collectedCharges = $this->detail(281)->value; //CC COLLECTED AMOUNT
-		$notCollectedCharges = $this->detail(282)->value; //CC NOT COLLECTED AMOUNT
+		$totalKm = !empty($this->detail(280)->value) ? numberFormatToDecimalConversion(floatval($this->detail(280)->value)) : 0; // CC TOTAL KM
+		$collectedCharges = !empty($this->detail(281)->value) ? numberFormatToDecimalConversion(floatval($this->detail(281)->value)) : 0; //CC COLLECTED AMOUNT
+		$notCollectedCharges = !empty($this->detail(282)->value) ? numberFormatToDecimalConversion(floatval($this->detail(282)->value)) : 0; //CC NOT COLLECTED AMOUNT
 		$autoApprovalKm = config('rsa')['ACTIVITY_AUTO_APPROVAL_KM'];
 
 		// GREATER THAN PREDEFINED AUTO APPROVAL KM THEN APPROVE ONLY FOR PREDEFINED KM
@@ -1886,8 +1886,14 @@ class Activity extends Model {
 				return $response;
 			}
 
+			$waitingTime = !empty($this->detail(279)->value) ? floatval($this->detail(279)->value) : 0;
+			$waitingCharge = 0;
+			if (!empty($aspServiceTypeGetResponse['asp_service_price']->waiting_charge_per_hour) && !empty($waitingTime)) {
+				$waitingCharge = numberFormatToDecimalConversion(floatval($waitingTime / 60) * floatval($aspServiceTypeGetResponse['asp_service_price']->waiting_charge_per_hour));
+			}
+
 			$kmCharge = $this->calculateKMCharge($aspServiceTypeGetResponse['asp_service_price'], $autoApprovalKm);
-			$netAmount = ($kmCharge + $notCollectedCharges) - $collectedCharges;
+			$netAmount = numberFormatToDecimalConversion(floatval(($kmCharge + $notCollectedCharges + $waitingCharge) - $collectedCharges));
 			$invoiceAmount = $netAmount;
 
 			$boKmTravelled = ActivityDetail::firstOrNew([

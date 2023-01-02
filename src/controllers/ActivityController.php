@@ -3983,7 +3983,29 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$activities = Activity::join('cases', 'cases.id', 'activities.case_id')
+			$activityBaseQuery = Activity::select([
+				'cases.number',
+				'activities.id',
+				'activities.asp_id as asp_id',
+				'activities.crm_activity_id',
+				'activities.number as activityNumber',
+				DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
+				'activity_portal_statuses.name as status',
+				'call_centers.name as callcenter',
+				'cases.vehicle_registration_number',
+				'service_types.name as service_type',
+				'km_charge.value as km_charge_value',
+				'km_travelled.value as km_value',
+				'not_collected_amount.value as not_collect_value',
+				'waiting_charges.value as waiting_charges',
+				'net_amount.value as net_value',
+				'collect_amount.value as collect_value',
+				'total_amount.value as total_value',
+				'total_tax_perc.value as total_tax_perc_value',
+				'total_tax_amount.value as total_tax_amount_value',
+				'data_sources.name as data_source',
+			])
+				->join('cases', 'cases.id', 'activities.case_id')
 				->join('call_centers', 'call_centers.id', 'cases.call_center_id')
 				->join('service_types', 'service_types.id', 'activities.service_type_id')
 				->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
@@ -4024,34 +4046,14 @@ class ActivityController extends Controller {
 						->where('total_amount.key_id', 182); //BO INVOICE AMOUNT
 				})
 				->leftjoin('configs as data_sources', 'data_sources.id', 'activities.data_src_id')
-				->select([
-					'cases.number',
-					'activities.id',
-					'activities.asp_id as asp_id',
-					'activities.crm_activity_id',
-					'activities.number as activityNumber',
-					DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
-					'activity_portal_statuses.name as status',
-					'call_centers.name as callcenter',
-					'cases.vehicle_registration_number',
-					'service_types.name as service_type',
-					'km_charge.value as km_charge_value',
-					'km_travelled.value as km_value',
-					'not_collected_amount.value as not_collect_value',
-					'waiting_charges.value as waiting_charges',
-					'net_amount.value as net_value',
-					'collect_amount.value as collect_value',
-					'total_amount.value as total_value',
-					'total_tax_perc.value as total_tax_perc_value',
-					'total_tax_amount.value as total_tax_amount_value',
-					'data_sources.name as data_source',
-				])
 				->whereIn('activities.id', $activity_ids)
 				->whereIn('activities.status_id', [11, 1]) //Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
-				->groupBy('activities.id')
-				->get();
+				->groupBy('activities.id');
 
-			if (count($activities) == 0) {
+			$activityCountQuery = clone $activityBaseQuery;
+			$activitiesCount = $activityCountQuery->get();
+
+			if ($activitiesCount->isEmpty()) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -4062,6 +4064,9 @@ class ActivityController extends Controller {
 
 			//CALCULATE TAX FOR INVOICE
 			Invoices::calculateTax($asp, $activity_ids);
+
+			$activities = clone $activityBaseQuery;
+			$activities = $activities->get();
 
 			foreach ($activities as $key => $activity) {
 				$taxes = DB::table('activity_tax')->leftjoin('taxes', 'activity_tax.tax_id', '=', 'taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name', 'taxes.tax_rate', 'activity_tax.*')->get();

@@ -349,7 +349,6 @@ app.component('activityVerificationView', {
                 }
                 custom_noty('error', errors);
                 $location.path('/rsa-case-pkg/activity-verification/list');
-                $scope.$apply();
                 return;
             }
             self.data = response.data.data.activities;

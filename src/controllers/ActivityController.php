@@ -2247,7 +2247,7 @@ class ActivityController extends Controller {
 					// 	$boDeduction = floatval($km_charge) * floatval($aspServiceType->adjustment / 100);
 					// }
 
-					$invoiceAmount = numberFormatToDecimalConversion(floatval(($km_charge + $bo_km_not_collected + $boWaitingCharge) - $boDeduction - $bo_km_collected));
+					$invoiceAmount = numberFormatToDecimalConversion(floatval(($km_charge + $bo_km_not_collected + $boWaitingCharge) - ($boDeduction + $bo_km_collected)));
 
 					if (floatval($invoiceAmount) <= 0) {
 						return response()->json([
@@ -4009,7 +4009,7 @@ class ActivityController extends Controller {
 				})
 				->leftJoin('activity_details as waiting_charges', function ($join) {
 					$join->on('waiting_charges.activity_id', 'activities.id')
-						->where('waiting_charges.key_id', 326); //BO waiting charges
+						->where('waiting_charges.key_id', 333); //BO WAITING CHARGE
 				})
 				->leftJoin('activity_details as total_tax_perc', function ($join) {
 					$join->on('total_tax_perc.activity_id', 'activities.id')

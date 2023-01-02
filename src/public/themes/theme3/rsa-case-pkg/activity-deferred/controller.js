@@ -155,12 +155,12 @@ app.component('deferredActivityUpdate', {
             self.service_types_list = response.data.service_types;
             self.for_deffer_activity = response.data.for_deffer_activity;
             self.activity = response.data.activity;
-            self.cc_collected_charges = parseInt(response.data.cc_collected_charges);
-            self.cc_not_collected = parseInt(response.data.cc_other_charge);
-            self.cc_actual_km = parseInt(response.data.cc_km_travelled);
-            self.asp_other_charge = parseInt(response.data.asp_other_charge);
-            self.asp_collected_charges = parseInt(response.data.asp_collected_charges);
-            self.asp_km_travelled = parseInt(response.data.asp_km_travelled);
+            self.cc_collected_charges = response.data.cc_collected_charges;
+            self.cc_not_collected = response.data.cc_other_charge;
+            self.cc_actual_km = response.data.cc_km_travelled;
+            self.asp_other_charge = response.data.asp_other_charge;
+            self.asp_collected_charges = response.data.asp_collected_charges;
+            self.asp_km_travelled = response.data.asp_km_travelled;
             self.service_type_id = response.data.activity.service_type_id;
             self.range_limit = response.data.range_limit;
             self.km_attachment = response.data.km_attachment;
@@ -234,8 +234,8 @@ app.component('deferredActivityUpdate', {
         }
 
         self.kmTravelledHideShow = function() {
-            var km_travelled_entered = parseInt(self.asp_km_travelled);
-            var mis_km = parseInt(self.cc_actual_km);
+            var km_travelled_entered = parseFloat(self.asp_km_travelled);
+            var mis_km = parseFloat(self.cc_actual_km);
             var range_limit = self.range_limit;
 
             if ($.isNumeric(km_travelled_entered)) {
@@ -273,13 +273,9 @@ app.component('deferredActivityUpdate', {
             }
         }
 
-        $('body').on('focusout', '.km_travel', function() {
-            self.kmTravelledHideShow();
-        });
-
         self.otherChargeHideShow = function() {
-            var other_charge_entered = parseInt(self.asp_other_charge);
-            var other_charge = parseInt(self.cc_not_collected);
+            var other_charge_entered = parseFloat(self.asp_other_charge);
+            var other_charge = parseFloat(self.cc_not_collected);
             if ($.isNumeric(other_charge_entered)) {
                 if (other_charge_entered) {
                     //DISABLED
@@ -306,30 +302,19 @@ app.component('deferredActivityUpdate', {
             }
         }
 
-        // $('body').on('focusout', '.other_charge', function() {
-        //     self.otherChargeHideShow();
-        // });
+        $scope.calculateOtherCharges = () => {
+            let otherCharge = 0;
+            let borderCharge = parseFloat(self.border_charge) || 0;
+            let greenTaxCharge = parseFloat(self.green_tax_charge) || 0;
+            let tollCharge = parseFloat(self.toll_charge) || 0;
+            let eatableItemCharge = parseFloat(self.eatable_item_charge) || 0;
+            let fuelCharge = parseFloat(self.fuel_charge) || 0;
 
-
-        $('body').on('focusout', '.asp_collected_charges', function() {
-            var asp_collected_charges = parseInt(self.asp_collected_charges);
-            if (!$.isNumeric(asp_collected_charges)) {
-                $(".asp_collected_charges").val("");
-            }
-        });
-
-        $('body').on('focusout', '.other_charges_total', function() {
-            let sum = 0;       
-           $('.other_charges_total').each(function(){
-                if(this.value)
-                    sum += parseFloat(this.value);
-                $('#other_charge').val(sum);
-           });
-
-            self.asp_other_charge= $('#other_charge').val();
+            otherCharge = borderCharge + greenTaxCharge + tollCharge + eatableItemCharge + fuelCharge;
+            self.asp_other_charge = parseFloat(otherCharge).toFixed(2);
             self.otherChargeHideShow();
+        }
 
-        });
         $.validator.addMethod("check_other_attach", function(number, element) {
             var other_attached = $(".close_other").attr('id');
             var other_attaching_now = $(".other_attachment_data").val();

@@ -209,7 +209,7 @@ class InvoiceController extends Controller {
 			})
 			->leftJoin('activity_details as waiting_charges', function ($join) {
 				$join->on('waiting_charges.activity_id', 'activities.id')
-					->where('waiting_charges.key_id', 326); //BO waiting charges
+					->where('waiting_charges.key_id', 333); //BO WAITING CHARGE
 			})
 			->leftJoin('activity_details as total_tax_perc', function ($join) {
 				$join->on('total_tax_perc.activity_id', 'activities.id')

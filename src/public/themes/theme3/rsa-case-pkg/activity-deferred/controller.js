@@ -189,7 +189,7 @@ app.component('deferredActivityUpdate', {
             }
 
             self.kmTravelledHideShow();
-            self.otherChargeHideShow();
+            $scope.calculateOtherCharges();
             $rootScope.loading = false;
         });
 

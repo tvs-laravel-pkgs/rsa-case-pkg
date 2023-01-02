@@ -1746,6 +1746,13 @@ class Activity extends Model {
 		$notCollectedCharges = $this->detail(282)->value; //CC NOT COLLECTED AMOUNT
 		$autoApprovalKm = config('rsa')['ACTIVITY_AUTO_APPROVAL_KM'];
 
+		if ( $totalKm > 0 || $totalKm != "" || $totalKm != null  ) {
+			return [
+				'success' => false,
+				'error' => "KM Travelled should be greater than zero",
+			];
+		}
+		
 		// GREATER THAN PREDEFINED AUTO APPROVAL KM THEN APPROVE ONLY FOR PREDEFINED KM
 		if (floatval($totalKm) >= floatval($autoApprovalKm)) {
 

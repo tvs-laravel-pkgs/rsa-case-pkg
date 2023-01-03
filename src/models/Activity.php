@@ -1342,6 +1342,9 @@ class Activity extends Model {
 								$detail->value = isset($record[$activity_field->name]) ? $record[$activity_field->name] : NULL;
 								$detail->save();
 							}
+
+							$activity->saveActivityChargesDetails();
+
 							//CALCULATE PAYOUT ONLY IF FINANCE STATUS OF ACTIVITY IS ELIBLE FOR PO
 							if ($activity->financeStatus->po_eligibility_type_id == 342) {
 								//No Payout status

@@ -21,6 +21,7 @@ app.component('activityStatusList', {
             activity_status_filter_url
         ).then(function(response) {
             self.extras = response.data.extras;
+            self.isAspRole = response.data.isAspRole;
             self.auth_user_details = response.data.auth_user_details;
             // response.data.extras.status_list.splice(0, 1);
             self.status_list = response.data.extras.portal_status_list;
@@ -46,15 +47,24 @@ app.component('activityStatusList', {
                 { data: 'client', name: 'clients.name', searchable: true },
                 { data: 'call_center', name: 'call_centers.name', searchable: true },
             ];
-
-            $('input[name="date_range_period"]').daterangepicker({
-                startDate: moment().startOf('month'),
-                endDate: moment().endOf('month'),
-                locale: {
-                    cancelLabel: 'Clear',
-                    format: "DD-MM-YYYY"
-                }
-            });
+            if (!self.isAspRole) {
+                $('input[name="date_range_period"]').daterangepicker({
+                    startDate: moment().startOf('month'),
+                    endDate: moment().endOf('month'),
+                    locale: {
+                        cancelLabel: 'Clear',
+                        format: "DD-MM-YYYY"
+                    }
+                });
+            } else {
+                $('input[name="date_range_period"]').daterangepicker({
+                    autoUpdateInput: false,
+                    locale: {
+                        cancelLabel: 'Clear',
+                        format: "DD-MM-YYYY"
+                    }
+                });
+            }
 
             var activities_status_dt_config = JSON.parse(JSON.stringify(dt_config));
 
@@ -177,6 +187,49 @@ app.component('activityStatusList', {
                     }
                 });
             }
+
+
+            $scope.releaseOnHoldCase = activityId => {
+                bootbox.confirm({
+                    message: 'Do you want to release this activity?',
+                    className: 'action-confirm-modal',
+                    buttons: {
+                        confirm: {
+                            label: 'Yes',
+                            className: 'btn-success'
+                        },
+                        cancel: {
+                            label: 'No',
+                            className: 'btn-danger'
+                        }
+                    },
+                    callback: function(result) {
+                        if (result) {
+                            $.ajax({
+                                    url: releaseOnHoldActivity + '/' + activityId,
+                                    method: "GET",
+                                })
+                                .done(function(res) {
+                                    if (!res.success) {
+                                        var errors = '';
+                                        for (var i in res.errors) {
+                                            errors += '<li>' + res.errors[i] + '</li>';
+                                        }
+                                        custom_noty('error', errors);
+                                        return;
+                                    }
+                                    custom_noty('success', res.message);
+                                    $('#activities_status_table').DataTable().ajax.reload();
+                                })
+                                .fail(function(xhr) {
+                                    custom_noty('error', 'Something went wrong at server');
+                                    console.log(xhr);
+                                });
+                        }
+                    }
+                });
+            }
+
             $('.filterToggle').click(function() {
                 $('#filterticket').toggleClass('open');
             });
@@ -267,6 +320,7 @@ app.component('activityStatusList', {
                 }
                 self.status_ids = r_list;
             }
+
             $("form[name='export_excel_form']").validate({
                 ignore: '',
                 rules: {
@@ -341,6 +395,55 @@ app.component('activityStatusList', {
                 $scope.$apply();
             }, 1000);
         }
+
+        $scope.moveToNotEligibleForPayout = activityId => {
+            self.notEligibleActivityId = activityId;
+            self.notEligibleReason = '';
+            $scope.$apply();
+            $("#moveToNotEligibleForPayoutModal").modal('toggle');
+        }
+
+        const notEligibleFormId = '#not-eligible-for-payout-form';
+        const notEligibleFormValidator = jQuery(notEligibleFormId).validate({
+            rules: {
+                not_eligible_reason: {
+                    required: true,
+                },
+            },
+            submitHandler: function(form) {
+                let formData = new FormData($(notEligibleFormId)[0]);
+                $('#notEligibleForPayoutSubmitId').button('loading');
+                $.ajax({
+                        url: laravel_routes['moveToNotEligibleForPayout'],
+                        method: "POST",
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                    })
+                    .done(function(res) {
+                        if (!res.success) {
+                            $('#notEligibleForPayoutSubmitId').button('reset');
+                            let errors = '';
+                            for (let i in res.errors) {
+                                errors += '<li>' + res.errors[i] + '</li>';
+                            }
+                            custom_noty('error', errors);
+                        } else {
+                            custom_noty('success', res.message);
+                            self.notEligibleActivityId = '';
+                            self.notEligibleReason = '';
+                            $('#notEligibleForPayoutSubmitId').button('reset');
+                            $('#moveToNotEligibleForPayoutModal').modal('hide');
+                            $('#activities_status_table').DataTable().ajax.reload();
+                        }
+                    })
+                    .fail(function(xhr) {
+                        $('#notEligibleForPayoutSubmitId').button('reset');
+                        custom_noty('error', 'Something went wrong at server');
+                    });
+            }
+        });
+
 
         $scope.towingImageRequiredBtn = function(activityId, isTowingAttachmentsMandatory) {
             self.towingImagesActivityId = activityId;

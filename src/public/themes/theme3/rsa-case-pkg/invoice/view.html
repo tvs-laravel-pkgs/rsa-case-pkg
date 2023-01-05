@@ -153,6 +153,10 @@
                                             </tr>
                                         </table>
                                     </div>
+                                    <div ng-if="isSelf($ctrl.asp) && $ctrl.irn" class="text-right">
+                                        <label class="text-right" style="font-family: 'titilliumWeb-regular';font-size: 16px;">IRN :</label>
+                                        <span style="font-family: 'titilliumWeb-regular';font-size: 16px;">{{$ctrl.irn}}</span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="row">
@@ -165,6 +169,7 @@
                                                         <th>Case Number</th>
                                                         <th>Case Date</th>
                                                         <th>Vehicle Number</th>
+                                                        <th>Activity Number</th>
                                                         <th>Source</th>
                                                         <th>Service Type</th>
                                                         <th>KM</th>
@@ -187,6 +192,9 @@
                                                         </td>
                                                         <td>
                                                             {{activity.vehicle_registration_number}}
+                                                        </td>
+                                                        <td>
+                                                            {{activity.activityNumber ? activity.activityNumber : ''}}
                                                         </td>
                                                         <td>
                                                             {{activity.data_source ? activity.data_source:''}}

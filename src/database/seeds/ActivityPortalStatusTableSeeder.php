@@ -97,6 +97,22 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 				'name' => 'Rejected - Waiting for L1 Individual Verification',
 				'company_id' => 1,
 			],
+			23 => [
+				'name' => 'Waiting for L4 Bulk Verification',
+				'company_id' => 1,
+			],
+			24 => [
+				'name' => 'Waiting for L4 Individual Verification',
+				'company_id' => 1,
+			],
+			25 => [
+				'name' => 'Waiting for Charges Acceptance by ASP',
+				'company_id' => 1,
+			],
+			26 => [
+				'name' => 'ASP Completed Data Entry - Waiting for Call Center Data Entry',
+				'company_id' => 1,
+			],
 		];
 
 		foreach ($activity_portal_statuses as $id => $activity_portal_status_val) {

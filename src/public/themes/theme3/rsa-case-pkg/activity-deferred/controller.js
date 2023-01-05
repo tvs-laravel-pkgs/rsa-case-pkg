@@ -141,13 +141,14 @@ app.component('deferredActivityUpdate', {
             $form_data_url
         ).then(function(response) {
             if (!response.data.success) {
-                $noty = new Noty({
-                    type: 'error',
-                    layout: 'topRight',
-                    text: response.data.error,
-                }).show();
+                custom_noty('error', response.data.error);
                 $location.path('/rsa-case-pkg/deferred-activity/list')
-                $scope.$apply()
+                return;
+            }
+
+            if (response.data.activity.status_id != 7) {
+                custom_noty('error', "Ticket not eligible for data re-entry");
+                $location.path('/rsa-case-pkg/deferred-activity/list')
                 return;
             }
 
@@ -169,7 +170,6 @@ app.component('deferredActivityUpdate', {
             self.bd_location = response.data.case.bd_location;
             self.dropDealer = response.data.dropDealer;
             self.dropLocation = response.data.dropLocation;
-
             self.vehiclePickupAttach = response.data.vehiclePickupAttach;
             self.vehicleDropAttach = response.data.vehicleDropAttach;
             self.inventoryJobSheetAttach = response.data.inventoryJobSheetAttach;
@@ -333,7 +333,7 @@ app.component('deferredActivityUpdate', {
         $scope.getServiceTypeDetail = () => {
             if (self.service_type_id) {
                 $.ajax({
-                        url: getActivityServiceTypeDetail + '/' + self.service_type_id,
+                        url: getActivityServiceTypeDetail + '/' + self.service_type_id + '/' + self.activity.id,
                         method: "GET",
                     })
                     .done(function(res) {
@@ -351,6 +351,7 @@ app.component('deferredActivityUpdate', {
                             } else {
                                 self.showTowingAttachment = false;
                             }
+                            self.activity = res.activity;
                             $scope.$apply()
                         }
                     })
@@ -360,6 +361,7 @@ app.component('deferredActivityUpdate', {
                     });
             }
         }
+
 
         $.validator.addMethod('imageFileSize', function(value, element, param) {
             return this.optional(element) || (element.files[0].size <= param)
@@ -401,6 +403,9 @@ app.component('deferredActivityUpdate', {
                 'remarks_not_collected': {
                     required: true,
                 },
+                'comments': {
+                    required: true,
+                },
                 'asp_collected_charges': {
                     number: true,
                     required: true,
@@ -413,39 +418,48 @@ app.component('deferredActivityUpdate', {
                 'other_attachment[]': {
                     // required: true,
                     check_other_attach: true,
-                    extension: "jpg|jpeg|png|gif"
+                    extension: "jpg|jpeg|png|gif|pdf"
                 },
                 'vehicle_pickup_attachment': {
                     required: function(element) {
-                        return self.activity.is_towing_attachments_mandatory === 1 && !self.vehiclePickupAttach;
+                        return self.activity.is_towing_attachments_mandatory === 1 && !self.vehiclePickupAttach && self.activity.finance_status.po_eligibility_type_id == 340;
                     },
-                    imageFileSize: 1048576,
+                    //imageFileSize: 1048576,
+                    extension: "jpg|jpeg|png",
                 },
                 'vehicle_drop_attachment': {
                     required: function(element) {
-                        return self.activity.is_towing_attachments_mandatory === 1 && !self.vehicleDropAttach;
+                        return self.activity.is_towing_attachments_mandatory === 1 && !self.vehicleDropAttach && self.activity.finance_status.po_eligibility_type_id == 340;
                     },
-                    imageFileSize: 1048576,
+                    //imageFileSize: 1048576,
+                    extension: "jpg|jpeg|png",
                 },
                 'inventory_job_sheet_attachment': {
                     required: function(element) {
-                        return self.activity.is_towing_attachments_mandatory === 1 && !self.inventoryJobSheetAttach;
+                        return self.activity.is_towing_attachments_mandatory === 1 && !self.inventoryJobSheetAttach && self.activity.finance_status.po_eligibility_type_id == 340;
                     },
-                    imageFileSize: 1048576,
+                    //imageFileSize: 1048576,
+                    extension: "jpg|jpeg|png",
                 }
             },
             messages: {
                 'km_travelled': {
-                    required: "Please Enter Kilo Meter Value",
+                    required: "Please Enter KM Travelled",
+                },
+                'other_charge': {
+                    required: "Please Enter Other Charges",
+                },
+                'asp_collected_charges': {
+                    required: "Please Enter Charges Collected",
                 },
                 'remarks_not_collected': {
                     required: "Please Enter Remarks",
                 },
+                'comments': {
+                    required: "Please Enter Resolve Comments",
+                },
                 'map_attachment[]': {
                     required: 'Please attach google map screenshot',
-                },
-                'asp_collected_charges': {
-                    number: 'Please enter number value',
                 },
                 'other_attachment[]': {
                     required: 'Please attach other Attachment',
@@ -453,14 +467,17 @@ app.component('deferredActivityUpdate', {
                 'vehicle_pickup_attachment': {
                     required: 'Please Upload Vehicle Pickup image',
                     imageFileSize: "Vehicle Pickup image size must be less than 1MB",
+                    extension: "Please Upload Vehicle Pickup image in jpeg, png, jpg formats",
                 },
                 'vehicle_drop_attachment': {
                     required: 'Please Upload Vehicle Drop image',
                     imageFileSize: "Vehicle Drop image size must be less than 1MB",
+                    extension: "Please Upload Vehicle Drop image in jpeg, png, jpg formats",
                 },
                 'inventory_job_sheet_attachment': {
                     required: 'Please Upload Inventory Job Sheet image',
                     imageFileSize: "Inventory Job Sheet image size must be less than 1MB",
+                    extension: "Please Upload Inventory Job Sheet image in jpeg, png, jpg formats",
                 }
             },
             errorPlacement: function(error, element) {

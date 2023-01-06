@@ -39,6 +39,7 @@ class ActivityWhatsappLog extends Model {
 			->join('configs', 'configs.id', 'activity_whatsapp_logs.type_id')
 			->join('asps', 'asps.id', 'activities.asp_id')
 			->where('activity_whatsapp_logs.is_new', 1)
+			->whereRaw("activity_whatsapp_logs.id = (SELECT MAX(subLogs.id) AS id FROM activity_whatsapp_logs as subLogs WHERE subLogs.is_new = 1 AND subLogs.activity_id = activity_whatsapp_logs.activity_id GROUP BY subLogs.activity_id)")
 		;
 		return $baseQuery;
 	}

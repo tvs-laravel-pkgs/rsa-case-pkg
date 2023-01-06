@@ -1745,13 +1745,13 @@ class Activity extends Model {
 		$collectedCharges = $this->detail(281)->value; //CC COLLECTED AMOUNT
 		$notCollectedCharges = $this->detail(282)->value; //CC NOT COLLECTED AMOUNT
 		$autoApprovalKm = config('rsa')['ACTIVITY_AUTO_APPROVAL_KM'];
-		if ( $totalKm <= 0 || $totalKm == "" || $totalKm == null  ) {
-			return [
-				'success' => false,
-				'error' => "KM Travelled should be greater than zero",
-			];
+
+		if (empty($totalKm) || floatval($totalKm) <= 0) {
+			$response['success'] = false;
+			$response['error'] = "KM Travelled should be greater than zero";
+			return $response;
 		}
-		
+
 		// GREATER THAN PREDEFINED AUTO APPROVAL KM THEN APPROVE ONLY FOR PREDEFINED KM
 		if (floatval($totalKm) >= floatval($autoApprovalKm)) {
 
@@ -2125,13 +2125,13 @@ class Activity extends Model {
 
 		$payloadIndexOne = [
 			"value" => "Yes",
-			"activity_id" => $activityNumber,//crm_act_id 
+			"activity_id" => $activityNumber, //crm_act_id
 			"vehicle_no" => $vehicleNumber,
 			"type" => "ASP Charges Acceptance",
 		];
 		$payloadIndexTwo = [
 			"value" => "No",
-			"activity_id" => $activityNumber,//crm_act_id 
+			"activity_id" => $activityNumber, //crm_act_id
 			"vehicle_no" => $vehicleNumber,
 			"type" => "ASP Charges Acceptance",
 		];

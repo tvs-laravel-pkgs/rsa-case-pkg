@@ -1552,6 +1552,20 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'delete-tds-log',
 				'display_name' => 'Delete',
 			],
+
+			//ACTIVITY WHATSAPP LOGS
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'activity-whatsapp-log',
+				'display_name' => 'Activity WhatsApp Log',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'activity-whatsapp-log',
+				'name' => 'export-activity-whatsapp-log',
+				'display_name' => 'Export',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

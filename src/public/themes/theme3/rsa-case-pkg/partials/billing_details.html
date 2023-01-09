@@ -30,10 +30,10 @@
                     <table class="table table-responsive table-bordered table-wide style-normal">
                         <thead>
                             <tr>
-                                <th>Title</th>
-                                <th style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">CC Data</th>
-                                <th style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">ASP Data</th>
-                                <th style="text-align:right">BO Data</th>
+                                <th style="width:50%">Title</th>
+                                <th style="text-align:right;width:15%" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">CC Data</th>
+                                <th style="text-align:right;width:15%" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">ASP Data</th>
+                                <th style="text-align:right;width:20%">BO Data</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -80,57 +80,144 @@
                                     </span>
                                 </td>
                             </tr>
-                            <tr>
-                                <th scope="row">Charges Not Collected From Customer </th>
+                             <tr>
+                                <th scope="row"> 
+                                    <button class="btn btn-default btn-xs btn-info-icon" class="accordion-toggle" aria-haspopup="true" aria-expanded="false" data-toggle="collapse" data-target="#other_charges_split"> <i class="fa fa-plus-circle"></i></button>
+                                    Charges Not Collected From Customer 
+                                </th>
                                 <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
                                     {{$ctrl.data.cc_not_collected_amount}}
                                 </td>
                                 <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')" ng-class="{'alert-danger': $ctrl.data.verification == 1 && !$ctrl.data.is_not_collected_eligible }">
-                                    <div class="d-flex flex-end">
-                                        <div>{{$ctrl.data.asp_not_collected}}</div>
-                                        <div class="dropdown">
-                                            <button class="btn btn-default btn-xs btn-info-icon" class="accordion-toggle" aria-haspopup="true" aria-expanded="false" data-toggle="dropdown"> <i class="glyphicon glyphicon-info-sign"></i></button>
-                                            <div class="dropdown-menu  dropdown-menu-right table-dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                                <table class="table table-responsive">
-                                                    <tbody>
-                                                        <tr>
-                                                            <td>Border Charges</td>
-                                                            <td><b>{{$ctrl.data.asp_border_charges}}</b></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Green Tax Charges</td>
-                                                            <td><b>{{$ctrl.data.asp_green_tax_charges}}</b></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Toll Charges</td>
-                                                            <td><b>{{$ctrl.data.asp_toll_charges}}</b></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Eatable Item Charges</td>
-                                                            <td><b>{{$ctrl.data.asp_eatable_items_charges}}</b></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Fuel Charges</td>
-                                                            <td><b>{{$ctrl.data.asp_fuel_charges}}</b></td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                </div>
-                </td>
-                <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 3}">
-                    {{$ctrl.data.bo_not_collected}}
-                </td>
-                <td ng-if="$ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 1 || $ctrl.data.activityApprovalLevel == 3)" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 3}">
-                    <input style="text-align:right" type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_not_collected" class="non_collected_amount" value="{{$ctrl.data.raw_bo_not_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
-                    <input type="hidden" ng-model="$ctrl.data.raw_asp_not_collected" class="other_value" value="{{$ctrl.data.raw_asp_not_collected}}"><br>
-                    <span class="color-red" ng-show="$ctrl.data.raw_bo_not_collected !== 0 && $ctrl.data.raw_bo_not_collected === ''">
-                        Charges not collected is required
-                    </span>
-                </td>
-                </tr>
+                                    {{$ctrl.data.asp_not_collected}}
+                                </td>
+                                <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 3}">
+                                    {{$ctrl.data.bo_not_collected}}
+                                </td>
+                                <td ng-if="$ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 1 || $ctrl.data.activityApprovalLevel == 3)" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 3}">
+                                    <input style="text-align:right" type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_not_collected" class="non_collected_amount" value="{{$ctrl.data.raw_bo_not_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" readonly>
+                                    <input type="hidden" ng-model="$ctrl.data.raw_asp_not_collected" class="other_value" value="{{$ctrl.data.raw_asp_not_collected}}"><br>
+                                    <span class="color-red" ng-show="$ctrl.data.raw_bo_not_collected !== 0 && $ctrl.data.raw_bo_not_collected === ''">
+                                        Charges not collected is required
+                                    </span>
+
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="12" class="hiddenRow">
+                                    <div class="accordian-body collapse" id="other_charges_split">
+                                        <table class="table table-striped" style="margin-bottom:0px">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width:50%;padding: 0px;border-bottom-width: 0px;"></th>
+                                                    <th style="width:15%;padding:0px"></th>
+                                                    <th style="width:15%; padding:0px"></th>
+                                                    <th style="width:20%; padding:0px"></th>
+                                                </tr>
+
+                                            </thead>
+                                            <tbody>       
+                                                <tr>
+                                                    <th scope="row">Border Charges</th>
+                                                    <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                                        {{$ctrl.data.border_charges}}
+                                                    </td>
+                                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')" ng-class="{'alert-danger': $ctrl.data.verification == 1 && !$ctrl.data.is_not_collected_eligible }">
+                                                        {{$ctrl.data.asp_border_charges}}
+                                                    </td>
+                                                    <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right">
+                                                        {{$ctrl.data.bo_border_charges}}
+                                                    </td>
+                                                    <td ng-if="$ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 1 || $ctrl.data.activityApprovalLevel == 3)" style="text-align:right">
+                                                        <input style="text-align:right" type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_border_charges" class="non_collected_amount" value="{{$ctrl.data.raw_bo_border_charges}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                                        <input type="hidden" ng-model="$ctrl.data.raw_asp_border_charges" class="other_value" value="{{$ctrl.data.raw_asp_border_charges}}"><br>
+                                                        <span class="color-red" ng-show="$ctrl.data.raw_bo_border_charges !== 0 && $ctrl.data.raw_bo_border_charges === ''">
+                                                            Border Charges not collected is required
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">Green Tax Charges</th>
+                                                    <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                                        {{$ctrl.data.green_tax_charges}}
+                                                    </td>
+                                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')" ng-class="{'alert-danger': $ctrl.data.verification == 1 && !$ctrl.data.is_not_collected_eligible }">
+                                                        {{$ctrl.data.asp_green_tax_charges}}
+                                                    </td>
+                                                    <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right">
+                                                        {{$ctrl.data.bo_green_tax_charges}}
+                                                    </td>
+                                                    <td ng-if="$ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 1 || $ctrl.data.activityApprovalLevel == 3)" style="text-align:right">
+                                                        <input style="text-align:right" type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_green_tax_charges" class="non_collected_amount" value="{{$ctrl.data.raw_bo_green_tax_charges}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                                        <input type="hidden" ng-model="$ctrl.data.raw_asp_green_tax_charges" class="other_value" value="{{$ctrl.data.raw_asp_green_tax_charges}}"><br>
+                                                        <span class="color-red" ng-show="$ctrl.data.raw_bo_green_tax_charges !== 0 && $ctrl.data.raw_bo_green_tax_charges === ''">
+                                                            Green Tax Charges not collected is required
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">Toll Charges</th>
+                                                    <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                                        {{$ctrl.data.toll_charges}}
+                                                    </td>
+                                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')" ng-class="{'alert-danger': $ctrl.data.verification == 1 && !$ctrl.data.is_not_collected_eligible }">
+                                                        {{$ctrl.data.asp_toll_charges}}
+                                                    </td>
+                                                    <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right">
+                                                        {{$ctrl.data.bo_toll_charges}}
+                                                    </td>
+                                                    <td ng-if="$ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 1 || $ctrl.data.activityApprovalLevel == 3)" style="text-align:right">
+                                                        <input style="text-align:right" type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_toll_charges" class="non_collected_amount" value="{{$ctrl.data.raw_bo_toll_charges}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                                        <input type="hidden" ng-model="$ctrl.data.raw_asp_toll_charges" class="other_value" value="{{$ctrl.data.raw_asp_toll_charges}}"><br>
+                                                        <span class="color-red" ng-show="$ctrl.data.raw_bo_toll_charges !== 0 && $ctrl.data.raw_bo_toll_charges === ''">
+                                                            Toll Charges not collected is required
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">Eatable Item Charges</th>
+                                                    <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                                        {{$ctrl.data.eatable_items_charges}}
+                                                    </td>
+                                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')" ng-class="{'alert-danger': $ctrl.data.verification == 1 && !$ctrl.data.is_not_collected_eligible }">
+                                                        {{$ctrl.data.asp_eatable_items_charges}}
+                                                    </td>
+                                                    <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 3}">
+                                                        {{$ctrl.data.bo_eatable_items_charges}}
+                                                    </td>
+                                                    <td ng-if="$ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 1 || $ctrl.data.activityApprovalLevel == 3)" style="text-align:right">
+                                                        <input style="text-align:right" type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_eatable_items_charges" class="non_collected_amount" value="{{$ctrl.data.raw_bo_eatable_items_charges}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                                        <input type="hidden" ng-model="$ctrl.data.raw_asp_eatable_items_charges" class="other_value" value="{{$ctrl.data.raw_asp_eatable_items_charges}}"><br>
+                                                        <span class="color-red" ng-show="$ctrl.data.raw_bo_eatable_items_charges !== 0 && $ctrl.data.raw_bo_eatable_items_charges === ''">
+                                                            Eatable Items Charges not collected is required
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">Fuel Charges</th>
+                                                    <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                                        {{$ctrl.data.fuel_charges}}
+                                                    </td>
+                                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')" ng-class="{'alert-danger': $ctrl.data.verification == 1 && !$ctrl.data.is_not_collected_eligible }">
+                                                        {{$ctrl.data.asp_fuel_charges}}
+                                                    </td>
+                                                    <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right">
+                                                        {{$ctrl.data.bo_fuel_charges}}
+                                                    </td>
+                                                    <td ng-if="$ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 1 || $ctrl.data.activityApprovalLevel == 3)" style="text-align:right">
+                                                        <input style="text-align:right" type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_fuel_charges" class="non_collected_amount" value="{{$ctrl.data.raw_bo_fuel_charges}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                                        <input type="hidden" ng-model="$ctrl.data.raw_asp_fuel_charges" class="other_value" value="{{$ctrl.data.raw_asp_fuel_charges}}"><br>
+                                                        <span class="color-red" ng-show="$ctrl.data.raw_bo_fuel_charges !== 0 && $ctrl.data.raw_bo_fuel_charges === ''">
+                                                            Fuel Charges not collected is required
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div> 
+                                </td>
+                            </tr>
+
                 <tr>
                     <th scope="row">Charges Collected From Customer </th>
                     <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
@@ -150,6 +237,43 @@
                         </span>
                     </td>
                 </tr>
+                <tr>
+                    <th scope="row">Waiting Time(in Min)</th>
+                    <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                       {{$ctrl.data.waiting_time}}
+                    </td>
+                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">{{$ctrl.data.asp_waiting_time}}
+                    </td>
+                    <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right">
+                        {{$ctrl.data.bo_waiting_time}}
+                    </td>
+                    <td class="waiting_time_entry" style="text-align:right;display:none">
+                        <div class="input-text form-group">
+                            <input type="text" class="form-control customForm-input collected_amount" name="bo_waiting_time" id="bo_waiting_time" ng-model="$ctrl.bo_waiting_time" autocomplete='off'>
+                        </div><!-- Field -->
+                        <input type="hidden" ng-model="$ctrl.data.raw_asp_waiting_charges" class="collected_value" value="{{$ctrl.data.raw_asp_waiting_charges}}"><br>
+                        <span class="color-red" ng-show="$ctrl.data.raw_bo_waiting_charges !== 0 && $ctrl.data.raw_bo_waiting_charges === ''">Waiting Charges  is required
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"> Waiting chages</th>
+                    <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                        {{$ctrl.data.cc_waiting_charges}}
+                    </td>
+                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">
+                         {{$ctrl.data.asp_waiting_charges}}
+                    </td>
+                    <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right">
+                        {{$ctrl.data.bo_waiting_charges}}
+                    </td>
+                    <td class="waiting_time_entry" style="text-align:right;display:none">
+                        <input style="text-align:right" type="text" name="bo_waiting_charges" ng-model="$ctrl.data.raw_bo_waiting_charges" class="form-control customForm-input" value="{{$ctrl.data.raw_bo_waiting_charges}}" readonly>
+                        <span class="color-red" ng-show="$ctrl.data.raw_bo_waiting_charges !== 0 && $ctrl.data.raw_bo_waiting_charges === ''">Waiting Charges not collected is required
+                        </span>
+                    </td>
+                </tr>
+
                 <tr ng-show="$ctrl.data.km_travelled_attachment_url.length>0">
                     <th scope="row">KM Upload Attachment</th>
                     <td colspan="{{$ctrl.data.span_value}}">
@@ -506,3 +630,14 @@
     padding: 0 !important;
 }
 </style>
+
+<script>
+    $(document).ready(function()  
+{  
+    $('#bo_waiting_time').datetimepicker({
+           format: 'HH:mm'
+     });  
+});  
+
+</script>
+ 

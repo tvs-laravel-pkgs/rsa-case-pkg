@@ -369,6 +369,12 @@ app.component('billingDetails', {
                                 bo_km_travelled: self.data.raw_bo_km_travelled,
                                 bo_collected: self.data.raw_bo_collected,
                                 bo_not_collected: self.data.raw_bo_not_collected,
+                                bo_waiting_charges: self.data.raw_bo_waiting_charges,
+                                bo_border_charges: self.data.raw_bo_border_charges,
+                                bo_green_tax_charges: self.data.raw_bo_green_tax_charges,
+                                bo_toll_charges: self.data.raw_bo_toll_charges,
+                                bo_eatable_items_charges: self.data.raw_bo_eatable_items_charges,
+                                bo_fuel_charges: self.data.raw_bo_fuel_charges,
                                 bo_deduction: self.data.bo_deduction,
                                 bo_po_amount: self.data.bo_po_amount,
                                 bo_net_amount: self.data.bo_net_amount,
@@ -478,6 +484,10 @@ app.component('billingDetails', {
                             });
                     }
                 }
+                $('#bo_waiting_time').on('dp.change', function(e){ 
+                    self.data.bo_waiting_time = e.date.format('HH:mm'); 
+                    $scope.calculate()
+                })
 
                 $scope.calculatePO = function() {
                     total = (parseFloat(self.data.bo_po_amount) + parseFloat(self.data.raw_bo_waiting_charges) + parseFloat(self.data.raw_bo_not_collected)) - parseFloat(self.data.raw_bo_collected);
@@ -536,7 +546,14 @@ app.component('billingDetails', {
                         if (self.data.bo_deduction != '') {
                             boDeduction = self.data.bo_deduction;
                         }
-                        // self.data.bo_deduction = parseFloat(adjustment);
+                        if(self.data.asp_service_type_data.waiting_charge_per_hour && self.data.bo_waiting_time ){
+                            bo_waiting_time_split = self.data.bo_waiting_time.split(':');
+                            waiting_time_in_min = parseFloat(bo_waiting_time_split[0] * 60) + parseFloat(bo_waiting_time_split[1]); // in min
+                            self.data.raw_bo_waiting_charges =  Math.round(parseFloat(waiting_time_in_min/60) * parseFloat(self.data.asp_service_type_data.waiting_charge_per_hour ))
+                        } else
+                            self.data.raw_bo_waiting_charges = 0.00;
+                        self.data.raw_bo_not_collected = (parseFloat(self.data.raw_bo_border_charges) + parseFloat(self.data.raw_bo_green_tax_charges) + parseFloat(self.data.raw_bo_fuel_charges) + parseFloat(self.data.raw_bo_toll_charges) + parseFloat(self.data.raw_bo_eatable_items_charges))
+                         // self.data.bo_deduction = parseFloat(adjustment);
                         self.data.bo_deduction = parseFloat(boDeduction);
                         var total = (parseFloat(amount) + parseFloat(self.data.raw_bo_not_collected) + parseFloat(self.data.raw_bo_waiting_charges)) - parseFloat(self.data.raw_bo_collected) - parseFloat(self.data.bo_deduction);
 

@@ -92,7 +92,7 @@ class CaseController extends Controller {
 				'customer_name' => 'required|string|max:255',
 				// 'customer_contact_number' => 'required|string|min:10|max:10',
 				'customer_contact_number' => 'required|string',
-				'contact_name' => 'nullable|string|max:50',
+				'contact_name' => 'nullable|string|max:255',
 				// 'contact_number' => 'nullable|string|min:10|max:10',
 				'contact_number' => 'nullable|string',
 				'vehicle_make' => [

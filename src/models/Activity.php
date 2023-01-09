@@ -815,7 +815,7 @@ class Activity extends Model {
 						],
 						'customer_name' => 'required|string|max:255',
 						// 'customer_contact_number' => 'required|numeric|min:10|max:10',
-						'contact_name' => 'nullable|string|max:50',
+						'contact_name' => 'nullable|string|max:255',
 						// 'contact_number' => 'nullable|numeric|min:10|max:10',
 						'vehicle_make' => [
 							'required',
@@ -1663,7 +1663,7 @@ class Activity extends Model {
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 		$caseNumber = $this->case ? (!empty($this->case->number) ? $this->case->number : '--') : '--';
 		$caseDate = $this->case ? (!empty($this->case->date) ? date('d.m.Y', strtotime($this->case->date)) : '--') : '--';
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 		$customerName = $this->case ? (!empty($this->case->customer_name) ? $this->case->customer_name : '--') : '--';
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '--') : '--';
 		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
@@ -1759,7 +1759,7 @@ class Activity extends Model {
 
 			$payloadIndex = [
 				"value" => "Upload Images",
-				"activity_id" => $this->number,
+				"activity_id" => $activityNumber,
 				"vehicle_no" => $payloadVehicleNumber,
 				"type" => "New Breakdown Alert",
 			];
@@ -1833,7 +1833,7 @@ class Activity extends Model {
 	public function sendImageUploadConfirmationWhatsappSms() {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 
@@ -1882,6 +1882,12 @@ class Activity extends Model {
 		$collectedCharges = !empty($this->detail(281)->value) ? numberFormatToDecimalConversion(floatval($this->detail(281)->value)) : 0; //CC COLLECTED AMOUNT
 		$notCollectedCharges = !empty($this->detail(282)->value) ? numberFormatToDecimalConversion(floatval($this->detail(282)->value)) : 0; //CC NOT COLLECTED AMOUNT
 		$autoApprovalKm = config('rsa')['ACTIVITY_AUTO_APPROVAL_KM'];
+
+		if (empty($totalKm) || floatval($totalKm) <= 0) {
+			$response['success'] = false;
+			$response['error'] = "KM Travelled should be greater than zero";
+			return $response;
+		}
 
 		// GREATER THAN PREDEFINED AUTO APPROVAL KM THEN APPROVE ONLY FOR PREDEFINED KM
 		if (floatval($totalKm) >= floatval($autoApprovalKm)) {
@@ -2008,7 +2014,7 @@ class Activity extends Model {
 		$aspCode = !empty($this->asp->asp_code) ? $this->asp->asp_code : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 		$caseNumber = $this->case ? (!empty($this->case->number) ? $this->case->number : '--') : '--';
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
@@ -2054,13 +2060,13 @@ class Activity extends Model {
 
 		$payloadIndexOne = [
 			"value" => "Yes",
-			"activity_id" => $this->number,
+			"activity_id" => $activityNumber,
 			"vehicle_no" => $vehicleNumber,
 			"type" => "Breakdown Charges",
 		];
 		$payloadIndexTwo = [
 			"value" => "No",
-			"activity_id" => $this->number,
+			"activity_id" => $activityNumber,
 			"vehicle_no" => $vehicleNumber,
 			"type" => "Breakdown Charges",
 		];
@@ -2145,7 +2151,7 @@ class Activity extends Model {
 	public function sendRevisedBreakdownOrEmptyreturnChargesWhatsappSms() {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
@@ -2174,13 +2180,13 @@ class Activity extends Model {
 
 		$payloadIndexOne = [
 			"value" => "Yes",
-			"activity_id" => $this->number,
+			"activity_id" => $activityNumber,
 			"vehicle_no" => $vehicleNumber,
 			"type" => "Revised Breakdown Charges",
 		];
 		$payloadIndexTwo = [
 			"value" => "No",
-			"activity_id" => $this->number,
+			"activity_id" => $activityNumber,
 			"vehicle_no" => $vehicleNumber,
 			"type" => "Revised Breakdown Charges",
 		];
@@ -2239,7 +2245,7 @@ class Activity extends Model {
 	public function sendAspAcceptanceChargesWhatsappSms() {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
@@ -2262,13 +2268,13 @@ class Activity extends Model {
 
 		$payloadIndexOne = [
 			"value" => "Yes",
-			"activity_id" => $this->number,
+			"activity_id" => $activityNumber, //crm_act_id
 			"vehicle_no" => $vehicleNumber,
 			"type" => "ASP Charges Acceptance",
 		];
 		$payloadIndexTwo = [
 			"value" => "No",
-			"activity_id" => $this->number,
+			"activity_id" => $activityNumber, //crm_act_id
 			"vehicle_no" => $vehicleNumber,
 			"type" => "ASP Charges Acceptance",
 		];
@@ -2328,7 +2334,7 @@ class Activity extends Model {
 	public function sendAspChargesRejectionWhatsappSms() {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
@@ -2383,7 +2389,7 @@ class Activity extends Model {
 	public function sendIndividualInvoicingWhatsappSms($invoiceId) {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
@@ -2443,7 +2449,7 @@ class Activity extends Model {
 	public function sendBulkInvoicingWhatsappSms() {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
 
@@ -2495,7 +2501,7 @@ class Activity extends Model {
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
 		$templateId = 'invoice_generated_2110';
@@ -2539,7 +2545,7 @@ class Activity extends Model {
 	public function sendActivityCancelledWhatsappSms() {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
 

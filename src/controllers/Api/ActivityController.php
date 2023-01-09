@@ -958,7 +958,7 @@ class ActivityController extends Controller {
 				], $this->successStatus);
 			}
 
-			$activity = Activity::where('number', $payload->activity_id)->first();
+			$activity = Activity::where('crm_activity_id', $payload->activity_id)->first();
 			if (!$activity) {
 				$whatsappWebhookResponse->errors = 'Activity not found';
 				$whatsappWebhookResponse->save();
@@ -1244,7 +1244,7 @@ class ActivityController extends Controller {
 				'activity_id' => [
 					'required',
 					'string',
-					'exists:activities,number',
+					'exists:activities,crm_activity_id',
 				],
 				'vehicle_pickup_image' => [
 					'required',
@@ -1280,7 +1280,7 @@ class ActivityController extends Controller {
 				], $this->successStatus);
 			}
 
-			$activity = Activity::where('number', $request->activity_id)
+			$activity = Activity::where('crm_activity_id', $request->activity_id)
 				->whereIn('status_id', [2, 17]) //ASP Rejected CC Details - Waiting for ASP Data Entry OR On Hold
 				->first();
 

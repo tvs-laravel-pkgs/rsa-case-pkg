@@ -150,7 +150,7 @@
                                             <tr>
                                                 <td class="text-right">GST Registration Number :</td>
                                                 <td><span>
-                                                        {{$ctrl.asp.gst_registration_number ? $ctrl.asp.gst_registration_number : 'N/A'}}
+                                                        {{ isSelf($ctrl.asp) ? ($ctrl.asp.gst_registration_number ? $ctrl.asp.gst_registration_number : 'N/A') : 'N/A' }}
                                                     </span>
                                                 </td>
                                             </tr>
@@ -218,7 +218,7 @@
                                                             {{activity.km_charge_value | number : 2}}
                                                         </td>
                                                         <td class="text-right">
-                                                            {{activity.waiting_charges ? (activity.waiting_charges | number : 2)   : '0:00' }}
+                                                            {{activity.waiting_charges ? (activity.waiting_charges | number : 2) : '0:00' }}
                                                         </td>
                                                         <td class="text-right">
                                                             {{activity.collect_value | number : 2}}

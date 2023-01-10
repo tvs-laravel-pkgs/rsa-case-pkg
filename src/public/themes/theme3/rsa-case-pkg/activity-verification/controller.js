@@ -369,7 +369,12 @@ app.component('activityVerificationView', {
             self.data.style_checked_image_url = style_checked_image_url;
             self.data.verification = 1;
             self.data.page_title = "Approval";
-
+            if (self.data.verification == 1 && (self.data.activityApprovalLevel == 1 || self.data.activityApprovalLevel == 3)) {
+                $('.waiting_time_entry').show();
+                $('.bo_waiting_time').datetimepicker({
+                    format: 'HH:mm'
+                });
+            }
             $rootScope.loading = false;
             self.data.cc_net_amount = self.data.cc_po_amount - self.data.bo_not_collected;
             $scope.differ = function() {

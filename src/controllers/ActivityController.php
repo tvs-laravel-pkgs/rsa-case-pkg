@@ -1125,9 +1125,11 @@ class ActivityController extends Controller {
 				$detail = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $config->id)->first();
 				if (strpos($config->name, '_charges') || strpos($config->name, '_amount')) {
 
-					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '-') : '-';
+					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '0.00') : '0.00';
 					$raw_key_name = 'raw_' . $config->name;
-					$this->data['activities'][$raw_key_name] = $detail ? (!empty($detail->value) ? $detail->value : '-') : '-';
+					$this->data['activities'][$raw_key_name] = $detail ? (!empty($detail->value) ? $detail->value : '0.00') : '0.00';
+				} elseif (strpos($config->name, '_time')) {
+					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? $detail->value : '0.00') : '0.00';
 				} elseif (strpos($config->name, 'date')) {
 					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? date("d-m-Y H:i:s", strtotime($detail->value)) : '-') : '-';
 				} else {
@@ -1579,6 +1581,51 @@ class ActivityController extends Controller {
 				]);
 			}
 
+			if ($request->bo_border_charges !== 0 && $request->bo_border_charges === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Border Charges is required',
+					],
+				]);
+			}
+
+			if ($request->bo_green_tax_charges !== 0 && $request->bo_green_tax_charges === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Green Tax Charges is required',
+					],
+				]);
+			}
+
+			if ($request->bo_toll_charges !== 0 && $request->bo_toll_charges === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Toll Charges is required',
+					],
+				]);
+			}
+
+			if ($request->bo_eatable_items_charges !== 0 && $request->bo_eatable_items_charges === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Eatable Items Charges is required',
+					],
+				]);
+			}
+
+			if ($request->bo_fuel_charges !== 0 && $request->bo_fuel_charges === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Fuel Charges is required',
+					],
+				]);
+			}
+
 			if ($request->bo_collected !== 0 && $request->bo_collected === '') {
 				return response()->json([
 					'success' => false,
@@ -1669,7 +1716,7 @@ class ActivityController extends Controller {
 				$isCollectedChanged = true;
 			}
 
-			$key_list = [158, 159, 160, 161, 176, 172, 173, 179, 182];
+			$key_list = [158, 159, 160, 161, 176, 172, 173, 179, 182, 325, 324, 323, 322, 328, 330, 333];
 			foreach ($key_list as $keyw) {
 				$var_key = Config::where('id', $keyw)->first();
 				$key_name = str_replace(" ", "_", strtolower($var_key->name));
@@ -1683,6 +1730,7 @@ class ActivityController extends Controller {
 				$activityDetail->value = $value;
 				$activityDetail->save();
 			}
+
 			if (isset($request->is_exceptional_check)) {
 				$activity->is_exceptional_check = $request->is_exceptional_check;
 				if (!empty($request->exceptional_reason)) {
@@ -3675,8 +3723,11 @@ class ActivityController extends Controller {
 			}
 
 			$waitingCharge = 0;
+			$waitingTimeInMin = 0;
 			if (!empty($request->waiting_time)) {
-				$waitingCharge = numberFormatToDecimalConversion(floatval($request->waiting_time / 60) * floatval($waiting_charge_per_hour));
+				[$hours, $minutes] = explode(':', $request->waiting_time);
+				$waitingTimeInMin = intval(($hours * 60) + $minutes);
+				$waitingCharge = numberFormatToDecimalConversion(floatval($waitingTimeInMin / 60) * floatval($waiting_charge_per_hour));
 			}
 
 			$kmTravelled = numberFormatToDecimalConversion(floatval($request->km_travelled)); //ASP ENTERED KM
@@ -3687,7 +3738,7 @@ class ActivityController extends Controller {
 			$aspTollCharge = numberFormatToDecimalConversion(floatval($request->toll_charge));
 			$aspEatableItemCharge = numberFormatToDecimalConversion(floatval($request->eatable_item_charge));
 			$aspFuelCharge = numberFormatToDecimalConversion(floatval($request->fuel_charge));
-			$aspWaitingTime = floatval($request->waiting_time);
+			$aspWaitingTime = floatval($waitingTimeInMin);
 
 			//UPDATE ASP ACTIVITY DETAILS & CALCULATE INVOICE AMOUNT FOR ASP & BO BASED ON ASP ENTERTED DETAILS
 			$asp_key_ids = [

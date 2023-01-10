@@ -137,6 +137,10 @@ app.component('deferredActivityUpdate', {
         const vehicleDropAttachRemovelIds = [];
         const inventoryJobSheetAttachRemovelIds = [];
 
+        $('#waiting_time').datetimepicker({
+            format: 'HH:mm'
+        });
+
         $http.get(
             $form_data_url
         ).then(function(response) {
@@ -179,7 +183,7 @@ app.component('deferredActivityUpdate', {
             self.toll_charge = response.data.toll_charges;
             self.eatable_item_charge = response.data.eatable_item_charges;
             self.fuel_charge = response.data.fuel_charges;
-            self.waiting_time = response.data.waiting_time;
+            // self.waiting_time = response.data.waiting_time;
             self.towingAttachmentSamplePhoto = 1;
             //TOWING GROUP
             if (self.activity.service_type.service_group_id == 3) {
@@ -189,9 +193,29 @@ app.component('deferredActivityUpdate', {
             }
 
             self.kmTravelledHideShow();
+            $scope.aspWaitingTime(response.data.waiting_time);
             $scope.calculateOtherCharges();
             $rootScope.loading = false;
         });
+
+        $scope.aspWaitingTime = (waitingTime) => {
+            if (waitingTime) {
+                let seconds = parseFloat(waitingTime) * 60;
+
+                // calculate (and subtract) whole days
+                let days = Math.floor(seconds / 86400);
+                seconds -= days * 86400;
+
+                // calculate (and subtract) whole hours
+                let hours = Math.floor(seconds / 3600) % 24;
+                seconds -= hours * 3600;
+
+                // calculate (and subtract) whole minutes
+                let minutes = Math.floor(seconds / 60) % 60;
+
+                self.waiting_time = hours + ':' + minutes;
+            }
+        }
 
         self.closeOtherAttach = function(index, other_attach_id) {
             if (other_attach_id) {

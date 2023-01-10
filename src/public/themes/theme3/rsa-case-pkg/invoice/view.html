@@ -176,7 +176,7 @@
                                                         <th class="text-right">KM Charge</th>
                                                         <th class="text-right">Waiting Charge</th>
                                                         <th class="text-right">Collected Amount</th>
-                                                        <th ng-if="$ctrl.asp.tax_calculation_method" class="text-right">Not Collected Amount</th> 
+                                                        <th ng-if="$ctrl.asp.tax_calculation_method" class="text-right">Not Collected Amount</th>
                                                         <th class="text-right">Net Amount</th>
                                                         <th class="text-right" ng-repeat="(index, tax) in $ctrl.activities[0].taxes">{{tax.tax_name}} ({{tax.tax_rate}}%)</th>
                                                         <th ng-if="!$ctrl.asp.tax_calculation_method" class="text-right">Not Collected Amount</th>
@@ -210,14 +210,14 @@
                                                             {{activity.km_charge_value | number : 2}}
                                                         </td>
                                                         <td class="text-right">
-                                                            {{activity.waiting_charges | number : 2}}
+                                                            {{activity.waiting_charges ? (activity.waiting_charges | number : 2) : '0.00' }}
                                                         </td>
                                                         <td class="text-right">
                                                             {{activity.collect_value | number : 2}}
                                                         </td>
                                                         <td ng-if="$ctrl.asp.tax_calculation_method" class="text-right">
                                                             {{activity.not_collect_value | number : 2}}
-                                                        </td> 
+                                                        </td>
                                                         <td class="text-right">
                                                             {{activity.net_value | number : 2}}
                                                         </td>

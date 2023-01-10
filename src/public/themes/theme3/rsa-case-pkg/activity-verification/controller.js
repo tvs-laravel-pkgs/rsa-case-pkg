@@ -373,7 +373,8 @@ app.component('activityVerificationView', {
             if (self.data.verification == 1 && (self.data.activityApprovalLevel == 1 || self.data.activityApprovalLevel == 3)) {
                 $('.waiting_time_entry').show();
                 $('.bo_waiting_time').datetimepicker({
-                    format: 'HH:mm'
+                    format: 'HH:mm',
+                    ignoreReadonly: true
                 });
             }
             $rootScope.loading = false;

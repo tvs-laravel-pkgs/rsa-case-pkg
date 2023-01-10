@@ -71,7 +71,8 @@ app.component('newActivityUpdateDetails', {
         const inventoryJobSheetAttachRemovelIds = [];
 
         $('#waiting_time').datetimepicker({
-            format: 'HH:mm'
+            format: 'HH:mm',
+            ignoreReadonly: true
         });
 
         $http.get(
@@ -125,6 +126,7 @@ app.component('newActivityUpdateDetails', {
             self.eatable_item_charge = 0;
             self.fuel_charge = 0;
             self.other_charge = 0;
+            self.waiting_time = '00:00';
 
             $rootScope.loading = false;
         });

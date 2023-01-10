@@ -300,7 +300,10 @@ app.component('billingDetails', {
                     // calculate (and subtract) whole minutes
                     let minutes = Math.floor(seconds / 60) % 60;
 
-                    self.bo_waiting_time = hours + ':' + minutes;
+                    let hoursVal = ('0' + hours).slice(-2);
+                    let minsVal = ('0' + minutes).slice(-2);
+
+                    self.bo_waiting_time = hoursVal + ':' + minsVal;
                 }
 
                 if (self.data.verification == 1 && (self.data.activityApprovalLevel == 1 || self.data.activityApprovalLevel == 3)) {

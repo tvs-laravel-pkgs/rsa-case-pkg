@@ -247,7 +247,7 @@
                                 </td>
                                 <td class="waiting_time_entry" style="text-align:right;display:none">
                                     <div class="input-text form-group">
-                                        <input type="text" class="form-control customForm-input collected_amount" name="bo_waiting_time" id="bo_waiting_time" ng-model="$ctrl.bo_waiting_time" autocomplete='off'>
+                                        <input type="text" class="form-control customForm-input collected_amount" name="bo_waiting_time" id="bo_waiting_time" ng-model="$ctrl.bo_waiting_time" autocomplete='off' readonly>
                                     </div><!-- Field -->
                                 </td>
                             </tr>
@@ -610,7 +610,8 @@
 <script>
 $(document).ready(function() {
     $('#bo_waiting_time').datetimepicker({
-        format: 'HH:mm'
+        format: 'HH:mm',
+        ignoreReadonly: true
     });
 });
 </script>

@@ -138,7 +138,8 @@ app.component('deferredActivityUpdate', {
         const inventoryJobSheetAttachRemovelIds = [];
 
         $('#waiting_time').datetimepicker({
-            format: 'HH:mm'
+            format: 'HH:mm',
+            ignoreReadonly: true
         });
 
         $http.get(
@@ -213,7 +214,12 @@ app.component('deferredActivityUpdate', {
                 // calculate (and subtract) whole minutes
                 let minutes = Math.floor(seconds / 60) % 60;
 
-                self.waiting_time = hours + ':' + minutes;
+                let hoursVal = ('0' + hours).slice(-2);
+                let minsVal = ('0' + minutes).slice(-2);
+
+                self.waiting_time = hoursVal + ':' + minsVal;
+            } else {
+                self.waiting_time = '00:00';
             }
         }
 

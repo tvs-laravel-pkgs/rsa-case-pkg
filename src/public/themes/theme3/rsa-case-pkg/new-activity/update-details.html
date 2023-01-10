@@ -92,8 +92,8 @@
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
-                                        <label>Waiting Time (In Mins)</label>
-                                        <input type="text" class="form-control customForm-input" name="waiting_time" id="waiting_time" ng-model="$ctrl.waiting_time" autocomplete='off' placeholder="Enter Waiting Time" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');">
+                                        <label>Waiting Time</label>
+                                        <input type="text" class="form-control customForm-input" name="waiting_time" id="waiting_time" ng-model="$ctrl.waiting_time" autocomplete='off' placeholder="Select Waiting Time" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
@@ -304,11 +304,9 @@
     </div>
 </div>
 <script>
-    $(document).ready(function()  
-{  
+$(document).ready(function() {
     $('#waiting_time').datetimepicker({
-           format: 'HH:mm'
-     });  
-});  
-
+        format: 'HH:mm'
+    });
+});
 </script>

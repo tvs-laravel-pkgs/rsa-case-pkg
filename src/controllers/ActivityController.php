@@ -1099,6 +1099,8 @@ class ActivityController extends Controller {
 					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '0.00') : '0.00';
 					$raw_key_name = 'raw_' . $config->name;
 					$this->data['activities'][$raw_key_name] = $detail ? (!empty($detail->value) ? $detail->value : '0.00') : '0.00';
+				} elseif (strpos($config->name, '_time')) {
+					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? $detail->value : '0.00') : '0.00';
 				} elseif (strpos($config->name, 'date')) {
 					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? date("d-m-Y H:i:s", strtotime($detail->value)) : '-') : '-';
 				} else {
@@ -1118,7 +1120,6 @@ class ActivityController extends Controller {
 			$is_km_travelled_eligible = true;
 			$is_not_collected_eligible = true;
 			$is_collected_eligible = true;
-			$is_waiting_charges_eligible = true;
 			$cc_service_type = ActivityDetail::where('activity_id', $activity_status_id)
 				->where('key_id', 153)
 				->first();
@@ -1189,13 +1190,6 @@ class ActivityController extends Controller {
 			$asp_not_collected = ActivityDetail::where('activity_id', $activity_status_id)
 				->where('key_id', 156)
 				->first();
-			$waiting_charges = ActivityDetail::where('activity_id', $activity_status_id)
-				->where('key_id', 331)
-				->first();
-			$asp_waiting_charges = ActivityDetail::where('activity_id', $activity_status_id)
-				->where('key_id', 332)
-				->first();
-
 
 			//Not Collected Amount
 			if ($cc_not_collected && $asp_not_collected) {
@@ -1217,17 +1211,6 @@ class ActivityController extends Controller {
 				}
 			} else {
 				$is_collected_eligible = false;
-			}
-
-			//waiting charges
-			if ($waiting_charges && $asp_waiting_charges) {
-				$waiting_charges_amt = floatval($waiting_charges->value);
-				$asp_waiting_charges_amt = floatval($asp_waiting_charges->value);
-				if ($waiting_charges_amt < $asp_waiting_charges_amt) {
-					$is_waiting_charges_eligible = false;
-				}
-			} else {
-				$is_waiting_charges_eligible = false;
 			}
 
 			$activityInfo = Activity::find($activity->id);
@@ -1402,7 +1385,6 @@ class ActivityController extends Controller {
 			$this->data['activities']['is_km_travelled_eligible'] = $is_km_travelled_eligible;
 			$this->data['activities']['is_not_collected_eligible'] = $is_not_collected_eligible;
 			$this->data['activities']['is_collected_eligible'] = $is_collected_eligible;
-			$this->data['activities']['is_waiting_charges_eligible'] = $is_waiting_charges_eligible;
 			$this->data['activities']['is_case_lapsed'] = $is_case_lapsed;
 			$this->data['activities']['submission_closing_date'] = $submission_closing_date;
 
@@ -1541,6 +1523,51 @@ class ActivityController extends Controller {
 				]);
 			}
 
+			if ($request->bo_border_charges !== 0 && $request->bo_border_charges === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Border Charges is required',
+					],
+				]);
+			}
+
+			if ($request->bo_green_tax_charges !== 0 && $request->bo_green_tax_charges === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Green Tax Charges is required',
+					],
+				]);
+			}
+
+			if ($request->bo_toll_charges !== 0 && $request->bo_toll_charges === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Toll Charges is required',
+					],
+				]);
+			}
+
+			if ($request->bo_eatable_items_charges !== 0 && $request->bo_eatable_items_charges === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Eatable Items Charges is required',
+					],
+				]);
+			}
+
+			if ($request->bo_fuel_charges !== 0 && $request->bo_fuel_charges === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Fuel Charges is required',
+					],
+				]);
+			}
+
 			if ($request->bo_collected !== 0 && $request->bo_collected === '') {
 				return response()->json([
 					'success' => false,
@@ -1613,7 +1640,7 @@ class ActivityController extends Controller {
 				$isCollectedChanged = true;
 			}
 
-			$key_list = [158, 159, 160, 161, 176, 172, 173, 179, 182,325,324,323,322,328,333];
+			$key_list = [158, 159, 160, 161, 176, 172, 173, 179, 182, 325, 324, 323, 322, 328, 330, 333];
 			foreach ($key_list as $keyw) {
 				$var_key = Config::where('id', $keyw)->first();
 				$key_name = str_replace(" ", "_", strtolower($var_key->name));
@@ -1627,6 +1654,7 @@ class ActivityController extends Controller {
 				$activityDetail->value = $value;
 				$activityDetail->save();
 			}
+
 			if (isset($request->is_exceptional_check)) {
 				$activity->is_exceptional_check = $request->is_exceptional_check;
 				if (!empty($request->exceptional_reason)) {
@@ -3570,11 +3598,11 @@ class ActivityController extends Controller {
 			}
 
 			$waitingCharge = 0;
-			if (!empty($request->waiting_time)) { 
+			$waitingTimeInMin = 0;
+			if (!empty($request->waiting_time)) {
 				[$hours, $minutes] = explode(':', $request->waiting_time);
-					//$request->waiting_time = (int)$hours * 60 + (int)$minutes;
-				$waiting_time_in_min = (int)$hours * 60 + (int)$minutes; // in min
-				$waitingCharge = numberFormatToDecimalConversion(floatval($waiting_time_in_min/60) * floatval($waiting_charge_per_hour));
+				$waitingTimeInMin = intval(($hours * 60) + $minutes);
+				$waitingCharge = numberFormatToDecimalConversion(floatval($waitingTimeInMin / 60) * floatval($waiting_charge_per_hour));
 			}
 
 			$kmTravelled = numberFormatToDecimalConversion(floatval($request->km_travelled)); //ASP ENTERED KM
@@ -3585,7 +3613,7 @@ class ActivityController extends Controller {
 			$aspTollCharge = numberFormatToDecimalConversion(floatval($request->toll_charge));
 			$aspEatableItemCharge = numberFormatToDecimalConversion(floatval($request->eatable_item_charge));
 			$aspFuelCharge = numberFormatToDecimalConversion(floatval($request->fuel_charge));
-			$aspWaitingTime = floatval($request->waiting_time);
+			$aspWaitingTime = floatval($waitingTimeInMin);
 
 			//UPDATE ASP ACTIVITY DETAILS & CALCULATE INVOICE AMOUNT FOR ASP & BO BASED ON ASP ENTERTED DETAILS
 			$asp_key_ids = [

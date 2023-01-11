@@ -118,11 +118,15 @@
                                             <tbody>
                                                 <tr>
                                                     <th scope="row">Border Charges</th>
-                                                    <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
-                                                        {{$ctrl.data.border_charges}}
+                                                    <td style="text-align:right">
+                                                        <span ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                                            {{$ctrl.data.border_charges}}
+                                                        </span>
                                                     </td>
-                                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">
-                                                        {{$ctrl.data.asp_border_charges}}
+                                                    <td style="text-align:right">
+                                                        <span ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">
+                                                            {{$ctrl.data.asp_border_charges}}
+                                                        </span>
                                                     </td>
                                                     <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right">
                                                         {{$ctrl.data.bo_border_charges}}
@@ -137,11 +141,15 @@
                                                 </tr>
                                                 <tr>
                                                     <th scope="row">Green Tax Charges</th>
-                                                    <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
-                                                        {{$ctrl.data.green_tax_charges}}
+                                                    <td style="text-align:right">
+                                                        <span ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                                            {{$ctrl.data.green_tax_charges}}
+                                                        </span>
                                                     </td>
-                                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">
-                                                        {{$ctrl.data.asp_green_tax_charges}}
+                                                    <td style="text-align:right">
+                                                        <span ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">
+                                                            {{$ctrl.data.asp_green_tax_charges}}
+                                                        </span>
                                                     </td>
                                                     <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right">
                                                         {{$ctrl.data.bo_green_tax_charges}}
@@ -156,11 +164,15 @@
                                                 </tr>
                                                 <tr>
                                                     <th scope="row">Toll Charges</th>
-                                                    <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
-                                                        {{$ctrl.data.toll_charges}}
+                                                    <td style="text-align:right">
+                                                        <span ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                                            {{$ctrl.data.toll_charges}}
+                                                        </span>
                                                     </td>
-                                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">
-                                                        {{$ctrl.data.asp_toll_charges}}
+                                                    <td style="text-align:right">
+                                                        <span ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">
+                                                            {{$ctrl.data.asp_toll_charges}}
+                                                        </span>
                                                     </td>
                                                     <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right">
                                                         {{$ctrl.data.bo_toll_charges}}
@@ -175,11 +187,15 @@
                                                 </tr>
                                                 <tr>
                                                     <th scope="row">Eatable Item Charges</th>
-                                                    <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
-                                                        {{$ctrl.data.eatable_items_charges}}
+                                                    <td style="text-align:right">
+                                                        <span ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                                            {{$ctrl.data.eatable_items_charges}}
+                                                        </span>
                                                     </td>
-                                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">
-                                                        {{$ctrl.data.asp_eatable_items_charges}}
+                                                    <td style="text-align:right">
+                                                        <span ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">
+                                                            {{$ctrl.data.asp_eatable_items_charges}}
+                                                        </span>
                                                     </td>
                                                     <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right">
                                                         {{$ctrl.data.bo_eatable_items_charges}}
@@ -194,11 +210,15 @@
                                                 </tr>
                                                 <tr>
                                                     <th scope="row">Fuel Charges</th>
-                                                    <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
-                                                        {{$ctrl.data.fuel_charges}}
+                                                    <td style="text-align:right">
+                                                        <span ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                                            {{$ctrl.data.fuel_charges}}
+                                                        </span>
                                                     </td>
-                                                    <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">
-                                                        {{$ctrl.data.asp_fuel_charges}}
+                                                    <td style="text-align:right">
+                                                        <span ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">
+                                                            {{$ctrl.data.asp_fuel_charges}}
+                                                        </span>
                                                     </td>
                                                     <td ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))" style="text-align:right">
                                                         {{$ctrl.data.bo_fuel_charges}}

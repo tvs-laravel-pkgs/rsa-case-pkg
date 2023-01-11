@@ -737,7 +737,7 @@ class ActivityController extends Controller {
 					'call_centers.name as call_center',
 					'asp_po_rejected_reason',
 					'activities.description as description',
-					DB::raw('IF(activities.remarks IS NULL OR activities.remarks="","-",activities.remarks) as remarks'),
+					DB::raw('IF(activities.remarks IS NULL OR activities.remarks="","",activities.remarks) as remarks'),
 					//'activities.remarks as remarks',
 					// 'cases.*',
 					// DB::raw('CASE

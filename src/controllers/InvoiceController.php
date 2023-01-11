@@ -227,6 +227,7 @@ class InvoiceController extends Controller {
 			->select([
 				'activities.number as activityNumber',
 				'activities.id',
+				'activities.crm_activity_id',
 				'activities.asp_id as asp_id',
 				'cases.number',
 				DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),

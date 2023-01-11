@@ -285,6 +285,31 @@ app.component('billingDetails', {
                 self.csrf = token;
                 self.data.raw_bo_waiting_charges = (self.data.raw_bo_waiting_charges == '' || self.data.raw_bo_waiting_charges == '-') ? 0.00 : self.data.raw_bo_waiting_charges;
 
+
+                $scope.boWaitingTime = () => {
+                    let seconds = parseFloat(self.data.bo_waiting_time) * 60;
+
+                    // calculate (and subtract) whole days
+                    let days = Math.floor(seconds / 86400);
+                    seconds -= days * 86400;
+
+                    // calculate (and subtract) whole hours
+                    let hours = Math.floor(seconds / 3600) % 24;
+                    seconds -= hours * 3600;
+
+                    // calculate (and subtract) whole minutes
+                    let minutes = Math.floor(seconds / 60) % 60;
+
+                    let hoursVal = ('0' + hours).slice(-2);
+                    let minsVal = ('0' + minutes).slice(-2);
+
+                    self.bo_waiting_time = hoursVal + ':' + minsVal;
+                }
+
+                if (self.data.verification == 1 && (self.data.activityApprovalLevel == 1 || self.data.activityApprovalLevel == 3)) {
+                    $scope.boWaitingTime();
+                }
+
                 // SET BO KM, COLLECTED AND NOT COLLECTED VALUE AS ZERO FOR L1 LEVEL VERIFICATIONS
                 if (self.data.verification == 1 && (self.data.activity_portal_status_id == 5 || self.data.activity_portal_status_id == 6 || self.data.activity_portal_status_id == 8 || self.data.activity_portal_status_id == 9)) {
                     self.data.raw_bo_collected = 0;
@@ -336,6 +361,21 @@ app.component('billingDetails', {
                     } else if (self.data.raw_bo_not_collected !== 0 && self.data.raw_bo_not_collected === '') {
                         custom_noty('error', 'Charges not collected is required');
                         return;
+                    } else if (self.data.raw_bo_border_charges !== 0 && self.data.raw_bo_border_charges === '') {
+                        custom_noty('error', 'Border Charges is required');
+                        return;
+                    } else if (self.data.raw_bo_green_tax_charges !== 0 && self.data.raw_bo_green_tax_charges === '') {
+                        custom_noty('error', 'Green Tax Charges is required');
+                        return;
+                    } else if (self.data.raw_bo_toll_charges !== 0 && self.data.raw_bo_toll_charges === '') {
+                        custom_noty('error', 'Toll Charges is required');
+                        return;
+                    } else if (self.data.raw_bo_eatable_items_charges !== 0 && self.data.raw_bo_eatable_items_charges === '') {
+                        custom_noty('error', 'Eatable Items Charges is required');
+                        return;
+                    } else if (self.data.raw_bo_fuel_charges !== 0 && self.data.raw_bo_fuel_charges === '') {
+                        custom_noty('error', 'Fuel Charges is required');
+                        return;
                     } else if (self.data.raw_bo_collected !== 0 && self.data.raw_bo_collected === '') {
                         custom_noty('error', 'Charges collected is required');
                         return;
@@ -369,6 +409,13 @@ app.component('billingDetails', {
                                 bo_km_travelled: self.data.raw_bo_km_travelled,
                                 bo_collected: self.data.raw_bo_collected,
                                 bo_not_collected: self.data.raw_bo_not_collected,
+                                bo_waiting_time: self.data.bo_waiting_time,
+                                bo_waiting_charges: self.data.raw_bo_waiting_charges,
+                                bo_border_charges: self.data.raw_bo_border_charges,
+                                bo_green_tax_charges: self.data.raw_bo_green_tax_charges,
+                                bo_toll_charges: self.data.raw_bo_toll_charges,
+                                bo_eatable_items_charges: self.data.raw_bo_eatable_items_charges,
+                                bo_fuel_charges: self.data.raw_bo_fuel_charges,
                                 bo_deduction: self.data.bo_deduction,
                                 bo_po_amount: self.data.bo_po_amount,
                                 bo_net_amount: self.data.bo_net_amount,
@@ -479,12 +526,24 @@ app.component('billingDetails', {
                     }
                 }
 
+                $('#bo_waiting_time').on('dp.change', function(e) {
+                    if (e.date) {
+                        let boWaitingTime = e.date.format('HH:mm');
+                        let [waitingTimeHour, waitingTimeMin] = boWaitingTime.split(':');
+                        self.data.bo_waiting_time = parseFloat(waitingTimeHour * 60) + parseFloat(waitingTimeMin);
+                        setTimeout(function() {
+                            $scope.calculate();
+                            $scope.$apply()
+                        }, 500);
+                    }
+                });
+
                 $scope.calculatePO = function() {
                     total = (parseFloat(self.data.bo_po_amount) + parseFloat(self.data.raw_bo_waiting_charges) + parseFloat(self.data.raw_bo_not_collected)) - parseFloat(self.data.raw_bo_collected);
                     if (self.data.bo_deduction) {
                         total -= parseFloat(self.data.bo_deduction);
                     }
-                    self.data.bo_net_amount = self.data.bo_amount = total;
+                    self.data.bo_net_amount = self.data.bo_amount = parseFloat(total).toFixed(2);
                 }
 
                 $scope.calculate = function() {
@@ -536,11 +595,26 @@ app.component('billingDetails', {
                         if (self.data.bo_deduction != '') {
                             boDeduction = self.data.bo_deduction;
                         }
+
+                        self.data.raw_bo_waiting_charges = 0;
+                        if (self.data.asp_service_type_data.waiting_charge_per_hour && self.data.bo_waiting_time) {
+                            self.data.raw_bo_waiting_charges = parseFloat(parseFloat(self.data.bo_waiting_time / 60) * parseFloat(self.data.asp_service_type_data.waiting_charge_per_hour)).toFixed(2);
+                        }
+
+                        let otherCharge = 0;
+                        let borderCharge = parseFloat(self.data.raw_bo_border_charges) || 0;
+                        let greenTaxCharge = parseFloat(self.data.raw_bo_green_tax_charges) || 0;
+                        let tollCharge = parseFloat(self.data.raw_bo_toll_charges) || 0;
+                        let eatableItemCharge = parseFloat(self.data.raw_bo_eatable_items_charges) || 0;
+                        let fuelCharge = parseFloat(self.data.raw_bo_fuel_charges) || 0;
+                        otherCharge = borderCharge + greenTaxCharge + tollCharge + eatableItemCharge + fuelCharge;
+                        self.data.raw_bo_not_collected = parseFloat(otherCharge).toFixed(2);
+
                         // self.data.bo_deduction = parseFloat(adjustment);
                         self.data.bo_deduction = parseFloat(boDeduction);
                         var total = (parseFloat(amount) + parseFloat(self.data.raw_bo_not_collected) + parseFloat(self.data.raw_bo_waiting_charges)) - parseFloat(self.data.raw_bo_collected) - parseFloat(self.data.bo_deduction);
 
-                        self.data.bo_net_amount = self.data.bo_amount = total;
+                        self.data.bo_net_amount = self.data.bo_amount = parseFloat(total).toFixed(2);
                     }
                 }
                 $scope.calculate();

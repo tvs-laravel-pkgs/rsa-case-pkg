@@ -50,31 +50,31 @@
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
-                                        <label> Border Charges (Not Collected) <span class="mandatory">*</span></label>
+                                        <label> Border Charges (Not Collected)</label>
                                         <input type="text" class="form-control customForm-input other_charges_total" name="border_charge" ng-model="$ctrl.border_charge" autocomplete='off' placeholder="Enter Border Charges" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-change="calculateOtherCharges()">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
-                                        <label>Green Tax Charges (Not Collected) <span class="mandatory">*</span></label>
+                                        <label>Green Tax Charges (Not Collected)</label>
                                         <input type="text" class="form-control customForm-input other_charges_total" name="green_tax_charge" ng-model="$ctrl.green_tax_charge" autocomplete='off' placeholder="Enter Green Tax Charges" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-change="calculateOtherCharges()">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
-                                        <label>Toll Charges (Not Collected) <span class="mandatory">*</span></label>
+                                        <label>Toll Charges (Not Collected)</label>
                                         <input type="text" class="form-control customForm-input other_charges_total" name="toll_charge" ng-model="$ctrl.toll_charge" autocomplete='off' placeholder="Enter Toll Charges" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-change="calculateOtherCharges()">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
-                                        <label>Eatable Item Charges (Not Collected) <span class="mandatory">*</span></label>
+                                        <label>Eatable Item Charges (Not Collected)</label>
                                         <input type="text" class="form-control customForm-input other_charges_total" name="eatable_item_charge" ng-model="$ctrl.eatable_item_charge" autocomplete='off' placeholder="Enter Eatable Item Charges" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-change="calculateOtherCharges()">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
-                                        <label>Fuel Charges (Not Collected) <span class="mandatory">*</span></label>
+                                        <label>Fuel Charges (Not Collected)</label>
                                         <input type="text" class="form-control customForm-input other_charges_total" name="fuel_charge" ng-model="$ctrl.fuel_charge" autocomplete='off' placeholder="Enter Fuel Charges" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-change="calculateOtherCharges()">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
@@ -92,8 +92,8 @@
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
                                     <div class="input-text form-group">
-                                        <label>Waiting Time (In Mins)</label>
-                                        <input type="text" class="form-control customForm-input" name="waiting_time" id="waiting_time" ng-model="$ctrl.waiting_time" autocomplete='off' placeholder="Enter Waiting Time" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');">
+                                        <label>Waiting Time</label>
+                                        <input type="text" class="form-control customForm-input" name="waiting_time" id="waiting_time" ng-model="$ctrl.waiting_time" autocomplete='off' placeholder="Select Waiting Time" readonly>
                                     </div><!-- Field -->
                                 </div><!-- Column -->
                                 <div class="col-sm-3">
@@ -303,3 +303,11 @@
         </div>
     </div>
 </div>
+<script>
+$(document).ready(function() {
+    $('#waiting_time').datetimepicker({
+        format: 'HH:mm',
+        ignoreReadonly: true
+    });
+});
+</script>

@@ -59,7 +59,7 @@ app.component('newActivity', {
 
 app.component('newActivityUpdateDetails', {
     templateUrl: asp_new_activity_update_details_template_url,
-    controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope) {
+    controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope, $timeout) {
 
         $form_data_url = typeof($routeParams.id) == 'undefined' ? get_activity_form_data_url : get_activity_form_data_url + '/' + $routeParams.id;
         var self = this;
@@ -69,6 +69,11 @@ app.component('newActivityUpdateDetails', {
         const vehiclePickupAttachRemovelIds = [];
         const vehicleDropAttachRemovelIds = [];
         const inventoryJobSheetAttachRemovelIds = [];
+
+        $('#waiting_time').datetimepicker({
+            format: 'HH:mm',
+            ignoreReadonly: true
+        });
 
         $http.get(
             $form_data_url
@@ -121,6 +126,7 @@ app.component('newActivityUpdateDetails', {
             self.eatable_item_charge = 0;
             self.fuel_charge = 0;
             self.other_charge = 0;
+            self.waiting_time = '00:00';
 
             $rootScope.loading = false;
         });

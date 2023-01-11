@@ -431,16 +431,16 @@ class Activity extends Model {
 
 		// GET CC DETAILS -----------------------------------------------------------
 
-		$ccWaitingTime = !empty($this->detail(279)->value) ? $this->detail(279)->value : 0;
-		$ccServiceCharges = !empty($this->detail(302)->value) ? numberFormatToDecimalConversion(floatval($this->detail(302)->value)) : 0;
-		$ccMembershipCharges = !empty($this->detail(303)->value) ? numberFormatToDecimalConversion(floatval($this->detail(303)->value)) : 0;
-		$ccEatableItemsCharges = !empty($this->detail(304)->value) ? numberFormatToDecimalConversion(floatval($this->detail(304)->value)) : 0;
-		$ccTollCharges = !empty($this->detail(305)->value) ? numberFormatToDecimalConversion(floatval($this->detail(305)->value)) : 0;
-		$ccGreenTaxCharges = !empty($this->detail(306)->value) ? numberFormatToDecimalConversion(floatval($this->detail(306)->value)) : 0;
-		$ccBorderCharges = !empty($this->detail(307)->value) ? numberFormatToDecimalConversion(floatval($this->detail(307)->value)) : 0;
-		$ccOctroiCharges = !empty($this->detail(308)->value) ? numberFormatToDecimalConversion(floatval($this->detail(308)->value)) : 0;
-		$ccExcessCharges = !empty($this->detail(309)->value) ? numberFormatToDecimalConversion(floatval($this->detail(309)->value)) : 0;
-		$ccFuelCharges = !empty($this->detail(310)->value) ? numberFormatToDecimalConversion(floatval($this->detail(310)->value)) : 0;
+		$ccWaitingTime = ($this->detail(279) && !empty($this->detail(279)->value)) ? $this->detail(279)->value : 0;
+		$ccServiceCharges = ($this->detail(302) && !empty($this->detail(302)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(302)->value)) : 0;
+		$ccMembershipCharges = ($this->detail(303) && !empty($this->detail(303)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(303)->value)) : 0;
+		$ccEatableItemsCharges = ($this->detail(304) && !empty($this->detail(304)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(304)->value)) : 0;
+		$ccTollCharges = ($this->detail(305) && !empty($this->detail(305)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(305)->value)) : 0;
+		$ccGreenTaxCharges = ($this->detail(306) && !empty($this->detail(306)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(306)->value)) : 0;
+		$ccBorderCharges = ($this->detail(307) && !empty($this->detail(307)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(307)->value)) : 0;
+		$ccOctroiCharges = ($this->detail(308) && !empty($this->detail(308)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(308)->value)) : 0;
+		$ccExcessCharges = ($this->detail(309) && !empty($this->detail(309)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(309)->value)) : 0;
+		$ccFuelCharges = ($this->detail(310) && !empty($this->detail(310)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(310)->value)) : 0;
 
 		// SAVE AGAINST ASP & BO ----------------------------------------------------
 
@@ -700,7 +700,7 @@ class Activity extends Model {
 		$job->save();
 		DB::beginTransaction();
 		try {
-			$response = ImportCronJob::getRecordsFromExcel($job, 'BS');
+			$response = ImportCronJob::getRecordsFromExcel($job, 'BT');
 			$rows = $response['rows'];
 			$header = $response['header'];
 			$all_error_records = [];

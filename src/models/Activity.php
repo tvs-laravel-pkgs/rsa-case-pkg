@@ -1883,9 +1883,9 @@ class Activity extends Model {
 		$notCollectedCharges = !empty($this->detail(282)->value) ? numberFormatToDecimalConversion(floatval($this->detail(282)->value)) : 0; //CC NOT COLLECTED AMOUNT
 		$autoApprovalKm = config('rsa')['ACTIVITY_AUTO_APPROVAL_KM'];
 
-		if (empty($totalKm) || floatval($totalKm) <= 0) {
+		if (empty($totalKm) || floatval($totalKm) < 1) {
 			$response['success'] = false;
-			$response['error'] = "KM Travelled should be greater than zero";
+			$response['error'] = "KM Travelled should be greater than or equal to one";
 			return $response;
 		}
 

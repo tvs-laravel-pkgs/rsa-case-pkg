@@ -143,6 +143,7 @@ class ActivityController extends Controller {
 				'excess_charges' => 'nullable|numeric',
 				'amount_collected_from_customer' => 'nullable|numeric',
 				'amount_refused_by_customer' => 'nullable|numeric',
+				'fuel_charges' => 'nullable|numeric',
 			]);
 
 			if ($validator->fails()) {
@@ -514,6 +515,8 @@ class ActivityController extends Controller {
 				$detail->value = isset($request->{$activity_field->name}) ? $request->{$activity_field->name} : NULL;
 				$detail->save();
 			}
+
+			$activity->saveActivityChargesDetails();
 
 			//CALCULATE PAYOUT ONLY IF FINANCE STATUS OF ACTIVITY IS ELIBLE FOR PO
 			if ($activity->financeStatus->po_eligibility_type_id == 342) {
@@ -924,7 +927,7 @@ class ActivityController extends Controller {
 				], $this->successStatus);
 			}
 
-			$activity = Activity::where('number', $payload->activity_id)->first();
+			$activity = Activity::where('crm_activity_id', $payload->activity_id)->first();
 			if (!$activity) {
 				$whatsappWebhookResponse->errors = 'Activity not found';
 				$whatsappWebhookResponse->save();
@@ -995,16 +998,6 @@ class ActivityController extends Controller {
 
 								$activity->status_id = 11; // Waiting for Invoice Generation by ASP
 								$activity->save();
-
-								//LOG SAVE
-								$activityLog = ActivityLog::firstOrNew([
-									'activity_id' => $activity->id,
-								]);
-								$activityLog->bo_approved_at = Carbon::now();
-								$activityLog->bo_approved_by_id = 72;
-								$activityLog->updated_by_id = 72;
-								$activityLog->updated_at = Carbon::now();
-								$activityLog->save();
 
 								$activity->updateApprovalLog();
 
@@ -1219,7 +1212,7 @@ class ActivityController extends Controller {
 				'activity_id' => [
 					'required',
 					'string',
-					'exists:activities,number',
+					'exists:activities,crm_activity_id',
 				],
 				'vehicle_pickup_image' => [
 					'required',
@@ -1255,7 +1248,7 @@ class ActivityController extends Controller {
 				], $this->successStatus);
 			}
 
-			$activity = Activity::where('number', $request->activity_id)
+			$activity = Activity::where('crm_activity_id', $request->activity_id)
 				->whereIn('status_id', [2, 17]) //ASP Rejected CC Details - Waiting for ASP Data Entry OR On Hold
 				->first();
 

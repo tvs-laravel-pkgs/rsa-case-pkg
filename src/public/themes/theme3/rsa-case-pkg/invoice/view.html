@@ -170,10 +170,11 @@
                                                         <th>Case Date</th>
                                                         <th>Vehicle Number</th>
                                                         <th>Activity Number</th>
-                                                        <th>Source</th>
+                                                        <!-- <th>Source</th> -->
                                                         <th>Service Type</th>
                                                         <th>KM</th>
                                                         <th class="text-right">KM Charge</th>
+                                                        <th class="text-right">Waiting Charge</th>
                                                         <th class="text-right">Collected Amount</th>
                                                         <th ng-if="$ctrl.asp.tax_calculation_method" class="text-right">Not Collected Amount</th>
                                                         <th class="text-right">Net Amount</th>
@@ -194,11 +195,11 @@
                                                             {{activity.vehicle_registration_number}}
                                                         </td>
                                                         <td>
-                                                            {{activity.activityNumber ? activity.activityNumber : ''}}
+                                                            {{activity.crm_activity_id ? activity.crm_activity_id : ''}}
                                                         </td>
-                                                        <td>
+                                                        <!-- <td>
                                                             {{activity.data_source ? activity.data_source:''}}
-                                                        </td>
+                                                        </td> -->
                                                         <td>
                                                             {{activity.service_type}}
                                                         </td>
@@ -207,6 +208,9 @@
                                                         </td>
                                                         <td class="text-right">
                                                             {{activity.km_charge_value | number : 2}}
+                                                        </td>
+                                                        <td class="text-right">
+                                                            {{activity.waiting_charges ? (activity.waiting_charges | number : 2) : '0.00' }}
                                                         </td>
                                                         <td class="text-right">
                                                             {{activity.collect_value | number : 2}}

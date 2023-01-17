@@ -59,7 +59,7 @@ app.component('newActivity', {
 
 app.component('newActivityUpdateDetails', {
     templateUrl: asp_new_activity_update_details_template_url,
-    controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope) {
+    controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope, $timeout) {
 
         $form_data_url = typeof($routeParams.id) == 'undefined' ? get_activity_form_data_url : get_activity_form_data_url + '/' + $routeParams.id;
         var self = this;
@@ -69,6 +69,11 @@ app.component('newActivityUpdateDetails', {
         const vehiclePickupAttachRemovelIds = [];
         const vehicleDropAttachRemovelIds = [];
         const inventoryJobSheetAttachRemovelIds = [];
+
+        $('#waiting_time').datetimepicker({
+            format: 'HH:mm',
+            ignoreReadonly: true
+        });
 
         $http.get(
             $form_data_url
@@ -109,12 +114,21 @@ app.component('newActivityUpdateDetails', {
             self.bd_location = response.data.case_details.bd_location;
             self.dropDealer = response.data.dropDealer;
             self.dropLocation = response.data.dropLocation;
-            $rootScope.loading = false;
             if (self.for_deffer_activity) {
                 $('.resolve_comment').show();
             } else {
                 $('.resolve_comment').hide();
             }
+
+            self.border_charge = 0;
+            self.green_tax_charge = 0;
+            self.toll_charge = 0;
+            self.eatable_item_charge = 0;
+            self.fuel_charge = 0;
+            self.other_charge = 0;
+            self.waiting_time = '00:00';
+
+            $rootScope.loading = false;
         });
 
         self.closeVehiclePickupAttach = (index, vehiclePickupAttachId) => {
@@ -141,22 +155,19 @@ app.component('newActivityUpdateDetails', {
             self.inventoryJobSheetAttach = '';
         }
 
-        $('body').on('focusout', '.km_travel', function() {
-            var entry_val = self.km_travelled;
-            var mis_km = self.actual_km;
-            var range_limit = self.range_limit;
-            var km_travel = self.km_travelled;
-            if ($.isNumeric(km_travel)) {
-                if (entry_val > range_limit || range_limit == "") {
-                    var allowed_variation = 0.5;
-                    var mis_percentage_difference = mis_km * allowed_variation / 100;
-                    if (entry_val) {
-                        if (entry_val > mis_km) {
-                            var km_difference = entry_val - mis_km;
-                            // var actual_val = Math.round(per - mis_percentage);
-                            // if (actual_val >= 1) {
+        $scope.onChangeKmTravelled = () => {
+            let kmTravelled = self.km_travelled;
+            let actualKm = self.actual_km;
+            let rangeLimit = self.range_limit;
 
-                            if (km_difference > mis_percentage_difference) {
+            if ($.isNumeric(kmTravelled)) {
+                if (kmTravelled > rangeLimit || rangeLimit == "") {
+                    let allowedVariation = 0.5;
+                    let misPercentageDifference = parseFloat(actualKm * allowedVariation / 100);
+                    if (kmTravelled) {
+                        if (kmTravelled > actualKm) {
+                            let kmDifference = parseFloat(kmTravelled - actualKm);
+                            if (kmDifference > misPercentageDifference) {
                                 $(".map_attachment").show();
                                 $(".for_differ_km").val(1);
                             } else {
@@ -167,12 +178,10 @@ app.component('newActivityUpdateDetails', {
                             $(".map_attachment").hide();
                             $(".for_differ_km").val(0);
                         }
-
                     } else {
                         $(".map_attachment").hide();
                         $(".for_differ_km").val(0);
                     }
-                    // $("#"+ids).after(html);
                 } else {
                     $(".map_attachment").hide();
                     $(".for_differ_km").val(0);
@@ -180,20 +189,22 @@ app.component('newActivityUpdateDetails', {
             } else {
                 $(".km_travel").val("");
             }
+        }
 
-        });
+        $scope.calculateOtherCharges = () => {
+            let otherCharge = 0;
+            let borderCharge = parseFloat(self.border_charge) || 0;
+            let greenTaxCharge = parseFloat(self.green_tax_charge) || 0;
+            let tollCharge = parseFloat(self.toll_charge) || 0;
+            let eatableItemCharge = parseFloat(self.eatable_item_charge) || 0;
+            let fuelCharge = parseFloat(self.fuel_charge) || 0;
 
-        $('body').on('focusout', '.other_charge', function() {
-            var entry_val = self.other_charge;
-            var other_not_collected = self.unpaid_amount;
-            var other_charge = self.other_charge;
+            otherCharge = borderCharge + greenTaxCharge + tollCharge + eatableItemCharge + fuelCharge;
+            self.other_charge = parseFloat(otherCharge).toFixed(2);
 
-            if ($.isNumeric(other_charge)) {
-                if (entry_val) {
-                    //DISABLED
-                    // if (entry_val > other_not_collected) {
-                    //NEW LOGIC BY CLIENT
-                    if (parseFloat(entry_val) >= 31) {
+            if ($.isNumeric(otherCharge)) {
+                if (otherCharge) {
+                    if (parseFloat(otherCharge) >= 31) {
                         $(".other_attachment").show();
                         $(".remarks_notcollected").show();
                         $(".for_differ_other").val(1);
@@ -212,7 +223,8 @@ app.component('newActivityUpdateDetails', {
                 $(".remarks_notcollected").hide();
                 $(".other_charge").val("");
             }
-        });
+        }
+
 
         $scope.getServiceTypeDetail = () => {
             if (self.service_type_id) {

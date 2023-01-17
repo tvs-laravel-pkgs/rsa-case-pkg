@@ -2,6 +2,7 @@
 
 namespace Abs\RsaCasePkg;
 
+use DB;
 use Illuminate\Database\Eloquent\Model;
 
 class ActivityWhatsappLog extends Model {
@@ -25,4 +26,22 @@ class ActivityWhatsappLog extends Model {
 		return $this->belongsTo('App\Config', 'type_id');
 	}
 
+	public static function getListBaseQuery() {
+		$baseQuery = self::select([
+			'asps.asp_code as aspCode',
+			'cases.number as caseNumber',
+			'activities.crm_activity_id as crmActivityId',
+			'configs.name as type',
+			DB::raw('DATE_FORMAT(activity_whatsapp_logs.created_at,"%d-%m-%Y %h:%i %p") as createdAt'),
+		])
+			->join('activities', 'activities.id', 'activity_whatsapp_logs.activity_id')
+			->join('cases', 'cases.id', 'activities.case_id')
+			->join('configs', 'configs.id', 'activity_whatsapp_logs.type_id')
+			->join('asps', 'asps.id', 'activities.asp_id')
+			->where('activity_whatsapp_logs.is_new', 1)
+			->whereRaw("activity_whatsapp_logs.id = (SELECT MAX(subLogs.id) AS id FROM activity_whatsapp_logs as subLogs WHERE subLogs.is_new = 1 AND subLogs.activity_id = activity_whatsapp_logs.activity_id GROUP BY subLogs.activity_id)")
+			->orderBy('activity_whatsapp_logs.id', 'DESC')
+		;
+		return $baseQuery;
+	}
 }

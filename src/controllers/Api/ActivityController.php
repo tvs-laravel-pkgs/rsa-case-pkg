@@ -636,11 +636,13 @@ class ActivityController extends Controller {
 				$activity->sendBreakdownAlertWhatsappSms();
 			}
 
+			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);
+
 			// CHECK CASE IS CLOSED
 			if ($case->status_id == 4) {
 
 				//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
-				if ($asp && !empty($asp->whatsapp_number) && $activity->status_id == 10 && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $asp->has_whatsapp_flow == 1))) {
+				if ($breakdownAlertSent && $asp && !empty($asp->whatsapp_number) && $activity->status_id == 10 && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $asp->has_whatsapp_flow == 1))) {
 					$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 				}
 
@@ -659,7 +661,7 @@ class ActivityController extends Controller {
 			if (($case->status_id == 4 || $case->status_id == 3) && ($activity->status_id == 17 || $activity->status_id == 26)) {
 
 				//WHATSAPP FLOW
-				if ($activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+				if ($breakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 					// ROS SERVICE
 					if ($service_type->service_group_id != 3) {
 						$autoApprovalProcessResponse = $activity->autoApprovalProcess();
@@ -712,7 +714,7 @@ class ActivityController extends Controller {
 			}
 
 			//IF ACTIVITY CANCELLED THEN SEND ACTIVITY CANCELLED WHATSAPP SMS TO ASP
-			if (!empty($activity_status_id) && $activity_status_id == 4 && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+			if ($breakdownAlertSent && !empty($activity_status_id) && $activity_status_id == 4 && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 				$activity->sendActivityCancelledWhatsappSms();
 			}
 
@@ -970,8 +972,9 @@ class ActivityController extends Controller {
 					],
 				], $this->successStatus);
 			}
+			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
-			if (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp && $activity->asp->has_whatsapp_flow == 1)) {
+			if ($breakdownAlertSent && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp && $activity->asp->has_whatsapp_flow == 1))) {
 				if ($payload->type == "Breakdown Charges" || $payload->type == "Revised Breakdown Charges") {
 					if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
 
@@ -1471,9 +1474,10 @@ class ActivityController extends Controller {
 			saveApiLog(111, NULL, $request->all(), $errors, NULL, 120);
 
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
+			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);
 
 			//SEND IMAGE UPLOAD CONFIRMATION WHATSAPP SMS TO ASP
-			if ($activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+			if ($breakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 				$activity->sendImageUploadConfirmationWhatsappSms();
 			}
 

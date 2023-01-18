@@ -416,8 +416,9 @@ class CaseController extends Controller {
 						$activityLog->bo_approved_at = date('Y-m-d H:i:s');
 						$activityLog->save();
 
+						$invoiceAmountCalculatedActivityBreakdownAlertSent = Activity::breakdownAlertSent($invoiceAmountCalculatedActivity->id);
 						//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
-						if ($invoiceAmountCalculatedActivity->asp && !empty($invoiceAmountCalculatedActivity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $invoiceAmountCalculatedActivity->asp->has_whatsapp_flow == 1))) {
+						if ($invoiceAmountCalculatedActivityBreakdownAlertSent && $invoiceAmountCalculatedActivity->asp && !empty($invoiceAmountCalculatedActivity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $invoiceAmountCalculatedActivity->asp->has_whatsapp_flow == 1))) {
 							$invoiceAmountCalculatedActivity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 						}
 
@@ -440,9 +441,9 @@ class CaseController extends Controller {
 				$activities = $case->activities()->whereIn('status_id', [17, 26])->get();
 				if ($activities->isNotEmpty()) {
 					foreach ($activities as $key => $activity) {
-
+						$activityBreakdownAlertSent = Activity::breakdownAlertSent($activity->id);
 						//WHATSAPP FLOW
-						if ($activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+						if ($activityBreakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 							// ROS SERVICE
 							if ($activity->serviceType && $activity->serviceType->service_group_id != 3) {
 								$autoApprovalProcessResponse = $activity->autoApprovalProcess();

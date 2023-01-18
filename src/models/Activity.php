@@ -1413,6 +1413,8 @@ class Activity extends Model {
 								$activity->sendBreakdownAlertWhatsappSms();
 							}
 
+							$breakdownAlertSent = self::breakdownAlertSent($activity->id);
+
 							if ($case->status_id == 3) {
 								//CANCELLED
 								if ($case->activities->isNotEmpty()) {
@@ -1451,8 +1453,10 @@ class Activity extends Model {
 										$activityLog->bo_approved_at = date('Y-m-d H:i:s');
 										$activityLog->save();
 
+										$invoiceAmountCalculatedActivityBreakdownAlertSent = self::breakdownAlertSent($invoiceAmountCalculatedActivity->id);
+
 										//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
-										if ($invoiceAmountCalculatedActivity->asp && !empty($invoiceAmountCalculatedActivity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $invoiceAmountCalculatedActivity->asp->has_whatsapp_flow == 1))) {
+										if ($invoiceAmountCalculatedActivityBreakdownAlertSent && $invoiceAmountCalculatedActivity->asp && !empty($invoiceAmountCalculatedActivity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $invoiceAmountCalculatedActivity->asp->has_whatsapp_flow == 1))) {
 											$invoiceAmountCalculatedActivity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 										}
 
@@ -1475,9 +1479,10 @@ class Activity extends Model {
 								$caseActivities = $case->activities()->whereIn('status_id', [17, 26])->get();
 								if ($caseActivities->isNotEmpty()) {
 									foreach ($caseActivities as $key => $caseActivity) {
+										$caseActivityBreakdownAlertSent = self::breakdownAlertSent($caseActivity->id);
 
 										//WHATSAPP FLOW
-										if ($caseActivity->asp && !empty($caseActivity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $caseActivity->asp->has_whatsapp_flow == 1))) {
+										if ($caseActivityBreakdownAlertSent && $caseActivity->asp && !empty($caseActivity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $caseActivity->asp->has_whatsapp_flow == 1))) {
 											// ROS SERVICE
 											if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id != 3) {
 												$autoApprovalProcessResponse = $caseActivity->autoApprovalProcess();
@@ -1526,7 +1531,7 @@ class Activity extends Model {
 							}
 
 							//IF ACTIVITY CANCELLED THEN SEND ACTIVITY CANCELLED WHATSAPP SMS TO ASP
-							if (!empty($activity_status_id) && $activity_status_id == 4 && $activity->asp && !empty($activity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+							if ($breakdownAlertSent && !empty($activity_status_id) && $activity_status_id == 4 && $activity->asp && !empty($activity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 								$activity->sendActivityCancelledWhatsappSms();
 							}
 
@@ -1874,6 +1879,16 @@ class Activity extends Model {
 
 		//SEND WHATSAPP SMS
 		sendWhatsappSMS($this->id, 1192, $inputRequests);
+	}
+
+	public static function breakdownAlertSent($activityId) {
+		$breakdownAlertWhatsAppLog = ActivityWhatsappLog::where([
+			'activity_id' => $activityId,
+			'type_id' => 1191,
+			'is_new' => 1,
+		])
+			->first();
+		return $breakdownAlertWhatsAppLog ? true : false;
 	}
 
 	public function autoApprovalProcess() {

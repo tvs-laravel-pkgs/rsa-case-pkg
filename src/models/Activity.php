@@ -1826,7 +1826,7 @@ class Activity extends Model {
 		sendWhatsappSMS($this->id, 1192, $inputRequests);
 	}
 
-	public function breakdownAlertSent($activityId) {
+	public static function breakdownAlertSent($activityId) {
 		$breakdownAlertWhatsAppLog = ActivityWhatsappLog::where([
 			'activity_id' => $activityId,
 			'type_id' => 1191,

@@ -285,7 +285,6 @@ app.component('deferredActivityUpdate', {
                             $(".map_attachment").hide();
                             $(".for_differ_km").val(0);
                         }
-
                     } else {
                         $(".map_attachment").hide();
                         $(".for_differ_km").val(0);

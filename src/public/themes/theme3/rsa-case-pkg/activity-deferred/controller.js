@@ -264,21 +264,17 @@ app.component('deferredActivityUpdate', {
         }
 
         self.kmTravelledHideShow = function() {
-            var km_travelled_entered = parseFloat(self.asp_km_travelled);
-            var mis_km = parseFloat(self.cc_actual_km);
-            var range_limit = self.range_limit;
-
-            if ($.isNumeric(km_travelled_entered)) {
-                if (km_travelled_entered > range_limit || range_limit == "") {
-                    var allowed_variation = 0.5;
-                    var mis_percentage = mis_km * allowed_variation / 100;
-                    if (km_travelled_entered > mis_km) {
-                        var per = km_travelled_entered - mis_km;
-                    }
-                    var actual_val = Math.round(per - mis_percentage);
-                    if (km_travelled_entered) {
-                        if (km_travelled_entered > mis_km) {
-                            if (actual_val >= 1) {
+            let kmTravelled = parseFloat(self.asp_km_travelled) || 0;
+            let actualKm = parseFloat(self.cc_actual_km) || 0;
+            let rangeLimit = parseFloat(self.range_limit) || 0;
+            if ($.isNumeric(kmTravelled)) {
+                if (kmTravelled > rangeLimit || rangeLimit == "") {
+                    let allowedVariation = 0.5;
+                    let misPercentageDifference = parseFloat(actualKm * allowedVariation / 100);
+                    if (kmTravelled) {
+                        if (kmTravelled > actualKm) {
+                            let kmDifference = parseFloat(kmTravelled - actualKm);
+                            if (kmDifference > misPercentageDifference) {
                                 $(".map_attachment").show();
                                 $(".for_differ_km").val(1);
                             } else {
@@ -289,7 +285,6 @@ app.component('deferredActivityUpdate', {
                             $(".map_attachment").hide();
                             $(".for_differ_km").val(0);
                         }
-
                     } else {
                         $(".map_attachment").hide();
                         $(".for_differ_km").val(0);

@@ -542,6 +542,11 @@ app.component('billingDetails', {
                         self.data.bo_net_amount = self.data.bo_amount = total;
                     }
                 }
+                $scope.kmTravelledMapView = function(){
+                    window.open("http://localhost/rsa/locator/map-my-india?activity_id="+self.data.id+"&asp_start_loc="+self.data.asp_start_location+"&asp_end_loc="+self.data.asp_end_location+
+                        "&bd_lat="+self.data.bd_lat+"&bd_lon="+self.data.bd_long+"&bd_location="+self.data.bd_location+"&drop_lat="+self.data.drop_location_lat+"&drop_lon="+self.data.drop_location_long+"&drop_location="+self.data.drop_location)
+                }
+
                 $scope.calculate();
                 $scope.$apply()
             }, 3000);

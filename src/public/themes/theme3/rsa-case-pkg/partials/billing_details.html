@@ -58,7 +58,7 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">KM Travelled</th>
+                                    <th scope="row">KM Travelled<input type="button" name="map_view" value="map_view" ng-click="kmTravelledMapView()" /></th>
                                     <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
                                         {{$ctrl.data.cc_total_km}}
                                     </td>

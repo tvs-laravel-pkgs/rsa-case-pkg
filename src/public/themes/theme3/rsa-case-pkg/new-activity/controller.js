@@ -156,10 +156,9 @@ app.component('newActivityUpdateDetails', {
         }
 
         $scope.onChangeKmTravelled = () => {
-            let kmTravelled = self.km_travelled;
-            let actualKm = self.actual_km;
-            let rangeLimit = self.range_limit;
-
+            let kmTravelled = parseFloat(self.km_travelled) || 0;
+            let actualKm = parseFloat(self.actual_km) || 0;
+            let rangeLimit = parseFloat(self.range_limit) || 0;
             if ($.isNumeric(kmTravelled)) {
                 if (kmTravelled > rangeLimit || rangeLimit == "") {
                     let allowedVariation = 0.5;

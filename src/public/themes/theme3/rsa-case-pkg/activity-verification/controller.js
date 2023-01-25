@@ -9,12 +9,24 @@ app.component('activityVerificationList', {
             return false;
         }
         self.filter_img_url = filter_img_url;
+        self.export_activities = export_activities;
+        self.canExportActivity = canExportActivity;
+        self.csrf = token;
         $http.get(
             activity_status_filter_url
         ).then(function(response) {
             self.extras = response.data.extras;
             $(".for-below40").show();
             $(".for-above40").hide();
+            self.extras = response.data.extras;
+            self.isAspRole = response.data.isAspRole;
+            self.auth_user_details = response.data.auth_user_details;
+            // response.data.extras.status_list.splice(0, 1);
+            self.status_list = response.data.extras.portal_status_list;
+            self.client_list = response.data.extras.export_client_list;
+            self.asp_list = response.data.extras.asp_list;
+            // self.status_list.splice(0, 1);
+            self.modal_close = modal_close;
 
             var cols1 = [
                 { data: 'action', searchable: false },
@@ -319,6 +331,121 @@ app.component('activityVerificationList', {
                 $('#' + add_id).addClass('active in');
                 $('#' + remove_id).removeClass('active in');
             }
+
+            $('input[name="period"]').daterangepicker({
+                startDate: moment().startOf('month'),
+                endDate: moment().endOf('month'),
+            });
+
+            $('.daterange').on('apply.daterangepicker', function(ev, picker) {
+                $(this).val(picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY'));
+                 dataTable.fnFilter();
+            });
+
+            $('.daterange').on('cancel.daterangepicker', function(ev, picker) {
+                $(this).val('');
+                 dataTable.fnFilter();
+            });
+            self.searchAsps = function(query) {
+                if (query) {
+                    return new Promise(function(resolve, reject) {
+                        $http
+                            .post(
+                                laravel_routes['activityStatusSearchAsps'], {
+                                    key: query,
+                                }
+                            )
+                            .then(function(response) {
+                                resolve(response.data);
+                            });
+                    });
+                } else {
+                    return [];
+                }
+            }
+
+            self.searchClients = function(query) {
+                if (query) {
+                    return new Promise(function(resolve, reject) {
+                        $http
+                            .post(
+                                laravel_routes['activityStatusSearchClients'], {
+                                    key: query,
+                                }
+                            )
+                            .then(function(response) {
+                                resolve(response.data);
+                            });
+                    });
+                } else {
+                    return [];
+                }
+            }
+
+            self.pc_all = false;
+            $rootScope.loading = false;
+            window.mdSelectOnKeyDownOverride = function(event) {
+                event.stopPropagation();
+            };
+            $('.filter-content, .modal-dialog, #asp_activity_verification_excel_export').bind('click', function(event) {
+                if ($('.md-select-menu-container').hasClass('md-active')) {
+                    $mdSelect.hide();
+                }
+            });
+            $scope.changeStatus = function(ids) {
+                console.log(ids);
+                if (ids) {
+                    $size_rids = ids.length;
+                    if ($size_rids > 0) {
+                        $('#pc_sel_all').addClass('pc_sel_all');
+                    }
+                } else {
+                    $('#pc_sel_all').removeClass('pc_sel_all');
+                }
+            }
+            $scope.selectAll = function(val) {
+                self.pc_all = (!self.pc_all);
+                if (!val) {
+                    r_list = [];
+                    angular.forEach(self.extras.status_list, function(value, key) {
+                        r_list.push(value.id);
+                    });
+
+                    $('#pc_sel_all').addClass('pc_sel_all');
+                } else {
+                    r_list = [];
+                    $('#pc_sel_all').removeClass('pc_sel_all');
+                }
+                self.status_ids = r_list;
+            }
+            $scope.enableExportModal = function(type){
+                $("#approval_type").val(type)
+                $("#asp_activity_verification_excel_export").modal('toggle');
+            }
+
+            $("form[name='export_excel_form']").validate({
+                ignore: '',
+                rules: {
+                    status_ids: {
+                        required: true,
+                    },
+                    period: {
+                        required: true,
+                    },
+                    filter_by: {
+                        required: true,
+                    }
+                },
+                messages: {
+                    period: "Please Select Period",
+                    status_ids: "Please Select Activity Status",
+                    filter_by: "Please Select Filter By",
+                },
+
+                submitHandler: function(form) {
+                    form.submit();
+                }
+            });
 
             $rootScope.loading = false;
         });

@@ -4532,12 +4532,16 @@ class ActivityController extends Controller {
 	}
 
 	public function exportActivities(Request $request) {
-		// dd($request->all());
+
+		//page redirection url
+		if( isset($request->source) && $request->source == 'approvalExport')
+				$redirect_url = '/#!/rsa-case-pkg/activity-verification/list';
+			else
+				$redirect_url = '/#!/rsa-case-pkg/activity-status/list';
 		try {
 			$error_messages = [
 				'status_ids.required' => "Please Select Activity Status",
 			];
-
 			$validator = Validator::make($request->all(), [
 				'status_ids' => [
 					'required:true',
@@ -4545,7 +4549,7 @@ class ActivityController extends Controller {
 			], $error_messages);
 
 			if (empty($request->status_ids)) {
-				return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['errors' => $validator->errors()->all()]);
+				return redirect($redirect_url)->with(['errors' => $validator->errors()->all()]);
 			}
 			ini_set('max_execution_time', 0);
 			ini_set('display_errors', 1);
@@ -4777,8 +4781,60 @@ class ActivityController extends Controller {
 			}
 			$activitesTotalCount = $activities;
 			$total_count = $activitesTotalCount->groupBy('activities.id')->get()->count();
-			if ($total_count == 0) {
-				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+			if ( isset( $request->source ) && $request->source == 'approvalExport') {
+ 				if (!Entrust::can('verify-all-activities')) {
+					if (Entrust::can('verify-mapped-activities')) {
+						$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
+						$activities->whereIn('asps.state_id', $states);
+					}
+				}
+ 				if (Auth::check()) {
+					if (!empty(Auth::user()->activity_approval_level_id)) {
+						if ($request->approval_type == "Bulk") {
+							//L1
+							if (Auth::user()->activity_approval_level_id == 1) {
+								$activities->whereIn('activities.status_id', [5, 8]); //ASP Completed Data Entry - Waiting for L1 Bulk Verification AND ASP Data Re-Entry Completed - Waiting for L1 Bulk Verification
+							} elseif (Auth::user()->activity_approval_level_id == 2) {
+								// L2
+								$activities->where('activities.status_id', 18); //Waiting for L2 Bulk Verification
+							} elseif (Auth::user()->activity_approval_level_id == 3) {
+								// L3
+								$activities->where('activities.status_id', 20); //Waiting for L3 Bulk Verification
+							} elseif (Auth::user()->activity_approval_level_id == 4) {
+								// L4
+								$activities->where('activities.status_id', 23); //Waiting for L4 Bulk Verification
+							} else {
+								$activities->whereNull('activities.status_id');
+							}
+						} elseif ($request->approval_type == "Individual") {
+							//L1
+							if (Auth::user()->activity_approval_level_id == 1) {
+								$activities->whereIn('activities.status_id', [6, 9, 22]); //ASP Completed Data Entry - Waiting for L1 Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Individual Verification AND BO Rejected - Waiting for L1 Individual Verification
+							} elseif (Auth::user()->activity_approval_level_id == 2) {
+								// L2
+								$activities->where('activities.status_id', 19); //Waiting for L2 Individual Verification
+							} elseif (Auth::user()->activity_approval_level_id == 3) {
+								// L3
+								$activities->where('activities.status_id', 21); //Waiting for L3 Individual Verification
+							} elseif (Auth::user()->activity_approval_level_id == 4) {
+								// L4
+								$activities->where('activities.status_id', 24); //Waiting for L4 Individual Verification
+							} else {
+								$activities->whereNull('activities.status_id');
+							}
+						}
+					} else {
+						$activities->whereNull('activities.status_id');
+					}
+				} else {
+					$activities->whereNull('activities.status_id');
+				}
+
+			}
+			$activitesTotalCount = $activities;
+			$total_count = $activitesTotalCount->groupBy('activities.id')->get()->count();
+ 			if ($total_count == 0) {
+				return redirect($redirect_url)->with([
 					'errors' => [
 						'No activities found for given period & statuses',
 					],
@@ -4918,7 +4974,6 @@ class ActivityController extends Controller {
 			}
 
 			$summary[] = ['Total', $total_count];
-
 			if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities')) {
 				$activity_details_header = [
 					'ID',
@@ -5435,7 +5490,8 @@ class ActivityController extends Controller {
 				$activity_details_data[$activity_key][] = !empty($activity->adjustment_type) ? ($activity->adjustment_type == 1 ? "Percentage" : "Amount") : '--';
 				$activity_details_data[$activity_key][] = $activity->adjustment;
 			}
-
+dump($summary);
+dd($activity_details_data, $status_ids, $summary_period);
 			Excel::create('Activity Status Report', function ($excel) use ($summary, $activity_details_header, $activity_details_data, $status_ids, $summary_period) {
 				$excel->sheet('Summary', function ($sheet) use ($summary, $status_ids, $summary_period) {
 					$sheet->fromArray($summary, NULL, 'A1');
@@ -5475,7 +5531,7 @@ class ActivityController extends Controller {
 
 			return redirect()->back()->with(['success' => 'exported!']);
 		} catch (\Exception $e) {
-			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+			return redirect($redirect_url)->with([
 				'errors' => [
 					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],

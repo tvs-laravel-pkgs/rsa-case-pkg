@@ -5656,4 +5656,71 @@ class ActivityController extends Controller {
 		return Client::searchClient($request);
 	}
 
+	public function getFormData(Request $request) {
+		if (empty($request->data)) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					"Enter Case Number / Vehicle Registration Number / Mobile Number / CRM Activity ID",
+				],
+			]);
+		}
+
+		if (preg_match("/^[0-9]{10}+$/", $request->data)) {
+			$search_type = 'mobile_number';
+		} else {
+			$search_type = 'normal';
+		}
+
+		$activities = Activity::select([
+			'activities.id',
+			'activities.crm_activity_id as crm_activity_id',
+			'activities.is_towing_attachments_mandatory',
+			'activities.status_id as status_id',
+			'activities.number as activity_number',
+			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			'cases.number as case_number',
+			'cases.customer_contact_number as customer_contact_number',
+			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
+			DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
+			'service_types.name as sub_service',
+			'service_types.service_group_id',
+			'activity_finance_statuses.name as finance_status',
+			'activity_portal_statuses.name as status',
+			'activity_statuses.name as activity_status',
+			'clients.name as client',
+			'configs.name as source',
+			'call_centers.name as call_center',
+		])
+			->leftjoin('asps', 'asps.id', 'activities.asp_id')
+			->leftjoin('users', 'users.id', 'asps.user_id')
+			->leftjoin('cases', 'cases.id', 'activities.case_id')
+			->leftjoin('clients', 'clients.id', 'cases.client_id')
+			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
+			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
+			->leftjoin('configs', 'configs.id', 'activities.data_src_id')
+			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
+			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
+			->orderBy('cases.date', 'DESC')
+			->groupBy('activities.id');
+
+		if (!empty($search_type) && $search_type == 'mobile_number') {
+			$activities = $activities
+				->where('cases.customer_contact_number', $request->data)
+				->get();
+		} else {
+			$activities = $activities->where(function ($q) use ($request) {
+				$q->where('cases.number', $request->data)
+					->orWhere('cases.vehicle_registration_number', $request->data)
+					->orWhere('activities.crm_activity_id', $request->data);
+			})
+				->get();
+		}
+		
+		return response()->json([
+			'success' => true,
+			'details' => compact('activities'),
+		]);
+	}
 }

@@ -59,6 +59,8 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web'], 'prefix'
 		Route::post('/activity-verification/get-service-type-ratecard-detail', 'ActivityController@getServiceTypeRateCardDetail')->name('getActivityServiceTypeRateCardDetail');
 		Route::post('activity-verification/export', 'ActivityController@approval_based_export_activities')->name('approval_based_export_activities');
 
+		Route::get('/activity-verification/get-filter-data', 'ActivityController@getApprovalFilterData')->name('getApprovalActivityStatusFilterData');
+
 		//INVOICE
 		Route::get('/invoice/get-filter-data/{type_id}', 'InvoiceController@getFilterData')->name('getFilterData');
 		Route::get('/invoice/get-list', 'InvoiceController@getList')->name('getListData');

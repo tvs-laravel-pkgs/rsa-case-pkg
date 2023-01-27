@@ -13,7 +13,7 @@ app.component('activityVerificationList', {
         self.canExportActivity = canExportActivity;
         self.csrf = token;
         $http.get(
-            activity_status_filter_url
+            getApprovalActivityStatusFilterData
         ).then(function(response) {
             self.extras = response.data.extras;
             $(".for-below40").show();
@@ -27,6 +27,7 @@ app.component('activityVerificationList', {
             self.asp_list = response.data.extras.asp_list;
             // self.status_list.splice(0, 1);
             self.modal_close = modal_close;
+            self.status_ids = response.data.status_ids;
 
             var cols1 = [
                 { data: 'action', searchable: false },
@@ -420,6 +421,11 @@ app.component('activityVerificationList', {
             }
             $scope.enableExportModal = function(type){
                 $("#approval_type").val(type)
+                if(type == "Individual") {
+                    $("#status_ids").val(self.status_ids.individual)
+                } else if(type == "Bulk") {
+                    $("#status_ids").val(self.status_ids.bulk)
+                }
                 $("#asp_activity_verification_excel_export").modal('toggle');
             }
 

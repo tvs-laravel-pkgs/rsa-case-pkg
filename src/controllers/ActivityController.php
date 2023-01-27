@@ -62,6 +62,29 @@ class ActivityController extends Controller {
 		return response()->json($this->data);
 	}
 
+	public function getApprovalFilterData() {
+		$status_ids = [];
+		if (Auth::check()) {
+		if (!empty(Auth::user()->activity_approval_level_id)) {
+				if (Auth::user()->activity_approval_level_id == 1) { //L1
+					$status_ids['bulk']=[5, 8];
+					$status_ids['individual']=[6, 9, 22];
+				} elseif (Auth::user()->activity_approval_level_id == 2) { //L2
+					$status_ids['bulk']=[18];
+					$status_ids['individual']=[19];
+				} elseif (Auth::user()->activity_approval_level_id == 3) { //L3
+					$status_ids['bulk']=[20];
+					$status_ids['individual']=[21];
+				} elseif (Auth::user()->activity_approval_level_id == 4) { //L4
+					$status_ids['bulk']=[23];
+					$status_ids['individual']=[24];
+				} 
+			}
+		}
+		$this->data['status_ids'] = $status_ids;	
+		$this->getFilterData();
+		return response()->json($this->data);
+	}
 	public function getList(Request $request) {
 		// dd($request->all());
 		$periods = getStartDateAndEndDate($request->date_range_period);
@@ -4532,12 +4555,12 @@ class ActivityController extends Controller {
 	}
 
 	public function exportActivities(Request $request) {
-
-		//page redirection url
-		if( isset($request->source) && $request->source == 'approvalExport')
+ 		//page redirection url
+		if( isset($request->source) && $request->source == 'approvalExport') {
 				$redirect_url = '/#!/rsa-case-pkg/activity-verification/list';
-			else
+		} else {
 				$redirect_url = '/#!/rsa-case-pkg/activity-status/list';
+		}
 		try {
 			$error_messages = [
 				'status_ids.required' => "Please Select Activity Status",
@@ -4778,58 +4801,6 @@ class ActivityController extends Controller {
 					$aspIds = Asp::where('nm_id', Auth::user()->id)->pluck('id')->toArray();
 					$activities = $activities->whereIn('asps.id', $aspIds);
 				}
-			}
-			$activitesTotalCount = $activities;
-			$total_count = $activitesTotalCount->groupBy('activities.id')->get()->count();
-			if ( isset( $request->source ) && $request->source == 'approvalExport') {
- 				if (!Entrust::can('verify-all-activities')) {
-					if (Entrust::can('verify-mapped-activities')) {
-						$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
-						$activities->whereIn('asps.state_id', $states);
-					}
-				}
- 				if (Auth::check()) {
-					if (!empty(Auth::user()->activity_approval_level_id)) {
-						if ($request->approval_type == "Bulk") {
-							//L1
-							if (Auth::user()->activity_approval_level_id == 1) {
-								$activities->whereIn('activities.status_id', [5, 8]); //ASP Completed Data Entry - Waiting for L1 Bulk Verification AND ASP Data Re-Entry Completed - Waiting for L1 Bulk Verification
-							} elseif (Auth::user()->activity_approval_level_id == 2) {
-								// L2
-								$activities->where('activities.status_id', 18); //Waiting for L2 Bulk Verification
-							} elseif (Auth::user()->activity_approval_level_id == 3) {
-								// L3
-								$activities->where('activities.status_id', 20); //Waiting for L3 Bulk Verification
-							} elseif (Auth::user()->activity_approval_level_id == 4) {
-								// L4
-								$activities->where('activities.status_id', 23); //Waiting for L4 Bulk Verification
-							} else {
-								$activities->whereNull('activities.status_id');
-							}
-						} elseif ($request->approval_type == "Individual") {
-							//L1
-							if (Auth::user()->activity_approval_level_id == 1) {
-								$activities->whereIn('activities.status_id', [6, 9, 22]); //ASP Completed Data Entry - Waiting for L1 Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Individual Verification AND BO Rejected - Waiting for L1 Individual Verification
-							} elseif (Auth::user()->activity_approval_level_id == 2) {
-								// L2
-								$activities->where('activities.status_id', 19); //Waiting for L2 Individual Verification
-							} elseif (Auth::user()->activity_approval_level_id == 3) {
-								// L3
-								$activities->where('activities.status_id', 21); //Waiting for L3 Individual Verification
-							} elseif (Auth::user()->activity_approval_level_id == 4) {
-								// L4
-								$activities->where('activities.status_id', 24); //Waiting for L4 Individual Verification
-							} else {
-								$activities->whereNull('activities.status_id');
-							}
-						}
-					} else {
-						$activities->whereNull('activities.status_id');
-					}
-				} else {
-					$activities->whereNull('activities.status_id');
-				}
-
 			}
 			$activitesTotalCount = $activities;
 			$total_count = $activitesTotalCount->groupBy('activities.id')->get()->count();
@@ -5490,8 +5461,7 @@ class ActivityController extends Controller {
 				$activity_details_data[$activity_key][] = !empty($activity->adjustment_type) ? ($activity->adjustment_type == 1 ? "Percentage" : "Amount") : '--';
 				$activity_details_data[$activity_key][] = $activity->adjustment;
 			}
-dump($summary);
-dd($activity_details_data, $status_ids, $summary_period);
+
 			Excel::create('Activity Status Report', function ($excel) use ($summary, $activity_details_header, $activity_details_data, $status_ids, $summary_period) {
 				$excel->sheet('Summary', function ($sheet) use ($summary, $status_ids, $summary_period) {
 					$sheet->fromArray($summary, NULL, 'A1');

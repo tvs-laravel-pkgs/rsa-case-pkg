@@ -310,6 +310,7 @@
                 <input type="hidden" name="source" value="approvalExport" />
                 <input type="hidden" name="filter_by" value="general" />
                 <input type="hidden" name="approval_type" id="approval_type" value="general" />
+                 <input type="hidden" name="status_ids" id="status_ids" value="{{$ctrl.status_ids}}" />
                 <div class="modal-body">
                     <div class="approvalModal-wrapper">
                         <div class="viewData-threeColumn--wrapper">
@@ -322,21 +323,6 @@
                                                 <input class="form-control customForm-input" autocomplete="off" name="period" type="text" value='' ng-model="$ctrl.period" ng-required="true">
                                             </div><!-- Field -->
                                         </div><!-- Column -->
-                                        <div class="col-sm-6">
-                                            <div class="input-text form-group">
-                                                <label>Activity Status<sup class="req" style="color:red">*</sup></label>
-                                                <md-select ng-model="$ctrl.status_ids" md-on-close="clearSearchTerm()" name="status_ids" data-md-container-class="selectdemoSelectHeader" multiple md-no-asterisk class="error_messages required" ng-required="true" placeholder="Select Activity Status" ng-change="changeStatus($ctrl.status_ids)">
-                                                    <md-select-header class="demo-select-header mdselect-header">
-                                                        <input ng-model="searchTerm" type="search" placeholder="Search for a Activity Status" class="demo-header-searchbox md-text" onkeydown="mdSelectOnKeyDownOverride(event)">
-                                                    </md-select-header>
-                                                    <md-optgroup label="activity_portal_status">
-                                                        <md-button class="select-all-button" layout-fill ng-value="$ctrl.pc_all" ng-click="selectAll($ctrl.pc_all)" id="pc_sel_all">All</md-button>
-                                                        <md-option ng-value="status.id" ng-repeat="status in $ctrl.status_list |filter:searchTerm">{{status.name}}</md-option>
-                                                    </md-optgroup>
-                                                </md-select>
-                                                <input type="hidden" name="status_ids" value="{{$ctrl.status_ids}}" />
-                                            </div>
-                                        </div>
                                         <div class="col-sm-6">
                                             <div class="input-text form-group">
                                                 <label>ASP</label>

@@ -141,6 +141,7 @@
     var activity_status_delete_row = "{{url('/rsa-case-pkg/activity-status/delete')}}";
     var activity_status_list_url = "{{url('#!/rsa-case-pkg/activity-status/list')}}";
     var activity_status_filter_url = "{{url('rsa-case-pkg/activity-status/get-filter-data')}}";
+    var getApprovalActivityStatusFilterData = "{{url('rsa-case-pkg/activity-verification/get-filter-data')}}";
     var activity_status_view_data_url = "{{url('rsa-case-pkg/activity-status/')}}";
     var activity_verification_view_data_url = "{{url('rsa-case-pkg/activity-verification/')}}";
     var filter_img_url = "{{ asset('resources/assets/images/filter.svg') }}";

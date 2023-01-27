@@ -28,7 +28,6 @@ app.component('activitySearchForm', {
                     custom_noty('error', errors);
                 } else {
                     self.activities = res.data.details.activities;
-                    console.log(res.data.details.activities)
                 }
             });
         }

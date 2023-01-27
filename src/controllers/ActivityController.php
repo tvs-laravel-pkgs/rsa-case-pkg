@@ -5674,6 +5674,7 @@ class ActivityController extends Controller {
 
 		$activities = Activity::select([
 			'activities.id',
+			'invoices.id as activity_invoice_id' ,
 			'activities.crm_activity_id as crm_activity_id',
 			'activities.is_towing_attachments_mandatory',
 			'activities.status_id as status_id',
@@ -5702,6 +5703,7 @@ class ActivityController extends Controller {
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
+			->leftjoin('invoices', 'invoices.id', 'activities.invoice_id')
 			->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id');
 
@@ -5718,6 +5720,25 @@ class ActivityController extends Controller {
 				->get();
 		}
 		
+		foreach ($activities as $key => $activity) {
+
+			if($activity->status_id == 2 || $activity->status_id == 17){
+				$url = '#!/rsa-case-pkg/new-activity/update-details/'.$activity->id;
+			}elseif($activity->status_id == 7){
+				$url = '#!/rsa-case-pkg/deferred-activity/update/'.$activity->id;
+			}elseif($activity->status_id == 11){
+				$url = '#!/rsa-case-pkg/approved-activity/list';
+			}elseif($activity->status_id == 12 ){
+				$url = '#!/rsa-case-pkg/invoice/view/'.$activity->activity_invoice_id.'/1';
+			}elseif($activity->status_id == 13){
+				$url = '#!/rsa-case-pkg/invoice/view/'.$activity->activity_invoice_id.'/2';
+			}elseif($activity->status_id == 14){
+				$url = '#!/rsa-case-pkg/invoice/view/'.$activity->activity_invoice_id.'/3';
+			}else{
+				$url = '';
+			}
+			$activity->url = $url;
+		}
 		return response()->json([
 			'success' => true,
 			'details' => compact('activities'),

@@ -64,8 +64,8 @@
                                         <tbody id="activity_tbody">
                                             <tr ng-repeat="(index, activity) in $ctrl.activities">
                                                 <td>
-                                                    <div class="dataTable-actions" style="min-width: 125px;">
-                                                        <a href="#!/rsa-case-pkg/activity-status/{{activity.status_id}} /view/ {{activity.id}}">
+                                                    <div class="dataTable-actions"  ng-if ="activity.url != '' " style="min-width: 125px;">
+                                                        <a href="{{activity.url}}">
                                                             <i class="fa fa-eye dataTable-icon--view" aria-hidden="true">
                                                             </i>
                                                         </a>

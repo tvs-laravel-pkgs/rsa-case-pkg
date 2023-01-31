@@ -1289,10 +1289,16 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Download Normal Invoice',
 			],
 			[
-				'display_order' => 2,
+				'display_order' => 3,
 				'parent' => 'cash-sale',
 				'name' => 'cancel-cash-sale-einvoice',
 				'display_name' => 'Cancel E-Invoice',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'cash-sale',
+				'name' => 'create-cash-sale-credit-note',
+				'display_name' => 'Create Credit Note',
 			],
 
 			//DIRECT SALE FTP

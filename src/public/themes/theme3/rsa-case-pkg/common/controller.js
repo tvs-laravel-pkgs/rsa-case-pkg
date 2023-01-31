@@ -600,7 +600,8 @@ app.component('billingDetails', {
                         if (self.data.asp_service_type_data.waiting_charge_per_hour && self.data.bo_waiting_time) {
                             self.data.raw_bo_waiting_charges = parseFloat(parseFloat(self.data.bo_waiting_time / 60) * parseFloat(self.data.asp_service_type_data.waiting_charge_per_hour)).toFixed(2);
                         }
-                        if ( self.data.eligibleForOthersplitupCharegesEdit ) {
+
+                        if (self.data.eligibleForOthersplitupCharges) {
                             let otherCharge = 0;
                             let borderCharge = parseFloat(self.data.raw_bo_border_charges) || 0;
                             let greenTaxCharge = parseFloat(self.data.raw_bo_green_tax_charges) || 0;

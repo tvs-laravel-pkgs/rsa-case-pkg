@@ -68,6 +68,7 @@
                                     {{$ctrl.data.bo_km_travelled}}
                                 </td>
                                 <td ng-if="$ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 1 || $ctrl.data.activityApprovalLevel == 3)" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.km_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.km_changed_on_level == 3}">
+                                    <input style="text-align:right" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" type="text" name="bo_km_travelled" ng-model="$ctrl.data.raw_bo_km_travelled" value="{{$ctrl.data.raw_bo_km_travelled}}" class="km_value" ng-keyup="calculate()"><br>
                                     <span class="color-red" ng-show="$ctrl.data.raw_bo_km_travelled !== 0 && $ctrl.data.raw_bo_km_travelled === ''">
                                         KM Travelled is required
                                     </span>
@@ -81,7 +82,7 @@
                             </tr>
                             <tr>
                                 <th scope="row">
-                                    <a class="btn btn-default btn-xs btn-info-icon accordion-toggle" aria-haspopup="true" aria-expanded="false"  data-toggle="collapse" data-target="#other_charges_split_panel" ng-show="$ctrl.data.eligibleForOthersplitupCharegesEdit" > <i class="fa fa-plus-circle"></i></a>
+                                    <a class="btn btn-default btn-xs btn-info-icon accordion-toggle" aria-haspopup="true" aria-expanded="false" data-toggle="collapse" data-target="#other_charges_split_panel" ng-show="$ctrl.data.eligibleForOthersplitupCharges"> <i class="fa fa-plus-circle"></i></a>
                                     Charges Not Collected From Customer
                                 </th>
                                 <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
@@ -94,10 +95,10 @@
                                     {{$ctrl.data.bo_not_collected}}
                                 </td>
                                 <td ng-if="$ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 1 || $ctrl.data.activityApprovalLevel == 3)" style="text-align:right" ng-class="{'caseDarkTurquoiseBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 1, 'caseDarkYellowBgColor': $ctrl.data.verification == 1 && $ctrl.data.not_collected_amount_changed_on_level == 3}">
-
-                                    {{$ctrl.data.eligibleForOthersplitupCharegesEdit ? $ctrl.data.raw_bo_not_collected : ""}}
-
-                                    <input type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_not_collected" class="non_collected_amount" value="{{$ctrl.data.raw_bo_not_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" style="text-align:right;" ng-if="!($ctrl.data.eligibleForOthersplitupCharegesEdit)" > 
+                                    <span ng-if="$ctrl.data.eligibleForOthersplitupCharges">
+                                        {{$ctrl.data.raw_bo_not_collected}}
+                                    </span>
+                                    <input ng-if="!$ctrl.data.eligibleForOthersplitupCharges" type="text" name="bo_not_collected" ng-model="$ctrl.data.raw_bo_not_collected" class="non_collected_amount" value="{{$ctrl.data.raw_bo_not_collected}}" ng-keyup="calculate()" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" style="text-align:right;">
                                     <input type="hidden" ng-model="$ctrl.data.raw_asp_not_collected" class="other_value" value="{{$ctrl.data.raw_asp_not_collected}}"><br>
                                     <span class="color-red" ng-show="$ctrl.data.raw_bo_not_collected !== 0 && $ctrl.data.raw_bo_not_collected === ''">
                                         Charges not collected is required

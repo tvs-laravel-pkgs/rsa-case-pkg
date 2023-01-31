@@ -601,14 +601,16 @@ app.component('billingDetails', {
                             self.data.raw_bo_waiting_charges = parseFloat(parseFloat(self.data.bo_waiting_time / 60) * parseFloat(self.data.asp_service_type_data.waiting_charge_per_hour)).toFixed(2);
                         }
 
-                        let otherCharge = 0;
-                        let borderCharge = parseFloat(self.data.raw_bo_border_charges) || 0;
-                        let greenTaxCharge = parseFloat(self.data.raw_bo_green_tax_charges) || 0;
-                        let tollCharge = parseFloat(self.data.raw_bo_toll_charges) || 0;
-                        let eatableItemCharge = parseFloat(self.data.raw_bo_eatable_items_charges) || 0;
-                        let fuelCharge = parseFloat(self.data.raw_bo_fuel_charges) || 0;
-                        otherCharge = borderCharge + greenTaxCharge + tollCharge + eatableItemCharge + fuelCharge;
-                        self.data.raw_bo_not_collected = parseFloat(otherCharge).toFixed(2);
+                        if (self.data.eligibleForOthersplitupCharges) {
+                            let otherCharge = 0;
+                            let borderCharge = parseFloat(self.data.raw_bo_border_charges) || 0;
+                            let greenTaxCharge = parseFloat(self.data.raw_bo_green_tax_charges) || 0;
+                            let tollCharge = parseFloat(self.data.raw_bo_toll_charges) || 0;
+                            let eatableItemCharge = parseFloat(self.data.raw_bo_eatable_items_charges) || 0;
+                            let fuelCharge = parseFloat(self.data.raw_bo_fuel_charges) || 0;
+                            otherCharge = borderCharge + greenTaxCharge + tollCharge + eatableItemCharge + fuelCharge;
+                            self.data.raw_bo_not_collected = parseFloat(otherCharge).toFixed(2);
+                        }
 
                         // self.data.bo_deduction = parseFloat(adjustment);
                         self.data.bo_deduction = parseFloat(boDeduction);

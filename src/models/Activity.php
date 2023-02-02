@@ -790,7 +790,7 @@ class Activity extends Model {
 						],
 						'vehicle_registration_number' => 'nullable|max:20',
 						'vin_no' => 'nullable|max:20',
-						'membership_type' => 'required|string|max:191',
+						'membership_type' => 'nullable|string|max:191',
 						'membership_number' => 'nullable|max:50',
 						'subject' => [
 							'required',
@@ -1180,6 +1180,7 @@ class Activity extends Model {
 						$case->subject_id = $subject->id;
 						$case->bd_location_type_id = $bd_location_type_id;
 						$case->bd_location_category_id = $bd_location_category_id;
+						$case->membership_type = !empty($record['membership_type']) ? $record['membership_type'] : NULL;
 						$case->save();
 
 						$activity_save_eligible = true;

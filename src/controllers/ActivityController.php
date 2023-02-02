@@ -657,7 +657,7 @@ class ActivityController extends Controller {
 					DB::raw('IF(activities.bo_comments IS NULL,"-",bo_comments) as bo_comments'),
 					DB::raw('IF(activities.defer_reason IS NULL,"-",defer_reason) as defer_reason'),
 					'cases.number',
-					'cases.membership_type',
+					DB::raw('COALESCE(cases.membership_type, "--") as membership_type'),
 					'cases.customer_name as customer_name',
 					'cases.vin_no',
 					'cases.km_during_breakdown',
@@ -698,7 +698,7 @@ class ActivityController extends Controller {
 					'call_centers.name as call_center',
 					'asp_po_rejected_reason',
 					'activities.description as description',
-					DB::raw('IF(activities.remarks IS NULL OR activities.remarks="","-",activities.remarks) as remarks'),
+					DB::raw('IF(activities.remarks IS NULL OR activities.remarks="","",activities.remarks) as remarks'),
 					//'activities.remarks as remarks',
 					// 'cases.*',
 					// DB::raw('CASE
@@ -1096,9 +1096,11 @@ class ActivityController extends Controller {
 				$detail = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $config->id)->first();
 				if (strpos($config->name, '_charges') || strpos($config->name, '_amount')) {
 
-					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '-') : '-';
+					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '0.00') : '0.00';
 					$raw_key_name = 'raw_' . $config->name;
-					$this->data['activities'][$raw_key_name] = $detail ? (!empty($detail->value) ? $detail->value : '-') : '-';
+					$this->data['activities'][$raw_key_name] = $detail ? (!empty($detail->value) ? $detail->value : '0.00') : '0.00';
+				} elseif (strpos($config->name, '_time')) {
+					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? $detail->value : '0.00') : '0.00';
 				} elseif (strpos($config->name, 'date')) {
 					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? date("d-m-Y H:i:s", strtotime($detail->value)) : '-') : '-';
 				} else {
@@ -1349,6 +1351,7 @@ class ActivityController extends Controller {
 			if (Entrust::can('backstep-activity') && in_array($activity->activity_portal_status_id, $eligibleBackstepStatusIds)) {
 				$eligibleForBackstep = true;
 			}
+
 			$this->data['activities']['eligibleForBackstep'] = $eligibleForBackstep;
 			$this->data['activities']['serviceTypes'] = $serviceTypes;
 			$this->data['activities']['boServiceTypeId'] = $boServiceTypeId;
@@ -1520,6 +1523,51 @@ class ActivityController extends Controller {
 				]);
 			}
 
+			if ($request->bo_border_charges !== 0 && $request->bo_border_charges === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Border Charges is required',
+					],
+				]);
+			}
+
+			if ($request->bo_green_tax_charges !== 0 && $request->bo_green_tax_charges === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Green Tax Charges is required',
+					],
+				]);
+			}
+
+			if ($request->bo_toll_charges !== 0 && $request->bo_toll_charges === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Toll Charges is required',
+					],
+				]);
+			}
+
+			if ($request->bo_eatable_items_charges !== 0 && $request->bo_eatable_items_charges === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Eatable Items Charges is required',
+					],
+				]);
+			}
+
+			if ($request->bo_fuel_charges !== 0 && $request->bo_fuel_charges === '') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Fuel Charges is required',
+					],
+				]);
+			}
+
 			if ($request->bo_collected !== 0 && $request->bo_collected === '') {
 				return response()->json([
 					'success' => false,
@@ -1592,7 +1640,7 @@ class ActivityController extends Controller {
 				$isCollectedChanged = true;
 			}
 
-			$key_list = [158, 159, 160, 161, 176, 172, 173, 179, 182];
+			$key_list = [158, 159, 160, 161, 176, 172, 173, 179, 182, 325, 324, 323, 322, 328, 330, 333];
 			foreach ($key_list as $keyw) {
 				$var_key = Config::where('id', $keyw)->first();
 				$key_name = str_replace(" ", "_", strtolower($var_key->name));
@@ -1606,6 +1654,7 @@ class ActivityController extends Controller {
 				$activityDetail->value = $value;
 				$activityDetail->save();
 			}
+
 			if (isset($request->is_exceptional_check)) {
 				$activity->is_exceptional_check = $request->is_exceptional_check;
 				if (!empty($request->exceptional_reason)) {
@@ -1979,9 +2028,10 @@ class ActivityController extends Controller {
 			}
 
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
+			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);
 
 			// WHATSAPP FLOW (TOW SERVICE)
-			if ($sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && ($activity->data_src_id == 260 || $activity->data_src_id == 261) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3 && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+			if ($breakdownAlertSent && $sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && ($activity->data_src_id == 260 || $activity->data_src_id == 261) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3 && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 
 				$activityStatusId = 25; // Waiting for Charges Acceptance by ASP
 
@@ -2201,9 +2251,16 @@ class ActivityController extends Controller {
 
 				if ($aspServiceType) {
 					// $bo_km_charge = $activity->detail(172) ? $activity->detail(172)->value : 0;
-					$bo_km_travelled = $activity->detail(158) ? $activity->detail(158)->value : 0;
-					$bo_km_collected = $activity->detail(159) ? $activity->detail(159)->value : 0;
-					$bo_km_not_collected = $activity->detail(160) ? $activity->detail(160)->value : 0;
+					$bo_km_travelled = $activity->detail(158) ? numberFormatToDecimalConversion(floatval($activity->detail(158)->value)) : 0;
+					$bo_km_collected = $activity->detail(159) ? numberFormatToDecimalConversion(floatval($activity->detail(159)->value)) : 0;
+					$bo_km_not_collected = $activity->detail(160) ? numberFormatToDecimalConversion(floatval($activity->detail(160)->value)) : 0;
+
+					$boWaitingTime = 0;
+					if ($activity->detail(330) && !empty($activity->detail(330)->value)) {
+						$boWaitingTime = floatval($activity->detail(330)->value);
+					} elseif ($activity->detail(279) && !empty($activity->detail(279)->value)) {
+						$boWaitingTime = floatval($activity->detail(279)->value);
+					}
 
 					if (floatval($bo_km_travelled) <= 0) {
 						return response()->json([
@@ -2216,6 +2273,11 @@ class ActivityController extends Controller {
 
 					$price = $response['asp_service_price'];
 
+					$boWaitingCharge = 0;
+					if (!empty($price->waiting_charge_per_hour) && !empty($boWaitingTime)) {
+						$boWaitingCharge = numberFormatToDecimalConversion(floatval($boWaitingTime / 60) * floatval($price->waiting_charge_per_hour));
+					}
+
 					if ($activity->financeStatus->po_eligibility_type_id == 341) {
 						// Empty Return Payout
 						$below_range_price = $bo_km_travelled == 0 ? 0 : $price->empty_return_range_price;
@@ -2224,7 +2286,7 @@ class ActivityController extends Controller {
 					}
 
 					$above_range_price = ($bo_km_travelled > $price->range_limit) ? ($bo_km_travelled - $price->range_limit) * $price->above_range_price : 0;
-					$km_charge = $below_range_price + $above_range_price;
+					$km_charge = numberFormatToDecimalConversion(floatval($below_range_price + $above_range_price));
 
 					$boDeduction = 0;
 					//DISABLED AS THERE IS NO ADJUSTMENT TYPE IN FUTURE
@@ -2234,7 +2296,7 @@ class ActivityController extends Controller {
 					// 	$boDeduction = floatval($km_charge) * floatval($aspServiceType->adjustment / 100);
 					// }
 
-					$invoiceAmount = (floatval($km_charge) + floatval($bo_km_not_collected)) - floatval($boDeduction) - floatval($bo_km_collected);
+					$invoiceAmount = numberFormatToDecimalConversion(floatval(($km_charge + $bo_km_not_collected + $boWaitingCharge) - ($boDeduction + $bo_km_collected)));
 
 					if (floatval($invoiceAmount) <= 0) {
 						return response()->json([
@@ -2242,6 +2304,22 @@ class ActivityController extends Controller {
 							'error' => 'Payout amount should be greater than zero for the case - ' . $activity->case->number,
 						]);
 					}
+
+					$bo_waiting_time = ActivityDetail::firstOrNew([
+						'company_id' => 1,
+						'activity_id' => $activity->id,
+						'key_id' => 330,
+					]);
+					$bo_waiting_time->value = $boWaitingTime;
+					$bo_waiting_time->save();
+
+					$bo_waiting_charge = ActivityDetail::firstOrNew([
+						'company_id' => 1,
+						'activity_id' => $activity->id,
+						'key_id' => 333,
+					]);
+					$bo_waiting_charge->value = $boWaitingCharge;
+					$bo_waiting_charge->save();
 
 					$bo_km_charge = ActivityDetail::firstOrNew([
 						'company_id' => 1,
@@ -2405,8 +2483,10 @@ class ActivityController extends Controller {
 						$sendBreakdownOrEmptyreturnChargesWhatsappSms = true;
 					}
 
+					$activityBreakdownAlertSent = Activity::breakdownAlertSent($activity->id);
+
 					// WHATSAPP FLOW (TOW SERVICE)
-					if ($sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && ($activity->data_src_id == 260 || $activity->data_src_id == 261) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3 && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+					if ($activityBreakdownAlertSent && $sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && ($activity->data_src_id == 260 || $activity->data_src_id == 261) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3 && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 
 						$activityStatusId = 25; // Waiting for Charges Acceptance by ASP
 
@@ -3035,7 +3115,7 @@ class ActivityController extends Controller {
 	}
 
 	public function updateActivity(Request $request) {
-		//dd($request->all());
+		// dd($request->all());
 		DB::beginTransaction();
 		try {
 			$activity = Activity::whereIn('status_id', [2, 4, 7, 17])
@@ -3147,7 +3227,7 @@ class ActivityController extends Controller {
 				}
 			}
 
-			$range_limit = 0;
+			$range_limit = $waiting_charge_per_hour = 0;
 			$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
 			Storage::makeDirectory($destination, 0777);
 
@@ -3242,6 +3322,7 @@ class ActivityController extends Controller {
 				->first();
 			if ($aspServiceType) {
 				$range_limit = $aspServiceType->range_limit;
+				$waiting_charge_per_hour = $aspServiceType->waiting_charge_per_hour;
 			}
 
 			//VEHICLE PICKUP ATTACHMENT
@@ -3519,19 +3600,56 @@ class ActivityController extends Controller {
 				]);
 			}
 
+			$waitingCharge = 0;
+			$waitingTimeInMin = 0;
+			if (!empty($request->waiting_time)) {
+				[$hours, $minutes] = explode(':', $request->waiting_time);
+				$waitingTimeInMin = intval(($hours * 60) + $minutes);
+				$waitingCharge = numberFormatToDecimalConversion(floatval($waitingTimeInMin / 60) * floatval($waiting_charge_per_hour));
+			}
+
+			$kmTravelled = numberFormatToDecimalConversion(floatval($request->km_travelled)); //ASP ENTERED KM
+			$collected = numberFormatToDecimalConversion(floatval($request->asp_collected_charges)); //ASP COLLECTED
+			$not_collected = numberFormatToDecimalConversion(floatval($request->other_charge)); //ASP NOT COLLECTED
+			$aspBorderCharge = numberFormatToDecimalConversion(floatval($request->border_charge));
+			$aspGreenTaxCharge = numberFormatToDecimalConversion(floatval($request->green_tax_charge));
+			$aspTollCharge = numberFormatToDecimalConversion(floatval($request->toll_charge));
+			$aspEatableItemCharge = numberFormatToDecimalConversion(floatval($request->eatable_item_charge));
+			$aspFuelCharge = numberFormatToDecimalConversion(floatval($request->fuel_charge));
+			$aspWaitingTime = floatval($waitingTimeInMin);
+
 			//UPDATE ASP ACTIVITY DETAILS & CALCULATE INVOICE AMOUNT FOR ASP & BO BASED ON ASP ENTERTED DETAILS
 			$asp_key_ids = [
 				//ASP
 				157 => $activity->serviceType->name,
-				154 => $request->km_travelled,
-				156 => $request->other_charge,
-				155 => $request->asp_collected_charges,
-				//BO
+				154 => $kmTravelled,
+				156 => $not_collected,
+				155 => $collected,
+
+				//ASP OTHER CHARGES (SPLIT UPs)
+				316 => $aspBorderCharge,
+				315 => $aspGreenTaxCharge,
+				314 => $aspTollCharge,
+				313 => $aspEatableItemCharge,
+				319 => $aspFuelCharge,
+				329 => $aspWaitingTime,
+				332 => $waitingCharge,
+
 				//BO
 				161 => $activity->serviceType->name,
-				158 => $request->km_travelled,
-				160 => $request->other_charge,
-				159 => $request->asp_collected_charges,
+				158 => $kmTravelled,
+				160 => $not_collected,
+				159 => $collected,
+
+				//BO OTHER CHARGES (SPLIT UPs)
+				325 => $aspBorderCharge,
+				324 => $aspGreenTaxCharge,
+				323 => $aspTollCharge,
+				322 => $aspEatableItemCharge,
+				328 => $aspFuelCharge,
+				330 => $aspWaitingTime,
+				333 => $waitingCharge,
+
 			];
 			foreach ($asp_key_ids as $key_id => $value) {
 				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $activity->id, 'key_id' => $key_id, 'company_id' => 1], ['value' => $value]);
@@ -3548,20 +3666,16 @@ class ActivityController extends Controller {
 			}
 
 			$price = $response['asp_service_price'];
-			$total_km = $request->km_travelled; //ASP ENTERED KM
-			$collected = $request->asp_collected_charges; //ASP COLLECTED
-			$not_collected = $request->other_charge; //ASP NOT COLLECTED
-
 			//INV AMOUNT FORMULA
 			if ($activity->financeStatus->po_eligibility_type_id == 341) {
 				// Empty Return Payout
-				$below_range_price = $total_km == 0 ? 0 : $price->empty_return_range_price;
+				$below_range_price = $kmTravelled == 0 ? 0 : $price->empty_return_range_price;
 			} else {
-				$below_range_price = $total_km == 0 ? 0 : $price->below_range_price;
+				$below_range_price = $kmTravelled == 0 ? 0 : $price->below_range_price;
 			}
 
-			$above_range_price = ($total_km > $price->range_limit) ? ($total_km - $price->range_limit) * $price->above_range_price : 0;
-			$km_charge = $below_range_price + $above_range_price;
+			$above_range_price = ($kmTravelled > $price->range_limit) ? ($kmTravelled - $price->range_limit) * $price->above_range_price : 0;
+			$km_charge = numberFormatToDecimalConversion(floatval($below_range_price + $above_range_price));
 
 			//FORMULAE DISABLED AS PER CLIENT REQUEST
 			// if ($price->adjustment_type == 1) {
@@ -3574,7 +3688,7 @@ class ActivityController extends Controller {
 			// }
 
 			$payout_amount = $km_charge;
-			$net_amount = $payout_amount + $not_collected - $collected;
+			$net_amount = numberFormatToDecimalConversion(floatval(($payout_amount + $not_collected + $waitingCharge) - $collected));
 			$invoice_amount = $net_amount;
 
 			$asp_po_amount = ActivityDetail::firstOrNew([
@@ -3624,8 +3738,6 @@ class ActivityController extends Controller {
 			]);
 			$bo_invoice_amount->value = $invoice_amount;
 			$bo_invoice_amount->save();
-
-			//TicketActivity::saveLog($log);
 
 			//log message
 			$log_status = config('rsa.LOG_STATUES_TEMPLATES.ASP_DATA_ENTRY_DONE');
@@ -3925,7 +4037,29 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$activities = Activity::join('cases', 'cases.id', 'activities.case_id')
+			$activityBaseQuery = Activity::select([
+				'cases.number',
+				'activities.id',
+				'activities.asp_id as asp_id',
+				'activities.crm_activity_id',
+				'activities.number as activityNumber',
+				DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
+				'activity_portal_statuses.name as status',
+				'call_centers.name as callcenter',
+				'cases.vehicle_registration_number',
+				'service_types.name as service_type',
+				'km_charge.value as km_charge_value',
+				'km_travelled.value as km_value',
+				'not_collected_amount.value as not_collect_value',
+				'waiting_charges.value as waiting_charges',
+				'net_amount.value as net_value',
+				'collect_amount.value as collect_value',
+				'total_amount.value as total_value',
+				'total_tax_perc.value as total_tax_perc_value',
+				'total_tax_amount.value as total_tax_amount_value',
+				'data_sources.name as data_source',
+			])
+				->join('cases', 'cases.id', 'activities.case_id')
 				->join('call_centers', 'call_centers.id', 'cases.call_center_id')
 				->join('service_types', 'service_types.id', 'activities.service_type_id')
 				->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
@@ -3949,6 +4083,10 @@ class ActivityController extends Controller {
 					$join->on('not_collected_amount.activity_id', 'activities.id')
 						->where('not_collected_amount.key_id', 160); //BO NOT COLLECT AMOUNT
 				})
+				->leftJoin('activity_details as waiting_charges', function ($join) {
+					$join->on('waiting_charges.activity_id', 'activities.id')
+						->where('waiting_charges.key_id', 333); //BO WAITING CHARGE
+				})
 				->leftJoin('activity_details as total_tax_perc', function ($join) {
 					$join->on('total_tax_perc.activity_id', 'activities.id')
 						->where('total_tax_perc.key_id', 185); //BO TOTAL TAX PERC
@@ -3962,33 +4100,14 @@ class ActivityController extends Controller {
 						->where('total_amount.key_id', 182); //BO INVOICE AMOUNT
 				})
 				->leftjoin('configs as data_sources', 'data_sources.id', 'activities.data_src_id')
-				->select([
-					'cases.number',
-					'activities.id',
-					'activities.asp_id as asp_id',
-					'activities.crm_activity_id',
-					'activities.number as activityNumber',
-					DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
-					'activity_portal_statuses.name as status',
-					'call_centers.name as callcenter',
-					'cases.vehicle_registration_number',
-					'service_types.name as service_type',
-					'km_charge.value as km_charge_value',
-					'km_travelled.value as km_value',
-					'not_collected_amount.value as not_collect_value',
-					'net_amount.value as net_value',
-					'collect_amount.value as collect_value',
-					'total_amount.value as total_value',
-					'total_tax_perc.value as total_tax_perc_value',
-					'total_tax_amount.value as total_tax_amount_value',
-					'data_sources.name as data_source',
-				])
 				->whereIn('activities.id', $activity_ids)
 				->whereIn('activities.status_id', [11, 1]) //Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
-				->groupBy('activities.id')
-				->get();
+				->groupBy('activities.id');
 
-			if (count($activities) == 0) {
+			$activityCountQuery = clone $activityBaseQuery;
+			$activitiesCount = $activityCountQuery->get();
+
+			if ($activitiesCount->isEmpty()) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -3999,6 +4118,9 @@ class ActivityController extends Controller {
 
 			//CALCULATE TAX FOR INVOICE
 			Invoices::calculateTax($asp, $activity_ids);
+
+			$activities = clone $activityBaseQuery;
+			$activities = $activities->get();
 
 			foreach ($activities as $key => $activity) {
 				$taxes = DB::table('activity_tax')->leftjoin('taxes', 'activity_tax.tax_id', '=', 'taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name', 'taxes.tax_rate', 'activity_tax.*')->get();
@@ -4586,7 +4708,7 @@ class ActivityController extends Controller {
 				DB::raw('DATE_FORMAT(cases.submission_closing_date, "%d-%m-%Y %H:%i:%s") as case_submission_closing_date'),
 				'cases.created_at as case_created_at',
 				'cases.vehicle_registration_number as case_vehicle_registration_number',
-				'cases.membership_type as case_membership_type',
+				DB::raw('COALESCE(cases.membership_type, "--") as case_membership_type'),
 				'cases.customer_name as case_customer_name',
 				'cases.customer_contact_number as case_customer_contact_number',
 				'cases.submission_closing_date_remarks as case_submission_closing_date_remarks',
@@ -5340,15 +5462,14 @@ class ActivityController extends Controller {
 				});
 
 				$excel->sheet('Activity Informations', function ($sheet) use ($activity_details_header, $activity_details_data) {
-					$sheet->setAutoSize(false);
 					$sheet->fromArray($activity_details_data, NULL, 'A1');
 					$sheet->row(1, $activity_details_header);
-					$sheet->cells('A1:FK1', function ($cells) {
-						$cells->setFont(array(
-							'size' => '10',
-							'bold' => true,
-						))->setBackground('#CCC9C9');
+					$sheet->row(1, function ($row) {
+						$row->setBackground('#CCC9C9');
+						$row->setFontSize(10);
+						$row->setFontWeight('bold');
 					});
+					$sheet->setAutoSize(true);
 				});
 			})->export('xlsx');
 
@@ -5449,9 +5570,10 @@ class ActivityController extends Controller {
 			}
 
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
+			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);
 
 			//WHATSAPP FLOW
-			if ($activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+			if ($breakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 				// ROS SERVICE
 				if ($activity->serviceType && $activity->serviceType->service_group_id != 3) {
 					$autoApprovalProcessResponse = $activity->autoApprovalProcess();

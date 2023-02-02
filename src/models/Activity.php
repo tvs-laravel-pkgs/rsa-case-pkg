@@ -282,6 +282,12 @@ class Activity extends Model {
 		$data['cc_collected_charges'] = $cc_collected_charges->value;
 		$data['cc_other_charge'] = $cc_other_charge->value;
 		$data['cc_km_travelled'] = $cc_km_travelled->value;
+		$data['border_charges'] = $activity->detail(316) ? $activity->detail(316)->value : 0.00;
+		$data['green_tax_charges'] = $activity->detail(315) ? $activity->detail(315)->value : 0.00;
+		$data['toll_charges'] = $activity->detail(314) ? $activity->detail(314)->value : 0.00;
+		$data['eatable_item_charges'] = $activity->detail(313) ? $activity->detail(313)->value : 0.00;
+		$data['fuel_charges'] = $activity->detail(319) ? $activity->detail(319)->value : 0.00;
+		$data['waiting_time'] = $activity->detail(329) ? $activity->detail(329)->value : 0;
 
 		$range_limit = "";
 		$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
@@ -421,6 +427,66 @@ class Activity extends Model {
 		];
 	}
 
+	public function saveActivityChargesDetails() {
+
+		// GET CC DETAILS -----------------------------------------------------------
+
+		$ccWaitingTime = ($this->detail(279) && !empty($this->detail(279)->value)) ? $this->detail(279)->value : 0;
+		$ccServiceCharges = ($this->detail(302) && !empty($this->detail(302)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(302)->value)) : 0;
+		$ccMembershipCharges = ($this->detail(303) && !empty($this->detail(303)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(303)->value)) : 0;
+		$ccEatableItemsCharges = ($this->detail(304) && !empty($this->detail(304)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(304)->value)) : 0;
+		$ccTollCharges = ($this->detail(305) && !empty($this->detail(305)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(305)->value)) : 0;
+		$ccGreenTaxCharges = ($this->detail(306) && !empty($this->detail(306)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(306)->value)) : 0;
+		$ccBorderCharges = ($this->detail(307) && !empty($this->detail(307)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(307)->value)) : 0;
+		$ccOctroiCharges = ($this->detail(308) && !empty($this->detail(308)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(308)->value)) : 0;
+		$ccExcessCharges = ($this->detail(309) && !empty($this->detail(309)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(309)->value)) : 0;
+		$ccFuelCharges = ($this->detail(310) && !empty($this->detail(310)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(310)->value)) : 0;
+
+		// SAVE AGAINST ASP & BO ----------------------------------------------------
+
+		$ccWaitingTime = $this->saveActivityDetail(279, $ccWaitingTime);
+		$aspWaitingTime = $this->saveActivityDetail(329, $ccWaitingTime);
+		$boWaitingTime = $this->saveActivityDetail(330, $ccWaitingTime);
+		$ccServiceCharges = $this->saveActivityDetail(302, $ccServiceCharges);
+		$aspServiceCharges = $this->saveActivityDetail(311, $ccServiceCharges);
+		$boServiceCharges = $this->saveActivityDetail(320, $ccServiceCharges);
+		$ccMembershipCharges = $this->saveActivityDetail(303, $ccMembershipCharges);
+		$aspMembershipCharges = $this->saveActivityDetail(312, $ccMembershipCharges);
+		$boMembershipCharges = $this->saveActivityDetail(321, $ccMembershipCharges);
+		$ccEatableItemsCharges = $this->saveActivityDetail(304, $ccEatableItemsCharges);
+		$aspEatableItemsCharges = $this->saveActivityDetail(313, $ccEatableItemsCharges);
+		$boEatableItemsCharges = $this->saveActivityDetail(322, $ccEatableItemsCharges);
+		$ccTollCharges = $this->saveActivityDetail(305, $ccTollCharges);
+		$aspTollCharges = $this->saveActivityDetail(314, $ccTollCharges);
+		$boTollCharges = $this->saveActivityDetail(323, $ccTollCharges);
+		$ccGreenTaxCharges = $this->saveActivityDetail(306, $ccGreenTaxCharges);
+		$aspGreenTaxCharges = $this->saveActivityDetail(315, $ccGreenTaxCharges);
+		$boGreenTaxCharges = $this->saveActivityDetail(324, $ccGreenTaxCharges);
+		$ccBorderCharges = $this->saveActivityDetail(307, $ccBorderCharges);
+		$aspBorderCharges = $this->saveActivityDetail(316, $ccBorderCharges);
+		$boBorderCharges = $this->saveActivityDetail(325, $ccBorderCharges);
+		$ccOctroiCharges = $this->saveActivityDetail(308, $ccOctroiCharges);
+		$aspOctroiCharges = $this->saveActivityDetail(317, $ccOctroiCharges);
+		$boOctroiCharges = $this->saveActivityDetail(326, $ccOctroiCharges);
+		$ccExcessCharges = $this->saveActivityDetail(309, $ccExcessCharges);
+		$aspExcessCharges = $this->saveActivityDetail(318, $ccExcessCharges);
+		$boExcessCharges = $this->saveActivityDetail(327, $ccExcessCharges);
+		$ccFuelCharges = $this->saveActivityDetail(310, $ccFuelCharges);
+		$aspFuelCharges = $this->saveActivityDetail(319, $ccFuelCharges);
+		$boFuelCharges = $this->saveActivityDetail(328, $ccFuelCharges);
+	}
+
+	public function saveActivityDetail($keyId, $value) {
+		$activityDetail = ActivityDetail::firstOrNew([
+			'company_id' => 1,
+			'activity_id' => $this->id,
+			'key_id' => $keyId,
+		]);
+		$activityDetail->value = $value;
+		$activityDetail->save();
+		return $value;
+	}
+
 	public function calculatePayoutAmount($data_src) {
 		if ($this->financeStatus->po_eligibility_type_id == 342) {
 			//No Payout
@@ -447,13 +513,26 @@ class Activity extends Model {
 				];
 			}
 
-			$total_km = $this->detail(280)->value; //cc_total_km
-			$collected = $this->detail(281)->value; //cc_colleced_amount
-			$not_collected = $this->detail(282)->value; //cc_not_collected_amount
+			$total_km = !empty($this->detail(280)->value) ? numberFormatToDecimalConversion(floatval($this->detail(280)->value)) : 0; //cc_total_km
+			$collected = !empty($this->detail(281)->value) ? numberFormatToDecimalConversion(floatval($this->detail(281)->value)) : 0; //cc_colleced_amount
+			$not_collected = !empty($this->detail(282)->value) ? numberFormatToDecimalConversion(floatval($this->detail(282)->value)) : 0; //cc_not_collected_amount
+
+			//CALCULATE WAITING CHARGES AND STORE -----------------------------------------
+
+			$ccWaitingTime = !empty($this->detail(279)->value) ? floatval($this->detail(279)->value) : 0;
+			$ccWaitingCharge = 0;
+			if (!empty($response['asp_service_price']->waiting_charge_per_hour) && !empty($ccWaitingTime)) {
+				$ccWaitingCharge = numberFormatToDecimalConversion(floatval($ccWaitingTime / 60) * floatval($response['asp_service_price']->waiting_charge_per_hour));
+			}
+			$this->saveActivityDetail(331, $ccWaitingCharge); //CC WAITING CHARGE
+			$this->saveActivityDetail(332, $ccWaitingCharge); //ASP WAITING CHARGE
+			$this->saveActivityDetail(333, $ccWaitingCharge); //BO WAITING CHARGE
+
+			//CALCULATE PAYOUT AMOUNT ----------------------------------------------------
 
 			$km_charge = $this->calculateKMCharge($response['asp_service_price'], $total_km);
 			$payout_amount = $km_charge;
-			$net_amount = ($payout_amount + $not_collected) - $collected;
+			$net_amount = numberFormatToDecimalConversion(floatval(($payout_amount + $not_collected + $ccWaitingCharge) - $collected));
 			$invoice_amount = $net_amount;
 
 			$cc_service_type = ActivityDetail::firstOrNew([
@@ -621,7 +700,7 @@ class Activity extends Model {
 		$job->save();
 		DB::beginTransaction();
 		try {
-			$response = ImportCronJob::getRecordsFromExcel($job, 'BS');
+			$response = ImportCronJob::getRecordsFromExcel($job, 'BT');
 			$rows = $response['rows'];
 			$header = $response['header'];
 			$all_error_records = [];
@@ -689,7 +768,7 @@ class Activity extends Model {
 						],
 						'customer_name' => 'required|string|max:255',
 						// 'customer_contact_number' => 'required|numeric|min:10|max:10',
-						'contact_name' => 'nullable|string|max:50',
+						'contact_name' => 'nullable|string|max:255',
 						// 'contact_number' => 'nullable|numeric|min:10|max:10',
 						'vehicle_make' => [
 							'required',
@@ -711,7 +790,7 @@ class Activity extends Model {
 						],
 						'vehicle_registration_number' => 'nullable|max:20',
 						'vin_no' => 'nullable|max:20',
-						'membership_type' => 'required|string|max:191',
+						'membership_type' => 'nullable|string|max:191',
 						'membership_number' => 'nullable|max:50',
 						'subject' => [
 							'required',
@@ -1101,6 +1180,7 @@ class Activity extends Model {
 						$case->subject_id = $subject->id;
 						$case->bd_location_type_id = $bd_location_type_id;
 						$case->bd_location_category_id = $bd_location_category_id;
+						$case->membership_type = !empty($record['membership_type']) ? $record['membership_type'] : NULL;
 						$case->save();
 
 						$activity_save_eligible = true;
@@ -1209,6 +1289,9 @@ class Activity extends Model {
 								$detail->value = isset($record[$activity_field->name]) ? $record[$activity_field->name] : NULL;
 								$detail->save();
 							}
+
+							$activity->saveActivityChargesDetails();
+
 							//CALCULATE PAYOUT ONLY IF FINANCE STATUS OF ACTIVITY IS ELIBLE FOR PO
 							if ($activity->financeStatus->po_eligibility_type_id == 342) {
 								//No Payout status
@@ -1277,6 +1360,8 @@ class Activity extends Model {
 								$activity->sendBreakdownAlertWhatsappSms();
 							}
 
+							$breakdownAlertSent = self::breakdownAlertSent($activity->id);
+
 							if ($case->status_id == 3) {
 								//CANCELLED
 								if ($case->activities->isNotEmpty()) {
@@ -1315,8 +1400,10 @@ class Activity extends Model {
 										$activityLog->bo_approved_at = date('Y-m-d H:i:s');
 										$activityLog->save();
 
+										$invoiceAmountCalculatedActivityBreakdownAlertSent = self::breakdownAlertSent($invoiceAmountCalculatedActivity->id);
+
 										//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
-										if ($invoiceAmountCalculatedActivity->asp && !empty($invoiceAmountCalculatedActivity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $invoiceAmountCalculatedActivity->asp->has_whatsapp_flow == 1))) {
+										if ($invoiceAmountCalculatedActivityBreakdownAlertSent && $invoiceAmountCalculatedActivity->asp && !empty($invoiceAmountCalculatedActivity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $invoiceAmountCalculatedActivity->asp->has_whatsapp_flow == 1))) {
 											$invoiceAmountCalculatedActivity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 										}
 
@@ -1339,9 +1426,10 @@ class Activity extends Model {
 								$caseActivities = $case->activities()->whereIn('status_id', [17, 26])->get();
 								if ($caseActivities->isNotEmpty()) {
 									foreach ($caseActivities as $key => $caseActivity) {
+										$caseActivityBreakdownAlertSent = self::breakdownAlertSent($caseActivity->id);
 
 										//WHATSAPP FLOW
-										if ($caseActivity->asp && !empty($caseActivity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $caseActivity->asp->has_whatsapp_flow == 1))) {
+										if ($caseActivityBreakdownAlertSent && $caseActivity->asp && !empty($caseActivity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $caseActivity->asp->has_whatsapp_flow == 1))) {
 											// ROS SERVICE
 											if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id != 3) {
 												$autoApprovalProcessResponse = $caseActivity->autoApprovalProcess();
@@ -1390,7 +1478,7 @@ class Activity extends Model {
 							}
 
 							//IF ACTIVITY CANCELLED THEN SEND ACTIVITY CANCELLED WHATSAPP SMS TO ASP
-							if (!empty($activity_status_id) && $activity_status_id == 4 && $activity->asp && !empty($activity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+							if ($breakdownAlertSent && !empty($activity_status_id) && $activity_status_id == 4 && $activity->asp && !empty($activity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 								$activity->sendActivityCancelledWhatsappSms();
 							}
 
@@ -1476,7 +1564,7 @@ class Activity extends Model {
 		}
 
 		$above_range_price = ($km > $price->range_limit) ? ($km - $price->range_limit) * $price->above_range_price : 0;
-		$km_charge = $below_range_price + $above_range_price;
+		$km_charge = numberFormatToDecimalConversion(floatval($below_range_price + $above_range_price));
 
 		//FORMULAE DISABLED AS PER CLIENT REQUEST
 		// if ($price->adjustment_type == 1) {
@@ -1526,7 +1614,7 @@ class Activity extends Model {
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 		$caseNumber = $this->case ? (!empty($this->case->number) ? $this->case->number : '--') : '--';
 		$caseDate = $this->case ? (!empty($this->case->date) ? date('d.m.Y', strtotime($this->case->date)) : '--') : '--';
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 		$customerName = $this->case ? (!empty($this->case->customer_name) ? $this->case->customer_name : '--') : '--';
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : '--') : '--';
 		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
@@ -1622,7 +1710,7 @@ class Activity extends Model {
 
 			$payloadIndex = [
 				"value" => "Upload Images",
-				"activity_id" => $this->number,
+				"activity_id" => $activityNumber,
 				"vehicle_no" => $payloadVehicleNumber,
 				"type" => "New Breakdown Alert",
 			];
@@ -1696,7 +1784,7 @@ class Activity extends Model {
 	public function sendImageUploadConfirmationWhatsappSms() {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 
@@ -1739,12 +1827,28 @@ class Activity extends Model {
 		sendWhatsappSMS($this->id, 1192, $inputRequests);
 	}
 
+	public static function breakdownAlertSent($activityId) {
+		$breakdownAlertWhatsAppLog = ActivityWhatsappLog::where([
+			'activity_id' => $activityId,
+			'type_id' => 1191,
+			'is_new' => 1,
+		])
+			->first();
+		return $breakdownAlertWhatsAppLog ? true : false;
+	}
+
 	public function autoApprovalProcess() {
 		$response = [];
-		$totalKm = $this->detail(280)->value; // CC TOTAL KM
-		$collectedCharges = $this->detail(281)->value; //CC COLLECTED AMOUNT
-		$notCollectedCharges = $this->detail(282)->value; //CC NOT COLLECTED AMOUNT
+		$totalKm = !empty($this->detail(280)->value) ? numberFormatToDecimalConversion(floatval($this->detail(280)->value)) : 0; // CC TOTAL KM
+		$collectedCharges = !empty($this->detail(281)->value) ? numberFormatToDecimalConversion(floatval($this->detail(281)->value)) : 0; //CC COLLECTED AMOUNT
+		$notCollectedCharges = !empty($this->detail(282)->value) ? numberFormatToDecimalConversion(floatval($this->detail(282)->value)) : 0; //CC NOT COLLECTED AMOUNT
 		$autoApprovalKm = config('rsa')['ACTIVITY_AUTO_APPROVAL_KM'];
+
+		if (empty($totalKm) || floatval($totalKm) < 1) {
+			$response['success'] = false;
+			$response['error'] = "KM Travelled should be greater than or equal to one";
+			return $response;
+		}
 
 		// GREATER THAN PREDEFINED AUTO APPROVAL KM THEN APPROVE ONLY FOR PREDEFINED KM
 		if (floatval($totalKm) >= floatval($autoApprovalKm)) {
@@ -1763,8 +1867,14 @@ class Activity extends Model {
 				return $response;
 			}
 
+			$waitingTime = !empty($this->detail(279)->value) ? floatval($this->detail(279)->value) : 0;
+			$waitingCharge = 0;
+			if (!empty($aspServiceTypeGetResponse['asp_service_price']->waiting_charge_per_hour) && !empty($waitingTime)) {
+				$waitingCharge = numberFormatToDecimalConversion(floatval($waitingTime / 60) * floatval($aspServiceTypeGetResponse['asp_service_price']->waiting_charge_per_hour));
+			}
+
 			$kmCharge = $this->calculateKMCharge($aspServiceTypeGetResponse['asp_service_price'], $autoApprovalKm);
-			$netAmount = ($kmCharge + $notCollectedCharges) - $collectedCharges;
+			$netAmount = numberFormatToDecimalConversion(floatval(($kmCharge + $notCollectedCharges + $waitingCharge) - $collectedCharges));
 			$invoiceAmount = $netAmount;
 
 			$boKmTravelled = ActivityDetail::firstOrNew([
@@ -1865,7 +1975,7 @@ class Activity extends Model {
 		$aspCode = !empty($this->asp->asp_code) ? $this->asp->asp_code : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 		$caseNumber = $this->case ? (!empty($this->case->number) ? $this->case->number : '--') : '--';
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
@@ -1911,13 +2021,13 @@ class Activity extends Model {
 
 		$payloadIndexOne = [
 			"value" => "Yes",
-			"activity_id" => $this->number,
+			"activity_id" => $activityNumber,
 			"vehicle_no" => $vehicleNumber,
 			"type" => "Breakdown Charges",
 		];
 		$payloadIndexTwo = [
 			"value" => "No",
-			"activity_id" => $this->number,
+			"activity_id" => $activityNumber,
 			"vehicle_no" => $vehicleNumber,
 			"type" => "Breakdown Charges",
 		];
@@ -2002,7 +2112,7 @@ class Activity extends Model {
 	public function sendRevisedBreakdownOrEmptyreturnChargesWhatsappSms() {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
@@ -2031,13 +2141,13 @@ class Activity extends Model {
 
 		$payloadIndexOne = [
 			"value" => "Yes",
-			"activity_id" => $this->number,
+			"activity_id" => $activityNumber,
 			"vehicle_no" => $vehicleNumber,
 			"type" => "Revised Breakdown Charges",
 		];
 		$payloadIndexTwo = [
 			"value" => "No",
-			"activity_id" => $this->number,
+			"activity_id" => $activityNumber,
 			"vehicle_no" => $vehicleNumber,
 			"type" => "Revised Breakdown Charges",
 		];
@@ -2096,7 +2206,7 @@ class Activity extends Model {
 	public function sendAspAcceptanceChargesWhatsappSms() {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
@@ -2119,13 +2229,13 @@ class Activity extends Model {
 
 		$payloadIndexOne = [
 			"value" => "Yes",
-			"activity_id" => $this->number,
+			"activity_id" => $activityNumber, //crm_act_id
 			"vehicle_no" => $vehicleNumber,
 			"type" => "ASP Charges Acceptance",
 		];
 		$payloadIndexTwo = [
 			"value" => "No",
-			"activity_id" => $this->number,
+			"activity_id" => $activityNumber, //crm_act_id
 			"vehicle_no" => $vehicleNumber,
 			"type" => "ASP Charges Acceptance",
 		];
@@ -2185,7 +2295,7 @@ class Activity extends Model {
 	public function sendAspChargesRejectionWhatsappSms() {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
@@ -2240,7 +2350,7 @@ class Activity extends Model {
 	public function sendIndividualInvoicingWhatsappSms($invoiceId) {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
 		$serviceType = $this->serviceType ? $this->serviceType->name : '--';
@@ -2300,7 +2410,7 @@ class Activity extends Model {
 	public function sendBulkInvoicingWhatsappSms() {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
 
@@ -2352,7 +2462,7 @@ class Activity extends Model {
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
 		$vin = $this->case ? (!empty($this->case->vin_no) ? $this->case->vin_no : '--') : '--';
 		$vehicleNumber = $this->case ? (!empty($this->case->vehicle_registration_number) ? $this->case->vehicle_registration_number : $vin) : '--';
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
 		$templateId = 'invoice_generated_2110';
@@ -2396,7 +2506,7 @@ class Activity extends Model {
 	public function sendActivityCancelledWhatsappSms() {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
-		$activityNumber = $this->number;
+		$activityNumber = $this->crm_activity_id;
 
 		$senderNumber = config('constants')['whatsapp_api_sender'];
 

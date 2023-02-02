@@ -4,14 +4,17 @@ app.component('activitySearchForm', {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
-        // if (!self.hasPermission('activity-search')) {
-        //     window.location = "#!/page-permission-denied";
-        //     return false;
-        // }
+
+        if (!self.hasPermission('asp-activity-search')) {
+            window.location = "#!/page-permission-denied";
+            return false;
+        }
+
         self.angular_routes = angular_routes;
         self.style_dot_image_url = style_dot_image_url;
         self.modal_close = modal_close;
         self.type = $routeParams.type;
+        self.activities = [];
 
         $scope.searchActivity = function(query) {
             self.activities = [];
@@ -21,22 +24,22 @@ app.component('activitySearchForm', {
                 }
             ).then(function(res) {
                 if (!res.data.success) {
-                    var errors = '';
-                    for (var i in res.data.errors) {
+                    let errors = '';
+                    for (let i in res.data.errors) {
                         errors += '<li>' + res.data.errors[i] + '</li>';
                     }
                     custom_noty('error', errors);
                 } else {
-                    self.activities = res.data.details.activities;
+                    self.activities = res.data.activities;
                 }
             });
         }
 
         $timeout(function() {
-            var dataTable = $('#activity_table').DataTable({
+            let dataTable = $('#activityTable').DataTable({
                 "bLengthChange": false,
                 "bRetrieve": true,
-                "paginate": false,
+                "paginate": true,
                 ordering: false,
                 'paging': false,
                 'searching': false,
@@ -44,7 +47,7 @@ app.component('activitySearchForm', {
                 'length': false,
                 "oLanguage": { "sZeroRecords": "", "sEmptyTable": "" }
             });
-            $('#activity_tbody .dataTables_empty').hide();
+            $('#activityTbody .dataTables_empty').hide();
             $scope.$apply()
         }, 500);
 

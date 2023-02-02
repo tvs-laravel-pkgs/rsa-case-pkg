@@ -2,7 +2,8 @@
     <div class="mobile-breadcrumbs-wrapper">
         <ul class="mobile-breadcrumbs-group list-inline">
             <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
-            <li><a href="#!/rsa-case-pkg/activity-search">Activity Search</a></li>
+            <li><a href="#">Activities</a></li>
+            <li><a href="#!/rsa-case-pkg/activity-search">Search</a></li>
         </ul>
     </div>
 </div>
@@ -31,6 +32,7 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="mt-20"></div>
                         <div class="row">
                             <div class="col-xs-12 col-sm-12">
                                 <div class="row">
@@ -43,7 +45,7 @@
                                     </div>
                                 </div>
                                 <div class="table-responsive">
-                                    <table id="activity_table" class="table" style="width:100%;">
+                                    <table id="activityTable" class="table" style="width:100%;">
                                         <thead>
                                             <tr>
                                                 <th>Actions</th>
@@ -61,10 +63,10 @@
                                                 <th>Call Center</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="activity_tbody">
+                                        <tbody id="activityTbody">
                                             <tr ng-repeat="(index, activity) in $ctrl.activities">
                                                 <td>
-                                                    <div class="dataTable-actions"  ng-if ="activity.url != '' " style="min-width: 125px;">
+                                                    <div class="dataTable-actions" ng-if="activity.url != '' " style="min-width: 125px;">
                                                         <a href="{{activity.url}}">
                                                             <i class="fa fa-eye dataTable-icon--view" aria-hidden="true">
                                                             </i>
@@ -72,45 +74,46 @@
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    {{activity.case_date ? activity.case_date:'--'}}
+                                                    {{activity.case_date}}
                                                 </td>
                                                 <td>
-                                                    {{activity.case_number ? activity.case_number:'--'}}
+                                                    {{activity.case_number}}
                                                 </td>
                                                 <td>
-                                                    {{activity.vehicle_registration_number ? activity.vehicle_registration_number:'--'}}
-                                                </td>
-                                                <td> 
-                                                    {{activity.asp ? activity.asp:'--'}}
+                                                    {{activity.vehicle_registration_number}}
                                                 </td>
                                                 <td>
-                                                    {{activity.crm_activity_id ? activity.crm_activity_id:'--'}}
+                                                    {{activity.asp ? activity.asp : '--'}}
                                                 </td>
                                                 <td>
-                                                    {{activity.source ? activity.source:'--'}}
+                                                    {{activity.crm_activity_id}}
                                                 </td>
                                                 <td>
-                                                    {{activity.sub_service ? activity.sub_service:'--'}}
+                                                    {{activity.source}}
                                                 </td>
                                                 <td>
-                                                    {{activity.finance_status ? activity.finance_status:'--'}}
+                                                    {{activity.sub_service}}
                                                 </td>
                                                 <td>
-                                                    {{activity.status ? activity.status:'--'}}
+                                                    {{activity.finance_status}}
                                                 </td>
                                                 <td>
-                                                    {{activity.activity_status ? activity.activity_status:'--'}}
+                                                    {{activity.status}}
                                                 </td>
                                                 <td>
-                                                    {{activity.client ? activity.client:'--'}}
+                                                    {{activity.activity_status}}
                                                 </td>
                                                 <td>
-                                                    {{activity.call_center ? activity.call_center:'--'}}
-                                                </td> 
+                                                    {{activity.client}}
+                                                </td>
+                                                <td>
+                                                    {{activity.call_center}}
+                                                </td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div><!-- Responsive -->
+                                <div class="mt-20"></div>
                             </div>
                         </div>
                     </div>

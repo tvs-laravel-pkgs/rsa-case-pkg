@@ -15,67 +15,64 @@ app.component('activitySearchForm', {
                 custom_noty('error', 'Enter Case Number / Vehicle Registration Number / Mobile Number / CRM Activity ID');
                 return;
             }
-            $timeout(function() {
 
-                if ($.fn.dataTable.isDataTable('#activityTable')) {
-                    $('#activityTable').dataTable().fnClearTable();
-                    $('#activityTable').dataTable().fnDestroy();
-                }
+            if ($.fn.dataTable.isDataTable('#activityTable')) {
+                $('#activityTable').dataTable().fnDestroy();
+            }
 
-                const cols = [
-                    { data: 'action', searchable: false },
-                    { data: 'case_date', searchable: false },
-                    { data: 'case_number', name: 'cases.number', searchable: true },
-                    { data: 'vehicle_registration_number', name: 'cases.vehicle_registration_number', searchable: true },
-                    { data: 'asp', name: 'asp', searchable: true },
-                    { data: 'crm_activity_id', name: 'activities.crm_activity_id', searchable: true },
-                    { data: 'source', name: 'configs.name', searchable: true },
-                    { data: 'sub_service', name: 'service_types.name', searchable: true },
-                    { data: 'finance_status', name: 'activity_finance_statuses.name', searchable: true },
-                    { data: 'status', name: 'activity_portal_statuses.name', searchable: true },
-                    { data: 'activity_status', name: 'activity_statuses.name', searchable: true },
-                    { data: 'client', name: 'clients.name', searchable: true },
-                    { data: 'call_center', name: 'call_centers.name', searchable: true },
-                ];
+            const activitySearchDtConfig = JSON.parse(JSON.stringify(dt_config));
+            $('#activityTable').DataTable(
+                $.extend(activitySearchDtConfig, {
+                    stateSave: true,
+                    columns: cols = [
+                        { data: 'action', searchable: false },
+                        { data: 'case_date', searchable: false },
+                        { data: 'case_number', name: 'cases.number', searchable: true },
+                        { data: 'vehicle_registration_number', name: 'cases.vehicle_registration_number', searchable: true },
+                        { data: 'asp', name: 'asp', searchable: true },
+                        { data: 'crm_activity_id', name: 'activities.crm_activity_id', searchable: true },
+                        { data: 'source', name: 'configs.name', searchable: true },
+                        { data: 'sub_service', name: 'service_types.name', searchable: true },
+                        { data: 'finance_status', name: 'activity_finance_statuses.name', searchable: true },
+                        { data: 'status', name: 'activity_portal_statuses.name', searchable: true },
+                        { data: 'activity_status', name: 'activity_statuses.name', searchable: true },
+                        { data: 'client', name: 'clients.name', searchable: true },
+                        { data: 'call_center', name: 'call_centers.name', searchable: true },
+                    ],
+                    ordering: false,
+                    // paging: false,
+                    // searching: false,
+                    processing: true,
+                    serverSide: true,
+                    stateSaveCallback: function(settings, data) {
+                        localStorage.setItem('CDataTables_' + settings.sInstance, JSON.stringify(data));
+                    },
+                    stateLoadCallback: function(settings) {
+                        const state_save_val = JSON.parse(localStorage.getItem('CDataTables_' + settings.sInstance));
+                        if (state_save_val) {
+                            $('#search').val(state_save_val.search.search);
+                        }
+                        return JSON.parse(localStorage.getItem('CDataTables_' + settings.sInstance));
+                    },
+                    ajax: {
+                        url: laravel_routes['getActivitySearchList'],
+                        type: "POST",
+                        dataType: "json",
+                        data: function(d) {
+                            d.searchQuery = searchQuery;
+                        }
+                    },
+                    infoCallback: function(settings, start, end, max, total, pre) {},
+                    initComplete: function() {
+                        $('.dataTables_length select').select2();
+                    },
+                }));
 
-                const activitySearchDtConfig = JSON.parse(JSON.stringify(dt_config));
-                $('#activityTable').DataTable(
-                    $.extend(activitySearchDtConfig, {
-                        stateSave: true,
-                        columns: cols,
-                        ordering: false,
-                        processing: true,
-                        serverSide: true,
-                        stateSaveCallback: function(settings, data) {
-                            localStorage.setItem('CDataTables_' + settings.sInstance, JSON.stringify(data));
-                        },
-                        stateLoadCallback: function(settings) {
-                            const state_save_val = JSON.parse(localStorage.getItem('CDataTables_' + settings.sInstance));
-                            if (state_save_val) {
-                                $('#search').val(state_save_val.search.search);
-                            }
-                            return JSON.parse(localStorage.getItem('CDataTables_' + settings.sInstance));
-                        },
-                        ajax: {
-                            url: laravel_routes['getActivitySearchList'],
-                            type: "POST",
-                            dataType: "json",
-                            data: function(d) {
-                                d.searchQuery = searchQuery;
-                            }
-                        },
-                        infoCallback: function(settings, start, end, max, total, pre) {},
-                        initComplete: function() {
-                            $('.dataTables_length select').select2();
-                        },
-                    }));
+            const dataTable = $('#activityTable').dataTable();
 
-                const dataTable = $('#activityTable').dataTable();
-
-                $(".filterTable").keyup(function() {
-                    dataTable.fnFilter(this.value);
-                });
-            }, 800);
+            $(".filterTable").keyup(function() {
+                dataTable.fnFilter(this.value);
+            });
         }
 
         window.mdSelectOnKeyDownOverride = function(event) {

@@ -5847,7 +5847,7 @@ class ActivityController extends Controller {
 
 			$activities = Activity::select([
 				'activities.id',
-				'invoices.id as invoiceId',
+				'Invoices.id as invoiceId',
 				'activities.crm_activity_id as crm_activity_id',
 				'activities.status_id as status_id',
 				DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
@@ -5872,7 +5872,7 @@ class ActivityController extends Controller {
 				->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 				->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 				->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
-				->leftjoin('invoices', 'invoices.id', 'activities.invoice_id')
+				->leftjoin('Invoices', 'Invoices.id', 'activities.invoice_id')
 				->where('users.id', Auth::user()->id) // OWN ASP USER ID
 				->orderBy('cases.date', 'DESC')
 				->groupBy('activities.id');

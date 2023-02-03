@@ -261,6 +261,14 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'ASP New Activities',
 			],
 
+			//ASP ACTIVITY SEARCH
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'asp-activity-search',
+				'display_name' => 'ASP Activity Search',
+			],
+
 			//ASP DEFERRED ACTIVITIES
 			[
 				'display_order' => 99,

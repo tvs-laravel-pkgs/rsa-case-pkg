@@ -10,59 +10,71 @@ app.component('activitySearchForm', {
             return false;
         }
 
-        self.angular_routes = angular_routes;
-        self.style_dot_image_url = style_dot_image_url;
-        self.modal_close = modal_close;
-        self.type = $routeParams.type;
-        self.activities = [];
+        $scope.searchActivity = function(searchQuery) {
+            if (!searchQuery) {
+                custom_noty('error', 'Enter Case Number / Vehicle Registration Number / Mobile Number / CRM Activity ID');
+                return;
+            }
 
-        $scope.searchActivity = function(query) {
-            self.activities = [];
-            $http.post(
-                laravel_routes['getActivitySearchFormData'], {
-                    data: query,
-                }
-            ).then(function(res) {
-                if (!res.data.success) {
-                    let errors = '';
-                    for (let i in res.data.errors) {
-                        errors += '<li>' + res.data.errors[i] + '</li>';
-                    }
-                    custom_noty('error', errors);
-                } else {
-                    self.activities = res.data.activities;
-                }
+            if ($.fn.dataTable.isDataTable('#activityTable')) {
+                $('#activityTable').dataTable().fnClearTable();
+                $('#activityTable').dataTable().fnDestroy();
+            }
+
+            const cols = [
+                { data: 'action', searchable: false },
+                { data: 'case_date', searchable: false },
+                { data: 'case_number', name: 'cases.number', searchable: true },
+                { data: 'vehicle_registration_number', name: 'cases.vehicle_registration_number', searchable: true },
+                { data: 'asp', name: 'asp', searchable: true },
+                { data: 'crm_activity_id', name: 'activities.crm_activity_id', searchable: true },
+                { data: 'source', name: 'configs.name', searchable: true },
+                { data: 'sub_service', name: 'service_types.name', searchable: true },
+                { data: 'finance_status', name: 'activity_finance_statuses.name', searchable: true },
+                { data: 'status', name: 'activity_portal_statuses.name', searchable: true },
+                { data: 'activity_status', name: 'activity_statuses.name', searchable: true },
+                { data: 'client', name: 'clients.name', searchable: true },
+                { data: 'call_center', name: 'call_centers.name', searchable: true },
+            ];
+
+            const activitySearchDtConfig = JSON.parse(JSON.stringify(dt_config));
+            $('#activityTable').DataTable(
+                $.extend(activitySearchDtConfig, {
+                    stateSave: true,
+                    columns: cols,
+                    ordering: false,
+                    processing: true,
+                    serverSide: true,
+                    stateSaveCallback: function(settings, data) {
+                        localStorage.setItem('CDataTables_' + settings.sInstance, JSON.stringify(data));
+                    },
+                    stateLoadCallback: function(settings) {
+                        const state_save_val = JSON.parse(localStorage.getItem('CDataTables_' + settings.sInstance));
+                        if (state_save_val) {
+                            $('#search').val(state_save_val.search.search);
+                        }
+                        return JSON.parse(localStorage.getItem('CDataTables_' + settings.sInstance));
+                    },
+                    ajax: {
+                        url: laravel_routes['getActivitySearchList'],
+                        type: "POST",
+                        dataType: "json",
+                        data: function(d) {
+                            d.searchQuery = searchQuery;
+                        }
+                    },
+                    infoCallback: function(settings, start, end, max, total, pre) {},
+                    initComplete: function() {
+                        $('.dataTables_length select').select2();
+                    },
+                }));
+
+            const dataTable = $('#activityTable').dataTable();
+
+            $(".filterTable").keyup(function() {
+                dataTable.fnFilter(this.value);
             });
         }
-
-        $timeout(function() {
-            let dataTable = $('#activityTable').DataTable({
-                "bLengthChange": false,
-                "bRetrieve": true,
-                "paginate": true,
-                ordering: false,
-                'paging': false,
-                'searching': false,
-                'info': false,
-                'length': false,
-                "oLanguage": { "sZeroRecords": "", "sEmptyTable": "" }
-            });
-            $('#activityTbody .dataTables_empty').hide();
-            $scope.$apply()
-        }, 500);
-
-
-        $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
-
-        $('#viewData-toggle--btn1').click(function() {
-            $(this).toggleClass('viewData-toggle--btn_reverse');
-            $('#viewData-threeColumn--wrapper1').slideToggle();
-        });
-
-        $('#viewData-toggle--btnasp').click(function() {
-            $(this).toggleClass('viewData-toggle--btn_reverse');
-            $('#viewData-threeColumn--wrapperasp').slideToggle();
-        });
 
         window.mdSelectOnKeyDownOverride = function(event) {
             event.stopPropagation();

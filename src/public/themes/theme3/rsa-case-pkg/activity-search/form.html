@@ -25,9 +25,9 @@
                             <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
                                 <label>Case Number / Vehicle Registration Number / Mobile Number / CRM Activity ID<sup class="req">*</sup></label>
                                 <div class="input-group" style="display: flex;">
-                                    <input type="text" ng-model="$ctrl.vi_number" class="form-control" name="vi_number" placeholder="Enter Case Number / Vehicle Registration Number / Mobile Number / CRM Activity ID" autocomplete="off">
+                                    <input type="text" ng-model="$ctrl.searchQuery" class="form-control" name="searchQuery" placeholder="Enter Case Number / Vehicle Registration Number / Mobile Number / CRM Activity ID" autocomplete="off">
                                     <div class="input-group-append">
-                                        <button class="btn btn-primary" type="button" id="vin-search" ng-click="searchActivity($ctrl.vi_number)">Search</button>
+                                        <button class="btn btn-primary" type="button" id="vin-search" ng-click="searchActivity($ctrl.searchQuery)">Search</button>
                                     </div>
                                 </div>
                             </div>
@@ -44,6 +44,14 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="dataTable-top--right_wrapper">
+                                    <ul class="dataTable-top--right_group list-inline">
+                                        <li>
+                                            <input class="filterTable" type="text" placeholder="Search" id="search" style="font-size:14px;">
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="mt-20"></div>
                                 <div class="table-responsive">
                                     <table id="activityTable" class="table" style="width:100%;">
                                         <thead>
@@ -63,54 +71,6 @@
                                                 <th>Call Center</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="activityTbody">
-                                            <tr ng-repeat="(index, activity) in $ctrl.activities">
-                                                <td>
-                                                    <div class="dataTable-actions" ng-if="activity.url != '' " style="min-width: 125px;">
-                                                        <a href="{{activity.url}}" target="_blank">
-                                                            <i class="fa fa-external-link-square" aria-hidden="true">
-                                                            </i>
-                                                        </a>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    {{activity.case_date}}
-                                                </td>
-                                                <td>
-                                                    {{activity.case_number}}
-                                                </td>
-                                                <td>
-                                                    {{activity.vehicle_registration_number}}
-                                                </td>
-                                                <td>
-                                                    {{activity.asp ? activity.asp : '--'}}
-                                                </td>
-                                                <td>
-                                                    {{activity.crm_activity_id}}
-                                                </td>
-                                                <td>
-                                                    {{activity.source}}
-                                                </td>
-                                                <td>
-                                                    {{activity.sub_service}}
-                                                </td>
-                                                <td>
-                                                    {{activity.finance_status}}
-                                                </td>
-                                                <td>
-                                                    {{activity.status}}
-                                                </td>
-                                                <td>
-                                                    {{activity.activity_status}}
-                                                </td>
-                                                <td>
-                                                    {{activity.client}}
-                                                </td>
-                                                <td>
-                                                    {{activity.call_center}}
-                                                </td>
-                                            </tr>
-                                        </tbody>
                                     </table>
                                 </div><!-- Responsive -->
                                 <div class="mt-20"></div>

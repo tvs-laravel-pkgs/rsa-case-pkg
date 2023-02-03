@@ -29,7 +29,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web'], 'prefix'
 		Route::post('activity-status/not-eligible-for-payout/move', 'ActivityController@moveToNotEligibleForPayout')->name('moveToNotEligibleForPayout');
 
 		//ACTIVITY SEARCH
-		Route::post('/activity-search/get-form-data', 'ActivityController@getSearchFormData')->name('getActivitySearchFormData');
+		Route::post('/activity-search/get-list', 'ActivityController@getSearchList')->name('getActivitySearchList');
 
 		//ASP NEW ACTIVITY
 		Route::get('/new-activity/get-form-data/{id?}', 'ActivityController@activityNewGetFormData')->name('activityNewGetFormData');

@@ -40,20 +40,8 @@ app.component('activitySearchForm', {
                         { data: 'call_center', name: 'call_centers.name', searchable: true },
                     ],
                     ordering: false,
-                    // paging: false,
-                    // searching: false,
                     processing: true,
                     serverSide: true,
-                    stateSaveCallback: function(settings, data) {
-                        localStorage.setItem('CDataTables_' + settings.sInstance, JSON.stringify(data));
-                    },
-                    stateLoadCallback: function(settings) {
-                        const state_save_val = JSON.parse(localStorage.getItem('CDataTables_' + settings.sInstance));
-                        if (state_save_val) {
-                            $('#search').val(state_save_val.search.search);
-                        }
-                        return JSON.parse(localStorage.getItem('CDataTables_' + settings.sInstance));
-                    },
                     ajax: {
                         url: laravel_routes['getActivitySearchList'],
                         type: "POST",

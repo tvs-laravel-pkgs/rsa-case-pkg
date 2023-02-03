@@ -10,11 +10,6 @@ app.component('activitySearchForm', {
             return false;
         }
 
-        self.angular_routes = angular_routes;
-        self.style_dot_image_url = style_dot_image_url;
-        self.modal_close = modal_close;
-        self.type = $routeParams.type;
-
         $scope.searchActivity = function(searchQuery) {
             if (!searchQuery) {
                 custom_noty('error', 'Enter Case Number / Vehicle Registration Number / Mobile Number / CRM Activity ID');

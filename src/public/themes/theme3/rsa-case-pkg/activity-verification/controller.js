@@ -17,6 +17,7 @@ app.component('activityVerificationList', {
             $(".for-above40").hide();
 
             var cols1 = [
+                // { data: 'action', searchable: false },
                 { data: 'case_date', searchable: false },
                 { data: 'number', name: 'cases.number', searchable: true },
                 { data: 'vehicle_registration_number', name: 'cases.vehicle_registration_number', searchable: true },
@@ -288,6 +289,14 @@ app.component('activityVerificationList', {
 
                 if ($('.md-select-menu-container').hasClass('md-active')) {
                     $mdSelect.hide();
+                }
+            });
+
+            $('#select_all_checkbox').click(function() {
+                if ($(this).prop("checked")) {
+                    $(".child_select_all").prop("checked", true);
+                } else {
+                    $(".child_select_all").prop("checked", false);
                 }
             });
 

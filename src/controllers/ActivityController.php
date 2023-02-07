@@ -5848,13 +5848,13 @@ class ActivityController extends Controller {
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			'cases.number as case_number',
 			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
+			DB::raw('COALESCE(cases.vin_no, "--") as vin'),
 			DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
 			DB::raw('COALESCE(service_types.name, "--") as sub_service'),
 			DB::raw('COALESCE(activity_finance_statuses.name, "--") as finance_status'),
 			DB::raw('COALESCE(activity_portal_statuses.name, "--") as status'),
 			DB::raw('COALESCE(activity_statuses.name, "--") as activity_status'),
 			DB::raw('COALESCE(clients.name, "--") as client'),
-			DB::raw('COALESCE(configs.name, "--") as source'),
 			DB::raw('COALESCE(call_centers.name, "--") as call_center'),
 		])
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
@@ -5863,24 +5863,33 @@ class ActivityController extends Controller {
 			->leftjoin('clients', 'clients.id', 'cases.client_id')
 			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
-			->leftjoin('configs', 'configs.id', 'activities.data_src_id')
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
-			->leftjoin('Invoices', 'Invoices.id', 'activities.invoice_id')
-			->where('users.id', Auth::user()->id) // OWN ASP USER ID
-			->orderBy('cases.date', 'DESC')
-			->groupBy('activities.id');
+			->leftjoin('Invoices', 'Invoices.id', 'activities.invoice_id');
+
+		// ASP FINANCE ADMIN
+		if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
+			$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+			$aspIds[] = Auth::user()->asp->id;
+			$activities->whereIn('asps.id', $aspIds);
+		} else {
+			$activities->where('users.id', Auth::user()->id); // OWN ASP USER ID
+		}
 
 		if (!empty($search_type) && $search_type == 'mobile_number') {
-			$activities = $activities->where('cases.customer_contact_number', $request->searchQuery);
+			$activities->where('cases.customer_contact_number', $request->searchQuery);
 		} else {
-			$activities = $activities->where(function ($q) use ($request) {
+			$activities->where(function ($q) use ($request) {
 				$q->where('cases.number', $request->searchQuery)
 					->orWhere('cases.vehicle_registration_number', $request->searchQuery)
+					->orWhere('cases.vin_no', $request->searchQuery)
 					->orWhere('activities.crm_activity_id', $request->searchQuery);
 			});
 		}
+
+		$activities->orderBy('cases.date', 'DESC')
+			->groupBy('activities.id');
 
 		return Datatables::of($activities)
 			->filterColumn('asp', function ($query, $keyword) {
@@ -5907,7 +5916,8 @@ class ActivityController extends Controller {
 					//Paid
 					$url = '#!/rsa-case-pkg/invoice/view/' . $activity->invoiceId . '/3';
 				} else {
-					$url = '';
+					// VIEW PAGE FOR OTHER STATUSES
+					$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
 				}
 
 				$action = '';

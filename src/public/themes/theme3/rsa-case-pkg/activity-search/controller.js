@@ -12,7 +12,7 @@ app.component('activitySearchForm', {
 
         $scope.searchActivity = function(searchQuery) {
             if (!searchQuery) {
-                custom_noty('error', 'Enter Case Number / Vehicle Registration Number / Mobile Number / CRM Activity ID');
+                custom_noty('error', 'Enter Case Number / Vehicle Registration Number / VIN / Mobile Number / CRM Activity ID');
                 return;
             }
 
@@ -29,9 +29,9 @@ app.component('activitySearchForm', {
                         { data: 'case_date', searchable: false },
                         { data: 'case_number', name: 'cases.number', searchable: true },
                         { data: 'vehicle_registration_number', name: 'cases.vehicle_registration_number', searchable: true },
+                        { data: 'vin', name: 'cases.vin_no', searchable: true },
                         { data: 'asp', name: 'asp', searchable: true },
                         { data: 'crm_activity_id', name: 'activities.crm_activity_id', searchable: true },
-                        { data: 'source', name: 'configs.name', searchable: true },
                         { data: 'sub_service', name: 'service_types.name', searchable: true },
                         { data: 'finance_status', name: 'activity_finance_statuses.name', searchable: true },
                         { data: 'status', name: 'activity_portal_statuses.name', searchable: true },
@@ -50,7 +50,9 @@ app.component('activitySearchForm', {
                             d.searchQuery = searchQuery;
                         }
                     },
-                    infoCallback: function(settings, start, end, max, total, pre) {},
+                    infoCallback: function(settings, start, end, max, total, pre) {
+                        $('.count').html(total + ' / ' + max + ' listings');
+                    },
                     initComplete: function() {
                         $('.dataTables_length select').select2();
                     },

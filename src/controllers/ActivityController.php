@@ -5230,7 +5230,7 @@ class ActivityController extends Controller {
 						!empty($activity->deduction_reason) ? $activity->deduction_reason : '',
 						!empty($activity->defer_reason) ? strip_tags($activity->defer_reason) : '',
 						!empty($activity->asp_resolve_comments) ? strip_tags($activity->asp_resolve_comments) : '',
-						$activity->is_exceptional_check == 1 ? 'Yes' : 'No',
+						$activity->is_exceptional_check,
 						!empty($activity->exceptional_reason) ? strip_tags($activity->exceptional_reason) : '',
 						// $activity->invoice ? ($activity->asp->has_gst == 1 && $activity->asp->is_auto_invoice == 0 ? ($activity->invoice->invoice_no) : ($activity->invoice->invoice_no . '-' . $activity->invoice->id)) : '',
 						$activity->invoice_no,

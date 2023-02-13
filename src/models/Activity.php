@@ -94,6 +94,10 @@ class Activity extends Model {
 		return $this->hasOne('Abs\RsaCasePkg\ActivityDetail', 'activity_id');
 	}
 
+	public function rateCard() {
+		return $this->hasOne('Abs\RsaCasePkg\ActivityRatecard', 'activity_id');
+	}
+
 	public function log() {
 		return $this->hasOne('Abs\RsaCasePkg\ActivityLog', 'activity_id');
 	}

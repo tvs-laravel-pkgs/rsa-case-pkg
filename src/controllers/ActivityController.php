@@ -5656,4 +5656,108 @@ class ActivityController extends Controller {
 		return Client::searchClient($request);
 	}
 
+	public function getSearchList(Request $request) {
+
+		if (empty($request->searchQuery)) {
+			return Datatables::of([])->make(true);
+		}
+
+		if (preg_match("/^[0-9]{10}+$/", $request->searchQuery)) {
+			$search_type = 'mobile_number';
+		} else {
+			$search_type = 'normal';
+		}
+
+		$activities = Activity::select([
+			'activities.id',
+			'Invoices.id as invoiceId',
+			'activities.crm_activity_id as crm_activity_id',
+			'activities.status_id as status_id',
+			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			'cases.number as case_number',
+			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
+			DB::raw('COALESCE(cases.vin_no, "--") as vin'),
+			DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
+			DB::raw('COALESCE(service_types.name, "--") as sub_service'),
+			DB::raw('COALESCE(activity_finance_statuses.name, "--") as finance_status'),
+			DB::raw('COALESCE(activity_portal_statuses.name, "--") as status'),
+			DB::raw('COALESCE(activity_statuses.name, "--") as activity_status'),
+			DB::raw('COALESCE(clients.name, "--") as client'),
+			DB::raw('COALESCE(call_centers.name, "--") as call_center'),
+		])
+			->leftjoin('asps', 'asps.id', 'activities.asp_id')
+			->leftjoin('users', 'users.id', 'asps.user_id')
+			->leftjoin('cases', 'cases.id', 'activities.case_id')
+			->leftjoin('clients', 'clients.id', 'cases.client_id')
+			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
+			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
+			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
+			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
+			->leftjoin('Invoices', 'Invoices.id', 'activities.invoice_id');
+
+		// ASP FINANCE ADMIN
+		if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
+			$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+			$aspIds[] = Auth::user()->asp->id;
+			$activities->whereIn('asps.id', $aspIds);
+		} else {
+			$activities->where('users.id', Auth::user()->id); // OWN ASP USER ID
+		}
+
+		if (!empty($search_type) && $search_type == 'mobile_number') {
+			$activities->where('cases.customer_contact_number', $request->searchQuery);
+		} else {
+			$activities->where(function ($q) use ($request) {
+				$q->where('cases.number', $request->searchQuery)
+					->orWhere('cases.vehicle_registration_number', $request->searchQuery)
+					->orWhere('cases.vin_no', $request->searchQuery)
+					->orWhere('activities.crm_activity_id', $request->searchQuery);
+			});
+		}
+
+		$activities->orderBy('cases.date', 'DESC')
+			->groupBy('activities.id');
+
+		return Datatables::of($activities)
+			->filterColumn('asp', function ($query, $keyword) {
+				$sql = "CONCAT(asps.asp_code,' / ',asps.workshop_name)  like ?";
+				$query->whereRaw($sql, ["%{$keyword}%"]);
+			})
+			->addColumn('action', function ($activity) {
+				//ASP Rejected CC Details - Waiting for ASP Data Entry || On Hold
+				if ($activity->status_id == 2 || $activity->status_id == 17) {
+					$url = '#!/rsa-case-pkg/new-activity/update-details/' . $activity->id;
+				} elseif ($activity->status_id == 7) {
+					//BO Rejected - Waiting for ASP Data Re-Entry
+					$url = '#!/rsa-case-pkg/deferred-activity/update/' . $activity->id;
+				} elseif ($activity->status_id == 11) {
+					//Waiting for Invoice Generation by ASP
+					$url = '#!/rsa-case-pkg/approved-activity/list';
+				} elseif ($activity->status_id == 12) {
+					//Invoiced - Waiting for Payment
+					$url = '#!/rsa-case-pkg/invoice/view/' . $activity->invoiceId . '/1';
+				} elseif ($activity->status_id == 13) {
+					//Payment Inprogress
+					$url = '#!/rsa-case-pkg/invoice/view/' . $activity->invoiceId . '/2';
+				} elseif ($activity->status_id == 14) {
+					//Paid
+					$url = '#!/rsa-case-pkg/invoice/view/' . $activity->invoiceId . '/3';
+				} else {
+					// VIEW PAGE FOR OTHER STATUSES
+					$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
+				}
+
+				$action = '';
+				if (!empty($url)) {
+					$action = '<div class="dataTable-actions" style="min-width: 125px;">
+									<a href="' . $url . '" target="_blank">
+					                	<i class="fa fa-external-link-square" aria-hidden="true"></i>
+					            	</a>
+			            		</div>';
+				}
+				return $action;
+			})
+			->make(true);
+	}
 }

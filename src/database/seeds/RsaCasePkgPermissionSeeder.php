@@ -268,6 +268,42 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'asp-activity-search',
 				'display_name' => 'ASP Activity Search',
 			],
+			[
+				'display_order' => 1,
+				'parent' => 'asp-activity-search',
+				'name' => 'all-asp-activity-search',
+				'display_name' => 'View All',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'asp-activity-search',
+				'name' => 'mapped-state-asp-activity-search',
+				'display_name' => 'Only Mapped States',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'asp-activity-search',
+				'name' => 'own-asp-activity-search',
+				'display_name' => 'View Only Own',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'asp-activity-search',
+				'name' => 'own-rm-asp-activity-search',
+				'display_name' => 'Own RM ASPs',
+			],
+			[
+				'display_order' => 5,
+				'parent' => 'asp-activity-search',
+				'name' => 'own-zm-asp-activity-search',
+				'display_name' => 'Own ZM ASPs',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-activity-search',
+				'name' => 'own-nm-asp-activity-search',
+				'display_name' => 'Own NM ASPs',
+			],
 
 			//ASP DEFERRED ACTIVITIES
 			[

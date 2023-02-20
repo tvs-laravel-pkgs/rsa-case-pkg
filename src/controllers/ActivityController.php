@@ -5711,14 +5711,10 @@ class ActivityController extends Controller {
 
 			//BACK OFFICE
 			if (Entrust::can('mapped-state-asp-activity-search')) {
-				$stateIds = StateUser::where('user_id', '=', Auth::user()->id)
-					->pluck('state_id')
-					->toArray();
+				$stateIds = StateUser::where('user_id', '=', Auth::user()->id)->pluck('state_id')->toArray();
 				$activities->whereIn('asps.state_id', $stateIds);
-			}
-
-			// ASP || ASP FINANCE ADMIN
-			if (Entrust::can('own-asp-activity-search')) {
+			} elseif (Entrust::can('own-asp-activity-search')) {
+				// ASP || ASP FINANCE ADMIN
 				if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
 					$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
 					$aspIds[] = Auth::user()->asp->id;
@@ -5726,35 +5722,24 @@ class ActivityController extends Controller {
 				} else {
 					$activities->where('users.id', Auth::user()->id); // OWN ASP USER ID
 				}
-			}
-
-			// REGIONAL MANAGER
-			if (Entrust::can('own-rm-asp-activity-search')) {
-				$aspIds = Asp::where('regional_manager_id', Auth::user()->id)
-					->pluck('id')
-					->toArray();
+			} elseif (Entrust::can('own-rm-asp-activity-search')) {
+				// REGIONAL MANAGER
+				$aspIds = Asp::where('regional_manager_id', Auth::user()->id)->pluck('id')->toArray();
 				$activities->whereIn('asps.id', $aspIds);
-			}
-
-			// ZONAL MANAGER
-			if (Entrust::can('own-zm-asp-activity-search')) {
-				$aspIds = Asp::where('zm_id', Auth::user()->id)
-					->pluck('id')
-					->toArray();
+			} elseif (Entrust::can('own-zm-asp-activity-search')) {
+				// ZONAL MANAGER
+				$aspIds = Asp::where('zm_id', Auth::user()->id)->pluck('id')->toArray();
 				$activities->whereIn('asps.id', $aspIds);
-			}
-
-			// NATIONAL MANAGER
-			if (Entrust::can('own-nm-asp-activity-search')) {
-				$aspIds = Asp::where('nm_id', Auth::user()->id)
-					->pluck('id')
-					->toArray();
+			} elseif (Entrust::can('own-nm-asp-activity-search')) {
+				// NATIONAL MANAGER
+				$aspIds = Asp::where('nm_id', Auth::user()->id)->pluck('id')->toArray();
 				$activities->whereIn('asps.id', $aspIds);
+			} else {
+				$activities->whereNull('activities.asp_id');
 			}
 		}
 
-		$activities->orderBy('cases.date', 'DESC')
-			->groupBy('activities.id');
+		$activities->orderBy('cases.date', 'DESC')->groupBy('activities.id');
 
 		return Datatables::of($activities)
 			->filterColumn('asp', function ($query, $keyword) {
@@ -5783,18 +5768,18 @@ class ActivityController extends Controller {
 				// APPROVER
 				if (Auth::check()) {
 					if (!empty(Auth::user()->activity_approval_level_id)) {
-						//L1 AND ASP Completed Data Entry - Waiting for L1 Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Individual Verification AND BO Rejected - Waiting for L1 Individual Verification
-						if (Auth::user()->activity_approval_level_id == 1 && ($activity->status_id == 6 || $activity->status_id == 9 || $activity->status_id == 22)) {
+						//L1 AND ASP Completed Data Entry - Waiting for L1 Bulk / Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Bulk / Individual Verification AND BO Rejected - Waiting for L1 Bulk / Individual Verification
+						if (Auth::user()->activity_approval_level_id == 1 && ($activity->status_id == 5 || $activity->status_id == 6 || $activity->status_id == 8 || $activity->status_id == 9 || $activity->status_id == 22)) {
 							$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
-						} elseif (Auth::user()->activity_approval_level_id == 2 && $activity->status_id == 19) {
-							// L2 AND Waiting for L2 Individual Verification
+						} elseif (Auth::user()->activity_approval_level_id == 2 && ($activity->status_id == 18 || $activity->status_id == 19)) {
+							// L2 AND Waiting for L2 Bulk / Individual Verification
 							$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
-						} elseif (Auth::user()->activity_approval_level_id == 3 && $activity->status_id == 21) {
-							// L3 AND Waiting for L3 Individual Verification
+						} elseif (Auth::user()->activity_approval_level_id == 3 && ($activity->status_id == 20 || $activity->status_id == 21)) {
+							// L3 AND Waiting for L3 Bulk / Individual Verification
 							$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
-						} elseif (Auth::user()->activity_approval_level_id == && $activity->status_id == 24) {
-							// L4 AND Waiting for L4 Individual Verification
-						$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
+						} elseif (Auth::user()->activity_approval_level_id == 4 && ($activity->status_id == 23 || $activity->status_id == 24)) {
+							// L4 AND Waiting for L4 Bulk / Individual Verification
+							$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
 						}
 					}
 				}

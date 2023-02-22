@@ -1352,6 +1352,13 @@ class ActivityController extends Controller {
 				$eligibleForBackstep = true;
 			}
 
+			// OTHER CHARGES SPLIT UP ELIGIBLE
+			$eligibleForOthersplitupCharges = true;
+			$otherChargesSplitupEffectDatetime = config('rsa.OTHER_CHARGES_SPLITUP_EFFECT_DATETIME');
+			if (!empty($aspDataFilledAt) && ($otherChargesSplitupEffectDatetime > $aspDataFilledAt)) {
+				$eligibleForOthersplitupCharges = false;
+			}
+
 			$this->data['activities']['eligibleForBackstep'] = $eligibleForBackstep;
 			$this->data['activities']['serviceTypes'] = $serviceTypes;
 			$this->data['activities']['boServiceTypeId'] = $boServiceTypeId;
@@ -1387,6 +1394,7 @@ class ActivityController extends Controller {
 			$this->data['activities']['is_collected_eligible'] = $is_collected_eligible;
 			$this->data['activities']['is_case_lapsed'] = $is_case_lapsed;
 			$this->data['activities']['submission_closing_date'] = $submission_closing_date;
+			$this->data['activities']['eligibleForOthersplitupCharges'] = $eligibleForOthersplitupCharges;
 
 			return response()->json(['success' => true, 'data' => $this->data]);
 		} catch (\Exception $e) {

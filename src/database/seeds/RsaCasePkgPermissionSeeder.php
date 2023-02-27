@@ -1622,6 +1622,51 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'export-activity-whatsapp-log',
 				'display_name' => 'Export',
 			],
+
+			//QMS
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'qms',
+				'display_name' => 'QMS',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'qms',
+				'name' => 'add-qms',
+				'display_name' => 'Add',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'qms',
+				'name' => 'edit-qms',
+				'display_name' => 'Edit',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'qms',
+				'name' => 'view-qms',
+				'display_name' => 'View',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'qms',
+				'name' => 'delete-qms',
+				'display_name' => 'Delete',
+			],
+			[
+				'display_order' => 5,
+				'parent' => 'qms',
+				'name' => 'download-qms-request-attachment',
+				'display_name' => 'Download Request Attachment',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'qms',
+				'name' => 'download-qms-resolve-attachment',
+				'display_name' => 'Download Resolve Attachment',
+			],
+
 		];
 		Permission::createFromArrays($permissions);
 	}

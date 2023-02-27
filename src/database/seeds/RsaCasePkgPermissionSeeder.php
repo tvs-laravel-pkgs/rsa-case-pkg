@@ -1645,8 +1645,8 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 			[
 				'display_order' => 3,
 				'parent' => 'qms',
-				'name' => 'view-qms',
-				'display_name' => 'View',
+				'name' => 'accept-qms',
+				'display_name' => 'Accept',
 			],
 			[
 				'display_order' => 4,

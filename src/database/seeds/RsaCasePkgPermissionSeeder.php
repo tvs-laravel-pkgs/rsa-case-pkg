@@ -1666,7 +1666,30 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'download-qms-resolve-attachment',
 				'display_name' => 'Download Resolve Attachment',
 			],
-
+			[
+				'display_order' => 7,
+				'parent' => 'qms',
+				'name' => 'own-only-qms',
+				'display_name' => 'Own Only',
+			],
+			[
+				'display_order' => 8,
+				'parent' => 'qms',
+				'name' => 'all-qms',
+				'display_name' => 'All',
+			],
+			[
+				'display_order' => 9,
+				'parent' => 'qms',
+				'name' => 'resolver-qms',
+				'display_name' => 'Resolver',
+			],
+			[
+				'display_order' => 10,
+				'parent' => 'qms',
+				'name' => 'clarifier-qms',
+				'display_name' => 'Clarifier',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

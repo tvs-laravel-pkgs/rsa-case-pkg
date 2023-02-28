@@ -1732,6 +1732,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'clarifier-qms',
 				'display_name' => 'Clarifier',
 			],
+			[
+				'display_order' => 18,
+				'parent' => 'qms',
+				'name' => 'view-qms',
+				'display_name' => 'View',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

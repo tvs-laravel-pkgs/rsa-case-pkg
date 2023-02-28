@@ -1711,17 +1711,23 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 			[
 				'display_order' => 14,
 				'parent' => 'qms',
+				'name' => 'own-dealers-qms',
+				'display_name' => 'Own Dealers',
+			],
+			[
+				'display_order' => 15,
+				'parent' => 'qms',
 				'name' => 'all-qms',
 				'display_name' => 'All',
 			],
 			[
-				'display_order' => 15,
+				'display_order' => 16,
 				'parent' => 'qms',
 				'name' => 'resolver-qms',
 				'display_name' => 'Resolver',
 			],
 			[
-				'display_order' => 16,
+				'display_order' => 17,
 				'parent' => 'qms',
 				'name' => 'clarifier-qms',
 				'display_name' => 'Clarifier',

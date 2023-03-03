@@ -1711,32 +1711,44 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 			[
 				'display_order' => 14,
 				'parent' => 'qms',
+				'name' => 'own-dealer-qms',
+				'display_name' => 'Own Dealer',
+			],
+			[
+				'display_order' => 15,
+				'parent' => 'qms',
 				'name' => 'own-dealers-qms',
 				'display_name' => 'Own Dealers',
 			],
 			[
-				'display_order' => 15,
+				'display_order' => 16,
 				'parent' => 'qms',
 				'name' => 'all-qms',
 				'display_name' => 'All',
 			],
 			[
-				'display_order' => 16,
+				'display_order' => 17,
 				'parent' => 'qms',
 				'name' => 'resolver-qms',
 				'display_name' => 'Resolver',
 			],
 			[
-				'display_order' => 17,
+				'display_order' => 18,
 				'parent' => 'qms',
 				'name' => 'clarifier-qms',
 				'display_name' => 'Clarifier',
 			],
 			[
-				'display_order' => 18,
+				'display_order' => 19,
 				'parent' => 'qms',
 				'name' => 'view-qms',
 				'display_name' => 'View',
+			],
+			[
+				'display_order' => 20,
+				'parent' => 'qms',
+				'name' => 'export-qms',
+				'display_name' => 'Export',
 			],
 		];
 		Permission::createFromArrays($permissions);

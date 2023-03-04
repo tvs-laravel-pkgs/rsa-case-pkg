@@ -1696,6 +1696,134 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'export-activity-whatsapp-log',
 				'display_name' => 'Export',
 			],
+
+			//QMS
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'qms',
+				'display_name' => 'QMS',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'qms',
+				'name' => 'add-qms',
+				'display_name' => 'Add',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'qms',
+				'name' => 'edit-qms',
+				'display_name' => 'Edit',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'qms',
+				'name' => 'accept-qms',
+				'display_name' => 'Accept',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'qms',
+				'name' => 'delete-qms',
+				'display_name' => 'Delete',
+			],
+			[
+				'display_order' => 5,
+				'parent' => 'qms',
+				'name' => 'download-qms-request-attachment',
+				'display_name' => 'Download Request Attachment',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'qms',
+				'name' => 'download-qms-resolve-attachment',
+				'display_name' => 'Download Resolve Attachment',
+			],
+			[
+				'display_order' => 7,
+				'parent' => 'qms',
+				'name' => 'own-only-qms',
+				'display_name' => 'Own Only',
+			],
+			[
+				'display_order' => 8,
+				'parent' => 'qms',
+				'name' => 'own-rm-asps-qms',
+				'display_name' => 'Own RM ASPs',
+			],
+			[
+				'display_order' => 9,
+				'parent' => 'qms',
+				'name' => 'own-zm-asps-qms',
+				'display_name' => 'Own ZM ASPs',
+			],
+			[
+				'display_order' => 10,
+				'parent' => 'qms',
+				'name' => 'own-nm-asps-qms',
+				'display_name' => 'Own NM ASPs',
+			],
+			[
+				'display_order' => 11,
+				'parent' => 'qms',
+				'name' => 'own-rm-dealers-qms',
+				'display_name' => 'Own RM Dealers',
+			],
+			[
+				'display_order' => 12,
+				'parent' => 'qms',
+				'name' => 'own-zm-dealers-qms',
+				'display_name' => 'Own ZM Dealers',
+			],
+			[
+				'display_order' => 13,
+				'parent' => 'qms',
+				'name' => 'own-nm-dealers-qms',
+				'display_name' => 'Own NM Dealers',
+			],
+			[
+				'display_order' => 14,
+				'parent' => 'qms',
+				'name' => 'own-dealer-qms',
+				'display_name' => 'Own Dealer',
+			],
+			[
+				'display_order' => 15,
+				'parent' => 'qms',
+				'name' => 'own-dealers-qms',
+				'display_name' => 'Own Dealers',
+			],
+			[
+				'display_order' => 16,
+				'parent' => 'qms',
+				'name' => 'all-qms',
+				'display_name' => 'All',
+			],
+			[
+				'display_order' => 17,
+				'parent' => 'qms',
+				'name' => 'resolver-qms',
+				'display_name' => 'Resolver',
+			],
+			[
+				'display_order' => 18,
+				'parent' => 'qms',
+				'name' => 'clarifier-qms',
+				'display_name' => 'Clarifier',
+			],
+			[
+				'display_order' => 19,
+				'parent' => 'qms',
+				'name' => 'view-qms',
+				'display_name' => 'View',
+			],
+			[
+				'display_order' => 20,
+				'parent' => 'qms',
+				'name' => 'export-qms',
+				'display_name' => 'Export',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

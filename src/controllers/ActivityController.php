@@ -1352,6 +1352,13 @@ class ActivityController extends Controller {
 				$eligibleForBackstep = true;
 			}
 
+			// OTHER CHARGES SPLIT UP ELIGIBLE
+			$eligibleForOthersplitupCharges = true;
+			$otherChargesSplitupEffectDatetime = config('rsa.OTHER_CHARGES_SPLITUP_EFFECT_DATETIME');
+			if (!empty($aspDataFilledAt) && ($otherChargesSplitupEffectDatetime > $aspDataFilledAt)) {
+				$eligibleForOthersplitupCharges = false;
+			}
+
 			$this->data['activities']['eligibleForBackstep'] = $eligibleForBackstep;
 			$this->data['activities']['serviceTypes'] = $serviceTypes;
 			$this->data['activities']['boServiceTypeId'] = $boServiceTypeId;
@@ -1387,6 +1394,7 @@ class ActivityController extends Controller {
 			$this->data['activities']['is_collected_eligible'] = $is_collected_eligible;
 			$this->data['activities']['is_case_lapsed'] = $is_case_lapsed;
 			$this->data['activities']['submission_closing_date'] = $submission_closing_date;
+			$this->data['activities']['eligibleForOthersplitupCharges'] = $eligibleForOthersplitupCharges;
 
 			return response()->json(['success' => true, 'data' => $this->data]);
 		} catch (\Exception $e) {
@@ -5696,15 +5704,6 @@ class ActivityController extends Controller {
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 			->leftjoin('Invoices', 'Invoices.id', 'activities.invoice_id');
 
-		// ASP FINANCE ADMIN
-		if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
-			$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
-			$aspIds[] = Auth::user()->asp->id;
-			$activities->whereIn('asps.id', $aspIds);
-		} else {
-			$activities->where('users.id', Auth::user()->id); // OWN ASP USER ID
-		}
-
 		if (!empty($search_type) && $search_type == 'mobile_number') {
 			$activities->where('cases.customer_contact_number', $request->searchQuery);
 		} else {
@@ -5716,8 +5715,39 @@ class ActivityController extends Controller {
 			});
 		}
 
-		$activities->orderBy('cases.date', 'DESC')
-			->groupBy('activities.id');
+		if (!Entrust::can('all-asp-activity-search')) {
+
+			//BACK OFFICE
+			if (Entrust::can('mapped-state-asp-activity-search')) {
+				$stateIds = StateUser::where('user_id', '=', Auth::user()->id)->pluck('state_id')->toArray();
+				$activities->whereIn('asps.state_id', $stateIds);
+			} elseif (Entrust::can('own-asp-activity-search')) {
+				// ASP || ASP FINANCE ADMIN
+				if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
+					$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+					$aspIds[] = Auth::user()->asp->id;
+					$activities->whereIn('asps.id', $aspIds);
+				} else {
+					$activities->where('users.id', Auth::user()->id); // OWN ASP USER ID
+				}
+			} elseif (Entrust::can('own-rm-asp-activity-search')) {
+				// REGIONAL MANAGER
+				$aspIds = Asp::where('regional_manager_id', Auth::user()->id)->pluck('id')->toArray();
+				$activities->whereIn('asps.id', $aspIds);
+			} elseif (Entrust::can('own-zm-asp-activity-search')) {
+				// ZONAL MANAGER
+				$aspIds = Asp::where('zm_id', Auth::user()->id)->pluck('id')->toArray();
+				$activities->whereIn('asps.id', $aspIds);
+			} elseif (Entrust::can('own-nm-asp-activity-search')) {
+				// NATIONAL MANAGER
+				$aspIds = Asp::where('nm_id', Auth::user()->id)->pluck('id')->toArray();
+				$activities->whereIn('asps.id', $aspIds);
+			} else {
+				$activities->whereNull('activities.asp_id');
+			}
+		}
+
+		$activities->orderBy('cases.date', 'DESC')->groupBy('activities.id');
 
 		return Datatables::of($activities)
 			->filterColumn('asp', function ($query, $keyword) {
@@ -5725,17 +5755,45 @@ class ActivityController extends Controller {
 				$query->whereRaw($sql, ["%{$keyword}%"]);
 			})
 			->addColumn('action', function ($activity) {
-				//ASP Rejected CC Details - Waiting for ASP Data Entry || On Hold
-				if ($activity->status_id == 2 || $activity->status_id == 17) {
-					$url = '#!/rsa-case-pkg/new-activity/update-details/' . $activity->id;
-				} elseif ($activity->status_id == 7) {
-					//BO Rejected - Waiting for ASP Data Re-Entry
-					$url = '#!/rsa-case-pkg/deferred-activity/update/' . $activity->id;
-				} elseif ($activity->status_id == 11) {
-					//Waiting for Invoice Generation by ASP
-					$url = '#!/rsa-case-pkg/approved-activity/list';
-				} elseif ($activity->status_id == 12) {
-					//Invoiced - Waiting for Payment
+
+				// VIEW PAGE FOR OTHER STATUSES
+				$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
+
+				// ASP || ASP FINANCE ADMIN
+				if (Entrust::can('own-asp-activity-search')) {
+					//ASP Rejected CC Details - Waiting for ASP Data Entry || On Hold
+					if ($activity->status_id == 2 || $activity->status_id == 17) {
+						$url = '#!/rsa-case-pkg/new-activity/update-details/' . $activity->id;
+					} elseif ($activity->status_id == 7) {
+						//BO Rejected - Waiting for ASP Data Re-Entry
+						$url = '#!/rsa-case-pkg/deferred-activity/update/' . $activity->id;
+					} elseif ($activity->status_id == 11) {
+						//Waiting for Invoice Generation by ASP
+						$url = '#!/rsa-case-pkg/approved-activity/list';
+					}
+				}
+
+				// APPROVER
+				if (Auth::check()) {
+					if (!empty(Auth::user()->activity_approval_level_id)) {
+						//L1 AND ASP Completed Data Entry - Waiting for L1 Bulk / Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Bulk / Individual Verification AND BO Rejected - Waiting for L1 Bulk / Individual Verification
+						if (Auth::user()->activity_approval_level_id == 1 && ($activity->status_id == 5 || $activity->status_id == 6 || $activity->status_id == 8 || $activity->status_id == 9 || $activity->status_id == 22)) {
+							$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
+						} elseif (Auth::user()->activity_approval_level_id == 2 && ($activity->status_id == 18 || $activity->status_id == 19)) {
+							// L2 AND Waiting for L2 Bulk / Individual Verification
+							$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
+						} elseif (Auth::user()->activity_approval_level_id == 3 && ($activity->status_id == 20 || $activity->status_id == 21)) {
+							// L3 AND Waiting for L3 Bulk / Individual Verification
+							$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
+						} elseif (Auth::user()->activity_approval_level_id == 4 && ($activity->status_id == 23 || $activity->status_id == 24)) {
+							// L4 AND Waiting for L4 Bulk / Individual Verification
+							$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
+						}
+					}
+				}
+
+				//Invoiced - Waiting for Payment
+				if ($activity->status_id == 12) {
 					$url = '#!/rsa-case-pkg/invoice/view/' . $activity->invoiceId . '/1';
 				} elseif ($activity->status_id == 13) {
 					//Payment Inprogress
@@ -5743,9 +5801,6 @@ class ActivityController extends Controller {
 				} elseif ($activity->status_id == 14) {
 					//Paid
 					$url = '#!/rsa-case-pkg/invoice/view/' . $activity->invoiceId . '/3';
-				} else {
-					// VIEW PAGE FOR OTHER STATUSES
-					$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
 				}
 
 				$action = '';

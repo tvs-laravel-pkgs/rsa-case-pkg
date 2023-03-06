@@ -9,6 +9,7 @@ use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityRatecard;
+use Abs\RsaCasePkg\ActivityReport;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\ActivityWhatsappLog;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
@@ -1509,6 +1510,9 @@ class Activity extends Model {
 								$activity_log->updated_by_id = 72;
 							}
 							$activity_log->save();
+
+							//SAVE ACTIVITY REPORT FOR DASHBOARD
+							ActivityReport::saveReport($activity->id);
 						}
 					}
 

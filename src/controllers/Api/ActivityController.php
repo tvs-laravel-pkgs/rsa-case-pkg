@@ -6,6 +6,7 @@ use Abs\RsaCasePkg\ActivityAspStatus;
 use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityLog;
+use Abs\RsaCasePkg\ActivityReport;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\ActivityWhatsappLog;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
@@ -711,6 +712,9 @@ class ActivityController extends Controller {
 
 			//SAVE ACTIVITY API LOG
 			saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 120);
+
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
 
 			DB::commit();
 			return response()->json([

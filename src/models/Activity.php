@@ -1497,7 +1497,7 @@ class Activity extends Model {
 													//MECHANICAL SERVICE GROUP
 													if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id == 2) {
 														$cc_total_km = $caseActivity->detail(280) ? $caseActivity->detail(280)->value : 0;
-														$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id);
+														$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id, $vehicle_model_by_make->vehicle_category_id);
 														if ($isBulk) {
 															//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 															$statusId = 5;

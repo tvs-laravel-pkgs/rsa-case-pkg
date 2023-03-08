@@ -621,6 +621,45 @@ class ActivityController extends Controller {
 					]);
 				}
 			}
+
+			if (!$activity_data->case->vehicleModel) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Vehicle model is required',
+					],
+				]);
+			}
+
+			if (!$activity_data->case->vehicleModel->vehiclecategory) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Vehicle category not mapped for the vehicle model',
+					],
+				]);
+			}
+
+			$isMobile = 0; //WEB
+			//MOBILE APP
+			if ($activity_data->data_src_id == 260 || $activity_data->data_src_id == 263) {
+				$isMobile = 1;
+			}
+
+			$asp_service_type_data = AspServiceType::where('asp_id', $activity_data->asp_id)
+				->where('service_type_id', $activity_data->service_type_id)
+				->where('vehicle_category_id', $activity_data->case->vehicleModel->vehiclecategory->id)
+				->where('is_mobile', $isMobile)
+				->first();
+
+			if (!$asp_service_type_data) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						"Service (" . $activity_data->serviceType->name . ") not enabled for the ASP (" . $activity_data->asp->asp_code . ")",
+					],
+				]);
+			}
 			$this->data['activities'] = $activity = Activity::with([
 				'invoice',
 				'invoice.asp' => function ($q) {
@@ -1057,16 +1096,6 @@ class ActivityController extends Controller {
 
 			}
 
-			$isMobile = 0; //WEB
-			//MOBILE APP
-			if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
-				$isMobile = 1;
-			}
-
-			$asp_service_type_data = AspServiceType::where('asp_id', $activity->asp_id)
-				->where('service_type_id', $activity->service_type_id)
-				->where('is_mobile', $isMobile)
-				->first();
 			$casewiseRatecardEffectDatetime = config('rsa.CASEWISE_RATECARD_EFFECT_DATETIME');
 			//Activity creation datetime greater than effective datetime
 			if (date('Y-m-d H:i:s', strtotime($activity->activity_date)) > $casewiseRatecardEffectDatetime) {
@@ -1136,6 +1165,7 @@ class ActivityController extends Controller {
 				if ($service_type) {
 					$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 						->where('service_type_id', $service_type->id)
+						->where('vehicle_category_id', $activity_data->case->vehicleModel->vehiclecategory->id)
 						->where('is_mobile', $isMobile)
 						->first();
 					if ($aspServiceType) {
@@ -1437,6 +1467,24 @@ class ActivityController extends Controller {
 
 			$activity = Activity::find($request->activity_id);
 
+			if (!$activity->case->vehicleModel) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						"Vehicle model is required",
+					],
+				]);
+			}
+
+			if (!$activity->case->vehicleModel->vehiclecategory) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						"Vehicle category not mapped for the vehicle model",
+					],
+				]);
+			}
+
 			$isMobile = 0; //WEB
 			//MOBILE APP
 			if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
@@ -1445,8 +1493,18 @@ class ActivityController extends Controller {
 
 			$asp_service_type_data = AspServiceType::where('asp_id', $request->asp_id)
 				->where('service_type_id', $request->service_type_id)
+				->where('vehicle_category_id', $activity->case->vehicleModel->vehiclecategory->id)
 				->where('is_mobile', $isMobile)
 				->first();
+
+			if (!$asp_service_type_data) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Service (' . $serviceType->name . ') not enabled for the ASP (' . $activity->asp->asp_code . ')',
+					],
+				]);
+			}
 
 			return response()->json([
 				'success' => true,
@@ -1602,6 +1660,24 @@ class ActivityController extends Controller {
 					'success' => false,
 					'errors' => [
 						'Activity not found',
+					],
+				]);
+			}
+
+			if (!$activity->case->vehicleModel) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						"Vehicle model is required",
+					],
+				]);
+			}
+
+			if (!$activity->case->vehicleModel->vehiclecategory) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						"Vehicle category not mapped for the vehicle model",
 					],
 				]);
 			}
@@ -2151,6 +2227,7 @@ class ActivityController extends Controller {
 
 		$aspRateCard = AspServiceType::where('asp_id', $activity->asp_id)
 			->where('service_type_id', $activity->service_type_id)
+			->where('vehicle_category_id', $activity->case->vehicleModel->vehiclecategory->id)
 			->where('is_mobile', $isMobile)
 			->first();
 		if ($aspRateCard) {
@@ -2242,7 +2319,7 @@ class ActivityController extends Controller {
 				if (!$saveActivityRatecardResponse['success']) {
 					return response()->json([
 						'success' => false,
-						'error' => $saveActivityRatecardResponse['error'],
+						'error' => $saveActivityRatecardResponse['error'] . ' Case Number: ' . $activity->case->number,
 					]);
 				}
 
@@ -2254,6 +2331,7 @@ class ActivityController extends Controller {
 
 				$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 					->where('service_type_id', $activity->service_type_id)
+					->where('vehicle_category_id', $activity->case->vehicleModel->vehiclecategory->id)
 					->where('is_mobile', $isMobile)
 					->first();
 
@@ -2277,8 +2355,13 @@ class ActivityController extends Controller {
 						]);
 					}
 
-					$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id);
-
+					$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id, $activity->case);
+					if (!$response['success']) {
+						return response()->json([
+							'success' => false,
+							'error' => $response['error'],
+						]);
+					}
 					$price = $response['asp_service_price'];
 
 					$boWaitingCharge = 0;
@@ -2552,7 +2635,7 @@ class ActivityController extends Controller {
 				} else {
 					return response()->json([
 						'success' => false,
-						'error' => "ASP Rate card not available for the case : " . $activity->case->number,
+						'error' => "Service (" . $activity->serviceType->name . ") not enabled for the ASP (" . $activity->asp->asp_code . ")  Case Number: " . $activity->case->number,
 					]);
 				}
 			}
@@ -3051,6 +3134,12 @@ class ActivityController extends Controller {
 	public function activityNewGetFormData($id = NULL) {
 		$for_deffer_activity = 0;
 		$this->data = Activity::getFormData($id, $for_deffer_activity);
+		if (!$this->data['success']) {
+			return response()->json([
+				'success' => false,
+				'error' => $this->data['error'],
+			]);
+		}
 		$this->data['case_details'] = $this->data['activity']->case;
 		if (date('Y-m-d') >= "2022-04-01") {
 			$towingAttachmentsMandatoryLabel = '';
@@ -3134,6 +3223,24 @@ class ActivityController extends Controller {
 					'success' => false,
 					'errors' => [
 						'Activity not found',
+					],
+				]);
+			}
+
+			if (!$activity->case->vehicleModel) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Vehicle model is required',
+					],
+				]);
+			}
+
+			if (!$activity->case->vehicleModel->vehiclecategory) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Vehicle category not mapped for the vehicle model',
 					],
 				]);
 			}
@@ -3326,12 +3433,20 @@ class ActivityController extends Controller {
 
 			$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
 				->where('service_type_id', $cc_service_type->id)
+				->where('vehicle_category_id', $activity->case->vehicleModel->vehiclecategory->id)
 				->where('is_mobile', $isMobile)
 				->first();
-			if ($aspServiceType) {
-				$range_limit = $aspServiceType->range_limit;
-				$waiting_charge_per_hour = $aspServiceType->waiting_charge_per_hour;
+
+			if (!$aspServiceType) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						"Service (" . $cc_service_type->name . ") not enabled for ASP (" . $activity->asp->asp_code . ")",
+					],
+				]);
 			}
+			$range_limit = $aspServiceType->range_limit;
+			$waiting_charge_per_hour = $aspServiceType->waiting_charge_per_hour;
 
 			//VEHICLE PICKUP ATTACHMENT
 			if (isset($request->vehicle_pickup_attachment) && $request->hasFile("vehicle_pickup_attachment")) {
@@ -3663,7 +3778,7 @@ class ActivityController extends Controller {
 				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $activity->id, 'key_id' => $key_id, 'company_id' => 1], ['value' => $value]);
 			}
 
-			$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id);
+			$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id, $activity->case);
 			if (!$response['success']) {
 				return response()->json([
 					'success' => false,
@@ -3890,6 +4005,12 @@ class ActivityController extends Controller {
 	public function activityDeferredGetFormData($id = NULL) {
 		$for_deffer_activity = 1;
 		$this->data = Activity::getFormData($id, $for_deffer_activity);
+		if (!$this->data['success']) {
+			return response()->json([
+				'success' => false,
+				'error' => $this->data['error'],
+			]);
+		}
 		$this->data['case'] = $this->data['activity']->case;
 		if (date('Y-m-d') >= "2022-04-01") {
 			$towingAttachmentsMandatoryLabel = '';
@@ -5526,10 +5647,29 @@ class ActivityController extends Controller {
 			}
 
 			foreach ($activities as $key => $activity) {
+
+				if (!$activity->case->vehicleModel) {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'Vehicle model is required. Case Number: ' . $activity->case->number,
+						],
+					]);
+				}
+
+				if (!$activity->case->vehicleModel->vehiclecategory) {
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							'Vehicle category not mapped for the vehicle model. Case Number: ' . $activity->case->number,
+						],
+					]);
+				}
+
 				//MECHANICAL SERVICE GROUP
 				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
 					$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
-					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->vehicleModel->vehiclecategory->id);
 					if ($is_bulk) {
 						//ASP Completed Data Entry - Waiting for BO Bulk Verification
 						$status_id = 5;

@@ -17,7 +17,7 @@ app.component('activityVerificationList', {
             $(".for-above40").hide();
 
             var cols1 = [
-                { data: 'action', searchable: false },
+                // { data: 'action', searchable: false },
                 { data: 'case_date', searchable: false },
                 { data: 'number', name: 'cases.number', searchable: true },
                 { data: 'vehicle_registration_number', name: 'cases.vehicle_registration_number', searchable: true },
@@ -45,7 +45,7 @@ app.component('activityVerificationList', {
                     ordering: true,
                     "columnDefs": [{
                         "orderable": false,
-                        "targets": [0, 5, 6, 12]
+                        "targets": [4, 5, 11]
                     }],
                     processing: true,
                     serverSide: true,
@@ -300,7 +300,6 @@ app.component('activityVerificationList', {
                 }
             });
 
-
             $(".for-empty-return").hide();
             $(".below40-tab").click(function() {
                 $(".for-below40").show();
@@ -369,7 +368,13 @@ app.component('activityVerificationView', {
             self.data.style_checked_image_url = style_checked_image_url;
             self.data.verification = 1;
             self.data.page_title = "Approval";
-
+            if (self.data.verification == 1 && (self.data.activityApprovalLevel == 1 || self.data.activityApprovalLevel == 3)) {
+                $('.waiting_time_entry').show();
+                $('.bo_waiting_time').datetimepicker({
+                    format: 'HH:mm',
+                    ignoreReadonly: true
+                });
+            }
             $rootScope.loading = false;
             self.data.cc_net_amount = self.data.cc_po_amount - self.data.bo_not_collected;
             $scope.differ = function() {

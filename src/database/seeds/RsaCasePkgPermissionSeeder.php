@@ -261,6 +261,50 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'ASP New Activities',
 			],
 
+			//ASP ACTIVITY SEARCH
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'asp-activity-search',
+				'display_name' => 'ASP Activity Search',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'asp-activity-search',
+				'name' => 'all-asp-activity-search',
+				'display_name' => 'View All',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'asp-activity-search',
+				'name' => 'mapped-state-asp-activity-search',
+				'display_name' => 'Only Mapped States',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'asp-activity-search',
+				'name' => 'own-asp-activity-search',
+				'display_name' => 'View Only Own',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'asp-activity-search',
+				'name' => 'own-rm-asp-activity-search',
+				'display_name' => 'Own RM ASPs',
+			],
+			[
+				'display_order' => 5,
+				'parent' => 'asp-activity-search',
+				'name' => 'own-zm-asp-activity-search',
+				'display_name' => 'Own ZM ASPs',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-activity-search',
+				'name' => 'own-nm-asp-activity-search',
+				'display_name' => 'Own NM ASPs',
+			],
+
 			//ASP DEFERRED ACTIVITIES
 			[
 				'display_order' => 99,
@@ -688,6 +732,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'parent' => 'membership',
 				'name' => 'update-membership',
 				'display_name' => 'Update',
+			],
+			[
+				'display_order' => 28,
+				'parent' => 'membership',
+				'name' => 'import-dealer-membership',
+				'display_name' => 'Dealer Import',
 			],
 
 			//Dealer Invoice Menu
@@ -1215,10 +1265,16 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Download Normal Invoice',
 			],
 			[
-				'display_order' => 2,
+				'display_order' => 3,
 				'parent' => 'cash-sale',
 				'name' => 'cancel-cash-sale-einvoice',
 				'display_name' => 'Cancel E-Invoice',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'cash-sale',
+				'name' => 'create-cash-sale-credit-note',
+				'display_name' => 'Create Credit Note',
 			],
 
 			//DIRECT SALE FTP
@@ -1551,6 +1607,20 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'parent' => 'tds-log',
 				'name' => 'delete-tds-log',
 				'display_name' => 'Delete',
+			],
+
+			//ACTIVITY WHATSAPP LOGS
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'activity-whatsapp-log',
+				'display_name' => 'Activity WhatsApp Log',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'activity-whatsapp-log',
+				'name' => 'export-activity-whatsapp-log',
+				'display_name' => 'Export',
 			],
 		];
 		Permission::createFromArrays($permissions);

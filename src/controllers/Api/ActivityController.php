@@ -878,6 +878,9 @@ class ActivityController extends Controller {
 			//SAVE REJECT ACTIVITY API LOG
 			saveApiLog(104, NULL, $request->all(), $errors, NULL, 120);
 
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
+
 			DB::commit();
 			return response()->json([
 				'success' => true,
@@ -1461,6 +1464,9 @@ class ActivityController extends Controller {
 			}
 			$activity->towing_attachments_uploaded_on_whatsapp = 1; //UPLOADED
 			$activity->save();
+
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
 
 			DB::commit();
 			return response()->json([

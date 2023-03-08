@@ -633,20 +633,46 @@ class ActivityController extends Controller {
 				if ($breakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 					// ROS SERVICE
 					if ($service_type->service_group_id != 3) {
-						$autoApprovalProcessResponse = $activity->autoApprovalProcess();
-						if (!$autoApprovalProcessResponse['success']) {
-							//SAVE ACTIVITY API LOG
-							DB::rollBack();
-							$errors[] = $autoApprovalProcessResponse['error'];
-							saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
-							return response()->json([
-								'success' => false,
-								'error' => 'Validation Error',
-								'errors' => [
-									$autoApprovalProcessResponse['error'],
-								],
-							], $this->successStatus);
+
+						$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
+
+						if (!$disableWhatsappAutoApproval) {
+							$autoApprovalProcessResponse = $activity->autoApprovalProcess();
+							if (!$autoApprovalProcessResponse['success']) {
+								//SAVE ACTIVITY API LOG
+								DB::rollBack();
+								$errors[] = $autoApprovalProcessResponse['error'];
+								saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+								return response()->json([
+									'success' => false,
+									'error' => 'Validation Error',
+									'errors' => [
+										$autoApprovalProcessResponse['error'],
+									],
+								], $this->successStatus);
+							}
+						} else {
+							//MECHANICAL SERVICE GROUP
+							if ($service_type->service_group_id == 2) {
+								$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id);
+								if ($is_bulk) {
+									//ASP Completed Data Entry - Waiting for L1 Bulk Verification
+									$statusId = 5;
+								} else {
+									//ASP Completed Data Entry - Waiting for L1 Individual Verification
+									$statusId = 6;
+								}
+							} else {
+								if ($asp->is_corporate == 1 || $activity->is_asp_data_entry_done == 1) {
+									$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+								} else {
+									$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+								}
+							}
+							$activity->status_id = $statusId;
+							$activity->save();
 						}
+
 					} else {
 						// TOW SERVICE
 						if ($asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {

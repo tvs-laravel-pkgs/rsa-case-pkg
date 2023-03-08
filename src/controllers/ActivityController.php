@@ -5743,23 +5743,45 @@ class ActivityController extends Controller {
 
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
 			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);
+			$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
 
 			//WHATSAPP FLOW
 			if ($breakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 				// ROS SERVICE
 				if ($activity->serviceType && $activity->serviceType->service_group_id != 3) {
-					$autoApprovalProcessResponse = $activity->autoApprovalProcess();
-					if (!$autoApprovalProcessResponse['success']) {
-						//SAVE CASE API LOG
-						DB::rollBack();
-						return response()->json([
-							'success' => false,
-							'errors' => [
-								$autoApprovalProcessResponse['error'],
-							],
-						]);
+
+					if (!$disableWhatsappAutoApproval) {
+						$autoApprovalProcessResponse = $activity->autoApprovalProcess();
+						if (!$autoApprovalProcessResponse['success']) {
+							//SAVE CASE API LOG
+							DB::rollBack();
+							return response()->json([
+								'success' => false,
+								'errors' => [
+									$autoApprovalProcessResponse['error'],
+								],
+							]);
+						}
+						$statusId = 25; // Waiting for Charges Acceptance by ASP
+					} else {
+						//MECHANICAL SERVICE GROUP
+						if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
+							$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
+							$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+							if ($is_bulk) {
+								$statusId = 5; //ASP Completed Data Entry - Waiting for L1 Bulk Verification
+							} else {
+								$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+							}
+						} else {
+							if (($activity->asp && $activity->asp->is_corporate == 1) || $activity->is_asp_data_entry_done == 1) {
+								$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+							} else {
+								$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+							}
+						}
 					}
-					$statusId = 25; // Waiting for Charges Acceptance by ASP
+
 				} else {
 					// TOW SERVICE
 					if ($activity->asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
@@ -5788,6 +5810,7 @@ class ActivityController extends Controller {
 					}
 				}
 			}
+
 			$activity->update([
 				'status_id' => $statusId,
 				'onhold_released_by_id' => Auth::user()->id,

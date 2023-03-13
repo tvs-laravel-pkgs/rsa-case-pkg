@@ -37,6 +37,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use URL;
 use Validator;
+use App\AspAmendmentServiceType;
 
 class Activity extends Model {
 	use SeederTrait;
@@ -376,25 +377,8 @@ class Activity extends Model {
 			$isMobile = 1;
 		}
 
-		$aspServiceTypeRateCard = AspServiceType::select([
-			'range_limit',
-			'below_range_price',
-			'above_range_price',
-			'waiting_charge_per_hour',
-			'empty_return_range_price',
-			'adjustment_type',
-			'adjustment',
-			'below_range_price_margin',
-			'above_range_price_margin',
-			'fleet_count',
-			'is_mobile',
-		])
-			->where('asp_id', $this->asp->id)
-			->where('service_type_id', $this->serviceType->id)
-			->where('is_mobile', $isMobile)
-			->first();
-
-		if (!$aspServiceTypeRateCard) {
+		$aspServiceTypeRateCard = self::getActivityServiceRateCard($isMobile);
+		if (!$aspServiceTypeRateCard) { 
 			return [
 				'success' => false,
 				'error' => 'Service (' . $this->serviceType->name . ') not enabled for ASP (' . $this->asp->asp_code . ')',
@@ -2599,6 +2583,57 @@ class Activity extends Model {
 
 		//SEND WHATSAPP SMS
 		sendWhatsappSMS($this->id, 1200, $inputRequests);
+	}
+
+	public function getActivityServiceRateCard($isMobile) {
+
+		// find out the any updated the rate cards
+		$updated_rate_card = AspAmendmentServiceType::select([
+									'range_limit',
+									'below_range_price',
+									'above_range_price',
+									'waiting_charge_per_hour',
+									'empty_return_range_price',
+									'fleet_count',
+									'is_mobile',
+									'effective_from',
+								])
+								->join('asp_amendments' , 'asp_amendments.id' , 'asp_amendment_service_types.amendment_id')
+								->where('asp_id', $this->asp->id)
+								->where('effective_from', '<=', date('Y-m-d', strtotime($this->case->date)))
+								->where('service_type_id', $this->serviceType->id)
+								->where('is_mobile', $isMobile)
+								// ->where('asp_amendments.status_id' , 1307)
+								->orderBy('asp_amendment_service_types.id','desc');
+ 		$updated_rate_card_count = count ($updated_rate_card->get());
+		if( $updated_rate_card_count > 0 ) {
+			$aspServiceTypeRateCard = $updated_rate_card->first();
+			$aspServiceTypeRateCard->adjustment_type = "";
+			$aspServiceTypeRateCard->adjustment = "";
+			$aspServiceTypeRateCard->below_range_price_margin = "";
+			$aspServiceTypeRateCard->above_range_price_margin = ""; 
+
+		} else { 
+			//existing ASP services
+			$aspServiceTypeRateCard = AspServiceType::select([ 
+				'range_limit',
+				'below_range_price',
+				'above_range_price',
+				'waiting_charge_per_hour',
+				'empty_return_range_price',
+				'adjustment_type',
+				'adjustment',
+				'below_range_price_margin',
+				'above_range_price_margin',
+				'fleet_count',
+				'is_mobile',
+			])
+				->where('asp_id', $this->asp->id)
+				->where('service_type_id', $this->serviceType->id)
+				->where('is_mobile', $isMobile)
+				->first();
+		}
+		return $aspServiceTypeRateCard;
 	}
 
 }

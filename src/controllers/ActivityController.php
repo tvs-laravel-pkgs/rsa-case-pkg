@@ -352,6 +352,9 @@ class ActivityController extends Controller {
 		$deleteActivityQuery = clone $deleteActivityBaseQuery;
 		$deleteActivityQuery->delete();
 
+		//SAVE ACTIVITY REPORT FOR DASHBOARD
+		ActivityReport::saveReport($id);
+
 		return response()->json(['success' => true]);
 	}
 
@@ -4437,6 +4440,9 @@ class ActivityController extends Controller {
 				'submission_closing_date' => date('Y-m-d H:i:s', strtotime($r->closing_date)),
 				'submission_closing_date_remarks' => $r->remarks,
 			]);
+
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
 
 			DB::commit();
 			return response()->json([

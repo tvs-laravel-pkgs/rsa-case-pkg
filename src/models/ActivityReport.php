@@ -31,14 +31,14 @@ class ActivityReport extends Model {
 
 	public static function saveReport($activityId = '') {
 		if (!empty($activityId)) {
-			$activity = Activity::select([
+			$activity = Activity::withTrashed()->select([
 				'activities.*',
 				DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y %H:%i:%s") as case_date'),
 			])
 				->join('cases', 'cases.id', 'activities.case_id')
 				->find($activityId);
 			if ($activity) {
-				$activityReport = self::firstOrNew([
+				$activityReport = self::withTrashed()->firstOrNew([
 					'activity_id' => $activity->id,
 				]);
 				//NEW
@@ -456,6 +456,8 @@ class ActivityReport extends Model {
 
 				$activityReport->created_year = date('Y', strtotime($activity->created_at));
 				$activityReport->created_date = date('Y-m-d', strtotime($activity->created_at));
+				$activityReport->deleted_by_id = $activity->deleted_by_id;
+				$activityReport->deleted_at = $activity->deleted_at;
 				$activityReport->save();
 			}
 		}

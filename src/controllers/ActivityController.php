@@ -273,6 +273,9 @@ class ActivityController extends Controller {
 				$activity->updated_by_id = Auth::user()->id;
 				$activity->save();
 
+				//SAVE ACTIVITY REPORT FOR DASHBOARD
+				ActivityReport::saveReport($activity->id);
+
 				if ($activity) {
 					//log message
 					$log_status = config('rsa.LOG_STATUES_TEMPLATES.ADMIN_TICKET_BACK_ASP');
@@ -304,6 +307,9 @@ class ActivityController extends Controller {
 				$activity->updated_at = Carbon::now();
 				$activity->updated_by_id = Auth::user()->id;
 				$activity->save();
+
+				//SAVE ACTIVITY REPORT FOR DASHBOARD
+				ActivityReport::saveReport($activity->id);
 
 				if ($activity) {
 					//log message
@@ -2094,6 +2100,9 @@ class ActivityController extends Controller {
 			$activityLog->updated_at = Carbon::now();
 			$activityLog->save();
 
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
+
 			DB::commit();
 			return response()->json([
 				'success' => true,
@@ -2549,6 +2558,9 @@ class ActivityController extends Controller {
 					$activityLog->updated_at = Carbon::now();
 					$activityLog->save();
 
+					//SAVE ACTIVITY REPORT FOR DASHBOARD
+					ActivityReport::saveReport($activity->id);
+
 				} else {
 					return response()->json([
 						'success' => false,
@@ -2712,6 +2724,9 @@ class ActivityController extends Controller {
 			$activityLog->updated_at = Carbon::now();
 			$activityLog->save();
 
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
+
 			//Saving log record
 			if ($eligleForAspReEntry) {
 				$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_DEFERED_DONE');
@@ -2750,6 +2765,7 @@ class ActivityController extends Controller {
 			]);
 		}
 	}
+
 	public function verifyActivity(Request $request) {
 		//dd($request->all());
 		$number = str_replace(' ', '', $request->number);
@@ -3103,6 +3119,9 @@ class ActivityController extends Controller {
 				$activity->towing_attachments_mandatory_by_id = NULL;
 				$activity->save();
 			}
+
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
 
 			return response()->json([
 				'success' => true,
@@ -3762,6 +3781,9 @@ class ActivityController extends Controller {
 			$activity_log->asp_data_filled_by_id = Auth::id();
 			$activity_log->updated_by_id = Auth::id();
 			$activity_log->save();
+
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
 
 			if ($sendNoty) {
 				//sending confirmation SMS to ASP
@@ -4478,6 +4500,10 @@ class ActivityController extends Controller {
 			$activity->exceptional_reason = $exceptionalReason;
 			$activity->status_id = 15; //Not Eligible for Payout
 			$activity->save();
+
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
+
 			DB::commit();
 
 			return response()->json([
@@ -4523,6 +4549,10 @@ class ActivityController extends Controller {
 			$activity->is_towing_attachments_mandatory = $request->isTowingAttachmentsMandatory;
 			$activity->towing_attachments_mandatory_by_id = Auth::user()->id;
 			$activity->save();
+
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
+
 			DB::commit();
 			return response()->json([
 				'success' => true,

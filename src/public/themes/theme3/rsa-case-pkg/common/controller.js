@@ -273,12 +273,13 @@ app.component('billingDetails', {
     bindings: {
         data: '<',
     },
-    controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location) {
+    controller: function($http, HelperService, $scope, $rootScope, $routeParams, $location, $timeout) {
         $scope.loading = true;
         var self = this;
         //self.data = activity;
-        this.$onInit = function() {
-            setTimeout(function() {
+        $timeout(function() {
+            console.log(' =========== ');
+            this.$onInit = function() {
                 self.hasPermission = HelperService.hasPermission;
                 self.activity_back_asp_update_route = activity_back_asp_update;
                 self.backstepReason = '';
@@ -621,8 +622,8 @@ app.component('billingDetails', {
                 }
                 $scope.calculate();
                 $scope.$apply()
-            }, 3000);
-        };
+            };
+        }, 3000);
     }
 });
 //----------------------------------------------------------------------------------------------------------------------------

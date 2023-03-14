@@ -2113,9 +2113,10 @@ class ActivityController extends Controller {
 
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
 			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);
+			$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
 
-			// WHATSAPP FLOW (TOW SERVICE)
-			if ($breakdownAlertSent && $sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && ($activity->data_src_id == 260 || $activity->data_src_id == 261) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3 && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+			// WHATSAPP FLOW (TOW SERVICE || ROS SERVICE WITH DISABLE AUTO APPROVAL)
+			if ($breakdownAlertSent && $sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && ($activity->data_src_id == 260 || $activity->data_src_id == 261) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && ($activity->serviceType->service_group_id == 3 || ($activity->serviceType->service_group_id != 3 && $disableWhatsappAutoApproval)) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 
 				$activityStatusId = 25; // Waiting for Charges Acceptance by ASP
 
@@ -2312,6 +2313,7 @@ class ActivityController extends Controller {
 			$l3Approvers = User::where('activity_approval_level_id', 3)->pluck('id');
 			$l4Approvers = User::where('activity_approval_level_id', 4)->pluck('id');
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
+			$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
 
 			foreach ($activities as $key => $activity) {
 
@@ -2576,8 +2578,8 @@ class ActivityController extends Controller {
 
 					$activityBreakdownAlertSent = Activity::breakdownAlertSent($activity->id);
 
-					// WHATSAPP FLOW (TOW SERVICE)
-					if ($activityBreakdownAlertSent && $sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && ($activity->data_src_id == 260 || $activity->data_src_id == 261) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3 && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+					// WHATSAPP FLOW (TOW SERVICE || ROS SERVICE WITH DISABLE AUTO APPROVAL)
+					if ($activityBreakdownAlertSent && $sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && ($activity->data_src_id == 260 || $activity->data_src_id == 261) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && ($activity->serviceType->service_group_id == 3 || ($activity->serviceType->service_group_id != 3 && $disableWhatsappAutoApproval)) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 
 						$activityStatusId = 25; // Waiting for Charges Acceptance by ASP
 

@@ -3153,6 +3153,32 @@ class ActivityController extends Controller {
 			]);
 		}
 		$this->data['case_details'] = $this->data['activity']->case;
+
+		//CHECK IF TICKET DATE IS GREATER THAN 3 MONTHS OLDER ----------------------------------------------
+
+		$today = date('Y-m-d H:i:s');
+		$threeMonthsBefore = date('Y-m-d H:i:s', strtotime("-3 months", strtotime($today)));
+		$errorMessage = "Please contact administrator.";
+		if ($this->data['activity']->activityStatus) {
+			$errorMessage = "Please contact administrator. Activity status : " . $this->data['activity']->activityStatus->name;
+		}
+
+		if ($this->data['activity']->case && !empty($this->data['activity']->case->submission_closing_date)) {
+			if (Carbon::parse($this->data['activity']->case->submission_closing_date)->format('Y-m-d H:i:s') < $today) {
+				return response()->json([
+					'success' => false,
+					'error' => $errorMessage,
+				]);
+			}
+		} else {
+			if ($this->data['activity']->case && Carbon::parse($this->data['activity']->case->created_at)->format('Y-m-d H:i:s') < $threeMonthsBefore) {
+				return response()->json([
+					'success' => false,
+					'error' => $errorMessage,
+				]);
+			}
+		}
+
 		if (date('Y-m-d') >= "2022-04-01") {
 			$towingAttachmentsMandatoryLabel = '';
 		} elseif (date('Y-m-d') > "2022-02-01") {
@@ -5881,6 +5907,8 @@ class ActivityController extends Controller {
 			DB::raw('COALESCE(activity_statuses.name, "--") as activity_status'),
 			DB::raw('COALESCE(clients.name, "--") as client'),
 			DB::raw('COALESCE(call_centers.name, "--") as call_center'),
+			'cases.created_at as caseCreatedAt',
+			'cases.submission_closing_date as caseSubmissionClosingDate',
 		])
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('users', 'users.id', 'asps.user_id')
@@ -5952,7 +5980,19 @@ class ActivityController extends Controller {
 				if (Entrust::can('own-asp-activity-search')) {
 					//ASP Rejected CC Details - Waiting for ASP Data Entry || On Hold
 					if ($activity->status_id == 2 || $activity->status_id == 17) {
-						$url = '#!/rsa-case-pkg/new-activity/update-details/' . $activity->id;
+						$today = date('Y-m-d H:i:s');
+						$threeMonthsBefore = date('Y-m-d H:i:s', strtotime("-3 months", strtotime($today)));
+
+						//CASE WITH EXTENSION
+						if (!empty($activity->caseSubmissionClosingDate)) {
+							if (Carbon::parse($activity->caseSubmissionClosingDate)->format('Y-m-d H:i:s') >= $today) {
+								$url = '#!/rsa-case-pkg/new-activity/update-details/' . $activity->id;
+							}
+						} else {
+							if (Carbon::parse($activity->caseCreatedAt)->format('Y-m-d H:i:s') >= $threeMonthsBefore) {
+								$url = '#!/rsa-case-pkg/new-activity/update-details/' . $activity->id;
+							}
+						}
 					} elseif ($activity->status_id == 7) {
 						//BO Rejected - Waiting for ASP Data Re-Entry
 						$url = '#!/rsa-case-pkg/deferred-activity/update/' . $activity->id;

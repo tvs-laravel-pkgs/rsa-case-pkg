@@ -438,9 +438,10 @@ class Activity extends Model {
 		$ccTollCharges = ($this->detail(305) && !empty($this->detail(305)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(305)->value)) : 0;
 		$ccGreenTaxCharges = ($this->detail(306) && !empty($this->detail(306)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(306)->value)) : 0;
 		$ccBorderCharges = ($this->detail(307) && !empty($this->detail(307)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(307)->value)) : 0;
-		$ccOctroiCharges = ($this->detail(308) && !empty($this->detail(308)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(308)->value)) : 0;
+		// $ccOctroiCharges = ($this->detail(308) && !empty($this->detail(308)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(308)->value)) : 0;
 		$ccExcessCharges = ($this->detail(309) && !empty($this->detail(309)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(309)->value)) : 0;
 		$ccFuelCharges = ($this->detail(310) && !empty($this->detail(310)->value)) ? numberFormatToDecimalConversion(floatval($this->detail(310)->value)) : 0;
+		$cc_csr = ($this->detail(334) && !empty($this->detail(334)->value)) ? $this->detail(334)->value : 0;
 
 		// SAVE AGAINST ASP & BO ----------------------------------------------------
 
@@ -465,15 +466,16 @@ class Activity extends Model {
 		$ccBorderCharges = $this->saveActivityDetail(307, $ccBorderCharges);
 		$aspBorderCharges = $this->saveActivityDetail(316, $ccBorderCharges);
 		$boBorderCharges = $this->saveActivityDetail(325, $ccBorderCharges);
-		$ccOctroiCharges = $this->saveActivityDetail(308, $ccOctroiCharges);
-		$aspOctroiCharges = $this->saveActivityDetail(317, $ccOctroiCharges);
-		$boOctroiCharges = $this->saveActivityDetail(326, $ccOctroiCharges);
+		//$ccOctroiCharges = $this->saveActivityDetail(308, $ccOctroiCharges);
+		//$aspOctroiCharges = $this->saveActivityDetail(317, $ccOctroiCharges);
+		//$boOctroiCharges = $this->saveActivityDetail(326, $ccOctroiCharges);
 		$ccExcessCharges = $this->saveActivityDetail(309, $ccExcessCharges);
 		$aspExcessCharges = $this->saveActivityDetail(318, $ccExcessCharges);
 		$boExcessCharges = $this->saveActivityDetail(327, $ccExcessCharges);
 		$ccFuelCharges = $this->saveActivityDetail(310, $ccFuelCharges);
 		$aspFuelCharges = $this->saveActivityDetail(319, $ccFuelCharges);
 		$boFuelCharges = $this->saveActivityDetail(328, $ccFuelCharges);
+		$cc_csr = $this->saveActivityDetail(334, $cc_csr);
 	}
 
 	public function saveActivityDetail($keyId, $value) {
@@ -933,9 +935,10 @@ class Activity extends Model {
 						'toll_charges' => 'nullable|numeric',
 						'green_tax_charges' => 'nullable|numeric',
 						'border_charges' => 'nullable|numeric',
-						'octroi_charges' => 'nullable|numeric',
+						//'octroi_charges' => 'nullable|numeric',
 						'excess_charges' => 'nullable|numeric',
 						'manual_uploading_remarks' => 'required|string',
+						'csr' => 'nullable',
 					]);
 
 					if ($validator->fails()) {

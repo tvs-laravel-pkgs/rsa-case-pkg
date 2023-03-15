@@ -139,11 +139,12 @@ class ActivityController extends Controller {
 				'toll_charges' => 'nullable|numeric',
 				'green_tax_charges' => 'nullable|numeric',
 				'border_charges' => 'nullable|numeric',
-				'octroi_charges' => 'nullable|numeric',
+				//'octroi_charges' => 'nullable|numeric',
 				'excess_charges' => 'nullable|numeric',
 				'amount_collected_from_customer' => 'nullable|numeric',
 				'amount_refused_by_customer' => 'nullable|numeric',
 				'fuel_charges' => 'nullable|numeric',
+				'csr' => 'nullable',
 			]);
 
 			if ($validator->fails()) {

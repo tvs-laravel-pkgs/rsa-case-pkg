@@ -4602,13 +4602,13 @@ class ActivityController extends Controller {
 			$range1 = date("Y-m-d", strtotime($date[0]));
 			$range2 = date("Y-m-d", strtotime($date[1]));
 
-			$status_ids = trim($request->status_ids, '""');
-			$status_ids = explode(',', $status_ids);
+			$statusIds = trim($request->status_ids, '""');
+			$statusIds = explode(',', $statusIds);
 
 			$activityReports = ActivityReport::join('activities', 'activities.id', 'activity_reports.activity_id')
 				->join('cases', 'cases.id', 'activities.case_id')
 				->join('asps', 'asps.id', 'activities.asp_id')
-				->whereIn('activities.status_id', $status_ids);
+				->whereIn('activities.status_id', $statusIds);
 
 			if ($request->filter_by == 'general') {
 				$activityReports->where(function ($q) use ($range1, $range2) {
@@ -4683,7 +4683,7 @@ class ActivityController extends Controller {
 				DB::raw('COALESCE(activity_reports.asp_name, "--") as aspName'),
 				DB::raw('COALESCE(activity_reports.axapta_code, "--") as axaptaCode'),
 				DB::raw('COALESCE(activity_reports.asp_code, "--") as aspCode'),
-				DB::raw('COALESCE(activity_reports.asp_contact_number, "--") as aspContactNumber'),
+				'activity_reports.asp_contact_number as aspContactNumber',
 				DB::raw('COALESCE(activity_reports.asp_email, "--") as aspEmail'),
 				DB::raw('COALESCE(activity_reports.asp_has_gst, "--") as aspHasGst'),
 				DB::raw('COALESCE(activity_reports.asp_type, "--") as aspType'),
@@ -4919,17 +4919,17 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$selected_statuses = $status_ids;
-			$summary_period = ['Period', date('d/M/Y', strtotime($range1)) . ' to ' . date('d/M/Y', strtotime($range2))];
+			$selected_statuses = $statusIds;
+			$summaryPeriod = ['Period', date('d/M/Y', strtotime($range1)) . ' to ' . date('d/M/Y', strtotime($range2))];
 			$summary[] = ['Status', 'Count'];
 
-			if (!empty($status_ids)) {
+			if (!empty($statusIds)) {
 				$activityPortalStatuses = ActivityPortalStatus::select([
 					'id',
 					'name',
 				])
 					->get();
-				foreach ($status_ids as $key => $status_id) {
+				foreach ($statusIds as $key => $status_id) {
 					$activityPortalStatus = $activityPortalStatuses->where('id', $status_id)->first();
 					if ($activityPortalStatus) {
 						$activitiesSummaryCountQuery = ActivityReport::select([
@@ -5321,301 +5321,194 @@ class ActivityController extends Controller {
 			$activityReportDetails = [];
 			foreach ($activityReports as $activityReportKey => $activityReportVal) {
 
-				if (Entrust::can('display-asp-number-in-activities')) {
-					$aspContactNumber = $activityReportVal->asp_contact_number;
+				if (!empty($activityReportVal->aspContactNumber)) {
+					if (Entrust::can('display-asp-number-in-activities')) {
+						$aspContactNumber = $activityReportVal->aspContactNumber;
+					} else {
+						$aspContactNumber = maskPhoneNumber($activityReportVal->aspContactNumber);
+					}
 				} else {
-					$aspContactNumber = maskPhoneNumber($activityReportVal->asp_contact_number);
+					$aspContactNumber = "--";
 				}
 
 				if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities')) {
 					$activityReportDetails[] = [
-						$activity->id,
-						$activity->case_number,
-						$activity->case_date,
-						$activity->crm_activity_id,
-						$activity->number,
-						$activity->activity_created_at,
-						$activity->client_name,
-						$activity->asp_name,
-						$activity->asp_axpta_code,
-						$activity->asp_code,
+						$activityReportVal->activityId,
+						$activityReportVal->caseNumber,
+						$activityReportVal->caseDate,
+						$activityReportVal->crmActivityId,
+						$activityReportVal->activityNumber,
+						$activityReportVal->activityCreatedDate,
+						$activityReportVal->client,
+						$activityReportVal->aspName,
+						$activityReportVal->axaptaCode,
+						$activityReportVal->aspCode,
 						$aspContactNumber,
-						$activity->asp_email,
-						$activity->asp_has_gst,
-						$activity->asp_workshop_name,
-						$activity->asp_rm_name,
-						$activity->asp_location_name,
-						$activity->asp_district_name,
-						$activity->asp_state_name,
-						$activity->case_vehicle_registration_number,
-						$activity->case_membership_type,
-						$activity->vehicle_model,
-						$activity->vehicle_make,
-						$activity->case_status,
-						$activity->activity_finance_status,
-						$activity->service_type,
-						$activity->activity_portal_status,
-						$activity->activity_status,
-						!empty($activity->remarks) ? strip_tags($activity->remarks) : '',
-						!empty($activity->general_remarks) ? strip_tags($activity->general_remarks) : '',
-						!empty($activity->bo_comments) ? $activity->bo_comments : '',
-						!empty($activity->deduction_reason) ? $activity->deduction_reason : '',
-						!empty($activity->defer_reason) ? strip_tags($activity->defer_reason) : '',
-						!empty($activity->asp_resolve_comments) ? strip_tags($activity->asp_resolve_comments) : '',
-						$activity->invoice_no,
-						$invoiceCreatedAt,
-						$activity->invoice_status,
-						$activity->transactionDate,
-						$activity->voucher,
-						$activity->tdsAmount,
-						$activity->paidAmount,
-						!empty($activity->bd_lat) ? $activity->bd_lat : '',
-						!empty($activity->bd_long) ? $activity->bd_long : '',
-						!empty($activity->bd_location) ? $activity->bd_location : '',
-						!empty($activity->bd_city) ? $activity->bd_city : '',
-						!empty($activity->bd_state) ? $activity->bd_state : '',
+						$activityReportVal->aspEmail,
+						$activityReportVal->aspHasGst,
+						$activityReportVal->workshopName,
+						$activityReportVal->rmName,
+						$activityReportVal->location,
+						$activityReportVal->district,
+						$activityReportVal->state,
+						$activityReportVal->vehicleRegistrationNumber,
+						$activityReportVal->membershipType,
+						$activityReportVal->vehicleModel,
+						$activityReportVal->vehicleMake,
+						$activityReportVal->caseStatus,
+						$activityReportVal->financeStatus,
+						$activityReportVal->finalApprovedBoServiceType,
+						$activityReportVal->portalStatus,
+						$activityReportVal->activityStatus,
+						$activityReportVal->remarks,
+						$activityReportVal->generalRemarks,
+						$activityReportVal->boComments,
+						$activityReportVal->deductionReason,
+						$activityReportVal->deferReason,
+						$activityReportVal->aspResolveComments,
+						$activityReportVal->invoiceNumber,
+						$activityReportVal->invoiceDate,
+						$activityReportVal->invoiceStatus,
+						$activityReportVal->transactionDate,
+						$activityReportVal->voucher,
+						$activityReportVal->tdsAmount,
+						$activityReportVal->paidAmount,
+						$activityReportVal->bdLat,
+						$activityReportVal->bdLong,
+						$activityReportVal->bdLocation,
+						$activityReportVal->bdCity,
+						$activityReportVal->bdState,
 					];
 				} else {
 					$activityReportDetails[] = [
-						$activity->id,
-						$activity->case_number,
-						$activity->case_date,
-						$submission_closing_date,
-						$activity->case_submission_closing_date_remarks,
-						$activity->crm_activity_id,
-						$activity->number,
-						$activity->activity_created_at,
-						$activity->client_name,
-						$activity->case_customer_name,
-						$activity->case_customer_contact_number,
-						$activity->asp_name,
-						$activity->asp_axpta_code,
-						$activity->asp_code,
+						$activityReportVal->activityId,
+						$activityReportVal->caseNumber,
+						$activityReportVal->caseDate,
+						$activityReportVal->caseSubmissionClosingDate,
+						$activityReportVal->caseSubmissionClosingDateRemarks,
+						$activityReportVal->crmActivityId,
+						$activityReportVal->activityNumber,
+						$activityReportVal->activityCreatedDate,
+						$activityReportVal->client,
+						$activityReportVal->customerName,
+						$activityReportVal->customerContactNumber,
+						$activityReportVal->aspName,
+						$activityReportVal->axaptaCode,
+						$activityReportVal->aspCode,
 						$aspContactNumber,
-						$activity->asp_email,
-						$activity->asp_has_gst,
-						$activity->asp_is_self,
-						$activity->asp_is_auto_invoice,
-						$activity->asp_workshop_name,
-						!empty($activity->asp_workshop_type) ? array_flip($constants['workshop_types'])[$activity->asp_workshop_type] : '',
-						$activity->asp_rm_name,
-						$activity->asp_location_name,
-						$activity->asp_district_name,
-						$activity->asp_state_name,
-						$activity->case_vehicle_registration_number,
-						$activity->case_membership_type,
-						$activity->vehicle_model,
-						$activity->vehicle_make,
-						$activity->case_status,
-						$activity->activity_finance_status,
-						$activity->service_type,
-						$activity->asp_activity_rejected_reason,
-						$activity->asp_po_accepted != NULL ? ($activity->asp_po_accepted == 1 ? 'Yes' : 'No') : '',
-						!empty($activity->asp_po_rejected_reason) ? $activity->asp_po_rejected_reason : '',
-						$activity->activity_portal_status,
-						$activity->activity_status,
-						!empty($activity->description) ? $activity->description : '',
-						$activity->is_towing_attachments_mandatory,
-						$activity->towingAttachmentMandatoryBy ? $activity->towingAttachmentMandatoryBy->name : '',
-						!empty($activity->remarks) ? strip_tags($activity->remarks) : '',
-						!empty($activity->manual_uploading_remarks) ? $activity->manual_uploading_remarks : '',
-						!empty($activity->general_remarks) ? strip_tags($activity->general_remarks) : '',
-						!empty($activity->bo_comments) ? $activity->bo_comments : '',
-						!empty($activity->deduction_reason) ? $activity->deduction_reason : '',
-						!empty($activity->defer_reason) ? strip_tags($activity->defer_reason) : '',
-						!empty($activity->asp_resolve_comments) ? strip_tags($activity->asp_resolve_comments) : '',
-						$activity->is_exceptional_check,
-						!empty($activity->exceptional_reason) ? strip_tags($activity->exceptional_reason) : '',
-						// $activity->invoice ? ($activity->asp->has_gst == 1 && $activity->asp->is_auto_invoice == 0 ? ($activity->invoice->invoice_no) : ($activity->invoice->invoice_no . '-' . $activity->invoice->id)) : '',
-						$activity->invoice_no,
-						$invoiceCreatedAt,
-						!empty($activity->invoice_amount) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice_amount, 2))) : '',
-						$activity->invoice_status,
-						$activity->transactionDate,
-						$activity->voucher,
-						$activity->tdsAmount,
-						$activity->paidAmount,
-						!empty($activity->bd_lat) ? $activity->bd_lat : '',
-						!empty($activity->bd_long) ? $activity->bd_long : '',
-						!empty($activity->bd_location) ? $activity->bd_location : '',
-						!empty($activity->bd_city) ? $activity->bd_city : '',
-						!empty($activity->bd_state) ? $activity->bd_state : '',
-						$activity->location_type,
-						$activity->location_category,
+						$activityReportVal->aspEmail,
+						$activityReportVal->aspHasGst,
+						$activityReportVal->aspType,
+						$activityReportVal->autoInvoice,
+						$activityReportVal->workshopName,
+						$activityReportVal->workshopType,
+						$activityReportVal->rmName,
+						$activityReportVal->location,
+						$activityReportVal->district,
+						$activityReportVal->state,
+						$activityReportVal->vehicleRegistrationNumber,
+						$activityReportVal->membershipType,
+						$activityReportVal->vehicleModel,
+						$activityReportVal->vehicleMake,
+						$activityReportVal->caseStatus,
+						$activityReportVal->financeStatus,
+						$activityReportVal->finalApprovedBoServiceType,
+						$activityReportVal->aspActivityRejectedReason,
+						$activityReportVal->aspPoAccepted,
+						$activityReportVal->aspPoRejectedReason,
+						$activityReportVal->portalStatus,
+						$activityReportVal->activityStatus,
+						$activityReportVal->activityDescription,
+						$activityReportVal->isTowingAttachmentMandatory,
+						$activityReportVal->towingAttachmentMandatoryBy,
+						$activityReportVal->remarks,
+						$activityReportVal->manualUploadingRemarks,
+						$activityReportVal->generalRemarks,
+						$activityReportVal->boComments,
+						$activityReportVal->deductionReason,
+						$activityReportVal->deferReason,
+						$activityReportVal->aspResolveComments,
+						$activityReportVal->isExceptional,
+						$activityReportVal->exceptionalReason,
+						$activityReportVal->invoiceNumber,
+						$activityReportVal->invoiceDate,
+						$activityReportVal->invoiceAmount,
+						$activityReportVal->invoiceStatus,
+						$activityReportVal->transactionDate,
+						$activityReportVal->voucher,
+						$activityReportVal->tdsAmount,
+						$activityReportVal->paidAmount,
+						$activityReportVal->bdLat,
+						$activityReportVal->bdLong,
+						$activityReportVal->bdLocation,
+						$activityReportVal->bdCity,
+						$activityReportVal->bdState,
+						$activityReportVal->locationType,
+						$activityReportVal->locationCategory,
 					];
 				}
 
 				if (!Entrust::can('export-own-activities') && !Entrust::can('export-own-rm-asp-activities') && !Entrust::can('export-own-zm-asp-activities')) {
-					$total_days = 0;
-					$activity_log = ActivityLog::where('activity_id', $activity->id)->first();
-					if ($activity_log) {
-						$activityReportDetails[$activity_key][] = $activity_log->imported_at ? date('d-m-Y H:i:s', strtotime($activity_log->imported_at)) : '';
-						$activityReportDetails[$activity_key][] = $activity_log->importedBy ? $activity_log->importedBy->username : '';
 
-						// 'Duration Between Import and ASP Data Filled'
-						$tot = ($activity_log->imported_at && $activity_log->asp_data_filled_at) ? $this->findDifference($activity_log->imported_at, $activity_log->asp_data_filled_at) : '';
-						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-						$activityReportDetails[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-
-						$activityReportDetails[$activity_key][] = $activity_log->asp_data_filled_at ? date('d-m-Y H:i:s', strtotime($activity_log->asp_data_filled_at)) : '';
-						$activityReportDetails[$activity_key][] = $activity_log->aspDataFilledBy ? $activity_log->aspDataFilledBy->username : '';
-
-						// 'Duration Between ASP Data Filled and L1 deffered'
-						$tot = ($activity_log->asp_data_filled_at && $activity_log->bo_deffered_at) ? $this->findDifference($activity_log->asp_data_filled_at, $activity_log->bo_deffered_at) : '';
-						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-						$activityReportDetails[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-
-						$activityReportDetails[$activity_key][] = $activity_log->bo_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_deffered_at)) : '';
-						$activityReportDetails[$activity_key][] = $activity_log->boDefferedBy ? $activity_log->boDefferedBy->username : '';
-
-						// 'Duration Between ASP Data Filled and L1 approved'
-						$tot = ($activity_log->asp_data_filled_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->asp_data_filled_at, $activity_log->bo_approved_at) : '';
-						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-						$activityReportDetails[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-
-						$activityReportDetails[$activity_key][] = $activity_log->bo_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_approved_at)) : '';
-						$activityReportDetails[$activity_key][] = $activity_log->boApprovedBy ? $activity_log->boApprovedBy->username : '';
-
-						// 'Duration Between L1 approved and Invoice generated'
-						$tot = ($activity_log->invoice_generated_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->bo_approved_at) : '';
-						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-						$activityReportDetails[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-
-						// 'Duration Between L1 approved and L2 deffered'
-						$tot = ($activity_log->l2_deffered_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->l2_deffered_at, $activity_log->bo_approved_at) : '';
-						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-						$activityReportDetails[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-						$activityReportDetails[$activity_key][] = $activity_log->l2_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->l2_deffered_at)) : '';
-						$activityReportDetails[$activity_key][] = $activity_log->l2DefferedBy ? $activity_log->l2DefferedBy->username : '';
-
-						// 'Duration Between L1 approved and L2 approved'
-						$tot = ($activity_log->l2_approved_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->l2_approved_at, $activity_log->bo_approved_at) : '';
-						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-						$activityReportDetails[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-
-						$activityReportDetails[$activity_key][] = $activity_log->l2_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->l2_approved_at)) : '';
-						$activityReportDetails[$activity_key][] = $activity_log->l2ApprovedBy ? $activity_log->l2ApprovedBy->username : '';
-
-						// 'Duration Between L2 approved and Invoice generated'
-						$tot = ($activity_log->invoice_generated_at && $activity_log->l2_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->l2_approved_at) : '';
-						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-						$activityReportDetails[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-
-						// 'Duration Between L1 approved and L3 deffered'
-						$tot = ($activity_log->l3_deffered_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->l3_deffered_at, $activity_log->bo_approved_at) : '';
-						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-						$activityReportDetails[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-
-						// 'Duration Between L2 approved and L3 deffered'
-						$tot = ($activity_log->l3_deffered_at && $activity_log->l2_approved_at) ? $this->findDifference($activity_log->l3_deffered_at, $activity_log->l2_approved_at) : '';
-						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-						$activityReportDetails[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-
-						$activityReportDetails[$activity_key][] = $activity_log->l3_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->l3_deffered_at)) : '';
-						$activityReportDetails[$activity_key][] = $activity_log->l3DefferedBy ? $activity_log->l3DefferedBy->username : '';
-
-						// 'Duration Between L2 approved and L3 approved'
-						$tot = ($activity_log->l3_approved_at && $activity_log->l2_approved_at) ? $this->findDifference($activity_log->l3_approved_at, $activity_log->l2_approved_at) : '';
-						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-						$activityReportDetails[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-
-						$activityReportDetails[$activity_key][] = $activity_log->l3_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->l3_approved_at)) : '';
-						$activityReportDetails[$activity_key][] = $activity_log->l3ApprovedBy ? $activity_log->l3ApprovedBy->username : '';
-
-						// 'Duration Between L3 approved and Invoice generated'
-						$tot = ($activity_log->invoice_generated_at && $activity_log->l3_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->l3_approved_at) : '';
-						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-						$activityReportDetails[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-
-						// 'Duration Between L1 approved and L4 deffered'
-						$tot = ($activity_log->l4_deffered_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->l4_deffered_at, $activity_log->bo_approved_at) : '';
-						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-						$activityReportDetails[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-
-						// 'Duration Between L2 approved and L4 deffered'
-						$tot = ($activity_log->l4_deffered_at && $activity_log->l2_approved_at) ? $this->findDifference($activity_log->l4_deffered_at, $activity_log->l2_approved_at) : '';
-						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-						$activityReportDetails[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-
-						// 'Duration Between L3 approved and L4 deffered'
-						$tot = ($activity_log->l4_deffered_at && $activity_log->l3_approved_at) ? $this->findDifference($activity_log->l4_deffered_at, $activity_log->l3_approved_at) : '';
-						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-						$activityReportDetails[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-
-						$activityReportDetails[$activity_key][] = $activity_log->l4_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->l4_deffered_at)) : '';
-						$activityReportDetails[$activity_key][] = $activity_log->l4DefferedBy ? $activity_log->l4DefferedBy->username : '';
-
-						// 'Duration Between L3 approved and L4 approved'
-						$tot = ($activity_log->l4_approved_at && $activity_log->l3_approved_at) ? $this->findDifference($activity_log->l4_approved_at, $activity_log->l3_approved_at) : '';
-						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-						$activityReportDetails[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-
-						$activityReportDetails[$activity_key][] = $activity_log->l4_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->l4_approved_at)) : '';
-						$activityReportDetails[$activity_key][] = $activity_log->l4ApprovedBy ? $activity_log->l4ApprovedBy->username : '';
-
-						// 'Duration Between L4 approved and Invoice generated'
-						$tot = ($activity_log->invoice_generated_at && $activity_log->l4_approved_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->l4_approved_at) : '';
-						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-						$activityReportDetails[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-
-						$activityReportDetails[$activity_key][] = $activity_log->invoice_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->invoice_generated_at)) : '';
-						$activityReportDetails[$activity_key][] = $activity_log->invoiceGeneratedBy ? $activity_log->invoiceGeneratedBy->username : '';
-
-						// 'Duration Between Invoice generated and Axapta Generated'
-						$tot = ($activity_log->invoice_generated_at && $activity_log->axapta_generated_at) ? $this->findDifference($activity_log->invoice_generated_at, $activity_log->axapta_generated_at) : '';
-						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-						$activityReportDetails[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-
-						$activityReportDetails[$activity_key][] = $activity_log->axapta_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->axapta_generated_at)) : '';
-						$activityReportDetails[$activity_key][] = $activity_log->axaptaGeneratedBy ? $activity_log->axaptaGeneratedBy->username : '';
-
-						// 'Duration Between Axapta Generated and Payment Completed'
-						$tot = ($activity_log->axapta_generated_at && $activity_log->payment_completed_at) ? $this->findDifference($activity_log->axapta_generated_at, $activity_log->payment_completed_at) : '';
-						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
-						$activityReportDetails[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-
-						$activityReportDetails[$activity_key][] = $activity_log->payment_completed_at ? date('d-m-Y H:i:s', strtotime($activity_log->payment_completed_at)) : '';
-						$activityReportDetails[$activity_key][] = $total_days > 1 ? ($total_days . ' Days') : ($total_days . ' Day');
-
-					} else {
-						$activityReportDetails[$activity_key][] = '';
-						$activityReportDetails[$activity_key][] = '';
-						$activityReportDetails[$activity_key][] = '';
-						$activityReportDetails[$activity_key][] = '';
-						$activityReportDetails[$activity_key][] = '';
-						$activityReportDetails[$activity_key][] = '';
-						$activityReportDetails[$activity_key][] = '';
-						$activityReportDetails[$activity_key][] = '';
-						$activityReportDetails[$activity_key][] = '';
-						$activityReportDetails[$activity_key][] = '';
-						$activityReportDetails[$activity_key][] = '';
-						$activityReportDetails[$activity_key][] = '';
-						$activityReportDetails[$activity_key][] = '';
-						$activityReportDetails[$activity_key][] = '';
-						$activityReportDetails[$activity_key][] = '';
-						$activityReportDetails[$activity_key][] = '';
-						$activityReportDetails[$activity_key][] = '';
-						$activityReportDetails[$activity_key][] = '';
-						$activityReportDetails[$activity_key][] = '';
-						$activityReportDetails[$activity_key][] = '';
-					}
-
-					// $activityReportDetails[$activity_key][] = !empty($activity->latest_updation_date) ? $activity->latest_updation_date : '';
-					$activityReportDetails[$activity_key][] = $activity->data_source;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->importedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->importedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenImportAndAspDataFilled;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->aspDataFilledDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->aspDataFilledBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAspDataFilledAndL1Deffered;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAspDataFilledAndL1Approved;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l1ApprovedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l1ApprovedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndInvoiceGenerated;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL2Deffered;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l2DefferedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l2DefferedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL2Approved;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l2ApprovedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l2ApprovedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndInvoiceGenerated;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL3Deffered;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndL3Deffered;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l3DefferedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l3DefferedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndL3Approved;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l3ApprovedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l3ApprovedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL3ApprovedAndInvoiceGenerated;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL4Deffered;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndL4Deffered;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL3ApprovedAndL4Deffered;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l4DefferedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l4DefferedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL3ApprovedAndL4Approved;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l4ApprovedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l4ApprovedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL4ApprovedAndInvoiceGenerated;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->invoiceGeneratedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->invoiceGeneratedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenInvoiceGeneratedAndAxaptaGenerated;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->axaptaGeneratedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->axaptaGeneratedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAxaptaGeneratedAndPaymentCompleted;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->paymentCompletedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->totalNoOfDays;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->source;
 				}
-				$activityReportDetails[$activity_key][] = $activity->range_limit;
-				$activityReportDetails[$activity_key][] = $activity->below_range_price;
-				$activityReportDetails[$activity_key][] = $activity->above_range_price;
-				$activityReportDetails[$activity_key][] = $activity->waiting_charge_per_hour;
-				$activityReportDetails[$activity_key][] = $activity->empty_return_range_price;
-				$activityReportDetails[$activity_key][] = !empty($activity->adjustment_type) ? ($activity->adjustment_type == 1 ? "Percentage" : "Amount") : '--';
-				$activityReportDetails[$activity_key][] = $activity->adjustment;
+				$activityReportDetails[$activityReportKey][] = $activityReportVal->rangeLimit;
+				$activityReportDetails[$activityReportKey][] = $activityReportVal->belowRangePrice;
+				$activityReportDetails[$activityReportKey][] = $activityReportVal->aboveRangePrice;
+				$activityReportDetails[$activityReportKey][] = $activityReportVal->waitingChargePerHour;
+				$activityReportDetails[$activityReportKey][] = $activityReportVal->emptyReturnRangePrice;
+				$activityReportDetails[$activityReportKey][] = $activityReportVal->adjustmentType;
+				$activityReportDetails[$activityReportKey][] = $activityReportVal->adjustment;
 			}
 
-			Excel::create('Activity Status Report', function ($excel) use ($summary, $activityReportHeaders, $activityReportDetails, $status_ids, $summary_period) {
-				$excel->sheet('Summary', function ($sheet) use ($summary, $status_ids, $summary_period) {
+			Excel::create('Activity Status Report', function ($excel) use ($summary, $activityReportHeaders, $activityReportDetails, $statusIds, $summaryPeriod) {
+				$excel->sheet('Summary', function ($sheet) use ($summary, $statusIds, $summaryPeriod) {
 					$sheet->fromArray($summary, NULL, 'A1');
-					$sheet->row(1, $summary_period);
+					$sheet->row(1, $summaryPeriod);
 					$sheet->cells('A1:B1', function ($cells) {
 						$cells->setFont(array(
 							'size' => '10',
@@ -5628,7 +5521,7 @@ class ActivityController extends Controller {
 							'bold' => true,
 						))->setBackground('#F3F3F3');
 					});
-					$cell_number = count($status_ids) + 3;
+					$cell_number = count($statusIds) + 3;
 					$sheet->cells('A' . $cell_number . ':B' . $cell_number, function ($cell) {
 						$cell->setFont(array(
 							'size' => '10',

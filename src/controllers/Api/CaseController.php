@@ -3,6 +3,7 @@
 namespace Abs\RsaCasePkg\Api;
 use Abs\RsaCasePkg\Activity;
 use Abs\RsaCasePkg\ActivityLog;
+use Abs\RsaCasePkg\ActivityReport;
 use Abs\RsaCasePkg\CaseCancelledReason;
 use Abs\RsaCasePkg\CaseStatus;
 use Abs\RsaCasePkg\RsaCase;

@@ -48,7 +48,9 @@ class ActivityReport extends Model {
 					$activityReport->created_at = $activity->created_at;
 					$activityReport->updated_at = $activity->updated_at;
 				} else {
-					$activityReport->updated_by_id = $activity->createdBy ? $activity->createdBy->id : NULL;
+					$activityReport->created_by = $activity->createdBy ? $activity->createdBy->name : NULL;
+					$activityReport->created_by_id = $activity->createdBy ? $activity->createdBy->id : NULL;
+					$activityReport->updated_by_id = $activity->updatedBy ? $activity->updatedBy->id : NULL;
 					$activityReport->updated_at = $activity->updated_at;
 				}
 				$activityReport->activity_id = $activity->id;

@@ -9,6 +9,7 @@ use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityRatecard;
+use Abs\RsaCasePkg\ActivityReport;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\ActivityWhatsappLog;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
@@ -1381,6 +1382,9 @@ class Activity extends Model {
 											$activity->update([
 												'status_id' => $status_id,
 											]);
+
+											//SAVE ACTIVITY REPORT FOR DASHBOARD
+											ActivityReport::saveReport($activity->id);
 										}
 									}
 								}
@@ -1411,18 +1415,14 @@ class Activity extends Model {
 											$invoiceAmountCalculatedActivity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 										}
 
+										$invoiceAmountCalculatedActivity->update([
+											'status_id' => 1, //Case Closed - Waiting for ASP to Generate Invoice
+										]);
+
+										//SAVE ACTIVITY REPORT FOR DASHBOARD
+										ActivityReport::saveReport($invoiceAmountCalculatedActivity->id);
 									}
 								}
-
-								$case->activities()
-									->where([
-										// Invoice Amount Calculated - Waiting for Case Closure
-										'status_id' => 10,
-									])
-									->update([
-										// Case Closed - Waiting for ASP to Generate Invoice
-										'status_id' => 1,
-									]);
 							}
 
 							//RELEASE ONHOLD / ASP COMPLETED DATA ENTRY - WAITING FOR CALL CENTER DATA ENTRY ACTIVITIES WITH CLOSED OR CANCELLED CASES
@@ -1477,6 +1477,9 @@ class Activity extends Model {
 												'status_id' => $statusId,
 											]);
 										}
+
+										//SAVE ACTIVITY REPORT FOR DASHBOARD
+										ActivityReport::saveReport($caseActivity->id);
 									}
 								}
 							}
@@ -1509,6 +1512,9 @@ class Activity extends Model {
 								$activity_log->updated_by_id = 72;
 							}
 							$activity_log->save();
+
+							//SAVE ACTIVITY REPORT FOR DASHBOARD
+							ActivityReport::saveReport($activity->id);
 						}
 					}
 

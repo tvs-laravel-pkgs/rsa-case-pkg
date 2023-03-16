@@ -6,6 +6,7 @@ use Abs\RsaCasePkg\ActivityAspStatus;
 use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityLog;
+use Abs\RsaCasePkg\ActivityReport;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\ActivityWhatsappLog;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
@@ -712,6 +713,9 @@ class ActivityController extends Controller {
 			//SAVE ACTIVITY API LOG
 			saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 120);
 
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
+
 			DB::commit();
 			return response()->json([
 				'success' => true,
@@ -874,6 +878,9 @@ class ActivityController extends Controller {
 			//SAVE REJECT ACTIVITY API LOG
 			saveApiLog(104, NULL, $request->all(), $errors, NULL, 120);
 
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
+
 			DB::commit();
 			return response()->json([
 				'success' => true,
@@ -1004,12 +1011,18 @@ class ActivityController extends Controller {
 
 								$activity->updateApprovalLog();
 
+								//SAVE ACTIVITY REPORT FOR DASHBOARD
+								ActivityReport::saveReport($activity->id);
+
 								//SEND ASP ACCEPTANCE CHARGES WHATSAPP SMS TO ASP
 								$activity->sendAspAcceptanceChargesWhatsappSms();
 							} else {
 								$activity->status_id = 2; // ASP Rejected CC Details - Waiting for ASP Data Entry
 								$activity->is_asp_data_entry_done = NULL;
 								$activity->save();
+
+								//SAVE ACTIVITY REPORT FOR DASHBOARD
+								ActivityReport::saveReport($activity->id);
 
 								//SEND ASP CHARGES REJECTION WHATSAPP SMS TO ASP
 								$activity->sendAspChargesRejectionWhatsappSms();
@@ -1457,6 +1470,9 @@ class ActivityController extends Controller {
 			}
 			$activity->towing_attachments_uploaded_on_whatsapp = 1; //UPLOADED
 			$activity->save();
+
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
 
 			DB::commit();
 			return response()->json([

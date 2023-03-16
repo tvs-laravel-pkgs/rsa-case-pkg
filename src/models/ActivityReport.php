@@ -136,8 +136,8 @@ class ActivityReport extends Model {
 				$activityReport->finance_status = $activity->financeStatus ? $activity->financeStatus->name : NULL;
 				$activityReport->final_approved_bo_service_type = $activity->serviceType ? $activity->serviceType->name : NULL;
 				$activityReport->asp_activity_rejected_reason = $activity->aspActivityRejectedReason ? $activity->aspActivityRejectedReason->name : NULL;
-				$activityReport->asp_po_accepted = !empty($activity->asp_po_accepted) ? ($activity->asp_po_accepted == 1 ? 'Yes' : 'No') : NULL;
-				$activityReport->asp_po_rejected_reason = $activity->aspPoRejectedReason ? $activity->aspPoRejectedReason->name : NULL;
+				$activityReport->asp_po_accepted = !is_null($activity->asp_po_accepted) ? ($activity->asp_po_accepted == 1 ? 'Yes' : 'No') : NULL;
+				$activityReport->asp_po_rejected_reason = !empty($activity->asp_po_rejected_reason) ? $activity->asp_po_rejected_reason : NULL;
 				$activityReport->portal_status = $activity->status ? $activity->status->name : NULL;
 				$activityReport->activity_status = $activity->activityStatus ? $activity->activityStatus->name : NULL;
 				$activityReport->activity_description = $activity->description;

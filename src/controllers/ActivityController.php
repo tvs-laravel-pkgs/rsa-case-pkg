@@ -5832,6 +5832,9 @@ class ActivityController extends Controller {
 					} elseif ($activity->status_id == 11) {
 						//Waiting for Invoice Generation by ASP
 						$url = '#!/rsa-case-pkg/approved-activity/list';
+					} elseif ($activity->status_id == 15 || $activity->status_id == 16) {
+						//Not Eligible for Payout || Own Patrol Activity - Not Eligible for Payout
+						$url = '';
 					}
 				}
 
@@ -5846,6 +5849,9 @@ class ActivityController extends Controller {
 						} else if (Carbon::parse($activity->caseCreatedAt)->format('Y-m-d H:i:s') >= $threeMonthsBefore) {
 							$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
 						}
+					} elseif ($activity->status_id == 15 || $activity->status_id == 16) {
+						//Not Eligible for Payout || Own Patrol Activity - Not Eligible for Payout
+						$url = '';
 					}
 				}
 

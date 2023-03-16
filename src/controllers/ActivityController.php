@@ -4584,7 +4584,7 @@ class ActivityController extends Controller {
 			ob_end_clean();
 			ob_start();
 
-			$error_messages = [
+			$errorMessages = [
 				'status_ids.required' => "Please Select Activity Status",
 			];
 
@@ -4592,10 +4592,12 @@ class ActivityController extends Controller {
 				'status_ids' => [
 					'required:true',
 				],
-			], $error_messages);
+			], $errorMessages);
 
-			if (empty($request->status_ids)) {
-				return redirect('/#!/rsa-case-pkg/activity-status/list')->with(['errors' => $validator->errors()->all()]);
+			if ($validator->fails()) {
+				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+					'errors' => $validator->errors()->all(),
+				]);
 			}
 
 			$date = explode("-", $request->period);
@@ -4616,59 +4618,55 @@ class ActivityController extends Controller {
 						->whereDate('cases.date', '<=', $range2);
 				});
 			} elseif ($request->filter_by == 'activity') {
-				$activityReports->join('activity_logs', 'activity_logs.activity_id', 'activities.id')
-					->where(function ($q) use ($range1, $range2) {
-						$q->where(function ($query) use ($range1, $range2) {
-							$query->whereRaw('DATE(activity_logs.imported_at) between "' . $range1 . '" and "' . $range2 . '"');
+				$activityReports->where(function ($q) use ($range1, $range2) {
+					$q->where(function ($query) use ($range1, $range2) {
+						$query->whereRaw('DATE(activity_reports.imported_date) between "' . $range1 . '" and "' . $range2 . '"');
+					})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.asp_data_filled_date) between "' . $range1 . '" and "' . $range2 . '"');
 						})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.asp_data_filled_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.bo_deffered_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.bo_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.l2_deffered_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.l2_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.l3_deffered_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.l3_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.l4_deffered_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.l4_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.invoice_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.axapta_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
-							})
-							->orwhere(function ($query) use ($range1, $range2) {
-								$query->whereRaw('DATE(activity_logs.payment_completed_at) between "' . $range1 . '" and "' . $range2 . '"');
-							});
-					});
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.l1_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.l1_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.l2_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.l2_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.l3_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.l3_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.l4_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.l4_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.invoice_generated_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.axapta_generated_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.payment_completed_date) between "' . $range1 . '" and "' . $range2 . '"');
+						});
+				});
 			} elseif ($request->filter_by == 'invoiceDate') {
-				$activityReports->where(function ($q) use ($range1, $range2) {
-					$q->whereRaw('DATE(activity_reports.invoice_date) between "' . $range1 . '" and "' . $range2 . '"');
-				});
+				$activityReports->whereRaw('DATE(activity_reports.invoice_date) between "' . $range1 . '" and "' . $range2 . '"');
 			} elseif ($request->filter_by == 'transactionDate') {
-				$activityReports->where(function ($q) use ($range1, $range2) {
-					$q->whereRaw('DATE(activity_reports.transaction_date) between "' . $range1 . '" and "' . $range2 . '"');
-				});
+				$activityReports->whereRaw('DATE(activity_reports.transaction_date) between "' . $range1 . '" and "' . $range2 . '"');
 			}
 
 			$activityReports->select([
+				'activity_reports.id',
 				'activity_reports.activity_id as activityId',
 				DB::raw('COALESCE(activity_reports.case_number, "--") as caseNumber'),
 				DB::raw('DATE_FORMAT(activity_reports.case_date, "%d-%m-%Y %H:%i:%s") as caseDate'),
@@ -4816,7 +4814,6 @@ class ActivityController extends Controller {
 				DB::raw('DATE_FORMAT(activity_reports.asp_data_filled_date, "%d-%m-%Y %H:%i:%s") as aspDataFilledDate'),
 				DB::raw('COALESCE(activity_reports.asp_data_filled_by, "--") as aspDataFilledBy'),
 				DB::raw('COALESCE(activity_reports.duration_between_asp_data_filled_and_l1_deffered, "--") as durationBetweenAspDataFilledAndL1Deffered'),
-
 				DB::raw('DATE_FORMAT(activity_reports.l1_deffered_date, "%d-%m-%Y %H:%i:%s") as l1DefferedDate'),
 				DB::raw('COALESCE(activity_reports.l1_deffered_by, "--") as l1DefferedBy'),
 				DB::raw('COALESCE(activity_reports.duration_between_asp_data_filled_and_l1_approved, "--") as durationBetweenAspDataFilledAndL1Approved'),
@@ -4910,8 +4907,8 @@ class ActivityController extends Controller {
 				}
 			}
 			$activitesTotalCount = $activityReports;
-			$total_count = $activitesTotalCount->groupBy('activity_reports.id')->get()->count();
-			if ($total_count == 0) {
+			$totalCount = $activitesTotalCount->groupBy('activity_reports.id')->get()->count();
+			if ($totalCount == 0) {
 				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
 					'errors' => [
 						'No activities found for given period & statuses',
@@ -4929,15 +4926,15 @@ class ActivityController extends Controller {
 					'name',
 				])
 					->get();
-				foreach ($statusIds as $key => $status_id) {
-					$activityPortalStatus = $activityPortalStatuses->where('id', $status_id)->first();
+				foreach ($statusIds as $statusKey => $statusId) {
+					$activityPortalStatus = $activityPortalStatuses->where('id', $statusId)->first();
 					if ($activityPortalStatus) {
 						$activitiesSummaryCountQuery = ActivityReport::select([
 							'activity_reports.id',
 						])
 							->join('activities', 'activities.id', 'activity_reports.activity_id')
 							->join('cases', 'cases.id', 'activities.case_id')
-							->where('activities.status_id', $status_id);
+							->where('activities.status_id', $statusId);
 
 						if ($request->filter_by == 'general') {
 							$activitiesSummaryCountQuery->where(function ($q) use ($range1, $range2) {
@@ -4945,56 +4942,51 @@ class ActivityController extends Controller {
 									->whereDate('cases.date', '<=', $range2);
 							});
 						} elseif ($request->filter_by == 'activity') {
-							$activitiesSummaryCountQuery->join('activity_logs', 'activities.id', '=', 'activity_logs.activity_id')
-								->where(function ($q) use ($range1, $range2) {
-									$q->where(function ($query) use ($range1, $range2) {
-										$query->whereRaw('DATE(activity_logs.imported_at) between "' . $range1 . '" and "' . $range2 . '"');
+							$activitiesSummaryCountQuery->where(function ($q) use ($range1, $range2) {
+								$q->where(function ($query) use ($range1, $range2) {
+									$query->whereRaw('DATE(activity_reports.imported_date) between "' . $range1 . '" and "' . $range2 . '"');
+								})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.asp_data_filled_date) between "' . $range1 . '" and "' . $range2 . '"');
 									})
-										->orwhere(function ($query) use ($range1, $range2) {
-											$query->whereRaw('DATE(activity_logs.asp_data_filled_at) between "' . $range1 . '" and "' . $range2 . '"');
-										})
-										->orwhere(function ($query) use ($range1, $range2) {
-											$query->whereRaw('DATE(activity_logs.bo_deffered_at) between "' . $range1 . '" and "' . $range2 . '"');
-										})
-										->orwhere(function ($query) use ($range1, $range2) {
-											$query->whereRaw('DATE(activity_logs.bo_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
-										})
-										->orwhere(function ($query) use ($range1, $range2) {
-											$query->whereRaw('DATE(activity_logs.l2_deffered_at) between "' . $range1 . '" and "' . $range2 . '"');
-										})
-										->orwhere(function ($query) use ($range1, $range2) {
-											$query->whereRaw('DATE(activity_logs.l2_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
-										})
-										->orwhere(function ($query) use ($range1, $range2) {
-											$query->whereRaw('DATE(activity_logs.l3_deffered_at) between "' . $range1 . '" and "' . $range2 . '"');
-										})
-										->orwhere(function ($query) use ($range1, $range2) {
-											$query->whereRaw('DATE(activity_logs.l3_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
-										})
-										->orwhere(function ($query) use ($range1, $range2) {
-											$query->whereRaw('DATE(activity_logs.l4_deffered_at) between "' . $range1 . '" and "' . $range2 . '"');
-										})
-										->orwhere(function ($query) use ($range1, $range2) {
-											$query->whereRaw('DATE(activity_logs.l4_approved_at) between "' . $range1 . '" and "' . $range2 . '"');
-										})
-										->orwhere(function ($query) use ($range1, $range2) {
-											$query->whereRaw('DATE(activity_logs.invoice_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
-										})
-										->orwhere(function ($query) use ($range1, $range2) {
-											$query->whereRaw('DATE(activity_logs.axapta_generated_at) between "' . $range1 . '" and "' . $range2 . '"');
-										})
-										->orwhere(function ($query) use ($range1, $range2) {
-											$query->whereRaw('DATE(activity_logs.payment_completed_at) between "' . $range1 . '" and "' . $range2 . '"');
-										});
-								});
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.l1_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.l1_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.l2_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.l2_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.l3_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.l3_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.l4_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.l4_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.invoice_generated_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.axapta_generated_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.payment_completed_date) between "' . $range1 . '" and "' . $range2 . '"');
+									});
+							});
 						} elseif ($request->filter_by == 'invoiceDate') {
-							$activitiesSummaryCountQuery->where(function ($q) use ($range1, $range2) {
-								$q->whereRaw('DATE(activity_reports.invoice_date) between "' . $range1 . '" and "' . $range2 . '"');
-							});
+							$activitiesSummaryCountQuery->whereRaw('DATE(activity_reports.invoice_date) between "' . $range1 . '" and "' . $range2 . '"');
 						} elseif ($request->filter_by == 'transactionDate') {
-							$activitiesSummaryCountQuery->where(function ($q) use ($range1, $range2) {
-								$q->whereRaw('DATE(activity_reports.transaction_date) between "' . $range1 . '" and "' . $range2 . '"');
-							});
+							$activitiesSummaryCountQuery->whereRaw('DATE(activity_reports.transaction_date) between "' . $range1 . '" and "' . $range2 . '"');
 						}
 
 						if (!empty($request->get('asp_id'))) {
@@ -5049,7 +5041,7 @@ class ActivityController extends Controller {
 				}
 			}
 
-			$summary[] = ['Total', $total_count];
+			$summary[] = ['Total', $totalCount];
 
 			if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities')) {
 				$activityReportHeaders = [
@@ -5109,7 +5101,6 @@ class ActivityController extends Controller {
 					'BO Deduction',
 					'BO Amount',
 				];
-
 			} else {
 				$activityReportHeaders = [
 					'ID',
@@ -5255,7 +5246,7 @@ class ActivityController extends Controller {
 			}
 
 			if (!Entrust::can('export-own-activities') && !Entrust::can('export-own-rm-asp-activities') && !Entrust::can('export-own-zm-asp-activities')) {
-				$statusHeaders = [
+				$logHeaders = [
 					'Imported through MIS Import',
 					'Imported By',
 					'Duration Between Import and ASP Data Filled',
@@ -5302,7 +5293,7 @@ class ActivityController extends Controller {
 					'Total No. Of Days',
 					'Source',
 				];
-				$activityReportHeaders = array_merge($activityReportHeaders, $statusHeaders);
+				$activityReportHeaders = array_merge($activityReportHeaders, $logHeaders);
 			}
 
 			$rateCardHeaders = [
@@ -5316,7 +5307,7 @@ class ActivityController extends Controller {
 			];
 			$activityReportHeaders = array_merge($activityReportHeaders, $rateCardHeaders);
 
-			$activityReports = $activityReports->groupBy('activities.id')->get();
+			$activityReports = $activityReports->groupBy('activity_reports.id')->get();
 
 			$activityReportDetails = [];
 			foreach ($activityReports as $activityReportKey => $activityReportVal) {
@@ -5378,6 +5369,16 @@ class ActivityController extends Controller {
 						$activityReportVal->bdLocation,
 						$activityReportVal->bdCity,
 						$activityReportVal->bdState,
+						$activityReportVal->dropDealer,
+						$activityReportVal->dropLocation,
+						$activityReportVal->dropLocationLat,
+						$activityReportVal->dropLocationLong,
+						$activityReportVal->boKmTravelled,
+						$activityReportVal->boCollected,
+						$activityReportVal->boNotCollected,
+						$activityReportVal->boNetAmount,
+						$activityReportVal->boDeduction,
+						$activityReportVal->boAmount,
 					];
 				} else {
 					$activityReportDetails[] = [
@@ -5445,6 +5446,81 @@ class ActivityController extends Controller {
 						$activityReportVal->bdState,
 						$activityReportVal->locationType,
 						$activityReportVal->locationCategory,
+						$activityReportVal->slaAchievedDelayed,
+						$activityReportVal->ccWaitingTime,
+						$activityReportVal->ccTotalKm,
+						$activityReportVal->ccCollectedAmount,
+						$activityReportVal->ccNotCollectedAmount,
+						$activityReportVal->aspReachedDate,
+						$activityReportVal->aspStartLocation,
+						$activityReportVal->aspEndLocation,
+						$activityReportVal->onwardGoogleKm,
+						$activityReportVal->dealerGoogleKm,
+						$activityReportVal->returnGoogleKm,
+						$activityReportVal->onwardKm,
+						$activityReportVal->dealerKm,
+						$activityReportVal->returnKm,
+						$activityReportVal->dropLocationType,
+						$activityReportVal->dropDealer,
+						$activityReportVal->dropLocation,
+						$activityReportVal->dropLocationLat,
+						$activityReportVal->dropLocationLong,
+						$activityReportVal->amount,
+						$activityReportVal->paidTo,
+						$activityReportVal->paymentMode,
+						$activityReportVal->paymentReceiptNo,
+						$activityReportVal->ccServiceCharges,
+						$activityReportVal->ccMembershipCharges,
+						$activityReportVal->ccEatableItemsCharges,
+						$activityReportVal->ccTollCharges,
+						$activityReportVal->ccGreenTaxCharges,
+						$activityReportVal->ccBorderCharges,
+						$activityReportVal->ccOctroiCharges,
+						$activityReportVal->ccExcessCharges,
+						$activityReportVal->ccFuelCharges,
+						$activityReportVal->aspServiceCharges,
+						$activityReportVal->aspMembershipCharges,
+						$activityReportVal->aspEatableItemsCharges,
+						$activityReportVal->aspTollCharges,
+						$activityReportVal->aspGreenTaxCharges,
+						$activityReportVal->aspBorderCharges,
+						$activityReportVal->aspOctroiCharges,
+						$activityReportVal->aspExcessCharges,
+						$activityReportVal->aspFuelCharges,
+						$activityReportVal->boServiceCharges,
+						$activityReportVal->boMembershipCharges,
+						$activityReportVal->boEatableItemsCharges,
+						$activityReportVal->boTollCharges,
+						$activityReportVal->boGreenTaxCharges,
+						$activityReportVal->boBorderCharges,
+						$activityReportVal->boOctroiCharges,
+						$activityReportVal->boExcessCharges,
+						$activityReportVal->boFuelCharges,
+						$activityReportVal->aspWaitingTime,
+						$activityReportVal->boWaitingTime,
+						$activityReportVal->ccWaitingCharges,
+						$activityReportVal->aspWaitingCharges,
+						$activityReportVal->boWaitingCharges,
+						$activityReportVal->ccServiceType,
+						$activityReportVal->aspServiceType,
+						$activityReportVal->boServiceType,
+						$activityReportVal->boKmTravelled,
+						$activityReportVal->boCollected,
+						$activityReportVal->boNotCollected,
+						$activityReportVal->aspKmTravelled,
+						$activityReportVal->aspCollected,
+						$activityReportVal->aspNotCollected,
+						$activityReportVal->ccPoAmount,
+						$activityReportVal->ccNetAmount,
+						$activityReportVal->ccAmount,
+						$activityReportVal->boTaxAmount,
+						$activityReportVal->boNetAmount,
+						$activityReportVal->boPoAmount,
+						$activityReportVal->boDeduction,
+						$activityReportVal->boAmount,
+						$activityReportVal->aspPoAmount,
+						$activityReportVal->aspNetAmount,
+						$activityReportVal->aspAmount,
 					];
 				}
 

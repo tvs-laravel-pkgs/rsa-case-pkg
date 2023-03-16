@@ -1011,12 +1011,18 @@ class ActivityController extends Controller {
 
 								$activity->updateApprovalLog();
 
+								//SAVE ACTIVITY REPORT FOR DASHBOARD
+								ActivityReport::saveReport($activity->id);
+
 								//SEND ASP ACCEPTANCE CHARGES WHATSAPP SMS TO ASP
 								$activity->sendAspAcceptanceChargesWhatsappSms();
 							} else {
 								$activity->status_id = 2; // ASP Rejected CC Details - Waiting for ASP Data Entry
 								$activity->is_asp_data_entry_done = NULL;
 								$activity->save();
+
+								//SAVE ACTIVITY REPORT FOR DASHBOARD
+								ActivityReport::saveReport($activity->id);
 
 								//SEND ASP CHARGES REJECTION WHATSAPP SMS TO ASP
 								$activity->sendAspChargesRejectionWhatsappSms();

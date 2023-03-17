@@ -3376,7 +3376,7 @@ class ActivityController extends Controller {
 			}
 
 			$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
-				->where('service_type_id', $cc_service_type->id)
+				->where('service_type_id', $request->asp_service_type_id)
 				->where('is_mobile', $isMobile)
 				->first();
 			if ($aspServiceType) {

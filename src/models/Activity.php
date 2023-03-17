@@ -933,7 +933,7 @@ class Activity extends Model {
 						'toll_charges' => 'nullable|numeric',
 						'green_tax_charges' => 'nullable|numeric',
 						'border_charges' => 'nullable|numeric',
-						'octroi_charges' => 'nullable|numeric',
+						// 'octroi_charges' => 'nullable|numeric',
 						'excess_charges' => 'nullable|numeric',
 						'manual_uploading_remarks' => 'required|string',
 						'csr' => 'nullable',

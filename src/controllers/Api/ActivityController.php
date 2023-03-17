@@ -144,6 +144,7 @@ class ActivityController extends Controller {
 				'amount_collected_from_customer' => 'nullable|numeric',
 				'amount_refused_by_customer' => 'nullable|numeric',
 				'fuel_charges' => 'nullable|numeric',
+				'csr' => 'nullable',
 			]);
 
 			if ($validator->fails()) {

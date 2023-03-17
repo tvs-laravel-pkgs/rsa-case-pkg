@@ -5616,7 +5616,6 @@ class ActivityController extends Controller {
 				$activity_details_data[$activity_key][] = !empty($activity->adjustment_type) ? ($activity->adjustment_type == 1 ? "Percentage" : "Amount") : '--';
 				$activity_details_data[$activity_key][] = $activity->adjustment;
 			}
-
 			Excel::create('Activity Status Report', function ($excel) use ($summary, $activity_details_header, $activity_details_data, $status_ids, $summary_period) {
 				$excel->sheet('Summary', function ($sheet) use ($summary, $status_ids, $summary_period) {
 					$sheet->fromArray($summary, NULL, 'A1');
@@ -5896,6 +5895,7 @@ class ActivityController extends Controller {
 			'Invoices.id as invoiceId',
 			'activities.crm_activity_id as crm_activity_id',
 			'activities.status_id as status_id',
+			DB::raw('COALESCE(activity_details.value, "--") as csr'),
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			'cases.number as case_number',
 			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
@@ -5919,8 +5919,11 @@ class ActivityController extends Controller {
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
-			->leftjoin('Invoices', 'Invoices.id', 'activities.invoice_id');
-
+			->leftjoin('Invoices', 'Invoices.id', 'activities.invoice_id')
+			->leftJoin('activity_details', function ($leftJoin) {
+				$leftJoin->on('activity_details.activity_id', '=', 'activities.id')
+					->where('activity_details.key_id', 334); //CSR
+			});
 		if (!empty($search_type) && $search_type == 'mobile_number') {
 			$activities->where('cases.customer_contact_number', $request->searchQuery);
 		} else {
@@ -5928,7 +5931,8 @@ class ActivityController extends Controller {
 				$q->where('cases.number', $request->searchQuery)
 					->orWhere('cases.vehicle_registration_number', $request->searchQuery)
 					->orWhere('cases.vin_no', $request->searchQuery)
-					->orWhere('activities.crm_activity_id', $request->searchQuery);
+					->orWhere('activities.crm_activity_id', $request->searchQuery)
+					->orWhere('activity_details.value', $request->searchQuery);
 			});
 		}
 
@@ -5965,14 +5969,12 @@ class ActivityController extends Controller {
 		}
 
 		$activities->orderBy('cases.date', 'DESC')->groupBy('activities.id');
-
 		return Datatables::of($activities)
 			->filterColumn('asp', function ($query, $keyword) {
 				$sql = "CONCAT(asps.asp_code,' / ',asps.workshop_name)  like ?";
 				$query->whereRaw($sql, ["%{$keyword}%"]);
 			})
 			->addColumn('action', function ($activity) {
-
 				// VIEW PAGE FOR OTHER STATUSES
 				$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
 

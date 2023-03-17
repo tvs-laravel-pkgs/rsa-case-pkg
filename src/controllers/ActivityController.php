@@ -5680,7 +5680,7 @@ class ActivityController extends Controller {
 			'Invoices.id as invoiceId',
 			'activities.crm_activity_id as crm_activity_id',
 			'activities.status_id as status_id',
-			'activity_details.value as csr',
+			DB::raw('COALESCE(activity_details.value, "--") as csr'),
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			'cases.number as case_number',
 			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),

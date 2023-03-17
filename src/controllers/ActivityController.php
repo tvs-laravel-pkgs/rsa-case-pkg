@@ -5705,7 +5705,7 @@ class ActivityController extends Controller {
 			->leftjoin('Invoices', 'Invoices.id', 'activities.invoice_id')
 			->leftJoin('activity_details', function ($leftJoin) {
 				$leftJoin->on('activity_details.activity_id', '=', 'activities.id')
-					->where('activity_details.key_id', 334);
+					->where('activity_details.key_id', 334); //CSR
 			});
 		if (!empty($search_type) && $search_type == 'mobile_number') {
 			$activities->where('cases.customer_contact_number', $request->searchQuery);

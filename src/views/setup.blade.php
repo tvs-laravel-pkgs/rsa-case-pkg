@@ -231,7 +231,7 @@
 </script>
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-deferred/controller.js?v=13')}}"></script>
 
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-search/controller.js?v=1')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-search/controller.js?v=2')}}"></script>
 
 <!-- RSA-ACTIVITY-APPROVED -->
 <script type="text/javascript">

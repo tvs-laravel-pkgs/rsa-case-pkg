@@ -2047,9 +2047,10 @@ class ActivityController extends Controller {
 
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
 			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);
+			$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
 
-			// WHATSAPP FLOW (TOW SERVICE)
-			if ($breakdownAlertSent && $sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && ($activity->data_src_id == 260 || $activity->data_src_id == 261) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3 && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+			// WHATSAPP FLOW (TOW SERVICE || ROS SERVICE WITH DISABLE AUTO APPROVAL)
+			if ($breakdownAlertSent && $sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && ($activity->data_src_id == 260 || $activity->data_src_id == 261) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && ($activity->serviceType->service_group_id == 3 || ($activity->serviceType->service_group_id != 3 && $disableWhatsappAutoApproval)) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 
 				$activityStatusId = 25; // Waiting for Charges Acceptance by ASP
 
@@ -2248,6 +2249,7 @@ class ActivityController extends Controller {
 			$l3Approvers = User::where('activity_approval_level_id', 3)->pluck('id');
 			$l4Approvers = User::where('activity_approval_level_id', 4)->pluck('id');
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
+			$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
 
 			foreach ($activities as $key => $activity) {
 
@@ -2506,8 +2508,8 @@ class ActivityController extends Controller {
 
 					$activityBreakdownAlertSent = Activity::breakdownAlertSent($activity->id);
 
-					// WHATSAPP FLOW (TOW SERVICE)
-					if ($activityBreakdownAlertSent && $sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && ($activity->data_src_id == 260 || $activity->data_src_id == 261) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && $activity->serviceType->service_group_id == 3 && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+					// WHATSAPP FLOW (TOW SERVICE || ROS SERVICE WITH DISABLE AUTO APPROVAL)
+					if ($activityBreakdownAlertSent && $sendBreakdownOrEmptyreturnChargesWhatsappSms && $activity->asp && !empty($activity->asp->whatsapp_number) && ($activity->data_src_id == 260 || $activity->data_src_id == 261) && $activity->serviceType && !empty($activity->serviceType->service_group_id) && ($activity->serviceType->service_group_id == 3 || ($activity->serviceType->service_group_id != 3 && $disableWhatsappAutoApproval)) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 
 						$activityStatusId = 25; // Waiting for Charges Acceptance by ASP
 
@@ -3072,6 +3074,32 @@ class ActivityController extends Controller {
 		$for_deffer_activity = 0;
 		$this->data = Activity::getFormData($id, $for_deffer_activity);
 		$this->data['case_details'] = $this->data['activity']->case;
+
+		//CHECK IF TICKET DATE IS GREATER THAN 3 MONTHS OLDER ----------------------------------------------
+
+		$today = date('Y-m-d H:i:s');
+		$threeMonthsBefore = date('Y-m-d H:i:s', strtotime("-3 months", strtotime($today)));
+		$errorMessage = "Please contact administrator.";
+		if ($this->data['activity']->activityStatus) {
+			$errorMessage = "Please contact administrator. Activity status : " . $this->data['activity']->activityStatus->name;
+		}
+
+		if ($this->data['activity']->case && !empty($this->data['activity']->case->submission_closing_date)) {
+			if (Carbon::parse($this->data['activity']->case->submission_closing_date)->format('Y-m-d H:i:s') < $today) {
+				return response()->json([
+					'success' => false,
+					'error' => $errorMessage,
+				]);
+			}
+		} else {
+			if ($this->data['activity']->case && Carbon::parse($this->data['activity']->case->created_at)->format('Y-m-d H:i:s') < $threeMonthsBefore) {
+				return response()->json([
+					'success' => false,
+					'error' => $errorMessage,
+				]);
+			}
+		}
+
 		if (date('Y-m-d') >= "2022-04-01") {
 			$towingAttachmentsMandatoryLabel = '';
 		} elseif (date('Y-m-d') > "2022-02-01") {
@@ -5716,23 +5744,45 @@ class ActivityController extends Controller {
 
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
 			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);
+			$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
 
 			//WHATSAPP FLOW
 			if ($breakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 				// ROS SERVICE
 				if ($activity->serviceType && $activity->serviceType->service_group_id != 3) {
-					$autoApprovalProcessResponse = $activity->autoApprovalProcess();
-					if (!$autoApprovalProcessResponse['success']) {
-						//SAVE CASE API LOG
-						DB::rollBack();
-						return response()->json([
-							'success' => false,
-							'errors' => [
-								$autoApprovalProcessResponse['error'],
-							],
-						]);
+
+					if (!$disableWhatsappAutoApproval) {
+						$autoApprovalProcessResponse = $activity->autoApprovalProcess();
+						if (!$autoApprovalProcessResponse['success']) {
+							//SAVE CASE API LOG
+							DB::rollBack();
+							return response()->json([
+								'success' => false,
+								'errors' => [
+									$autoApprovalProcessResponse['error'],
+								],
+							]);
+						}
+						$statusId = 25; // Waiting for Charges Acceptance by ASP
+					} else {
+						//MECHANICAL SERVICE GROUP
+						if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
+							$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
+							$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+							if ($is_bulk) {
+								$statusId = 5; //ASP Completed Data Entry - Waiting for L1 Bulk Verification
+							} else {
+								$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+							}
+						} else {
+							if (($activity->asp && $activity->asp->is_corporate == 1) || $activity->is_asp_data_entry_done == 1) {
+								$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+							} else {
+								$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+							}
+						}
 					}
-					$statusId = 25; // Waiting for Charges Acceptance by ASP
+
 				} else {
 					// TOW SERVICE
 					if ($activity->asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
@@ -5761,15 +5811,13 @@ class ActivityController extends Controller {
 					}
 				}
 			}
+
 			$activity->update([
 				'status_id' => $statusId,
 				'onhold_released_by_id' => Auth::user()->id,
 				'onhold_released_at' => Carbon::now(),
 				'updated_by_id' => Auth::user()->id,
 			]);
-
-			//SAVE ACTIVITY REPORT FOR DASHBOARD
-			ActivityReport::saveReport($activity->id);
 
 			DB::commit();
 			return response()->json([
@@ -5821,6 +5869,7 @@ class ActivityController extends Controller {
 			'Invoices.id as invoiceId',
 			'activities.crm_activity_id as crm_activity_id',
 			'activities.status_id as status_id',
+			DB::raw('COALESCE(activity_details.value, "--") as csr'),
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			'cases.number as case_number',
 			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
@@ -5832,6 +5881,8 @@ class ActivityController extends Controller {
 			DB::raw('COALESCE(activity_statuses.name, "--") as activity_status'),
 			DB::raw('COALESCE(clients.name, "--") as client'),
 			DB::raw('COALESCE(call_centers.name, "--") as call_center'),
+			'cases.created_at as caseCreatedAt',
+			'cases.submission_closing_date as caseSubmissionClosingDate',
 		])
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('users', 'users.id', 'asps.user_id')
@@ -5842,8 +5893,11 @@ class ActivityController extends Controller {
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
-			->leftjoin('Invoices', 'Invoices.id', 'activities.invoice_id');
-
+			->leftjoin('Invoices', 'Invoices.id', 'activities.invoice_id')
+			->leftJoin('activity_details', function ($leftJoin) {
+				$leftJoin->on('activity_details.activity_id', '=', 'activities.id')
+					->where('activity_details.key_id', 334); //CSR
+			});
 		if (!empty($search_type) && $search_type == 'mobile_number') {
 			$activities->where('cases.customer_contact_number', $request->searchQuery);
 		} else {
@@ -5851,7 +5905,8 @@ class ActivityController extends Controller {
 				$q->where('cases.number', $request->searchQuery)
 					->orWhere('cases.vehicle_registration_number', $request->searchQuery)
 					->orWhere('cases.vin_no', $request->searchQuery)
-					->orWhere('activities.crm_activity_id', $request->searchQuery);
+					->orWhere('activities.crm_activity_id', $request->searchQuery)
+					->orWhere('activity_details.value', $request->searchQuery);
 			});
 		}
 
@@ -5888,28 +5943,55 @@ class ActivityController extends Controller {
 		}
 
 		$activities->orderBy('cases.date', 'DESC')->groupBy('activities.id');
-
 		return Datatables::of($activities)
 			->filterColumn('asp', function ($query, $keyword) {
 				$sql = "CONCAT(asps.asp_code,' / ',asps.workshop_name)  like ?";
 				$query->whereRaw($sql, ["%{$keyword}%"]);
 			})
 			->addColumn('action', function ($activity) {
-
 				// VIEW PAGE FOR OTHER STATUSES
 				$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
+
+				$today = date('Y-m-d H:i:s');
+				$threeMonthsBefore = date('Y-m-d H:i:s', strtotime("-3 months", strtotime($today)));
 
 				// ASP || ASP FINANCE ADMIN
 				if (Entrust::can('own-asp-activity-search')) {
 					//ASP Rejected CC Details - Waiting for ASP Data Entry || On Hold
 					if ($activity->status_id == 2 || $activity->status_id == 17) {
-						$url = '#!/rsa-case-pkg/new-activity/update-details/' . $activity->id;
+						$url = '';
+						//CASE WITH EXTENSION
+						if (!empty($activity->caseSubmissionClosingDate) && Carbon::parse($activity->caseSubmissionClosingDate)->format('Y-m-d H:i:s') >= $today) {
+							$url = '#!/rsa-case-pkg/new-activity/update-details/' . $activity->id;
+						} else if (Carbon::parse($activity->caseCreatedAt)->format('Y-m-d H:i:s') >= $threeMonthsBefore) {
+							$url = '#!/rsa-case-pkg/new-activity/update-details/' . $activity->id;
+						}
 					} elseif ($activity->status_id == 7) {
 						//BO Rejected - Waiting for ASP Data Re-Entry
 						$url = '#!/rsa-case-pkg/deferred-activity/update/' . $activity->id;
 					} elseif ($activity->status_id == 11) {
 						//Waiting for Invoice Generation by ASP
 						$url = '#!/rsa-case-pkg/approved-activity/list';
+					} elseif ($activity->status_id == 15 || $activity->status_id == 16) {
+						//Not Eligible for Payout || Own Patrol Activity - Not Eligible for Payout
+						$url = '';
+					}
+				}
+
+				// RM || ZM
+				if (Entrust::can('own-rm-asp-activity-search') || Entrust::can('own-zm-asp-activity-search')) {
+					//ASP Rejected CC Details - Waiting for ASP Data Entry || On Hold
+					if ($activity->status_id == 2 || $activity->status_id == 17) {
+						$url = '';
+						//CASE WITH EXTENSION
+						if (!empty($activity->caseSubmissionClosingDate) && Carbon::parse($activity->caseSubmissionClosingDate)->format('Y-m-d H:i:s') >= $today) {
+							$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
+						} else if (Carbon::parse($activity->caseCreatedAt)->format('Y-m-d H:i:s') >= $threeMonthsBefore) {
+							$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
+						}
+					} elseif ($activity->status_id == 15 || $activity->status_id == 16) {
+						//Not Eligible for Payout || Own Patrol Activity - Not Eligible for Payout
+						$url = '';
 					}
 				}
 
@@ -6860,7 +6942,6 @@ class ActivityController extends Controller {
 				$activity_details_data[$activity_key][] = !empty($activity->adjustment_type) ? ($activity->adjustment_type == 1 ? "Percentage" : "Amount") : '--';
 				$activity_details_data[$activity_key][] = $activity->adjustment;
 			}
-
 			Excel::create('Activity Status Report', function ($excel) use ($summary, $activity_details_header, $activity_details_data, $status_ids, $summary_period) {
 				$excel->sheet('Summary', function ($sheet) use ($summary, $status_ids, $summary_period) {
 					$sheet->fromArray($summary, NULL, 'A1');
@@ -6907,5 +6988,4 @@ class ActivityController extends Controller {
 			]);
 		}
 	}
-
 }

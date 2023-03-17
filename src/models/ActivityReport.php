@@ -157,6 +157,16 @@ class ActivityReport extends Model {
 				$activityReport->exceptional_reason = !empty($activity->exceptional_reason) ? $activity->exceptional_reason : NULL;
 
 				//INVOICE
+
+				$activityReport->invoice_number = NULL;
+				$activityReport->invoice_date = NULL;
+				$activityReport->invoice_amount = NULL;
+				$activityReport->invoice_status = NULL;
+				$activityReport->transaction_date = NULL;
+				$activityReport->voucher = NULL;
+				$activityReport->tds_amount = NULL;
+				$activityReport->paid_amount = NULL;
+
 				if ($activity->invoice) {
 					$activityReport->invoice_number = $activity->invoice->invoice_no;
 					$activityReport->invoice_date = Carbon::parse(str_replace('/', '-', $activity->invoice->created_at))->format('Y-m-d');

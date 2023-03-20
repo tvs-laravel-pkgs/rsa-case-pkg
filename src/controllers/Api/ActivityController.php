@@ -15,6 +15,7 @@ use Abs\RsaCasePkg\WhatsappWebhookResponse;
 use App\Asp;
 use App\Attachment;
 use App\Config;
+use App\CronLog;
 use App\Http\Controllers\Controller;
 use App\Invoices;
 use App\ServiceType;
@@ -1504,6 +1505,52 @@ class ActivityController extends Controller {
 					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			]);
+		}
+	}
+
+	public function whatsappChargesAcceptanceStatusUpdate($cronLogId) {
+		//CRON LOG SAVE
+		$cronLog = CronLog::firstOrNew([
+			'id' => $cronLogId,
+		]);
+		$cronLog->command = "update:whatsappChargesAcceptanceStatus";
+		$cronLog->status = "Inprogress";
+		$cronLog->created_at = Carbon::now();
+		$cronLog->save();
+		try {
+
+			$sms_sent_date_time = date('Y-m-d H:i:s', strtotime('-24 hours'));
+			// Get list of whatsapp  breakdown /revised breakdown charges sms expired
+			$unresponsedWhatsappActivity = ActivityWhatsappLog::select('activity_whatsapp_logs.*')->join('activities', 'activities.id', 'activity_whatsapp_logs.activity_id')
+				->where('activity_whatsapp_logs.created_at', '<=', $sms_sent_date_time)
+				->where('activities.status_id', 25)
+				->where('activity_whatsapp_logs.is_new', 1)
+				->whereIn('activity_whatsapp_logs.type_id', [1193, 1202])
+				->groupBy('activity_whatsapp_logs.activity_id')
+				->orderBy('activity_whatsapp_logs.id', 'desc')
+				->get();
+
+			foreach ($unresponsedWhatsappActivity as $key => $value) {
+
+				$activity = Activity::find($value->activity_id);
+				$activity->status_id = 11; // Waiting for Invoice Generation by ASP
+				$activity->save();
+				$activity->updateApprovalLog();
+				//SEND ASP ACCEPTANCE CHARGES WHATSAPP SMS TO ASP
+				$activity->sendAspAcceptanceChargesWhatsappSms();
+			}
+			DB::commit();
+			$cronLog->status = "Completed";
+			$cronLog->updated_at = Carbon::now();
+			$cronLog->save();
+
+		} catch (\Exception $e) {
+			//CRON LOG SAVE
+			$cronLog->status = "Failed";
+			$cronLog->errors = $e;
+			$cronLog->updated_at = Carbon::now();
+			$cronLog->save();
+			dd($e);
 		}
 	}
 

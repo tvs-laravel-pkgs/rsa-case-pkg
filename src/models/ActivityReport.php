@@ -112,18 +112,18 @@ class ActivityReport extends Model {
 					if ($activity->asp->rm) {
 						$activityReport->rm_name = $activity->asp->rm->name;
 						$activityReport->rm_user_id = $activity->asp->rm->id;
-					}
 
-					//ZM
-					if ($activity->asp->zm) {
-						$activityReport->zm_name = $activity->asp->zm->name;
-						$activityReport->zm_user_id = $activity->asp->zm->id;
-					}
+						//ZM
+						if ($activity->asp->rm->serviceRmReportingTo) {
+							$activityReport->zm_name = $activity->asp->rm->serviceRmReportingTo->name;
+							$activityReport->zm_user_id = $activity->asp->rm->serviceRmReportingTo->id;
 
-					//NM
-					if ($activity->asp->nm) {
-						$activityReport->nm_name = $activity->asp->nm->name;
-						$activityReport->nm_user_id = $activity->asp->nm->id;
+							//NM
+							if ($activity->asp->rm->serviceRmReportingTo->serviceZmReportingTo) {
+								$activityReport->nm_name = $activity->asp->rm->serviceRmReportingTo->serviceZmReportingTo->name;
+								$activityReport->nm_user_id = $activity->asp->rm->serviceRmReportingTo->serviceZmReportingTo->id;
+							}
+						}
 					}
 
 					$activityReport->location = $activity->asp->location ? $activity->asp->location->name : NULL;

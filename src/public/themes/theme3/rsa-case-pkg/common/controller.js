@@ -543,8 +543,15 @@ app.component('billingDetails', {
                     }
                 }
                 $scope.kmTravelledMapView = function(){
-                    window.open("http://localhost/rsa/locator/map-my-india?activity_id="+self.data.id+"&asp_start_loc="+self.data.asp_start_location+"&asp_end_loc="+self.data.asp_end_location+
-                        "&bd_lat="+self.data.bd_lat+"&bd_lon="+self.data.bd_long+"&bd_location="+self.data.bd_location+"&drop_lat="+self.data.drop_location_lat+"&drop_lon="+self.data.drop_location_long+"&drop_location="+self.data.drop_location)
+                //Dynamic Data
+                    // window.open("https://www.google.co.in/maps/dir/"+self.data.asp_start_location+"/"+self.data.bd_lat+","+self.data.bd_long+"/"+self.data.drop_location_lat+","+self.data.drop_location_long+"/"+self.data.asp_end_location)
+                //static data with only location
+                    //window.open("https://www.google.co.in/maps/dir/"+self.data.asp_start_location+"/"+"Tiruppur"+"/"+"karur"+"/"+self.data.asp_end_location)
+                //static data with only LAT LONG
+                    window.open("https://www.google.co.in/maps/dir/11.3044741,77.003596/10.608394, 77.067367/10.986107, 76.968137")
+             //static data with only LAT LONG ONLY START AND END POINTS .ITS SHOWS THE MULTIPLE ROUTES
+                   // window.open("https://www.google.co.in/maps/dir/11.3044741,77.003596/10.608394, 77.067367")
+
                 }
 
                 $scope.calculate();

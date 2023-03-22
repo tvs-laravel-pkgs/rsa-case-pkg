@@ -261,6 +261,50 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'ASP New Activities',
 			],
 
+			//ASP ACTIVITY SEARCH
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'asp-activity-search',
+				'display_name' => 'ASP Activity Search',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'asp-activity-search',
+				'name' => 'all-asp-activity-search',
+				'display_name' => 'View All',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'asp-activity-search',
+				'name' => 'mapped-state-asp-activity-search',
+				'display_name' => 'Only Mapped States',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'asp-activity-search',
+				'name' => 'own-asp-activity-search',
+				'display_name' => 'View Only Own',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'asp-activity-search',
+				'name' => 'own-rm-asp-activity-search',
+				'display_name' => 'Own RM ASPs',
+			],
+			[
+				'display_order' => 5,
+				'parent' => 'asp-activity-search',
+				'name' => 'own-zm-asp-activity-search',
+				'display_name' => 'Own ZM ASPs',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'asp-activity-search',
+				'name' => 'own-nm-asp-activity-search',
+				'display_name' => 'Own NM ASPs',
+			],
+
 			//ASP DEFERRED ACTIVITIES
 			[
 				'display_order' => 99,
@@ -689,6 +733,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'update-membership',
 				'display_name' => 'Update',
 			],
+			[
+				'display_order' => 28,
+				'parent' => 'membership',
+				'name' => 'import-dealer-membership',
+				'display_name' => 'Dealer Import',
+			],
 
 			//Dealer Invoice Menu
 			[
@@ -962,6 +1012,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'own-client-vehicle-search',
 				'display_name' => 'Own Client',
 			],
+			[
+				'display_order' => 5,
+				'parent' => 'vehicle-search',
+				'name' => 'own-client-dealers-vehicle-search',
+				'display_name' => 'Own Client Dealers',
+			],
 
 			//ASP INVOICES - OLD PROCESS
 			[
@@ -1215,10 +1271,16 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Download Normal Invoice',
 			],
 			[
-				'display_order' => 2,
+				'display_order' => 3,
 				'parent' => 'cash-sale',
 				'name' => 'cancel-cash-sale-einvoice',
 				'display_name' => 'Cancel E-Invoice',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'cash-sale',
+				'name' => 'create-cash-sale-credit-note',
+				'display_name' => 'Create Credit Note',
 			],
 
 			//DIRECT SALE FTP
@@ -1564,6 +1626,122 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_order' => 1,
 				'parent' => 'activity-whatsapp-log',
 				'name' => 'export-activity-whatsapp-log',
+				'display_name' => 'Export',
+			],
+
+			//QMS
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'qms',
+				'display_name' => 'QMS',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'qms',
+				'name' => 'add-qms',
+				'display_name' => 'Add',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'qms',
+				'name' => 'edit-qms',
+				'display_name' => 'Edit',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'qms',
+				'name' => 'accept-qms',
+				'display_name' => 'Accept',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'qms',
+				'name' => 'delete-qms',
+				'display_name' => 'Delete',
+			],
+			[
+				'display_order' => 5,
+				'parent' => 'qms',
+				'name' => 'own-only-qms',
+				'display_name' => 'Own Only',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'qms',
+				'name' => 'own-rm-asps-qms',
+				'display_name' => 'Own RM ASPs',
+			],
+			[
+				'display_order' => 7,
+				'parent' => 'qms',
+				'name' => 'own-zm-asps-qms',
+				'display_name' => 'Own ZM ASPs',
+			],
+			[
+				'display_order' => 8,
+				'parent' => 'qms',
+				'name' => 'own-nm-asps-qms',
+				'display_name' => 'Own NM ASPs',
+			],
+			[
+				'display_order' => 9,
+				'parent' => 'qms',
+				'name' => 'own-rm-dealers-qms',
+				'display_name' => 'Own RM Dealers',
+			],
+			[
+				'display_order' => 10,
+				'parent' => 'qms',
+				'name' => 'own-zm-dealers-qms',
+				'display_name' => 'Own ZM Dealers',
+			],
+			[
+				'display_order' => 11,
+				'parent' => 'qms',
+				'name' => 'own-nm-dealers-qms',
+				'display_name' => 'Own NM Dealers',
+			],
+			[
+				'display_order' => 12,
+				'parent' => 'qms',
+				'name' => 'own-dealer-qms',
+				'display_name' => 'Own Dealer',
+			],
+			[
+				'display_order' => 13,
+				'parent' => 'qms',
+				'name' => 'own-dealers-qms',
+				'display_name' => 'Own Dealers',
+			],
+			[
+				'display_order' => 14,
+				'parent' => 'qms',
+				'name' => 'all-qms',
+				'display_name' => 'All',
+			],
+			[
+				'display_order' => 15,
+				'parent' => 'qms',
+				'name' => 'resolver-qms',
+				'display_name' => 'Resolver',
+			],
+			[
+				'display_order' => 16,
+				'parent' => 'qms',
+				'name' => 'clarifier-qms',
+				'display_name' => 'Clarifier',
+			],
+			[
+				'display_order' => 17,
+				'parent' => 'qms',
+				'name' => 'view-qms',
+				'display_name' => 'View',
+			],
+			[
+				'display_order' => 18,
+				'parent' => 'qms',
+				'name' => 'export-qms',
 				'display_name' => 'Export',
 			],
 		];

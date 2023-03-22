@@ -45,61 +45,61 @@
                             <div class="row">
                                 <input type="hidden" class="cc_actual_km" value="<%$ctrl.cc_actual_km%>">
                                 <input type="hidden" class="cc_not_collected" value="<%$ctrl.cc_not_collected%>">
-                                <div class="col-sm-3">
+                                <div class="col-xs-12 col-sm-3 col-md-3">
                                     <div class="input-text form-group">
                                         <label>KM Travelled <span class="mandatory">*</span></label>
                                         <input type="text" name="km_travelled" class="km_travel form-control customForm-input" ng-model="$ctrl.asp_km_travelled" autocomplete='off' placeholder="Enter KM Travelled" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-change="$ctrl.kmTravelledHideShow()">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
-                                <div class="col-sm-3">
+                                <div class="col-xs-12 col-sm-3 col-md-3">
                                     <div class="input-text form-group">
                                         <label> Border Charges (Not Collected)</label>
                                         <input type="text" class="form-control customForm-input other_charges_total" name="border_charge" ng-model="$ctrl.border_charge" autocomplete='off' placeholder="Enter Border Charges" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-change="calculateOtherCharges()">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
-                                <div class="col-sm-3">
+                                <div class="col-xs-12 col-sm-3 col-md-3">
                                     <div class="input-text form-group">
                                         <label>Green Tax Charges (Not Collected)</label>
                                         <input type="text" class="form-control customForm-input other_charges_total" name="green_tax_charge" ng-model="$ctrl.green_tax_charge" autocomplete='off' placeholder="Enter Green Tax Charges" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-change="calculateOtherCharges()">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
-                                <div class="col-sm-3">
+                                <div class="col-xs-12 col-sm-3 col-md-3">
                                     <div class="input-text form-group">
                                         <label>Toll Charges (Not Collected)</label>
                                         <input type="text" class="form-control customForm-input other_charges_total" name="toll_charge" ng-model="$ctrl.toll_charge" autocomplete='off' placeholder="Enter Toll Charges" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-change="calculateOtherCharges()">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
-                                <div class="col-sm-3">
+                                <div class="col-xs-12 col-sm-3 col-md-3">
                                     <div class="input-text form-group">
                                         <label>Eatable Item Charges (Not Collected)</label>
                                         <input type="text" class="form-control customForm-input other_charges_total" name="eatable_item_charge" ng-model="$ctrl.eatable_item_charge" autocomplete='off' placeholder="Enter Eatable Item Charges" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-change="calculateOtherCharges()">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
-                                <div class="col-sm-3">
+                                <div class="col-xs-12 col-sm-3 col-md-3">
                                     <div class="input-text form-group">
                                         <label>Fuel Charges (Not Collected)</label>
                                         <input type="text" class="form-control customForm-input other_charges_total" name="fuel_charge" ng-model="$ctrl.fuel_charge" autocomplete='off' placeholder="Enter Fuel Charges" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" ng-change="calculateOtherCharges()">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
-                                <div class="col-sm-3">
+                                <div class="col-xs-12 col-sm-3 col-md-3">
                                     <div class="input-text form-group">
                                         <label>Other Charges (Not Collected) <span class="mandatory">*</span></label>
                                         <input type="text" class="form-control other_charge customForm-input" name="other_charge" id="other_charge" ng-model="$ctrl.asp_other_charge" autocomplete='off' placeholder="Enter Other Charges" style="background-color: rgb(222, 222, 222);" readonly>
                                     </div><!-- Field -->
                                 </div><!-- Column -->
-                                <div class="col-sm-3">
+                                <div class="col-xs-12 col-sm-3 col-md-3">
                                     <div class="input-text form-group">
                                         <label>Collected Amount from Customer <span class="mandatory">*</span></label>
                                         <input type="text" class="form-control asp_collected_charges customForm-input" name="asp_collected_charges" autocomplete='off' ng-model="$ctrl.asp_collected_charges" placeholder="Enter Collected Amount" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
-                                <div class="col-sm-3">
+                                <div class="col-xs-12 col-sm-3 col-md-3">
                                     <div class="input-text form-group">
                                         <label>Waiting Time</label>
                                         <input type="text" class="form-control customForm-input" name="waiting_time" id="waiting_time" ng-model="$ctrl.waiting_time" autocomplete='off' placeholder="Select Waiting Time" readonly>
                                     </div><!-- Field -->
                                 </div><!-- Column -->
-                                <div class="col-sm-3">
+                                <div class="col-xs-12 col-sm-3 col-md-3">
                                     <div class="input-text form-group">
                                         <label>Services <span class="mandatory">*</span></label>
                                         <md-select ng-model="$ctrl.service_type_id" ng-change="getServiceTypeDetail()" placeholder="Select Service">
@@ -110,13 +110,13 @@
                                         <input type="hidden" name="asp_service_type_id" value="<% $ctrl.service_type_id %>" class="required">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
-                                <div class="col-sm-3 remarks_notcollected" style="display: none;">
+                                <div class="col-xs-12 col-sm-3 col-md-3 remarks_notcollected" style="display: none;">
                                     <div class="input-text form-group">
                                         <label>Remarks for Charges Not Collected <sup class="req" style="color:red">*</sup></label>
                                         <textarea class="form-control remarks_not_collected" rows="1" name="remarks_not_collected" ng-model="$ctrl.activity.remarks" autocomplete='off' placeholder="Enter Remarks for Charges Not Collected"></textarea>
                                     </div><!-- Field -->
                                 </div>
-                                <div class="col-sm-3 other_attachment" style="display: none;">
+                                <div class="col-xs-12 col-sm-3 col-md-3 other_attachment" style="display: none;">
                                     <div class="input-text form-group">
                                         <label>Other Attachment <sup class="req" style="color:red">*</sup></label>
                                         <div class="input-group">
@@ -136,7 +136,7 @@
                                         <input ng-if="$ctrl.other_attachment.length > 0" type="hidden" name="other_attachment_exist" value="1">
                                     </div><!-- Field -->
                                 </div><!-- Column -->
-                                <div class="col-sm-3 map_attachment" style="display: none;">
+                                <div class="col-xs-12 col-sm-3 col-md-3 map_attachment" style="display: none;">
                                     <div class="input-text form-group">
                                         <label>Map Attachment<sup class="req" style="color:red">*</sup></label>
                                         <div class="input-group">
@@ -158,19 +158,19 @@
                                     <input ng-if="$ctrl.km_attachment.length > 0" type="hidden" name="km_attachment_exist" value="1">
                                 </div><!-- Column -->
                                 <!-- Map Attachement -->
-                                <div class="col-sm-3 resolve_comment" ng-if="$ctrl.for_deffer_activity">
+                                <div class="col-xs-12 col-sm-3 col-md-3 resolve_comment" ng-if="$ctrl.for_deffer_activity">
                                     <div class="input-text form-group">
                                         <label>Resolve Comments <span class="mandatory">*</span></label>
                                         <textarea name="comments" class="comments form-control" autocomplete='off' ng-model="$ctrl.comments" placeholder="Enter Resolve Comments"></textarea>
                                     </div><!-- Field -->
                                 </div><!-- Column -->
-                                <div class="col-sm-3">
+                                <div class="col-xs-12 col-sm-3 col-md-3">
                                     <div class="input-text form-group">
                                         <label>Deferred Reason</label>
                                         <textarea class="form-control" autocomplete='off' rows="3" readonly>{{ $ctrl.defer_reason | removeHTMLTags }}</textarea>
                                     </div><!-- Field -->
                                 </div><!-- Column -->
-                                <div class="col-sm-3">
+                                <div class="col-xs-12 col-sm-3 col-md-3">
                                     <div class="input-text form-group">
                                         <label>Breakdown Location</label>
                                         <textarea type="textarea" class="form-control" rows="3" ng-model="$ctrl.bd_location" disabled autocomplete='off'></textarea>
@@ -197,7 +197,7 @@
                                 </div>
                             </div>
                             <div class="row" ng-show="$ctrl.showTowingAttachment">
-                                <div class="col-sm-3">
+                                <div class="col-xs-12 col-sm-3 col-md-3">
                                     <div class="input-text form-group">
                                         <label>Vehicle Pickup Image<sup ng-if="$ctrl.activity.is_towing_attachments_mandatory && $ctrl.activity.finance_status.po_eligibility_type_id == 340" class="req" style="color:red">*</sup></label>
                                         <div class="input-group">
@@ -221,7 +221,7 @@
                                         </div>
                                     </div><!-- Field -->
                                 </div><!-- Column -->
-                                <div class="col-sm-3">
+                                <div class="col-xs-12 col-sm-3 col-md-3">
                                     <div class="input-text form-group">
                                         <label>Vehicle Drop Image<sup ng-if="$ctrl.activity.is_towing_attachments_mandatory && $ctrl.activity.finance_status.po_eligibility_type_id == 340" class="req" style="color:red">*</sup></label>
                                         <div class="input-group">
@@ -245,7 +245,7 @@
                                         </div>
                                     </div><!-- Field -->
                                 </div><!-- Column -->
-                                <div class="col-sm-3">
+                                <div class="col-xs-12 col-sm-3 col-md-3">
                                     <div class="input-text form-group">
                                         <label>Inventory Job Sheet Image<sup ng-if="$ctrl.activity.is_towing_attachments_mandatory && $ctrl.activity.finance_status.po_eligibility_type_id == 340" class="req" style="color:red">*</sup></label>
                                         <div class="input-group">

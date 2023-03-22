@@ -933,9 +933,10 @@ class Activity extends Model {
 						'toll_charges' => 'nullable|numeric',
 						'green_tax_charges' => 'nullable|numeric',
 						'border_charges' => 'nullable|numeric',
-						'octroi_charges' => 'nullable|numeric',
+						// 'octroi_charges' => 'nullable|numeric',
 						'excess_charges' => 'nullable|numeric',
 						'manual_uploading_remarks' => 'required|string',
+						'csr' => 'nullable',
 					]);
 
 					if ($validator->fails()) {
@@ -1421,6 +1422,7 @@ class Activity extends Model {
 									]);
 							}
 
+							$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
 							//RELEASE ONHOLD / ASP COMPLETED DATA ENTRY - WAITING FOR CALL CENTER DATA ENTRY ACTIVITIES WITH CLOSED OR CANCELLED CASES
 							if ($case->status_id == 4 || $case->status_id == 3) {
 								$caseActivities = $case->activities()->whereIn('status_id', [17, 26])->get();
@@ -1432,10 +1434,36 @@ class Activity extends Model {
 										if ($caseActivityBreakdownAlertSent && $caseActivity->asp && !empty($caseActivity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $caseActivity->asp->has_whatsapp_flow == 1))) {
 											// ROS SERVICE
 											if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id != 3) {
-												$autoApprovalProcessResponse = $caseActivity->autoApprovalProcess();
-												if (!$autoApprovalProcessResponse['success']) {
-													$status['errors'][] = "Case Number : " . $caseActivity->case->number . " - " . $autoApprovalProcessResponse['error'];
+
+												if (!$disableWhatsappAutoApproval) {
+													$autoApprovalProcessResponse = $caseActivity->autoApprovalProcess();
+													if (!$autoApprovalProcessResponse['success']) {
+														$status['errors'][] = "Case Number : " . $caseActivity->case->number . " - " . $autoApprovalProcessResponse['error'];
+													}
+												} else {
+													//MECHANICAL SERVICE GROUP
+													if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id == 2) {
+														$cc_total_km = $caseActivity->detail(280) ? $caseActivity->detail(280)->value : 0;
+														$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id);
+														if ($isBulk) {
+															//ASP Completed Data Entry - Waiting for L1 Bulk Verification
+															$statusId = 5;
+														} else {
+															//ASP Completed Data Entry - Waiting for L1 Individual Verification
+															$statusId = 6;
+														}
+													} else {
+														if (($caseActivity->asp && $caseActivity->asp->is_corporate == 1) || $caseActivity->is_asp_data_entry_done == 1) {
+															$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+														} else {
+															$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+														}
+													}
+													$caseActivity->update([
+														'status_id' => $statusId,
+													]);
 												}
+
 											} else {
 												// TOW SERVICE
 												if ($caseActivity->asp->is_corporate == 1 || $caseActivity->towing_attachments_uploaded_on_whatsapp == 1 || $caseActivity->is_asp_data_entry_done == 1) {

@@ -1,0 +1,97 @@
+<div class="col-xs-12 col-sm-12">
+    <div class="mobile-breadcrumbs-wrapper">
+        <ul class="mobile-breadcrumbs-group list-inline">
+            <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
+            <li><a href="#">Activities</a></li>
+            <li><a href="#!/rsa-case-pkg/activity-search">Search</a></li>
+        </ul>
+    </div>
+</div>
+<div class="container-fluid dataTable-content--wrapper">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="dataTable--left_wrapper">
+                        <h2 class="dataTable-title">Activity Search</h2>
+                        <p><span class="orange-txt"></span></p>
+                    </div>
+                </div>
+            </div><!-- Row -->
+            <div class="viewData-wrapper mb-30">
+                <div class="viewData-toggle--wrapper">
+                    <div class="noToggle--inner">
+                        <div class="row">
+                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                                <label>Case Number / Vehicle Registration Number / VIN / Mobile Number / CRM Activity ID / CSR <sup class="req">*</sup></label>
+                                <div class="input-group" style="display: flex;">
+                                    <input type="text" ng-model="$ctrl.searchQuery" class="form-control" name="searchQuery" placeholder="Enter Case Number / Vehicle Registration Number / VIN / Mobile Number / CRM Activity ID / CSR" autocomplete="off">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-primary" type="button" id="vin-search" ng-click="searchActivity($ctrl.searchQuery)">Search</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-20"></div>
+                        <div class="row">
+                            <div class="col-xs-12 col-sm-12">
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-6">
+                                        <div class="dataTable--left_wrapper">
+                                            <h2 class="dataTable-title">
+                                                <span>Activities</span>
+                                            </h2>
+                                            <p>Total - <span class="orange-txt"><span class="count">0</span></span></p>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6">
+                                        <div class="dataTable-top--right_wrapper">
+                                            <ul class="dataTable-top--right_group list-inline">
+                                                <li>
+                                                    <input class="filterTable" type="text" placeholder="Search" id="search" style="font-size:14px;">
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table id="activityTable" class="table" style="width:100%;">
+                                        <thead>
+                                            <tr>
+                                                <th>Action</th>
+                                                <th>Date</th>
+                                                <th>Case Number</th>
+                                                <th>Vehicle Number</th>
+                                                <th>VIN</th>
+                                                <th>ASP Code</th>
+                                                <th>CRM Activity ID</th>
+                                                <th>CSR</th>
+                                                <th>Service</th>
+                                                <th>Finance Status</th>
+                                                <th>Status</th>
+                                                <th>Activity Status</th>
+                                                <th>Client</th>
+                                                <th>Call Center</th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                </div><!-- Responsive -->
+                                <div class="mt-20"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+            </div><!-- View Date Wrapper -->
+        </div><!-- Column -->
+    </div><!-- Row -->
+</div><!-- Container Fluid -->
+<div class="row">
+    <div class="col-md-12">
+        <!-- Button Loader Starts -->
+        <div class="loader-type-2 loader-hide">
+            <div class="loader-inner"></div>
+        </div>
+        <!-- Button Loader Ends -->
+    </div>
+</div>

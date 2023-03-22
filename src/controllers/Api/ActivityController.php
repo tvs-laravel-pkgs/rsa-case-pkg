@@ -1552,10 +1552,10 @@ class ActivityController extends Controller {
 		try {
 
 			//LIVE
-			$oneDayBefore = Carbon::parse(Carbon::now()->subHours(24))->format('Y-m-d H:i:s');
+			// $oneDayBefore = Carbon::parse(Carbon::now()->subHours(24))->format('Y-m-d H:i:s');
 
 			//TESTING
-			// $oneDayBefore = Carbon::parse(Carbon::now()->subHours(1))->format('Y-m-d H:i:s');
+			$oneDayBefore = Carbon::parse(Carbon::now()->subHours(1))->format('Y-m-d H:i:s');
 
 			$unresponsedAspChargesAcceptanceActivities = ActivityWhatsappLog::select([
 				'activity_whatsapp_logs.id',

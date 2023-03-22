@@ -1519,31 +1519,54 @@ class ActivityController extends Controller {
 		$cronLog->save();
 		try {
 
-			$sms_sent_date_time = date('Y-m-d H:i:s', strtotime('-24 hours'));
-			// Get list of whatsapp  breakdown /revised breakdown charges sms expired
-			$unresponsedWhatsappActivity = ActivityWhatsappLog::select('activity_whatsapp_logs.*')->join('activities', 'activities.id', 'activity_whatsapp_logs.activity_id')
-				->where('activity_whatsapp_logs.created_at', '<=', $sms_sent_date_time)
-				->where('activities.status_id', 25)
+			//LIVE
+			$oneDayBefore = Carbon::parse(Carbon::now()->subHours(24))->format('Y-m-d H:i:s');
+
+			//TESTING
+			// $oneDayBefore = Carbon::parse(Carbon::now()->subHours(1))->format('Y-m-d H:i:s');
+
+			$unresponsedAspChargesAcceptanceActivities = ActivityWhatsappLog::select([
+				'activity_whatsapp_logs.id',
+				'activity_whatsapp_logs.activity_id',
+			])
+				->join('activities', 'activities.id', 'activity_whatsapp_logs.activity_id')
+				->where('activity_whatsapp_logs.created_at', '<=', $oneDayBefore)
+				->where('activities.status_id', 25) //Waiting for Charges Acceptance by ASP
 				->where('activity_whatsapp_logs.is_new', 1)
-				->whereIn('activity_whatsapp_logs.type_id', [1193, 1202])
+				->whereIn('activity_whatsapp_logs.type_id', [1193, 1194, 1202, 1203]) //Breakdown / Empty Return Charges AND Revised Breakdown / Empty Return Charges
 				->groupBy('activity_whatsapp_logs.activity_id')
 				->orderBy('activity_whatsapp_logs.id', 'desc')
 				->get();
 
-			foreach ($unresponsedWhatsappActivity as $key => $value) {
+			$aspChargesAcceptanceUpdateErrors = [];
+			if ($unresponsedAspChargesAcceptanceActivities->isNotEmpty()) {
+				foreach ($unresponsedAspChargesAcceptanceActivities as $unresponsedAspChargesAcceptanceActivityKey => $unresponsedAspChargesAcceptanceActivityVal) {
+					DB::beginTransaction();
+					try {
+						$activity = Activity::find($unresponsedAspChargesAcceptanceActivityVal->activity_id);
+						$activity->status_id = 11; // Waiting for Invoice Generation by ASP
+						$activity->save();
 
-				$activity = Activity::find($value->activity_id);
-				$activity->status_id = 11; // Waiting for Invoice Generation by ASP
-				$activity->save();
-				$activity->updateApprovalLog();
-				//SEND ASP ACCEPTANCE CHARGES WHATSAPP SMS TO ASP
-				$activity->sendAspAcceptanceChargesWhatsappSms();
+						$activity->updateApprovalLog();
+
+						//SEND ASP ACCEPTANCE CHARGES WHATSAPP SMS TO ASP
+						$activity->sendAspAcceptanceChargesWhatsappSms();
+
+						DB::commit();
+					} catch (\Exception $e) {
+						DB::rollBack();
+						$aspChargesAcceptanceUpdateErrors[] = "Activity (" . $unresponsedAspChargesAcceptanceActivityVal->activity_id . " : " . $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile();
+					}
+				}
+				$cronLog->remarks = "Activities found";
+				$cronLog->errors = !empty($aspChargesAcceptanceUpdateErrors) ? json_encode($aspChargesAcceptanceUpdateErrors) : NULL;
+			} else {
+				$cronLog->remarks = "No activities found";
 			}
-			DB::commit();
+
 			$cronLog->status = "Completed";
 			$cronLog->updated_at = Carbon::now();
 			$cronLog->save();
-
 		} catch (\Exception $e) {
 			//CRON LOG SAVE
 			$cronLog->status = "Failed";

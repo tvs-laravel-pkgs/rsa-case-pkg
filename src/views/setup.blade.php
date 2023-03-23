@@ -44,6 +44,12 @@
 	        title: 'Activity Status Delete',
 	    }).
 
+	    //ACTIVITY SEARCH
+	    when('/rsa-case-pkg/activity-search', {
+	        template: '<activity-search-form></activity-search-form>',
+	        title: 'Activity Search',
+	    }).
+
 	    //ACTIVITY VERIFICATION
 	    when('/rsa-case-pkg/activity-verification/list', {
 	        template: '<activity-verification-list></activity-verification-list>',
@@ -106,6 +112,9 @@
     var getActivityServiceTypeDetail = "{{url('rsa-case-pkg/new-activity/get-service-type-detail')}}";
 
     var activity_status_list_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-status/list.html')}}";
+
+    var activity_search_form_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-search/form.html')}}";
+
     var activity_status_view_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-status/view.html')}}";
     var activity_status_view_tab_header_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/tab_header.html')}}";
     var activity_status_view_ticket_header2_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/partials/ticket_header2.html')}}";
@@ -156,7 +165,7 @@
     var showTravelledKmMapView = "{{route('locatorMapMyIndia')}}";
 
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/common/controller.js?v=11')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/common/controller.js?v=12')}}"></script>
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-status/controller.js?v=9')}}"></script>
 <!-- RSA-NEW-ACTIVITY-PKG -->
 <script type="text/javascript">
@@ -164,7 +173,7 @@
     var asp_new_activity_update_details_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/update-details.html')}}";
     var get_activity_form_data_url = "{{route('activityNewGetFormData')}}";
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/controller.js?v=13')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/controller.js?v=15')}}"></script>
 
 <!-- RSA-DASHBOARD -->
 <script type="text/javascript">
@@ -221,7 +230,9 @@
     var asp_activity_deferred_update_details_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-deferred/update-details.html')}}";
     var get_deferred_activity_form_data_url = "{{route('activityDeferredGetFormData')}}";
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-deferred/controller.js?v=11')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-deferred/controller.js?v=13')}}"></script>
+
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-search/controller.js?v=2')}}"></script>
 
 <!-- RSA-ACTIVITY-APPROVED -->
 <script type="text/javascript">

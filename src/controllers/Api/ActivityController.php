@@ -143,6 +143,8 @@ class ActivityController extends Controller {
 				'excess_charges' => 'nullable|numeric',
 				'amount_collected_from_customer' => 'nullable|numeric',
 				'amount_refused_by_customer' => 'nullable|numeric',
+				'fuel_charges' => 'nullable|numeric',
+				'csr' => 'nullable',
 			]);
 
 			if ($validator->fails()) {
@@ -515,6 +517,8 @@ class ActivityController extends Controller {
 				$detail->save();
 			}
 
+			$activity->saveActivityChargesDetails();
+
 			//CALCULATE PAYOUT ONLY IF FINANCE STATUS OF ACTIVITY IS ELIBLE FOR PO
 			if ($activity->financeStatus->po_eligibility_type_id == 342) {
 				//No Payout status
@@ -602,11 +606,13 @@ class ActivityController extends Controller {
 				$activity->sendBreakdownAlertWhatsappSms();
 			}
 
+			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);
+
 			// CHECK CASE IS CLOSED
 			if ($case->status_id == 4) {
 
 				//SEND BREAKDOWN OR EMPTY RETURN CHARGES WHATSAPP SMS TO ASP
-				if ($asp && !empty($asp->whatsapp_number) && $activity->status_id == 10 && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $asp->has_whatsapp_flow == 1))) {
+				if ($breakdownAlertSent && $asp && !empty($asp->whatsapp_number) && $activity->status_id == 10 && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $asp->has_whatsapp_flow == 1))) {
 					$activity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 				}
 
@@ -625,23 +631,49 @@ class ActivityController extends Controller {
 			if (($case->status_id == 4 || $case->status_id == 3) && ($activity->status_id == 17 || $activity->status_id == 26)) {
 
 				//WHATSAPP FLOW
-				if ($activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+				if ($breakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 					// ROS SERVICE
 					if ($service_type->service_group_id != 3) {
-						$autoApprovalProcessResponse = $activity->autoApprovalProcess();
-						if (!$autoApprovalProcessResponse['success']) {
-							//SAVE ACTIVITY API LOG
-							DB::rollBack();
-							$errors[] = $autoApprovalProcessResponse['error'];
-							saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
-							return response()->json([
-								'success' => false,
-								'error' => 'Validation Error',
-								'errors' => [
-									$autoApprovalProcessResponse['error'],
-								],
-							], $this->successStatus);
+
+						$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
+
+						if (!$disableWhatsappAutoApproval) {
+							$autoApprovalProcessResponse = $activity->autoApprovalProcess();
+							if (!$autoApprovalProcessResponse['success']) {
+								//SAVE ACTIVITY API LOG
+								DB::rollBack();
+								$errors[] = $autoApprovalProcessResponse['error'];
+								saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+								return response()->json([
+									'success' => false,
+									'error' => 'Validation Error',
+									'errors' => [
+										$autoApprovalProcessResponse['error'],
+									],
+								], $this->successStatus);
+							}
+						} else {
+							//MECHANICAL SERVICE GROUP
+							if ($service_type->service_group_id == 2) {
+								$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id);
+								if ($is_bulk) {
+									//ASP Completed Data Entry - Waiting for L1 Bulk Verification
+									$statusId = 5;
+								} else {
+									//ASP Completed Data Entry - Waiting for L1 Individual Verification
+									$statusId = 6;
+								}
+							} else {
+								if ($asp->is_corporate == 1 || $activity->is_asp_data_entry_done == 1) {
+									$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+								} else {
+									$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+								}
+							}
+							$activity->status_id = $statusId;
+							$activity->save();
 						}
+
 					} else {
 						// TOW SERVICE
 						if ($asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
@@ -678,7 +710,7 @@ class ActivityController extends Controller {
 			}
 
 			//IF ACTIVITY CANCELLED THEN SEND ACTIVITY CANCELLED WHATSAPP SMS TO ASP
-			if (!empty($activity_status_id) && $activity_status_id == 4 && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+			if ($breakdownAlertSent && !empty($activity_status_id) && $activity_status_id == 4 && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 				$activity->sendActivityCancelledWhatsappSms();
 			}
 
@@ -924,7 +956,7 @@ class ActivityController extends Controller {
 				], $this->successStatus);
 			}
 
-			$activity = Activity::where('number', $payload->activity_id)->first();
+			$activity = Activity::where('crm_activity_id', $payload->activity_id)->first();
 			if (!$activity) {
 				$whatsappWebhookResponse->errors = 'Activity not found';
 				$whatsappWebhookResponse->save();
@@ -936,8 +968,9 @@ class ActivityController extends Controller {
 					],
 				], $this->successStatus);
 			}
+			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
-			if (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp && $activity->asp->has_whatsapp_flow == 1)) {
+			if ($breakdownAlertSent && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp && $activity->asp->has_whatsapp_flow == 1))) {
 				if ($payload->type == "Breakdown Charges" || $payload->type == "Revised Breakdown Charges") {
 					if ($activity->asp && !empty($activity->asp->whatsapp_number)) {
 
@@ -1209,7 +1242,7 @@ class ActivityController extends Controller {
 				'activity_id' => [
 					'required',
 					'string',
-					'exists:activities,number',
+					'exists:activities,crm_activity_id',
 				],
 				'vehicle_pickup_image' => [
 					'required',
@@ -1245,7 +1278,7 @@ class ActivityController extends Controller {
 				], $this->successStatus);
 			}
 
-			$activity = Activity::where('number', $request->activity_id)
+			$activity = Activity::where('crm_activity_id', $request->activity_id)
 				->whereIn('status_id', [2, 17]) //ASP Rejected CC Details - Waiting for ASP Data Entry OR On Hold
 				->first();
 
@@ -1436,9 +1469,10 @@ class ActivityController extends Controller {
 			saveApiLog(111, NULL, $request->all(), $errors, NULL, 120);
 
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
+			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);
 
 			//SEND IMAGE UPLOAD CONFIRMATION WHATSAPP SMS TO ASP
-			if ($activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+			if ($breakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 				$activity->sendImageUploadConfirmationWhatsappSms();
 			}
 

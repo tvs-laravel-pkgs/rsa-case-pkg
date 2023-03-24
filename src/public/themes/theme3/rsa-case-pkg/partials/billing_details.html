@@ -57,10 +57,14 @@
                                 </td>
                             </tr>
                             <tr>
-                                <th scope="row">KM Travelled
-                                      <a href="javascript:;" ng-click="kmTravelledMapView()">
-                                        <img src="./public/images/asp_travelled_km_map_view.svg" class="img-fluid" alt="Map view"/>
-                                    </a>
+                                <th scope="row">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <span>KM Travelled</span>
+                                        <button  type="button" style="padding: 4px 12px;gap: 8px;" class="btn btn-bordered d-flex align-items-center" ng-click="kmTravelledMapView()">
+                                            <img src="./public/images/loaction-blue.svg" class="img-fluid"/>
+                                            <span>View Map</span>
+                                        </button>
+                                     </div>
                                 </th>
                                 <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">
                                     {{$ctrl.data.cc_total_km}}

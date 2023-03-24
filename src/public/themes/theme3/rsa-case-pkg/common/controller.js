@@ -620,15 +620,7 @@ app.component('billingDetails', {
                     }
                 }
                 $scope.kmTravelledMapView = function(){
-                //Dynamic Data
-                  window.open("https://www.google.co.in/maps/dir/"+self.data.asp_start_location+"/"+self.data.bd_lat+","+self.data.bd_long+"/"+self.data.drop_location_lat+","+self.data.drop_location_long+"/"+self.data.asp_end_location)
-                //static data with only location
-                    //window.open("https://www.google.co.in/maps/dir/"+self.data.asp_start_location+"/"+"Tiruppur"+"/"+"karur"+"/"+self.data.asp_end_location)
-                //static data with only LAT LONG
-                   // window.open("https://www.google.co.in/maps/dir/11.3044741,77.003596/10.608394,77.067367/10.986107,76.968137")
-             //static data with only LAT LONG ONLY START AND END POINTS .ITS SHOWS THE MULTIPLE ROUTES
-                   // window.open("https://www.google.co.in/maps/dir/11.3044741,77.003596/10.608394, 77.067367")
-
+                  window.open(self.data.asp_km_travelled_map_url)
                 }
 
                 $scope.calculate();

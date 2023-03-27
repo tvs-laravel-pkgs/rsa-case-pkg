@@ -4754,6 +4754,7 @@ class ActivityController extends Controller {
 				'cases.bd_location',
 				'cases.bd_city',
 				'cases.bd_state',
+				'cases.csr',
 				DB::raw('COALESCE(bd_location_type.name, "--") as location_type'),
 				DB::raw('COALESCE(data_source.name, "--") as data_source'),
 				DB::raw('COALESCE(bd_location_category.name, "--") as location_category'),
@@ -5003,6 +5004,7 @@ class ActivityController extends Controller {
 					'BD Location',
 					'BD City',
 					'BD State',
+					'CSR',
 				];
 				$config_ids = [294, 295, 296, 297, 158, 159, 160, 176, 173, 182];
 
@@ -5070,6 +5072,7 @@ class ActivityController extends Controller {
 					'BD Location',
 					'BD City',
 					'BD State',
+					'CSR',
 					'Location Type',
 					'Location Category',
 				];
@@ -5217,6 +5220,7 @@ class ActivityController extends Controller {
 						!empty($activity->bd_location) ? $activity->bd_location : '',
 						!empty($activity->bd_city) ? $activity->bd_city : '',
 						!empty($activity->bd_state) ? $activity->bd_state : '',
+						!empty($activity->csr) ? $activity->csr : '',
 					];
 				} else {
 					$activity_details_data[] = [
@@ -5283,6 +5287,7 @@ class ActivityController extends Controller {
 						!empty($activity->bd_location) ? $activity->bd_location : '',
 						!empty($activity->bd_city) ? $activity->bd_city : '',
 						!empty($activity->bd_state) ? $activity->bd_state : '',
+						!empty($activity->csr) ? $activity->csr : '',
 						$activity->location_type,
 						$activity->location_category,
 					];

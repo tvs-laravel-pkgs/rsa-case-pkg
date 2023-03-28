@@ -1184,6 +1184,7 @@ class Activity extends Model {
 						$case->bd_location_type_id = $bd_location_type_id;
 						$case->bd_location_category_id = $bd_location_category_id;
 						$case->membership_type = !empty($record['membership_type']) ? $record['membership_type'] : NULL;
+						$case->csr = !empty($record['csr']) ? $record['csr'] : NULL;
 						$case->save();
 
 						$activity_save_eligible = true;

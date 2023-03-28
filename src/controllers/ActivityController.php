@@ -706,6 +706,7 @@ class ActivityController extends Controller {
 					'cases.bd_location',
 					'cases.bd_city',
 					'cases.bd_state',
+					'cases.csr',
 					'activities.number as activity_number',
 					'activities.asp_po_accepted as asp_po_accepted',
 					'activities.defer_reason as defer_reason',
@@ -4898,6 +4899,7 @@ class ActivityController extends Controller {
 				'cases.bd_location',
 				'cases.bd_city',
 				'cases.bd_state',
+				'cases.csr',
 				DB::raw('COALESCE(bd_location_type.name, "--") as location_type'),
 				DB::raw('COALESCE(data_source.name, "--") as data_source'),
 				DB::raw('COALESCE(bd_location_category.name, "--") as location_category'),
@@ -5147,6 +5149,7 @@ class ActivityController extends Controller {
 					'BD Location',
 					'BD City',
 					'BD State',
+					'CSR',
 				];
 				$config_ids = [294, 295, 296, 297, 158, 159, 160, 176, 173, 182];
 
@@ -5214,6 +5217,7 @@ class ActivityController extends Controller {
 					'BD Location',
 					'BD City',
 					'BD State',
+					'CSR',
 					'Location Type',
 					'Location Category',
 				];
@@ -5361,6 +5365,7 @@ class ActivityController extends Controller {
 						!empty($activity->bd_location) ? $activity->bd_location : '',
 						!empty($activity->bd_city) ? $activity->bd_city : '',
 						!empty($activity->bd_state) ? $activity->bd_state : '',
+						!empty($activity->csr) ? $activity->csr : '',
 					];
 				} else {
 					$activity_details_data[] = [
@@ -5427,6 +5432,7 @@ class ActivityController extends Controller {
 						!empty($activity->bd_location) ? $activity->bd_location : '',
 						!empty($activity->bd_city) ? $activity->bd_city : '',
 						!empty($activity->bd_state) ? $activity->bd_state : '',
+						!empty($activity->csr) ? $activity->csr : '',
 						$activity->location_type,
 						$activity->location_category,
 					];
@@ -5895,9 +5901,9 @@ class ActivityController extends Controller {
 			'Invoices.id as invoiceId',
 			'activities.crm_activity_id as crm_activity_id',
 			'activities.status_id as status_id',
-			DB::raw('COALESCE(activity_details.value, "--") as csr'),
 			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
 			'cases.number as case_number',
+			DB::raw('COALESCE(cases.csr, "--") as csr'),
 			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
 			DB::raw('COALESCE(cases.vin_no, "--") as vin'),
 			DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
@@ -5919,11 +5925,7 @@ class ActivityController extends Controller {
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
-			->leftjoin('Invoices', 'Invoices.id', 'activities.invoice_id')
-			->leftJoin('activity_details', function ($leftJoin) {
-				$leftJoin->on('activity_details.activity_id', '=', 'activities.id')
-					->where('activity_details.key_id', 334); //CSR
-			});
+			->leftjoin('Invoices', 'Invoices.id', 'activities.invoice_id');
 		if (!empty($search_type) && $search_type == 'mobile_number') {
 			$activities->where('cases.customer_contact_number', $request->searchQuery);
 		} else {
@@ -5932,7 +5934,7 @@ class ActivityController extends Controller {
 					->orWhere('cases.vehicle_registration_number', $request->searchQuery)
 					->orWhere('cases.vin_no', $request->searchQuery)
 					->orWhere('activities.crm_activity_id', $request->searchQuery)
-					->orWhere('activity_details.value', $request->searchQuery);
+					->orWhere('cases.csr', $request->searchQuery);
 			});
 		}
 

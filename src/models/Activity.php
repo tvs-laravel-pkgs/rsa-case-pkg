@@ -881,6 +881,9 @@ class Activity extends Model {
 						// 			$query->whereNull('deleted_at');
 						// 		}),
 						// ],
+
+						'csr' => 'nullable',
+
 						//ACTIVITY
 						'crm_activity_id' => 'required|string',
 						'data_source' => [
@@ -983,7 +986,6 @@ class Activity extends Model {
 						// 'octroi_charges' => 'nullable|numeric',
 						'excess_charges' => 'nullable|numeric',
 						'manual_uploading_remarks' => 'required|string',
-						'csr' => 'nullable',
 					]);
 
 					if ($validator->fails()) {

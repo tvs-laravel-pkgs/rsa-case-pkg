@@ -145,7 +145,7 @@
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
                     <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
                         <p>CSR</p>
-                        <h3>{{$ctrl.data.csr}}</h3>
+                        <h3>{{ $ctrl.data.csr ? $ctrl.data.csr : '-' }}</h3>
                     </li>
                 </ul>
             </div>

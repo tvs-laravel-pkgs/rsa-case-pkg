@@ -32,7 +32,7 @@ app.component('activitySearchForm', {
                         { data: 'vin', name: 'cases.vin_no', searchable: true },
                         { data: 'asp', name: 'asp', searchable: true },
                         { data: 'crm_activity_id', name: 'activities.crm_activity_id', searchable: true },
-                        { data: 'csr', name: 'activity_details.value', searchable: true },
+                        { data: 'csr', name: 'cases.csr', searchable: true },
                         { data: 'sub_service', name: 'service_types.name', searchable: true },
                         { data: 'finance_status', name: 'activity_finance_statuses.name', searchable: true },
                         { data: 'status', name: 'activity_portal_statuses.name', searchable: true },

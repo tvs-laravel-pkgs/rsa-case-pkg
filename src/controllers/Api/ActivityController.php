@@ -392,7 +392,7 @@ class ActivityController extends Controller {
 				//ACTIVITY BELONGS TO SAME CASE
 				if ($activityExist->case_id === $case->id) {
 					//Allow case with intial staus and not payment processed statuses
-					if ($activityExist->status_id == 2 || $activityExist->status_id == 4 ||$activityExist->status_id == 17) {
+					if ($activityExist->status_id == 2 || $activityExist->status_id == 4 || $activityExist->status_id == 17) {
 						//ALLOW ACTIVITY UPDATION ONLY BEFORE 90 DAYS OF THE CASE DATE
 						if (date('Y-m-d') > $caseDateAfter90Days) {
 							//SAVE ACTIVITY API LOG
@@ -412,14 +412,14 @@ class ActivityController extends Controller {
 						}
 					} else {
 
-						 if($activityExist->status_id == 15 || $activityExist->status_id == 16){
-						 	$api_error = $errors[] =  'Activity update will not be allowed. Case is not eligible for payout';
-						 } else {
-						 	$api_error = $errors[] = 'Activity update will not be allowed. Case is under payment process';
-						 }
+						if ($activityExist->status_id == 15 || $activityExist->status_id == 16) {
+							$api_error = $errors[] = 'Activity update will not be allowed. Case is not eligible for payout';
+						} else {
+							$api_error = $errors[] = 'Activity update will not be allowed. Case is under payment process';
+						}
 
 						//SAVE ACTIVITY API LOG
-						
+
 						saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
 						DB::commit();
 
@@ -427,7 +427,7 @@ class ActivityController extends Controller {
 							'success' => false,
 							'error' => 'Validation Error',
 							'errors' => [
-								$api_error
+								$api_error,
 							],
 						], $this->successStatus);
 					}
@@ -975,7 +975,7 @@ class ActivityController extends Controller {
 				], $this->successStatus);
 			}
 
-			if($activity->status_id == 15 || $activity->status_id == 16){ 
+			if ($activity->status_id == 15 || $activity->status_id == 16) {
 
 				$whatsappWebhookResponse->errors = 'Activity Not Eligible for Payout';
 				$whatsappWebhookResponse->save();

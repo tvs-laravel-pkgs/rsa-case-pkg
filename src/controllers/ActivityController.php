@@ -1406,14 +1406,14 @@ class ActivityController extends Controller {
 			if (!empty($this->data['activities']->bd_lat) && !empty($this->data['activities']->bd_long) && $this->data['activities']->bd_lat != '-' && $this->data['activities']->bd_long != '-') {
 				$bdLocation = $this->data['activities']->bd_lat . ',' . $this->data['activities']->bd_long;
 			} elseif (!empty($this->data['activities']->bd_location)) {
-				$bdLocation = self::getLatLongBasedOnLocation($this->data['activities']->bd_location);
+				$bdLocation = $this->getLatLongBasedOnLocation($this->data['activities']->bd_location);
 			}
 
 			$dropLocation = '';
 			if (!empty($this->data['activities']->drop_location_lat) && !empty($this->data['activities']->drop_location_long) && $this->data['activities']->drop_location_lat != "-" && $this->data['activities']->drop_location_long != "-") {
 				$dropLocation = $this->data['activities']->drop_location_lat . ',' . $this->data['activities']->drop_location_long;
 			} elseif (!empty($this->data['activities']->drop_location)) {
-				$dropLocation = self::getLatLongBasedOnLocation($this->data['activities']->drop_location);
+				$dropLocation = $this->getLatLongBasedOnLocation($this->data['activities']->drop_location);
 			}
 
 			$locationUrl = "https://www.google.co.in/maps/dir/" . $aspStartEndLocation;

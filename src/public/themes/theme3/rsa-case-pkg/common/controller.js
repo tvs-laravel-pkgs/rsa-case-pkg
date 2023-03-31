@@ -619,6 +619,10 @@ app.component('billingDetails', {
                         self.data.bo_net_amount = self.data.bo_amount = parseFloat(total).toFixed(2);
                     }
                 }
+                $scope.kmTravelledMapView = function() {
+                    window.open(self.data.asp_km_travelled_map_url)
+                }
+
                 $scope.calculate();
                 $scope.$apply()
             }, 3000);

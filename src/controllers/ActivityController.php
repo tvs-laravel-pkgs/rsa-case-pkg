@@ -15,6 +15,7 @@ use App\CallCenter;
 use App\Client;
 use App\Config;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\MapMyIndiaController;
 use App\Invoices;
 use App\ServiceType;
 use App\StateUser;
@@ -1426,6 +1427,37 @@ class ActivityController extends Controller {
 			$this->data['activities']['is_case_lapsed'] = $is_case_lapsed;
 			$this->data['activities']['submission_closing_date'] = $submission_closing_date;
 			$this->data['activities']['eligibleForOthersplitupCharges'] = $eligibleForOthersplitupCharges;
+
+			// Google Map Link for ASP KM travelled view
+
+			$aspStartEndLocation = $activity->asp->lat . ',' . $activity->asp->long;
+
+			$bdLocation = '';
+			if (!empty($this->data['activities']->bd_lat) && !empty($this->data['activities']->bd_long) && $this->data['activities']->bd_lat != '-' && $this->data['activities']->bd_long != '-') {
+				$bdLocation = $this->data['activities']->bd_lat . ',' . $this->data['activities']->bd_long;
+			} elseif (!empty($this->data['activities']->bd_location)) {
+				$bdLocation = $this->getLatLongBasedOnLocation($this->data['activities']->bd_location);
+			}
+
+			$dropLocation = '';
+			if (!empty($this->data['activities']->drop_location_lat) && !empty($this->data['activities']->drop_location_long) && $this->data['activities']->drop_location_lat != "-" && $this->data['activities']->drop_location_long != "-") {
+				$dropLocation = $this->data['activities']->drop_location_lat . ',' . $this->data['activities']->drop_location_long;
+			} elseif (!empty($this->data['activities']->drop_location)) {
+				$dropLocation = $this->getLatLongBasedOnLocation($this->data['activities']->drop_location);
+			}
+
+			$locationUrl = "https://www.google.co.in/maps/dir/" . $aspStartEndLocation;
+
+			if (!empty($bdLocation)) {
+				$locationUrl .= "/" . $bdLocation;
+			}
+
+			if (!empty($dropLocation)) {
+				$locationUrl .= "/" . $dropLocation;
+			}
+
+			$locationUrl .= "/" . $aspStartEndLocation;
+			$this->data['activities']['asp_km_travelled_map_url'] = $locationUrl;
 
 			return response()->json(['success' => true, 'data' => $this->data]);
 		} catch (\Exception $e) {
@@ -6064,5 +6096,21 @@ class ActivityController extends Controller {
 				return $action;
 			})
 			->make(true);
+	}
+
+	public function getLatLongBasedOnLocation($location) {
+		$mapMyIndiaController = new MapMyIndiaController;
+		$get_eloc = $mapMyIndiaController->customTextPlaceDetailApi($location);
+		if ($get_eloc['data']->copResults->eLoc) {
+			$get_lat_lon = $mapMyIndiaController->elocPlaceDetailApi($get_eloc['data']->copResults->eLoc);
+			if ($get_lat_lon['success'] == true && !empty($get_lat_lon['data']->latitude) && !empty($get_lat_lon['data']->longitude)) {
+				return $get_lat_lon['data']->latitude . ',' . $get_lat_lon['data']->longitude;
+			} else {
+				return;
+			}
+
+		} else {
+			return;
+		}
 	}
 }

@@ -1400,33 +1400,34 @@ class ActivityController extends Controller {
 
 			// Google Map Link for ASP KM travelled view
 
-			$asp_start_end_location = $activity->asp->lat . ',' . $activity->asp->long;
+			$aspStartEndLocation = $activity->asp->lat . ',' . $activity->asp->long;
 
-			if (($this->data['activities']->bd_lat && $this->data['activities']->bd_long) && ($this->data['activities']->bd_lat != '' && $this->data['activities']->bd_long != '-')) {
-				$asp_bd_location = $this->data['activities']->bd_lat . ',' . $this->data['activities']->bd_long;
-			} elseif ($this->data['activities']->bd_location && $this->data['activities']->bd_location != "") {
-				$asp_bd_location = self::getLatLongBasedOnLocation($this->data['activities']->bd_location);
+			$bdLocation = '';
+			if (!empty($this->data['activities']->bd_lat) && !empty($this->data['activities']->bd_long) && $this->data['activities']->bd_lat != '-' && $this->data['activities']->bd_long != '-') {
+				$bdLocation = $this->data['activities']->bd_lat . ',' . $this->data['activities']->bd_long;
+			} elseif (!empty($this->data['activities']->bd_location)) {
+				$bdLocation = self::getLatLongBasedOnLocation($this->data['activities']->bd_location);
 			}
 
-			if (($this->data['activities']->drop_location_lat && $this->data['activities']->drop_location_long) && ($this->data['activities']->drop_location_lat != "-" && $this->data['activities']->drop_location_long != "-")) {
-				$asp_drop_location = $this->data['activities']->drop_location_lat . ',' . $this->data['activities']->drop_location_long;
-			} elseif ($this->data['activities']->drop_location && $this->data['activities']->drop_location != "") {
-				$asp_drop_location = self::getLatLongBasedOnLocation($this->data['activities']->drop_location);
+			$dropLocation = '';
+			if (!empty($this->data['activities']->drop_location_lat) && !empty($this->data['activities']->drop_location_long) && $this->data['activities']->drop_location_lat != "-" && $this->data['activities']->drop_location_long != "-") {
+				$dropLocation = $this->data['activities']->drop_location_lat . ',' . $this->data['activities']->drop_location_long;
+			} elseif (!empty($this->data['activities']->drop_location)) {
+				$dropLocation = self::getLatLongBasedOnLocation($this->data['activities']->drop_location);
 			}
 
-			$location_url = "https://www.google.co.in/maps/dir/" . $asp_start_end_location;
-			if (isset($asp_bd_location) && $asp_bd_location) {
+			$locationUrl = "https://www.google.co.in/maps/dir/" . $aspStartEndLocation;
 
-				$location_url = $location_url . "/" . $asp_bd_location;
+			if (!empty($bdLocation)) {
+				$locationUrl .= "/" . $bdLocation;
 			}
 
-			if (isset($asp_drop_location) && $asp_drop_location) {
-
-				$location_url = $location_url . "/" . $asp_drop_location;
+			if (!empty($dropLocation)) {
+				$locationUrl .= "/" . $dropLocation;
 			}
 
-			$location_url = $location_url . "/" . $asp_start_end_location;
-			$this->data['activities']['asp_km_travelled_map_url'] = $location_url;
+			$locationUrl .= "/" . $aspStartEndLocation;
+			$this->data['activities']['asp_km_travelled_map_url'] = $locationUrl;
 
 			return response()->json(['success' => true, 'data' => $this->data]);
 		} catch (\Exception $e) {

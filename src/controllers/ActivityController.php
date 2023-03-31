@@ -1402,15 +1402,15 @@ class ActivityController extends Controller {
 
 			$asp_start_end_location = $activity->asp->lat . ',' . $activity->asp->long;
 
-			if ($this->data['activities']->bd_lat && $this->data['activities']->bd_long) {
+			if (($this->data['activities']->bd_lat && $this->data['activities']->bd_long) && ($this->data['activities']->bd_lat != '' && $this->data['activities']->bd_long != '-')) {
 				$asp_bd_location = $this->data['activities']->bd_lat . ',' . $this->data['activities']->bd_long;
-			} elseif ($this->data['activities']->bd_location) {
+			} elseif ($this->data['activities']->bd_location && $this->data['activities']->bd_location != "") {
 				$asp_bd_location = self::getLatLongBasedOnLocation($this->data['activities']->bd_location);
 			}
 
-			if ($this->data['activities']->drop_location_lat && $this->data['activities']->drop_location_long) {
+			if (($this->data['activities']->drop_location_lat && $this->data['activities']->drop_location_long) && ($this->data['activities']->drop_location_lat != "-" && $this->data['activities']->drop_location_long != "-")) {
 				$asp_drop_location = $this->data['activities']->drop_location_lat . ',' . $this->data['activities']->drop_location_long;
-			} elseif ($this->data['activities']->drop_location) {
+			} elseif ($this->data['activities']->drop_location && $this->data['activities']->drop_location != "") {
 				$asp_drop_location = self::getLatLongBasedOnLocation($this->data['activities']->drop_location);
 			}
 
@@ -5941,11 +5941,11 @@ class ActivityController extends Controller {
 			if ($get_lat_lon['success'] == true && !empty($get_lat_lon['data']->latitude) && !empty($get_lat_lon['data']->longitude)) {
 				return $get_lat_lon['data']->latitude . ',' . $get_lat_lon['data']->longitude;
 			} else {
-				return $asp_location;
+				return;
 			}
 
 		} else {
-			return $asp_location;
+			return;
 		}
 	}
 }

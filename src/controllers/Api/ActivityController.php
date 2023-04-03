@@ -422,7 +422,7 @@ class ActivityController extends Controller {
 				//ACTIVITY BELONGS TO SAME CASE
 				if ($activityExist->case_id === $case->id) {
 					//Allow case with intial staus and not payment processed statuses
-					if ($activityExist->status_id == 2 || $activityExist->status_id == 4 || $activityExist->status_id == 15 || $activityExist->status_id == 16 || $activityExist->status_id == 17) {
+					if ($activityExist->status_id == 2 || $activityExist->status_id == 4 || $activityExist->status_id == 17) {
 						//ALLOW ACTIVITY UPDATION ONLY BEFORE 90 DAYS OF THE CASE DATE
 						if (date('Y-m-d') > $caseDateAfter90Days) {
 							//SAVE ACTIVITY API LOG
@@ -441,8 +441,16 @@ class ActivityController extends Controller {
 							$activity = $activityExist;
 						}
 					} else {
+
+						//IF IT IS IN NOT ELIGIBLE FOR PAYOUT STATUS
+						if ($activityExist->status_id == 15 || $activityExist->status_id == 16) {
+							$api_error = $errors[] = 'Activity update will not be allowed. Case is not eligible for payout';
+						} else {
+							$api_error = $errors[] = 'Activity update will not be allowed. Case is under payment process';
+						}
+
 						//SAVE ACTIVITY API LOG
-						$errors[] = 'Activity update will not be allowed. Case is under payment process';
+
 						saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
 						DB::commit();
 
@@ -450,7 +458,7 @@ class ActivityController extends Controller {
 							'success' => false,
 							'error' => 'Validation Error',
 							'errors' => [
-								'Activity update will not be allowed. Case is under payment process',
+								$api_error,
 							],
 						], $this->successStatus);
 					}
@@ -986,7 +994,6 @@ class ActivityController extends Controller {
 					],
 				], $this->successStatus);
 			}
-
 			$activity = Activity::where('crm_activity_id', $payload->activity_id)->first();
 			if (!$activity) {
 				$whatsappWebhookResponse->errors = 'Activity not found';
@@ -999,6 +1006,20 @@ class ActivityController extends Controller {
 					],
 				], $this->successStatus);
 			}
+
+			//IF IT IS IN NOT ELIGIBLE FOR PAYOUT STATUS
+			if ($activity->status_id == 15 || $activity->status_id == 16) {
+				$whatsappWebhookResponse->errors = 'This activity is  not eligible for payout';
+				$whatsappWebhookResponse->save();
+				DB::commit();
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Activity Not Eligible for Payout',
+					],
+				], $this->successStatus);
+			}
+
 			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
 			if ($breakdownAlertSent && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp && $activity->asp->has_whatsapp_flow == 1))) {

@@ -412,6 +412,7 @@ class ActivityController extends Controller {
 						}
 					} else {
 
+						//IF IT IS IN NOT ELIGIBLE FOR PAYOUT STATUS
 						if ($activityExist->status_id == 15 || $activityExist->status_id == 16) {
 							$api_error = $errors[] = 'Activity update will not be allowed. Case is not eligible for payout';
 						} else {
@@ -975,9 +976,9 @@ class ActivityController extends Controller {
 				], $this->successStatus);
 			}
 
+			//IF IT IS IN NOT ELIGIBLE FOR PAYOUT STATUS
 			if ($activity->status_id == 15 || $activity->status_id == 16) {
-
-				$whatsappWebhookResponse->errors = 'Activity Not Eligible for Payout';
+				$whatsappWebhookResponse->errors = 'This activity is  not eligible for payout';
 				$whatsappWebhookResponse->save();
 				DB::commit();
 				return response()->json([
@@ -986,7 +987,6 @@ class ActivityController extends Controller {
 						'Activity Not Eligible for Payout',
 					],
 				], $this->successStatus);
-
 			}
 
 			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);

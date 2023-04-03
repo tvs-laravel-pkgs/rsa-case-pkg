@@ -978,13 +978,13 @@ class ActivityController extends Controller {
 
 			//IF IT IS IN NOT ELIGIBLE FOR PAYOUT STATUS
 			if ($activity->status_id == 15 || $activity->status_id == 16) {
-				$whatsappWebhookResponse->errors = 'This activity is  not eligible for payout';
+				$whatsappWebhookResponse->errors = 'This activity is not eligible for payout';
 				$whatsappWebhookResponse->save();
 				DB::commit();
 				return response()->json([
 					'success' => false,
 					'errors' => [
-						'Activity Not Eligible for Payout',
+						'This activity is not eligible for payout',
 					],
 				], $this->successStatus);
 			}

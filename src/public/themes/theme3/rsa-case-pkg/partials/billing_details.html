@@ -60,7 +60,7 @@
                                 <th scope="row">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <span>KM Travelled</span>
-                                        <button type="button" style="padding: 4px 12px;gap: 8px;" class="btn btn-bordered d-flex align-items-center" ng-click="kmTravelledMapView()">
+                                        <button type="button" style="padding: 4px 12px;gap: 8px;" class="btn btn-bordered d-flex align-items-center" ng-click="kmTravelledMapView()" ng-show="$ctrl.data.location_error_msg.length == 0">
                                             <img src="./public/images/loaction-blue.svg" class="img-fluid" />
                                             <span>View Map</span>
                                         </button>

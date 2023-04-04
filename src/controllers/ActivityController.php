@@ -1440,11 +1440,28 @@ class ActivityController extends Controller {
 			}
 
 			$dropLocation = '';
-			if (!empty($this->data['activities']->drop_location_lat) && !empty($this->data['activities']->drop_location_long) && $this->data['activities']->drop_location_lat != "-" && $this->data['activities']->drop_location_long != "-") {
-				$dropLocation = $this->data['activities']->drop_location_lat . ',' . $this->data['activities']->drop_location_long;
-			} elseif (!empty($this->data['activities']->drop_location)) {
-				$dropLocation = $this->getLatLongBasedOnLocation($this->data['activities']->drop_location);
+			//ONLY TOW SERVICES
+			if ($this->data['activities']->serviceType->service_group_id == 3) {
+				if (!empty($this->data['activities']->drop_location_lat) && !empty($this->data['activities']->drop_location_long) && $this->data['activities']->drop_location_lat != "-" && $this->data['activities']->drop_location_long != "-") {
+					$dropLocation = $this->data['activities']->drop_location_lat . ',' . $this->data['activities']->drop_location_long;
+				} elseif (!empty($this->data['activities']->drop_location)) {
+					$dropLocation = $this->getLatLongBasedOnLocation($this->data['activities']->drop_location);
+				}
 			}
+
+			$location_error_msg = [];
+
+			if (isset($bdLocation['message'])) {
+				array_push($location_error_msg, $bdLocation['message']);
+				$bdLocation = '';
+			}
+
+			if (isset($dropLocation['message'])) {
+				array_push($location_error_msg, $dropLocation['message']);
+				$dropLocation = '';
+			}
+
+			$this->data['activities']['location_error_msg'] = array_unique($location_error_msg);
 
 			$locationUrl = "https://www.google.co.in/maps/dir/" . $aspStartEndLocation;
 
@@ -6101,16 +6118,16 @@ class ActivityController extends Controller {
 	public function getLatLongBasedOnLocation($location) {
 		$mapMyIndiaController = new MapMyIndiaController;
 		$get_eloc = $mapMyIndiaController->customTextPlaceDetailApi($location);
-		if ($get_eloc['data']->copResults->eLoc) {
+		if ($get_eloc['success'] && isset($get_eloc['data']) && $get_eloc['data']->copResults->eLoc) {
 			$get_lat_lon = $mapMyIndiaController->elocPlaceDetailApi($get_eloc['data']->copResults->eLoc);
-			if ($get_lat_lon['success'] == true && !empty($get_lat_lon['data']->latitude) && !empty($get_lat_lon['data']->longitude)) {
+			if ($get_lat_lon['success'] && !empty($get_lat_lon['data']->latitude) && !empty($get_lat_lon['data']->longitude)) {
 				return $get_lat_lon['data']->latitude . ',' . $get_lat_lon['data']->longitude;
 			} else {
-				return;
+				return $get_lat_lon;
 			}
 
 		} else {
-			return;
+			return $get_eloc;
 		}
 	}
 }

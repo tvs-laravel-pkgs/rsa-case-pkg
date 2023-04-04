@@ -1187,9 +1187,13 @@ class Activity extends Model {
 								->first();
 							if ($activity_belongsto_case) {
 								//Allow case with intial staus and not payment processed statuses
-								if ($activity_belongsto_case->status_id == 2 || $activity_belongsto_case->status_id == 4 || $activity_belongsto_case->status_id == 10 || $activity_belongsto_case->status_id == 15 || $activity_belongsto_case->status_id == 16 || $activity_belongsto_case->status_id == 17 || $activity_belongsto_case->status_id == 26) {
+								if ($activity_belongsto_case->status_id == 2 || $activity_belongsto_case->status_id == 4 || $activity_belongsto_case->status_id == 10 || $activity_belongsto_case->status_id == 17 || $activity_belongsto_case->status_id == 26) {
+
 									$activity = Activity::withTrashed()->where('crm_activity_id', $crm_activity_id)->first();
 									$count_variable = 'updated_count';
+								} elseif ($activity_belongsto_case->status_id == 15 || $activity_belongsto_case->status_id == 16) {
+									$status['errors'][] = 'Unable to update data. Case is not eligible for payout';
+									$activity_save_eligible = false;
 								} else {
 									$status['errors'][] = 'Unable to update data. Case is under payment process';
 									$activity_save_eligible = false;

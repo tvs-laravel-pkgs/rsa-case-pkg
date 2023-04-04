@@ -1410,6 +1410,7 @@ class ActivityController extends Controller {
 			}
 
 			$dropLocation = '';
+			//ONLY TOW SERVICES
 			if ($this->data['activities']->serviceType->service_group_id == 3) {
 				if (!empty($this->data['activities']->drop_location_lat) && !empty($this->data['activities']->drop_location_long) && $this->data['activities']->drop_location_lat != "-" && $this->data['activities']->drop_location_long != "-") {
 					$dropLocation = $this->data['activities']->drop_location_lat . ',' . $this->data['activities']->drop_location_long;
@@ -1417,18 +1418,19 @@ class ActivityController extends Controller {
 					$dropLocation = $this->getLatLongBasedOnLocation($this->data['activities']->drop_location);
 				}
 			}
-			$location_error_msg = [];
-			if (isset($bdLocation['message'])) {
 
+			$location_error_msg = [];
+
+			if (isset($bdLocation['message'])) {
 				array_push($location_error_msg, $bdLocation['message']);
 				$bdLocation = '';
 			}
 
 			if (isset($dropLocation['message'])) {
-
 				array_push($location_error_msg, $dropLocation['message']);
 				$dropLocation = '';
 			}
+
 			$this->data['activities']['location_error_msg'] = array_unique($location_error_msg);
 
 			$locationUrl = "https://www.google.co.in/maps/dir/" . $aspStartEndLocation;

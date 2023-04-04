@@ -5847,12 +5847,12 @@ class ActivityController extends Controller {
 					//ASP Rejected CC Details - Waiting for ASP Data Entry || On Hold
 					if ($activity->status_id == 2 || $activity->status_id == 17) {
 						$url = '';
-						//CASE WITH EXTENSION
-						if (!empty($activity->caseSubmissionClosingDate) && Carbon::parse($activity->caseSubmissionClosingDate)->format('Y-m-d H:i:s') >= $today) {
-							$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
-						} else if (Carbon::parse($activity->caseCreatedAt)->format('Y-m-d H:i:s') >= $threeMonthsBefore) {
-							$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
-						}
+						//CASE WITH EXTENSION - DISABLED FOR NOW SAID BY HYDER 04 APRIL 2023
+						// if (!empty($activity->caseSubmissionClosingDate) && Carbon::parse($activity->caseSubmissionClosingDate)->format('Y-m-d H:i:s') >= $today) {
+						// 	$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
+						// } else if (Carbon::parse($activity->caseCreatedAt)->format('Y-m-d H:i:s') >= $threeMonthsBefore) {
+						// 	$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
+						// }
 					} elseif ($activity->status_id == 15 || $activity->status_id == 16) {
 						//Not Eligible for Payout || Own Patrol Activity - Not Eligible for Payout
 						$url = '';

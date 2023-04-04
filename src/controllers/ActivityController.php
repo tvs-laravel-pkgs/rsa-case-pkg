@@ -1405,16 +1405,17 @@ class ActivityController extends Controller {
 			$bdLocation = '';
 			if (!empty($this->data['activities']->bd_lat) && !empty($this->data['activities']->bd_long) && $this->data['activities']->bd_lat != '-' && $this->data['activities']->bd_long != '-') {
 				$bdLocation = $this->data['activities']->bd_lat . ',' . $this->data['activities']->bd_long;
-			} elseif (!empty($this->data['activities']->bd_location)) {
+			} elseif (!empty($this->data['activities']->bd_location) && ($this->data['activities']->bd_location != '-')) {
 				$bdLocation = $this->getLatLongBasedOnLocation($this->data['activities']->bd_location);
 			}
 
 			$dropLocation = '';
 			//ONLY TOW SERVICES
 			if ($this->data['activities']->serviceType->service_group_id == 3) {
+				//dd($this->data['activities']->drop_location_lat);
 				if (!empty($this->data['activities']->drop_location_lat) && !empty($this->data['activities']->drop_location_long) && $this->data['activities']->drop_location_lat != "-" && $this->data['activities']->drop_location_long != "-") {
 					$dropLocation = $this->data['activities']->drop_location_lat . ',' . $this->data['activities']->drop_location_long;
-				} elseif (!empty($this->data['activities']->drop_location)) {
+				} elseif (!empty($this->data['activities']->drop_location) && ($this->data['activities']->drop_location != '-')) {
 					$dropLocation = $this->getLatLongBasedOnLocation($this->data['activities']->drop_location);
 				}
 			}

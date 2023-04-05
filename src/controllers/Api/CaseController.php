@@ -359,6 +359,7 @@ class CaseController extends Controller {
 			$case->bd_location_type_id = $bd_location_type_id;
 			$case->bd_location_category_id = $bd_location_category_id;
 			$case->membership_type = !empty($request->membership_type) ? $request->membership_type : NULL;
+			$case->csr = !empty($request->csr) ? $request->csr : NULL;
 			$case->save();
 
 			if ($case->status_id == 3) {

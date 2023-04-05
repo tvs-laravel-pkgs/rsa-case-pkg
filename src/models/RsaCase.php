@@ -42,6 +42,7 @@ class RsaCase extends Model {
 		'bd_location_category_id',
 		'submission_closing_date',
 		'submission_closing_date_remarks',
+		'csr',
 	];
 
 	// Attributes --------------------------------------------------------------

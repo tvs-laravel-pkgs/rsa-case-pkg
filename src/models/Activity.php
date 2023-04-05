@@ -839,6 +839,9 @@ class Activity extends Model {
 						// 			$query->whereNull('deleted_at');
 						// 		}),
 						// ],
+
+						'csr' => 'nullable',
+
 						//ACTIVITY
 						'crm_activity_id' => 'required|string',
 						'data_source' => [
@@ -941,7 +944,6 @@ class Activity extends Model {
 						// 'octroi_charges' => 'nullable|numeric',
 						'excess_charges' => 'nullable|numeric',
 						'manual_uploading_remarks' => 'required|string',
-						'csr' => 'nullable',
 					]);
 
 					if ($validator->fails()) {
@@ -1187,6 +1189,7 @@ class Activity extends Model {
 						$case->bd_location_type_id = $bd_location_type_id;
 						$case->bd_location_category_id = $bd_location_category_id;
 						$case->membership_type = !empty($record['membership_type']) ? $record['membership_type'] : NULL;
+						$case->csr = !empty($record['csr']) ? $record['csr'] : NULL;
 						$case->save();
 
 						$activity_save_eligible = true;
@@ -1205,9 +1208,13 @@ class Activity extends Model {
 								->first();
 							if ($activity_belongsto_case) {
 								//Allow case with intial staus and not payment processed statuses
-								if ($activity_belongsto_case->status_id == 2 || $activity_belongsto_case->status_id == 4 || $activity_belongsto_case->status_id == 10 || $activity_belongsto_case->status_id == 15 || $activity_belongsto_case->status_id == 16 || $activity_belongsto_case->status_id == 17 || $activity_belongsto_case->status_id == 26) {
+								if ($activity_belongsto_case->status_id == 2 || $activity_belongsto_case->status_id == 4 || $activity_belongsto_case->status_id == 10 || $activity_belongsto_case->status_id == 17 || $activity_belongsto_case->status_id == 26) {
+
 									$activity = Activity::withTrashed()->where('crm_activity_id', $crm_activity_id)->first();
 									$count_variable = 'updated_count';
+								} elseif ($activity_belongsto_case->status_id == 15 || $activity_belongsto_case->status_id == 16) {
+									$status['errors'][] = 'Unable to update data. Case is not eligible for payout';
+									$activity_save_eligible = false;
 								} else {
 									$status['errors'][] = 'Unable to update data. Case is under payment process';
 									$activity_save_eligible = false;

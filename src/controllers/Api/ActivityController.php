@@ -15,6 +15,7 @@ use Abs\RsaCasePkg\WhatsappWebhookResponse;
 use App\Asp;
 use App\Attachment;
 use App\Config;
+use App\CronLog;
 use App\Http\Controllers\Controller;
 use App\Invoices;
 use App\ServiceType;
@@ -421,7 +422,7 @@ class ActivityController extends Controller {
 				//ACTIVITY BELONGS TO SAME CASE
 				if ($activityExist->case_id === $case->id) {
 					//Allow case with intial staus and not payment processed statuses
-					if ($activityExist->status_id == 2 || $activityExist->status_id == 4 || $activityExist->status_id == 15 || $activityExist->status_id == 16 || $activityExist->status_id == 17) {
+					if ($activityExist->status_id == 2 || $activityExist->status_id == 4 || $activityExist->status_id == 17) {
 						//ALLOW ACTIVITY UPDATION ONLY BEFORE 90 DAYS OF THE CASE DATE
 						if (date('Y-m-d') > $caseDateAfter90Days) {
 							//SAVE ACTIVITY API LOG
@@ -440,8 +441,16 @@ class ActivityController extends Controller {
 							$activity = $activityExist;
 						}
 					} else {
+
+						//IF IT IS IN NOT ELIGIBLE FOR PAYOUT STATUS
+						if ($activityExist->status_id == 15 || $activityExist->status_id == 16) {
+							$api_error = $errors[] = 'Activity update will not be allowed. Case is not eligible for payout';
+						} else {
+							$api_error = $errors[] = 'Activity update will not be allowed. Case is under payment process';
+						}
+
 						//SAVE ACTIVITY API LOG
-						$errors[] = 'Activity update will not be allowed. Case is under payment process';
+
 						saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
 						DB::commit();
 
@@ -449,7 +458,7 @@ class ActivityController extends Controller {
 							'success' => false,
 							'error' => 'Validation Error',
 							'errors' => [
-								'Activity update will not be allowed. Case is under payment process',
+								$api_error,
 							],
 						], $this->successStatus);
 					}
@@ -664,20 +673,46 @@ class ActivityController extends Controller {
 				if ($breakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 					// ROS SERVICE
 					if ($service_type->service_group_id != 3) {
-						$autoApprovalProcessResponse = $activity->autoApprovalProcess();
-						if (!$autoApprovalProcessResponse['success']) {
-							//SAVE ACTIVITY API LOG
-							DB::rollBack();
-							$errors[] = $autoApprovalProcessResponse['error'];
-							saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
-							return response()->json([
-								'success' => false,
-								'error' => 'Validation Error',
-								'errors' => [
-									$autoApprovalProcessResponse['error'],
-								],
-							], $this->successStatus);
+
+						$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
+
+						if (!$disableWhatsappAutoApproval) {
+							$autoApprovalProcessResponse = $activity->autoApprovalProcess();
+							if (!$autoApprovalProcessResponse['success']) {
+								//SAVE ACTIVITY API LOG
+								DB::rollBack();
+								$errors[] = $autoApprovalProcessResponse['error'];
+								saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+								return response()->json([
+									'success' => false,
+									'error' => 'Validation Error',
+									'errors' => [
+										$autoApprovalProcessResponse['error'],
+									],
+								], $this->successStatus);
+							}
+						} else {
+							//MECHANICAL SERVICE GROUP
+							if ($service_type->service_group_id == 2) {
+								$is_bulk = Activity::checkTicketIsBulk($asp->id, $service_type->id, $request->cc_total_km, $activity->data_src_id);
+								if ($is_bulk) {
+									//ASP Completed Data Entry - Waiting for L1 Bulk Verification
+									$statusId = 5;
+								} else {
+									//ASP Completed Data Entry - Waiting for L1 Individual Verification
+									$statusId = 6;
+								}
+							} else {
+								if ($asp->is_corporate == 1 || $activity->is_asp_data_entry_done == 1) {
+									$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+								} else {
+									$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+								}
+							}
+							$activity->status_id = $statusId;
+							$activity->save();
 						}
+
 					} else {
 						// TOW SERVICE
 						if ($asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
@@ -959,7 +994,6 @@ class ActivityController extends Controller {
 					],
 				], $this->successStatus);
 			}
-
 			$activity = Activity::where('crm_activity_id', $payload->activity_id)->first();
 			if (!$activity) {
 				$whatsappWebhookResponse->errors = 'Activity not found';
@@ -972,6 +1006,20 @@ class ActivityController extends Controller {
 					],
 				], $this->successStatus);
 			}
+
+			//IF IT IS IN NOT ELIGIBLE FOR PAYOUT STATUS
+			if ($activity->status_id == 15 || $activity->status_id == 16) {
+				$whatsappWebhookResponse->errors = 'This activity is not eligible for payout';
+				$whatsappWebhookResponse->save();
+				DB::commit();
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'This activity is not eligible for payout',
+					],
+				], $this->successStatus);
+			}
+
 			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
 			if ($breakdownAlertSent && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp && $activity->asp->has_whatsapp_flow == 1))) {
@@ -1508,6 +1556,75 @@ class ActivityController extends Controller {
 					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
 				],
 			]);
+		}
+	}
+
+	public function whatsappChargesAcceptanceStatusUpdate($cronLogId) {
+		//CRON LOG SAVE
+		$cronLog = CronLog::firstOrNew([
+			'id' => $cronLogId,
+		]);
+		$cronLog->command = "update:whatsappChargesAcceptanceStatus";
+		$cronLog->status = "Inprogress";
+		$cronLog->created_at = Carbon::now();
+		$cronLog->save();
+		try {
+
+			//LIVE
+			$oneDayBefore = Carbon::parse(Carbon::now()->subHours(24))->format('Y-m-d H:i:s');
+
+			//TESTING
+			// $oneDayBefore = Carbon::parse(Carbon::now()->subHours(1))->format('Y-m-d H:i:s');
+
+			$unresponsedAspChargesAcceptanceActivities = ActivityWhatsappLog::select([
+				'activity_whatsapp_logs.id',
+				'activity_whatsapp_logs.activity_id',
+			])
+				->join('activities', 'activities.id', 'activity_whatsapp_logs.activity_id')
+				->where('activity_whatsapp_logs.created_at', '<=', $oneDayBefore)
+				->where('activities.status_id', 25) //Waiting for Charges Acceptance by ASP
+				->where('activity_whatsapp_logs.is_new', 1)
+				->whereIn('activity_whatsapp_logs.type_id', [1193, 1194, 1202, 1203]) //Breakdown / Empty Return Charges AND Revised Breakdown / Empty Return Charges
+				->groupBy('activity_whatsapp_logs.activity_id')
+				->orderBy('activity_whatsapp_logs.id', 'desc')
+				->get();
+
+			$aspChargesAcceptanceUpdateErrors = [];
+			if ($unresponsedAspChargesAcceptanceActivities->isNotEmpty()) {
+				foreach ($unresponsedAspChargesAcceptanceActivities as $unresponsedAspChargesAcceptanceActivityKey => $unresponsedAspChargesAcceptanceActivityVal) {
+					DB::beginTransaction();
+					try {
+						$activity = Activity::find($unresponsedAspChargesAcceptanceActivityVal->activity_id);
+						$activity->status_id = 11; // Waiting for Invoice Generation by ASP
+						$activity->save();
+
+						$activity->updateApprovalLog();
+
+						//SEND ASP ACCEPTANCE CHARGES WHATSAPP SMS TO ASP
+						$activity->sendAspAcceptanceChargesWhatsappSms();
+
+						DB::commit();
+					} catch (\Exception $e) {
+						DB::rollBack();
+						$aspChargesAcceptanceUpdateErrors[] = "Activity (" . $unresponsedAspChargesAcceptanceActivityVal->activity_id . " : " . $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile();
+					}
+				}
+				$cronLog->remarks = "Activities found";
+				$cronLog->errors = !empty($aspChargesAcceptanceUpdateErrors) ? json_encode($aspChargesAcceptanceUpdateErrors) : NULL;
+			} else {
+				$cronLog->remarks = "No activities found";
+			}
+
+			$cronLog->status = "Completed";
+			$cronLog->updated_at = Carbon::now();
+			$cronLog->save();
+		} catch (\Exception $e) {
+			//CRON LOG SAVE
+			$cronLog->status = "Failed";
+			$cronLog->errors = $e;
+			$cronLog->updated_at = Carbon::now();
+			$cronLog->save();
+			dd($e);
 		}
 	}
 

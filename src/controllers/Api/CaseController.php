@@ -375,6 +375,7 @@ class CaseController extends Controller {
 			$case->bd_location_type_id = $bd_location_type_id;
 			$case->bd_location_category_id = $bd_location_category_id;
 			$case->membership_type = !empty($request->membership_type) ? $request->membership_type : NULL;
+			$case->csr = !empty($request->csr) ? $request->csr : NULL;
 			$case->save();
 
 			if ($case->status_id == 3) {
@@ -437,6 +438,7 @@ class CaseController extends Controller {
 					]);
 			}
 
+			$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
 			//RELEASE ONHOLD / ASP COMPLETED DATA ENTRY - WAITING FOR CALL CENTER DATA ENTRY ACTIVITIES WITH CLOSED OR CANCELLED CASES
 			if ($case->status_id == 4 || $case->status_id == 3) {
 				$activities = $case->activities()->whereIn('status_id', [17, 26])->get();
@@ -447,20 +449,47 @@ class CaseController extends Controller {
 						if ($activityBreakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 							// ROS SERVICE
 							if ($activity->serviceType && $activity->serviceType->service_group_id != 3) {
-								$autoApprovalProcessResponse = $activity->autoApprovalProcess();
-								if (!$autoApprovalProcessResponse['success']) {
-									//SAVE CASE API LOG
-									DB::rollBack();
-									$errors[] = $autoApprovalProcessResponse['error'];
-									saveApiLog(102, $activity->case->number, $request->all(), $errors, NULL, 121);
-									return response()->json([
-										'success' => false,
-										'error' => 'Validation Error',
-										'errors' => [
-											"Case Number : " . $activity->case->number . " - " . $autoApprovalProcessResponse['error'],
-										],
-									], $this->successStatus);
+
+								if (!$disableWhatsappAutoApproval) {
+									$autoApprovalProcessResponse = $activity->autoApprovalProcess();
+									if (!$autoApprovalProcessResponse['success']) {
+										//SAVE CASE API LOG
+										DB::rollBack();
+										$errors[] = $autoApprovalProcessResponse['error'];
+										saveApiLog(102, $activity->case->number, $request->all(), $errors, NULL, 121);
+										return response()->json([
+											'success' => false,
+											'error' => 'Validation Error',
+											'errors' => [
+												"Case Number : " . $activity->case->number . " - " . $autoApprovalProcessResponse['error'],
+											],
+										], $this->successStatus);
+									}
+								} else {
+									//MECHANICAL SERVICE GROUP
+									if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
+										$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
+										$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+										if ($is_bulk) {
+											//ASP Completed Data Entry - Waiting for L1 Bulk Verification
+											$status_id = 5;
+										} else {
+											//ASP Completed Data Entry - Waiting for L1 Individual Verification
+											$status_id = 6;
+										}
+									} else {
+										if (($activity->asp && $activity->asp->is_corporate == 1) || $activity->is_asp_data_entry_done == 1) {
+											//ASP Completed Data Entry - Waiting for L1 Individual Verification
+											$status_id = 6;
+										} else {
+											$status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+										}
+									}
+									$activity->update([
+										'status_id' => $status_id,
+									]);
 								}
+
 							} else {
 								// TOW SERVICE
 								if ($activity->asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {

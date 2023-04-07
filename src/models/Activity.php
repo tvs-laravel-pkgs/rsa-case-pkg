@@ -881,6 +881,9 @@ class Activity extends Model {
 						// 			$query->whereNull('deleted_at');
 						// 		}),
 						// ],
+
+						'csr' => 'nullable',
+
 						//ACTIVITY
 						'crm_activity_id' => 'required|string',
 						'data_source' => [
@@ -980,7 +983,7 @@ class Activity extends Model {
 						'toll_charges' => 'nullable|numeric',
 						'green_tax_charges' => 'nullable|numeric',
 						'border_charges' => 'nullable|numeric',
-						'octroi_charges' => 'nullable|numeric',
+						// 'octroi_charges' => 'nullable|numeric',
 						'excess_charges' => 'nullable|numeric',
 						'manual_uploading_remarks' => 'required|string',
 					]);
@@ -1235,6 +1238,7 @@ class Activity extends Model {
 						$case->bd_location_type_id = $bd_location_type_id;
 						$case->bd_location_category_id = $bd_location_category_id;
 						$case->membership_type = !empty($record['membership_type']) ? $record['membership_type'] : NULL;
+						$case->csr = !empty($record['csr']) ? $record['csr'] : NULL;
 						$case->save();
 
 						$activity_save_eligible = true;
@@ -1253,9 +1257,13 @@ class Activity extends Model {
 								->first();
 							if ($activity_belongsto_case) {
 								//Allow case with intial staus and not payment processed statuses
-								if ($activity_belongsto_case->status_id == 2 || $activity_belongsto_case->status_id == 4 || $activity_belongsto_case->status_id == 10 || $activity_belongsto_case->status_id == 15 || $activity_belongsto_case->status_id == 16 || $activity_belongsto_case->status_id == 17 || $activity_belongsto_case->status_id == 26) {
+								if ($activity_belongsto_case->status_id == 2 || $activity_belongsto_case->status_id == 4 || $activity_belongsto_case->status_id == 10 || $activity_belongsto_case->status_id == 17 || $activity_belongsto_case->status_id == 26) {
+
 									$activity = Activity::withTrashed()->where('crm_activity_id', $crm_activity_id)->first();
 									$count_variable = 'updated_count';
+								} elseif ($activity_belongsto_case->status_id == 15 || $activity_belongsto_case->status_id == 16) {
+									$status['errors'][] = 'Unable to update data. Case is not eligible for payout';
+									$activity_save_eligible = false;
 								} else {
 									$status['errors'][] = 'Unable to update data. Case is under payment process';
 									$activity_save_eligible = false;
@@ -1475,6 +1483,7 @@ class Activity extends Model {
 									]);
 							}
 
+							$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
 							//RELEASE ONHOLD / ASP COMPLETED DATA ENTRY - WAITING FOR CALL CENTER DATA ENTRY ACTIVITIES WITH CLOSED OR CANCELLED CASES
 							if ($case->status_id == 4 || $case->status_id == 3) {
 								$caseActivities = $case->activities()->whereIn('status_id', [17, 26])->get();
@@ -1486,10 +1495,36 @@ class Activity extends Model {
 										if ($caseActivityBreakdownAlertSent && $caseActivity->asp && !empty($caseActivity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $caseActivity->asp->has_whatsapp_flow == 1))) {
 											// ROS SERVICE
 											if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id != 3) {
-												$autoApprovalProcessResponse = $caseActivity->autoApprovalProcess();
-												if (!$autoApprovalProcessResponse['success']) {
-													$status['errors'][] = "Case Number : " . $caseActivity->case->number . " - " . $autoApprovalProcessResponse['error'];
+
+												if (!$disableWhatsappAutoApproval) {
+													$autoApprovalProcessResponse = $caseActivity->autoApprovalProcess();
+													if (!$autoApprovalProcessResponse['success']) {
+														$status['errors'][] = "Case Number : " . $caseActivity->case->number . " - " . $autoApprovalProcessResponse['error'];
+													}
+												} else {
+													//MECHANICAL SERVICE GROUP
+													if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id == 2) {
+														$cc_total_km = $caseActivity->detail(280) ? $caseActivity->detail(280)->value : 0;
+														$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id);
+														if ($isBulk) {
+															//ASP Completed Data Entry - Waiting for L1 Bulk Verification
+															$statusId = 5;
+														} else {
+															//ASP Completed Data Entry - Waiting for L1 Individual Verification
+															$statusId = 6;
+														}
+													} else {
+														if (($caseActivity->asp && $caseActivity->asp->is_corporate == 1) || $caseActivity->is_asp_data_entry_done == 1) {
+															$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+														} else {
+															$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+														}
+													}
+													$caseActivity->update([
+														'status_id' => $statusId,
+													]);
 												}
+
 											} else {
 												// TOW SERVICE
 												if ($caseActivity->asp->is_corporate == 1 || $caseActivity->towing_attachments_uploaded_on_whatsapp == 1 || $caseActivity->is_asp_data_entry_done == 1) {

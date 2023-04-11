@@ -92,6 +92,7 @@ class ActivityReport extends Model {
 					$activityReport->bd_state = $activity->case->bd_state;
 					$activityReport->location_type = $activity->case->bdLocationType ? $activity->case->bdLocationType->name : NULL;
 					$activityReport->location_category = $activity->case->bdLocationCategory ? $activity->case->bdLocationCategory->name : NULL;
+					$activityReport->csr = !empty($activity->case->csr) ? $activity->case->csr : NULL;
 				}
 
 				//ASP

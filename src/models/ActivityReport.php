@@ -58,7 +58,7 @@ class ActivityReport extends Model {
 				//CASE
 				if ($activity->case) {
 					$activityReport->case_number = $activity->case->number;
-					$activityReport->case_date = Carbon::parse($activity->case_date)->format('Y-m-d H:i:s');
+					$activityReport->case_date = !empty(Carbon::parse($activity->case_date)->format('Y-m-d H:i:s')) ? Carbon::parse($activity->case_date)->format('Y-m-d H:i:s') : NULL;
 
 					if (!empty($activity->case->submission_closing_date)) {
 						$activityReport->case_submission_closing_date = $activity->case->submission_closing_date;
@@ -134,7 +134,7 @@ class ActivityReport extends Model {
 				//ACTIVITY
 				$activityReport->crm_activity_id = $activity->crm_activity_id;
 				$activityReport->activity_number = $activity->number;
-				$activityReport->activity_created_date = $activity->created_at;
+				$activityReport->activity_created_date = !empty($activity->created_at) ? $activity->created_at : NULL;
 				$activityReport->finance_status = $activity->financeStatus ? $activity->financeStatus->name : NULL;
 				$activityReport->final_approved_bo_service_type = $activity->serviceType ? $activity->serviceType->name : NULL;
 				$activityReport->asp_activity_rejected_reason = $activity->aspActivityRejectedReason ? $activity->aspActivityRejectedReason->name : NULL;
@@ -169,14 +169,14 @@ class ActivityReport extends Model {
 
 				if ($activity->invoice) {
 					$activityReport->invoice_number = $activity->invoice->invoice_no;
-					$activityReport->invoice_date = Carbon::parse(str_replace('/', '-', $activity->invoice->created_at))->format('Y-m-d');
+					$activityReport->invoice_date = !empty(Carbon::parse(str_replace('/', '-', $activity->invoice->created_at))->format('Y-m-d')) ? Carbon::parse(str_replace('/', '-', $activity->invoice->created_at))->format('Y-m-d') : NULL;
 					$activityReport->invoice_amount = $activity->invoice->invoice_amount;
 					$activityReport->invoice_status = $activity->invoice->invoiceStatus ? $activity->invoice->invoiceStatus->name : NULL;
 
 					//INVOICE VOUCHER
 					if ($activity->invoice->invoiceVouchers->isNotEmpty()) {
 						$invoiceVoucher = $activity->invoice->invoiceVouchers()->orderBy('id', 'desc')->first();
-						$activityReport->transaction_date = Carbon::parse($invoiceVoucher->date)->format('Y-m-d');
+						$activityReport->transaction_date = !empty(Carbon::parse($invoiceVoucher->date)->format('Y-m-d')) ? Carbon::parse($invoiceVoucher->date)->format('Y-m-d') : NULL;
 						$activityReport->voucher = $invoiceVoucher->number;
 						$activityReport->tds_amount = $invoiceVoucher->tds;
 						$activityReport->paid_amount = $invoiceVoucher->paid_amount;
@@ -189,7 +189,7 @@ class ActivityReport extends Model {
 				$activityReport->cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
 				$activityReport->cc_collected_amount = $activity->detail(281) ? $activity->detail(281)->value : 0;
 				$activityReport->cc_not_collected_amount = $activity->detail(282) ? $activity->detail(282)->value : 0;
-				$activityReport->asp_reached_date = $activity->detail(283) ? $activity->detail(283)->value : NULL;
+				$activityReport->asp_reached_date = $activity->detail(283) ? (!empty($activity->detail(283)->value) ? $activity->detail(283)->value : NULL) : NULL;
 				$activityReport->asp_start_location = $activity->detail(284) ? $activity->detail(284)->value : NULL;
 				$activityReport->asp_end_location = $activity->detail(285) ? $activity->detail(285)->value : NULL;
 				$activityReport->onward_google_km = $activity->detail(286) ? $activity->detail(286)->value : NULL;
@@ -275,181 +275,181 @@ class ActivityReport extends Model {
 					$totalDays = 0;
 
 					//IMPORTED AT & BY
-					$activityReport->imported_date = $activity->log->imported_at;
+					$activityReport->imported_date = !empty($activity->log->imported_at) ? $activity->log->imported_at : NULL;
 					$activityReport->imported_by = $activity->log->importedBy ? $activity->log->importedBy->username : NULL;
 
 					// DURATION BETWEEN IMPORT AND ASP DATA FILLED
-					if ($activity->log->imported_at && $activity->log->asp_data_filled_at) {
+					if (!empty($activity->log->imported_at) && !empty($activity->log->asp_data_filled_at)) {
 						$daysBtwImportAndDataEntry = daysBetweenTwoDates($activity->log->imported_at, $activity->log->asp_data_filled_at);
 						$totalDays += $daysBtwImportAndDataEntry;
 						$activityReport->duration_between_import_and_asp_data_filled = ($daysBtwImportAndDataEntry > 1) ? ($daysBtwImportAndDataEntry . ' Days') : ($daysBtwImportAndDataEntry . ' Day');
 					}
 
 					//ASP DATA FILLED AT & BY
-					$activityReport->asp_data_filled_date = $activity->log->asp_data_filled_at;
+					$activityReport->asp_data_filled_date = !empty($activity->log->asp_data_filled_at) ? $activity->log->asp_data_filled_at : NULL;
 					$activityReport->asp_data_filled_by = $activity->log->aspDataFilledBy ? $activity->log->aspDataFilledBy->username : NULL;
 
 					// DURATION BETWEEN ASP DATA FILLED AND L1 DEFFERED
-					if ($activity->log->asp_data_filled_at && $activity->log->bo_deffered_at) {
+					if (!empty($activity->log->asp_data_filled_at) && !empty($activity->log->bo_deffered_at)) {
 						$daysBtwDataEntryAndL1Deffered = daysBetweenTwoDates($activity->log->asp_data_filled_at, $activity->log->bo_deffered_at);
 						$totalDays += $daysBtwDataEntryAndL1Deffered;
 						$activityReport->duration_between_asp_data_filled_and_l1_deffered = ($daysBtwDataEntryAndL1Deffered > 1) ? ($daysBtwDataEntryAndL1Deffered . ' Days') : ($daysBtwDataEntryAndL1Deffered . ' Day');
 					}
 
 					//L1 DEFFERED AT & BY
-					$activityReport->l1_deffered_date = $activity->log->bo_deffered_at;
+					$activityReport->l1_deffered_date = !empty($activity->log->bo_deffered_at) ? $activity->log->bo_deffered_at : NULL;
 					$activityReport->l1_deffered_by = $activity->log->boDefferedBy ? $activity->log->boDefferedBy->username : NULL;
 
 					// DURATION BETWEEN ASP DATA FILLED AND L1 APPROVED
-					if ($activity->log->asp_data_filled_at && $activity->log->bo_approved_at) {
+					if (!empty($activity->log->asp_data_filled_at) && !empty($activity->log->bo_approved_at)) {
 						$daysBtwDataEntryAndL1Approved = daysBetweenTwoDates($activity->log->asp_data_filled_at, $activity->log->bo_approved_at);
 						$totalDays += $daysBtwDataEntryAndL1Approved;
 						$activityReport->duration_between_asp_data_filled_and_l1_approved = ($daysBtwDataEntryAndL1Approved > 1) ? ($daysBtwDataEntryAndL1Approved . ' Days') : ($daysBtwDataEntryAndL1Approved . ' Day');
 					}
 
 					//L1 APPROVED AT & BY
-					$activityReport->l1_approved_date = $activity->log->bo_approved_at;
+					$activityReport->l1_approved_date = !empty($activity->log->bo_approved_at) ? $activity->log->bo_approved_at : NULL;
 					$activityReport->l1_approved_by = $activity->log->boApprovedBy ? $activity->log->boApprovedBy->username : NULL;
 
 					// DURATION BETWEEN L1 APPROVED AND INVOICE GENERATED
-					if ($activity->log->invoice_generated_at && $activity->log->bo_approved_at) {
+					if (!empty($activity->log->invoice_generated_at) && !empty($activity->log->bo_approved_at)) {
 						$daysBtwL1ApprovedAndInvGenerated = daysBetweenTwoDates($activity->log->invoice_generated_at, $activity->log->bo_approved_at);
 						$totalDays += $daysBtwL1ApprovedAndInvGenerated;
 						$activityReport->duration_between_l1_approved_and_invoice_generated = ($daysBtwL1ApprovedAndInvGenerated > 1) ? ($daysBtwL1ApprovedAndInvGenerated . ' Days') : ($daysBtwL1ApprovedAndInvGenerated . ' Day');
 					}
 
 					// DURATION BETWEEN L1 APPROVED AND L2 DEFFERED
-					if ($activity->log->l2_deffered_at && $activity->log->bo_approved_at) {
+					if (!empty($activity->log->l2_deffered_at) && !empty($activity->log->bo_approved_at)) {
 						$daysBtwL1ApprovedAndL2Deffered = daysBetweenTwoDates($activity->log->l2_deffered_at, $activity->log->bo_approved_at);
 						$totalDays += $daysBtwL1ApprovedAndL2Deffered;
 						$activityReport->duration_between_l1_approved_and_l2_deffered = ($daysBtwL1ApprovedAndL2Deffered > 1) ? ($daysBtwL1ApprovedAndL2Deffered . ' Days') : ($daysBtwL1ApprovedAndL2Deffered . ' Day');
 					}
 
 					//L2 DEFFERED AT & BY
-					$activityReport->l2_deffered_date = $activity->log->l2_deffered_at;
+					$activityReport->l2_deffered_date = !empty($activity->log->l2_deffered_at) ? $activity->log->l2_deffered_at : NULL;
 					$activityReport->l2_deffered_by = $activity->log->l2DefferedBy ? $activity->log->l2DefferedBy->username : NULL;
 
 					// DURATION BETWEEN L1 APPROVED AND L2 APPROVED
-					if ($activity->log->l2_approved_at && $activity->log->bo_approved_at) {
+					if (!empty($activity->log->l2_approved_at) && !empty($activity->log->bo_approved_at)) {
 						$daysBtwL1ApprovedAndL2Approved = daysBetweenTwoDates($activity->log->l2_approved_at, $activity->log->bo_approved_at);
 						$totalDays += $daysBtwL1ApprovedAndL2Approved;
 						$activityReport->duration_between_l1_approved_and_l2_approved = ($daysBtwL1ApprovedAndL2Approved > 1) ? ($daysBtwL1ApprovedAndL2Approved . ' Days') : ($daysBtwL1ApprovedAndL2Approved . ' Day');
 					}
 
 					//L2 APPROVED AT & BY
-					$activityReport->l2_approved_date = $activity->log->l2_approved_at;
+					$activityReport->l2_approved_date = !empty($activity->log->l2_approved_at) ? $activity->log->l2_approved_at : NULL;
 					$activityReport->l2_approved_by = $activity->log->l2ApprovedBy ? $activity->log->l2ApprovedBy->username : NULL;
 
 					// DURATION BETWEEN L2 APPROVED AND INVOICE GENERATED
-					if ($activity->log->invoice_generated_at && $activity->log->l2_approved_at) {
+					if (!empty($activity->log->invoice_generated_at) && !empty($activity->log->l2_approved_at)) {
 						$daysBtwL2ApprovedAndInvGenerated = daysBetweenTwoDates($activity->log->invoice_generated_at, $activity->log->l2_approved_at);
 						$totalDays += $daysBtwL2ApprovedAndInvGenerated;
 						$activityReport->duration_between_l2_approved_and_invoice_generated = ($daysBtwL2ApprovedAndInvGenerated > 1) ? ($daysBtwL2ApprovedAndInvGenerated . ' Days') : ($daysBtwL2ApprovedAndInvGenerated . ' Day');
 					}
 
 					// DURATION BETWEEN L1 APPROVED AND L3 DEFERRED
-					if ($activity->log->l3_deffered_at && $activity->log->bo_approved_at) {
+					if (!empty($activity->log->l3_deffered_at) && !empty($activity->log->bo_approved_at)) {
 						$daysBtwL1ApprovedAndL3Deffered = daysBetweenTwoDates($activity->log->l3_deffered_at, $activity->log->bo_approved_at);
 						$totalDays += $daysBtwL1ApprovedAndL3Deffered;
 						$activityReport->duration_between_l1_approved_and_l3_deffered = ($daysBtwL1ApprovedAndL3Deffered > 1) ? ($daysBtwL1ApprovedAndL3Deffered . ' Days') : ($daysBtwL1ApprovedAndL3Deffered . ' Day');
 					}
 
 					// DURATION BETWEEN L2 APPROVED AND L3 DEFERRED
-					if ($activity->log->l3_deffered_at && $activity->log->l2_approved_at) {
+					if (!empty($activity->log->l3_deffered_at) && !empty($activity->log->l2_approved_at)) {
 						$daysBtwL2ApprovedAndL3Deferred = daysBetweenTwoDates($activity->log->l3_deffered_at, $activity->log->l2_approved_at);
 						$totalDays += $daysBtwL2ApprovedAndL3Deferred;
 						$activityReport->duration_between_l2_approved_and_l3_deffered = ($daysBtwL2ApprovedAndL3Deferred > 1) ? ($daysBtwL2ApprovedAndL3Deferred . ' Days') : ($daysBtwL2ApprovedAndL3Deferred . ' Day');
 					}
 
 					//L3 DEFERRED AT & BY
-					$activityReport->l3_deffered_date = $activity->log->l3_deffered_at;
+					$activityReport->l3_deffered_date = !empty($activity->log->l3_deffered_at) ? $activity->log->l3_deffered_at : NULL;
 					$activityReport->l3_deffered_by = $activity->log->l3DefferedBy ? $activity->log->l3DefferedBy->username : NULL;
 
 					// DURATION BETWEEN L2 APPROVED AND L3 APPROVED
-					if ($activity->log->l3_approved_at && $activity->log->l2_approved_at) {
+					if (!empty($activity->log->l3_approved_at) && !empty($activity->log->l2_approved_at)) {
 						$daysBtwL2ApprovedAndL3Approved = daysBetweenTwoDates($activity->log->l3_approved_at, $activity->log->l2_approved_at);
 						$totalDays += $daysBtwL2ApprovedAndL3Approved;
 						$activityReport->duration_between_l2_approved_and_l3_approved = ($daysBtwL2ApprovedAndL3Approved > 1) ? ($daysBtwL2ApprovedAndL3Approved . ' Days') : ($daysBtwL2ApprovedAndL3Approved . ' Day');
 					}
 
 					//L3 APPROVED AT & BY
-					$activityReport->l3_approved_date = $activity->log->l3_approved_at;
+					$activityReport->l3_approved_date = !empty($activity->log->l3_approved_at) ? $activity->log->l3_approved_at : NULL;
 					$activityReport->l3_approved_by = $activity->log->l3ApprovedBy ? $activity->log->l3ApprovedBy->username : NULL;
 
 					// DURATION BETWEEN L3 APPROVED AND INVOICE GENERATED
-					if ($activity->log->invoice_generated_at && $activity->log->l3_approved_at) {
+					if (!empty($activity->log->invoice_generated_at) && !empty($activity->log->l3_approved_at)) {
 						$daysBtwL3ApprovedAndInvGenerated = daysBetweenTwoDates($activity->log->invoice_generated_at, $activity->log->l3_approved_at);
 						$totalDays += $daysBtwL3ApprovedAndInvGenerated;
 						$activityReport->duration_between_l3_approved_and_invoice_generated = ($daysBtwL3ApprovedAndInvGenerated > 1) ? ($daysBtwL3ApprovedAndInvGenerated . ' Days') : ($daysBtwL3ApprovedAndInvGenerated . ' Day');
 					}
 
 					// DURATION BETWEEN L1 APPROVED AND L4 DEFERRED
-					if ($activity->log->l4_deffered_at && $activity->log->bo_approved_at) {
+					if (!empty($activity->log->l4_deffered_at) && !empty($activity->log->bo_approved_at)) {
 						$daysBtwL1ApprovedAndL4Deferred = daysBetweenTwoDates($activity->log->l4_deffered_at, $activity->log->bo_approved_at);
 						$totalDays += $daysBtwL1ApprovedAndL4Deferred;
 						$activityReport->duration_between_l1_approved_and_l4_deffered = ($daysBtwL1ApprovedAndL4Deferred > 1) ? ($daysBtwL1ApprovedAndL4Deferred . ' Days') : ($daysBtwL1ApprovedAndL4Deferred . ' Day');
 					}
 
 					// DURATION BETWEEN L2 APPROVED AND L4 DEFERRED
-					if ($activity->log->l4_deffered_at && $activity->log->l2_approved_at) {
+					if (!empty($activity->log->l4_deffered_at) && !empty($activity->log->l2_approved_at)) {
 						$daysBtwL2ApprovedAndL4Deferred = daysBetweenTwoDates($activity->log->l4_deffered_at, $activity->log->l2_approved_at);
 						$totalDays += $daysBtwL2ApprovedAndL4Deferred;
 						$activityReport->duration_between_l2_approved_and_l4_deffered = ($daysBtwL2ApprovedAndL4Deferred > 1) ? ($daysBtwL2ApprovedAndL4Deferred . ' Days') : ($daysBtwL2ApprovedAndL4Deferred . ' Day');
 					}
 
 					// DURATION BETWEEN L3 APPROVED AND L4 DEFERRED
-					if ($activity->log->l4_deffered_at && $activity->log->l3_approved_at) {
+					if (!empty($activity->log->l4_deffered_at) && !empty($activity->log->l3_approved_at)) {
 						$daysBtwL3ApprovedAndL4Deferred = daysBetweenTwoDates($activity->log->l4_deffered_at, $activity->log->l3_approved_at);
 						$totalDays += $daysBtwL3ApprovedAndL4Deferred;
 						$activityReport->duration_between_l3_approved_and_l4_deffered = ($daysBtwL3ApprovedAndL4Deferred > 1) ? ($daysBtwL3ApprovedAndL4Deferred . ' Days') : ($daysBtwL3ApprovedAndL4Deferred . ' Day');
 					}
 
 					//L4 DEFERRED AT & BY
-					$activityReport->l4_deffered_date = $activity->log->l4_deffered_at;
+					$activityReport->l4_deffered_date = !empty($activity->log->l4_deffered_at) ? $activity->log->l4_deffered_at : NULL;
 					$activityReport->l4_deffered_by = $activity->log->l4DefferedBy ? $activity->log->l4DefferedBy->username : NULL;
 
 					// DURATION BETWEEN L3 APPROVED AND L4 APPROVED
-					if ($activity->log->l4_approved_at && $activity->log->l3_approved_at) {
+					if (!empty($activity->log->l4_approved_at) && !empty($activity->log->l3_approved_at)) {
 						$daysBtwL3ApprovedAndL4Approved = daysBetweenTwoDates($activity->log->l4_approved_at, $activity->log->l3_approved_at);
 						$totalDays += $daysBtwL3ApprovedAndL4Approved;
 						$activityReport->duration_between_l3_approved_and_l4_approved = ($daysBtwL3ApprovedAndL4Approved > 1) ? ($daysBtwL3ApprovedAndL4Approved . ' Days') : ($daysBtwL3ApprovedAndL4Approved . ' Day');
 					}
 
 					//L4 APPROVED AT & BY
-					$activityReport->l4_approved_date = $activity->log->l4_approved_at;
+					$activityReport->l4_approved_date = !empty($activity->log->l4_approved_at) ? $activity->log->l4_approved_at : NULL;
 					$activityReport->l4_approved_by = $activity->log->l4ApprovedBy ? $activity->log->l4ApprovedBy->username : NULL;
 
 					// DURATION BETWEEN L4 APPROVED AND INVOICE GENERATED
-					if ($activity->log->invoice_generated_at && $activity->log->l4_approved_at) {
+					if (!empty($activity->log->invoice_generated_at) && !empty($activity->log->l4_approved_at)) {
 						$daysBtwL4ApprovedAndInvGenerated = daysBetweenTwoDates($activity->log->invoice_generated_at, $activity->log->l4_approved_at);
 						$totalDays += $daysBtwL4ApprovedAndInvGenerated;
 						$activityReport->duration_between_l4_approved_and_invoice_generated = ($daysBtwL4ApprovedAndInvGenerated > 1) ? ($daysBtwL4ApprovedAndInvGenerated . ' Days') : ($daysBtwL4ApprovedAndInvGenerated . ' Day');
 					}
 
 					//INVOICE GENERATED AT & BY
-					$activityReport->invoice_generated_date = $activity->log->invoice_generated_at;
+					$activityReport->invoice_generated_date = !empty($activity->log->invoice_generated_at) ? $activity->log->invoice_generated_at : NULL;
 					$activityReport->invoice_generated_by = $activity->log->invoiceGeneratedBy ? $activity->log->invoiceGeneratedBy->username : NULL;
 
 					// DURATION BETWEEN INVOICE GENERATED AND AXAPTA GENERATED
-					if ($activity->log->invoice_generated_at && $activity->log->axapta_generated_at) {
+					if (!empty($activity->log->invoice_generated_at) && !empty($activity->log->axapta_generated_at)) {
 						$daysBtwInvGeneratedAndAxaptaGenerated = daysBetweenTwoDates($activity->log->invoice_generated_at, $activity->log->axapta_generated_at);
 						$totalDays += $daysBtwInvGeneratedAndAxaptaGenerated;
 						$activityReport->duration_between_invoice_generated_and_axapta_generated = ($daysBtwInvGeneratedAndAxaptaGenerated > 1) ? ($daysBtwInvGeneratedAndAxaptaGenerated . ' Days') : ($daysBtwInvGeneratedAndAxaptaGenerated . ' Day');
 					}
 
 					//AXAPTA GENERATED AT & BY
-					$activityReport->axapta_generated_date = $activity->log->axapta_generated_at;
+					$activityReport->axapta_generated_date = !empty($activity->log->axapta_generated_at) ? $activity->log->axapta_generated_at : NULL;
 					$activityReport->axapta_generated_by = $activity->log->axaptaGeneratedBy ? $activity->log->axaptaGeneratedBy->username : NULL;
 
 					// DURATION BETWEEN AXAPTA GENERATED AND PAYMENT COMPLETED
-					if ($activity->log->axapta_generated_at && $activity->log->payment_completed_at) {
+					if (!empty($activity->log->axapta_generated_at) && !empty($activity->log->payment_completed_at)) {
 						$daysBtwAxaptaGeneratedAndPayCompleted = daysBetweenTwoDates($activity->log->axapta_generated_at, $activity->log->payment_completed_at);
 						$totalDays += $daysBtwAxaptaGeneratedAndPayCompleted;
 						$activityReport->duration_between_axapta_generated_and_payment_completed = ($daysBtwAxaptaGeneratedAndPayCompleted > 1) ? ($daysBtwAxaptaGeneratedAndPayCompleted . ' Days') : ($daysBtwAxaptaGeneratedAndPayCompleted . ' Day');
 					}
 
 					//PAYMENT COMPLETED AT
-					$activityReport->payment_completed_date = $activity->log->payment_completed_at;
+					$activityReport->payment_completed_date = !empty($activity->log->payment_completed_at) ? $activity->log->payment_completed_at : NULL;
 					$activityReport->total_no_of_days = ($totalDays > 1) ? ($totalDays . ' Days') : ($totalDays . ' Day');
 				}
 

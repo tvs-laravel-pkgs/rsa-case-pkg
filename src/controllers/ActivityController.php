@@ -5954,8 +5954,8 @@ class ActivityController extends Controller {
 	public function getLatLongBasedOnLocation($location) {
 		$mapMyIndiaController = new MapMyIndiaController;
 		$get_eloc = $mapMyIndiaController->customTextPlaceDetailApi($location);
-		if ($get_eloc['success'] && isset($get_eloc['data']) && $get_eloc['data']->copResults->eLoc) {
-			$get_lat_lon = $mapMyIndiaController->elocPlaceDetailApi($get_eloc['data']->copResults->eLoc);
+		if ($get_eloc['success'] && isset($get_eloc['data']->suggestedLocations[0]) && $get_eloc['data']->suggestedLocations[0]->eLoc) {
+			$get_lat_lon = $mapMyIndiaController->elocPlaceDetailApi($get_eloc['data']->suggestedLocations[0]->eLoc);
 			if ($get_lat_lon['success'] && !empty($get_lat_lon['data']->latitude) && !empty($get_lat_lon['data']->longitude)) {
 				return $get_lat_lon['data']->latitude . ',' . $get_lat_lon['data']->longitude;
 			} else {

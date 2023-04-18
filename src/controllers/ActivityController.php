@@ -1436,7 +1436,7 @@ class ActivityController extends Controller {
 			if (!empty($this->data['activities']->bd_lat) && !empty($this->data['activities']->bd_long) && $this->data['activities']->bd_lat != '-' && $this->data['activities']->bd_long != '-') {
 				$bdLocation = $this->data['activities']->bd_lat . ',' . $this->data['activities']->bd_long;
 			} elseif (!empty($this->data['activities']->bd_location) && $this->data['activities']->bd_location != '-') {
-				$bdLocation = $this->getLatLongBasedOnLocation($this->data['activities']->bd_location);
+				$bdLocation = $this->data['activities']->bd_location;
 			}
 
 			$dropLocation = '';
@@ -1445,23 +1445,24 @@ class ActivityController extends Controller {
 				if (!empty($this->data['activities']->drop_location_lat) && !empty($this->data['activities']->drop_location_long) && $this->data['activities']->drop_location_lat != "-" && $this->data['activities']->drop_location_long != "-") {
 					$dropLocation = $this->data['activities']->drop_location_lat . ',' . $this->data['activities']->drop_location_long;
 				} elseif (!empty($this->data['activities']->drop_location) && $this->data['activities']->drop_location != '-') {
-					$dropLocation = $this->getLatLongBasedOnLocation($this->data['activities']->drop_location);
+					$dropLocation = $this->data['activities']->drop_location;
 				}
 			}
 
-			$location_error_msg = [];
+			// $location_error_msg = [];
 
-			if (isset($bdLocation['message'])) {
-				array_push($location_error_msg, $bdLocation['message']);
-				$bdLocation = '';
-			}
+			// if (isset($bdLocation['message'])) {
+			// 	array_push($location_error_msg, $bdLocation['message']);
+			// 	$bdLocation = '';
+			// }
 
-			if (isset($dropLocation['message'])) {
-				array_push($location_error_msg, $dropLocation['message']);
-				$dropLocation = '';
-			}
+			// if (isset($dropLocation['message'])) {
+			// 	array_push($location_error_msg, $dropLocation['message']);
+			// 	$dropLocation = '';
+			// }
 
-			$this->data['activities']['location_error_msg'] = array_unique($location_error_msg);
+			// $this->data['activities']['location_error_msg'] = array_unique($location_error_msg);
+			 $this->data['activities']['location_error_msg'] = '';
 
 			$locationUrl = "https://www.google.co.in/maps/dir/" . $aspStartEndLocation;
 

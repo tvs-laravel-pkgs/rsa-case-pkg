@@ -17,6 +17,7 @@ use Abs\RsaCasePkg\CaseCancelledReason;
 use Abs\RsaCasePkg\CaseStatus;
 use Abs\RsaCasePkg\RsaCase;
 use App\Asp;
+use App\AspAmendmentServiceType;
 use App\AspServiceType;
 use App\Attachment;
 use App\CallCenter;
@@ -37,7 +38,6 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use URL;
 use Validator;
-use App\AspAmendmentServiceType;
 
 class Activity extends Model {
 	use SeederTrait;
@@ -377,8 +377,8 @@ class Activity extends Model {
 			$isMobile = 1;
 		}
 
-		$aspServiceTypeRateCard = self::getActivityServiceRateCard($isMobile);
-		if (!$aspServiceTypeRateCard) { 
+		$aspServiceTypeRateCard = self::getActivityServiceRateCard($this->asp->id, $this->case->date, $this->serviceType->id, $isMobile);
+		if (!$aspServiceTypeRateCard) {
 			return [
 				'success' => false,
 				'error' => 'Service (' . $this->serviceType->name . ') not enabled for ASP (' . $this->asp->asp_code . ')',
@@ -2620,37 +2620,37 @@ class Activity extends Model {
 		sendWhatsappSMS($this->id, 1200, $inputRequests);
 	}
 
-	public function getActivityServiceRateCard($isMobile) {
+	public function getActivityServiceRateCard($aspId, $caseDate, $serviceTypeId, $isMobile) {
 
-		// find out the any updated the rate cards
-		$updated_rate_card = AspAmendmentServiceType::select([
-									'range_limit',
-									'below_range_price',
-									'above_range_price',
-									'waiting_charge_per_hour',
-									'empty_return_range_price',
-									'fleet_count',
-									'is_mobile',
-									'effective_from',
-								])
-								->join('asp_amendments' , 'asp_amendments.id' , 'asp_amendment_service_types.amendment_id')
-								->where('asp_id', $this->asp->id)
-								->where('effective_from', '<=', date('Y-m-d', strtotime($this->case->date)))
-								->where('service_type_id', $this->serviceType->id)
-								->where('is_mobile', $isMobile)
-								// ->where('asp_amendments.status_id' , 1307)
-								->orderBy('asp_amendment_service_types.id','desc');
- 		$updated_rate_card_count = count ($updated_rate_card->get());
-		if( $updated_rate_card_count > 0 ) {
-			$aspServiceTypeRateCard = $updated_rate_card->first();
-			$aspServiceTypeRateCard->adjustment_type = "";
-			$aspServiceTypeRateCard->adjustment = "";
-			$aspServiceTypeRateCard->below_range_price_margin = "";
-			$aspServiceTypeRateCard->above_range_price_margin = ""; 
+		//CHECK IF IT HAS AMENDMENT SERVICE TYPE
+		$aspAmendmentServiceTypeExist = AspAmendmentServiceType::select([
+			'asp_amendment_service_types.range_limit',
+			'asp_amendment_service_types.below_range_price',
+			'asp_amendment_service_types.above_range_price',
+			'asp_amendment_service_types.waiting_charge_per_hour',
+			'asp_amendment_service_types.empty_return_range_price',
+			'asp_amendment_service_types.fleet_count',
+			'asp_amendment_service_types.is_mobile',
+		])
+			->join('asp_amendments', 'asp_amendments.id', 'asp_amendment_service_types.amendment_id')
+			->where('asp_amendment_service_types.asp_id', $aspId)
+			->where('asp_amendment_service_types.effective_from', '<=', date('Y-m-d', strtotime($caseDate)))
+			->where('asp_amendment_service_types.service_type_id', $serviceTypeId)
+			->where('asp_amendment_service_types.is_mobile', $isMobile)
+			->where('asp_amendments.status_id', 1307) //APPROVED
+			->orderBy('asp_amendment_service_types.id', 'desc')
+			->first()
+		;
 
-		} else { 
-			//existing ASP services
-			$aspServiceTypeRateCard = AspServiceType::select([ 
+		if ($aspAmendmentServiceTypeExist) {
+			$aspServiceTypeRateCard = $aspAmendmentServiceTypeExist;
+			$aspServiceTypeRateCard->adjustment_type = NULL;
+			$aspServiceTypeRateCard->adjustment = NULL;
+			$aspServiceTypeRateCard->below_range_price_margin = NULL;
+			$aspServiceTypeRateCard->above_range_price_margin = NULL;
+		} else {
+			//ASP SERVICE TYPES
+			$aspServiceTypeRateCard = AspServiceType::select([
 				'range_limit',
 				'below_range_price',
 				'above_range_price',
@@ -2663,12 +2663,14 @@ class Activity extends Model {
 				'fleet_count',
 				'is_mobile',
 			])
-				->where('asp_id', $this->asp->id)
-				->where('service_type_id', $this->serviceType->id)
+				->where('asp_id', $aspId)
+				->where('service_type_id', $serviceTypeId)
 				->where('is_mobile', $isMobile)
 				->first();
 		}
+
 		return $aspServiceTypeRateCard;
+
 	}
 
 }

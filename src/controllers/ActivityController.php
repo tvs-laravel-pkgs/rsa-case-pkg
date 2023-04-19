@@ -1064,10 +1064,17 @@ class ActivityController extends Controller {
 				$isMobile = 1;
 			}
 
-			$asp_service_type_data = AspServiceType::where('asp_id', $activity->asp_id)
-				->where('service_type_id', $activity->service_type_id)
-				->where('is_mobile', $isMobile)
-				->first();
+			$caseDate = date('Y-m-d H:i:s', strtotime($activity->case_date));
+			$asp_service_type_data = Activity::getActivityServiceRateCard($activity->asp_id, $caseDate, $activity->service_type_id, $isMobile);
+			if (!$asp_service_type_data) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'ASP rate card not found',
+					],
+				]);
+			}
+
 			$casewiseRatecardEffectDatetime = config('rsa.CASEWISE_RATECARD_EFFECT_DATETIME');
 			//Activity creation datetime greater than effective datetime
 			if (date('Y-m-d H:i:s', strtotime($activity->activity_date)) > $casewiseRatecardEffectDatetime) {
@@ -1444,10 +1451,15 @@ class ActivityController extends Controller {
 				$isMobile = 1;
 			}
 
-			$asp_service_type_data = AspServiceType::where('asp_id', $request->asp_id)
-				->where('service_type_id', $request->service_type_id)
-				->where('is_mobile', $isMobile)
-				->first();
+			$asp_service_type_data = Activity::getActivityServiceRateCard($request->asp_id, $activity->case->date, $request->service_type_id, $isMobile);
+			if (!$asp_service_type_data) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'ASP rate card not found',
+					],
+				]);
+			}
 
 			return response()->json([
 				'success' => true,

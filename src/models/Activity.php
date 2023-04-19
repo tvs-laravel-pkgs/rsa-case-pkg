@@ -18,6 +18,7 @@ use Abs\RsaCasePkg\CaseCancelledReason;
 use Abs\RsaCasePkg\CaseStatus;
 use Abs\RsaCasePkg\RsaCase;
 use App\Asp;
+use App\AspAmendmentServiceType;
 use App\AspServiceType;
 use App\Attachment;
 use App\CallCenter;
@@ -398,6 +399,9 @@ class Activity extends Model {
 			->where('service_type_id', $this->serviceType->id)
 			->where('is_mobile', $isMobile)
 			->first();
+
+		//AMENDMENT CHANGES - DISABLED FOR NOW
+		// $aspServiceTypeRateCard = self::getActivityServiceRateCard($this->asp->id, $this->case->date, $this->serviceType->id, $isMobile);
 
 		if (!$aspServiceTypeRateCard) {
 			return [
@@ -2644,6 +2648,78 @@ class Activity extends Model {
 
 		//SEND WHATSAPP SMS
 		sendWhatsappSMS($this->id, 1200, $inputRequests);
+	}
+
+	public static function getActivityServiceRateCard($aspId, $caseDate, $serviceTypeId, $isMobile) {
+
+		//CHECK IF IT HAS AMENDMENT SERVICE TYPE
+		$aspAmendmentServiceTypeExistBaseQuery = AspAmendmentServiceType::select([
+			'asp_amendment_service_types.range_limit',
+			'asp_amendment_service_types.below_range_price',
+			'asp_amendment_service_types.above_range_price',
+			'asp_amendment_service_types.waiting_charge_per_hour',
+			'asp_amendment_service_types.empty_return_range_price',
+			'asp_amendment_service_types.fleet_count',
+			'asp_amendment_service_types.is_mobile',
+		])
+			->join('asp_amendments', 'asp_amendments.id', 'asp_amendment_service_types.amendment_id')
+			->where('asp_amendment_service_types.asp_id', $aspId)
+			->where('asp_amendment_service_types.service_type_id', $serviceTypeId)
+			->where('asp_amendment_service_types.is_mobile', $isMobile)
+			->where('asp_amendments.status_id', 1307) //APPROVED
+		;
+
+		$aspAmendmentNewServiceTypeExistSubQuery = clone $aspAmendmentServiceTypeExistBaseQuery;
+		$aspAmendmentNewServiceTypeExist = $aspAmendmentNewServiceTypeExistSubQuery->whereDate('asp_amendment_service_types.effective_from', '<=', date('Y-m-d', strtotime($caseDate)))
+			->where('asp_amendment_service_types.type_id', 1311) //NEW
+			->orderBy('asp_amendment_service_types.amendment_id', 'desc')
+			->first();
+
+		if ($aspAmendmentNewServiceTypeExist) {
+			$aspServiceTypeRateCard = $aspAmendmentNewServiceTypeExist;
+			$aspServiceTypeRateCard->adjustment_type = NULL;
+			$aspServiceTypeRateCard->adjustment = NULL;
+			$aspServiceTypeRateCard->below_range_price_margin = NULL;
+			$aspServiceTypeRateCard->above_range_price_margin = NULL;
+		} else {
+
+			//IF NEW SERVICE TYPE NOT EXIST TAKE OLD ONE
+			$aspAmendmentOldServiceTypeExistSubQuery = clone $aspAmendmentServiceTypeExistBaseQuery;
+			$aspAmendmentOldServiceTypeExist = $aspAmendmentOldServiceTypeExistSubQuery->where('asp_amendment_service_types.type_id', 1312) //OLD
+				->orderBy('asp_amendment_service_types.amendment_id', 'asc')
+				->first();
+
+			if ($aspAmendmentOldServiceTypeExist) {
+				$aspServiceTypeRateCard = $aspAmendmentOldServiceTypeExist;
+				$aspServiceTypeRateCard->adjustment_type = NULL;
+				$aspServiceTypeRateCard->adjustment = NULL;
+				$aspServiceTypeRateCard->below_range_price_margin = NULL;
+				$aspServiceTypeRateCard->above_range_price_margin = NULL;
+			} else {
+				//ASP SERVICE TYPES
+				$aspServiceTypeRateCard = AspServiceType::select([
+					'range_limit',
+					'below_range_price',
+					'above_range_price',
+					'waiting_charge_per_hour',
+					'empty_return_range_price',
+					'adjustment_type',
+					'adjustment',
+					'below_range_price_margin',
+					'above_range_price_margin',
+					'fleet_count',
+					'is_mobile',
+				])
+					->where('asp_id', $aspId)
+					->where('service_type_id', $serviceTypeId)
+					->where('is_mobile', $isMobile)
+					->first();
+			}
+
+		}
+
+		return $aspServiceTypeRateCard;
+
 	}
 
 }

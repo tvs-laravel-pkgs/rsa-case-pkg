@@ -1399,7 +1399,7 @@ class ActivityController extends Controller {
 			$this->data['activities']['eligibleForOthersplitupCharges'] = $eligibleForOthersplitupCharges;
 
 			// Google Map Link for ASP KM travelled view
-			if (!empty($activity->asp->full_address)) {
+			if (isset($activity->asp->full_address) && !empty($activity->asp->full_address)) {
 				$aspStartEndLocation = $activity->asp->full_address;
 			} else {
 				$aspStartEndLocation = $activity->asp->lat . ',' . $activity->asp->long;

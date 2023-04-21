@@ -1399,12 +1399,12 @@ class ActivityController extends Controller {
 			$this->data['activities']['eligibleForOthersplitupCharges'] = $eligibleForOthersplitupCharges;
 
 			// Google Map Link for ASP KM travelled view
-			if($activity->asp->address_line_1) { 
-				$aspStartEndLocation = $activity->asp->address_line_1;
-
+			if (!empty($activity->asp->full_address)) {
+				$aspStartEndLocation = $activity->asp->full_address;
 			} else {
 				$aspStartEndLocation = $activity->asp->lat . ',' . $activity->asp->long;
 			}
+
 			$bdLocation = '';
 			if (!empty($this->data['activities']->bd_location) && $this->data['activities']->bd_location != '-') {
 				$bdLocation = $this->data['activities']->bd_location;
@@ -1419,7 +1419,7 @@ class ActivityController extends Controller {
 					$dropLocation = $this->data['activities']->drop_location;
 				} elseif (!empty($this->data['activities']->drop_location_lat) && !empty($this->data['activities']->drop_location_long) && $this->data['activities']->drop_location_lat != "-" && $this->data['activities']->drop_location_long != "-") {
 					$dropLocation = $this->data['activities']->drop_location_lat . ',' . $this->data['activities']->drop_location_long;
-				} 
+				}
 			}
 
 			// $location_error_msg = [];
@@ -1435,7 +1435,7 @@ class ActivityController extends Controller {
 			// }
 
 			// $this->data['activities']['location_error_msg'] = array_unique($location_error_msg);
-			 $this->data['activities']['location_error_msg'] = '';
+			$this->data['activities']['location_error_msg'] = '';
 
 			$locationUrl = "https://www.google.co.in/maps/dir/" . $aspStartEndLocation;
 

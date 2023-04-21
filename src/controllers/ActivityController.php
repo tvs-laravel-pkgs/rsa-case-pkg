@@ -1399,24 +1399,27 @@ class ActivityController extends Controller {
 			$this->data['activities']['eligibleForOthersplitupCharges'] = $eligibleForOthersplitupCharges;
 
 			// Google Map Link for ASP KM travelled view
+			if($activity->asp->address_line_1) { 
+				$aspStartEndLocation = $activity->asp->address_line_1;
 
-			$aspStartEndLocation = $activity->asp->lat . ',' . $activity->asp->long;
-
+			} else {
+				$aspStartEndLocation = $activity->asp->lat . ',' . $activity->asp->long;
+			}
 			$bdLocation = '';
-			if (!empty($this->data['activities']->bd_lat) && !empty($this->data['activities']->bd_long) && $this->data['activities']->bd_lat != '-' && $this->data['activities']->bd_long != '-') {
-				$bdLocation = $this->data['activities']->bd_lat . ',' . $this->data['activities']->bd_long;
-			} elseif (!empty($this->data['activities']->bd_location) && $this->data['activities']->bd_location != '-') {
+			if (!empty($this->data['activities']->bd_location) && $this->data['activities']->bd_location != '-') {
 				$bdLocation = $this->data['activities']->bd_location;
+			} elseif (!empty($this->data['activities']->bd_lat) && !empty($this->data['activities']->bd_long) && $this->data['activities']->bd_lat != '-' && $this->data['activities']->bd_long != '-') {
+				$bdLocation = $this->data['activities']->bd_lat . ',' . $this->data['activities']->bd_long;
 			}
 
 			$dropLocation = '';
 			//ONLY TOW SERVICES
 			if ($this->data['activities']->serviceType->service_group_id == 3) {
-				if (!empty($this->data['activities']->drop_location_lat) && !empty($this->data['activities']->drop_location_long) && $this->data['activities']->drop_location_lat != "-" && $this->data['activities']->drop_location_long != "-") {
-					$dropLocation = $this->data['activities']->drop_location_lat . ',' . $this->data['activities']->drop_location_long;
-				} elseif (!empty($this->data['activities']->drop_location) && $this->data['activities']->drop_location != '-') {
+				if (!empty($this->data['activities']->drop_location) && $this->data['activities']->drop_location != '-') {
 					$dropLocation = $this->data['activities']->drop_location;
-				}
+				} elseif (!empty($this->data['activities']->drop_location_lat) && !empty($this->data['activities']->drop_location_long) && $this->data['activities']->drop_location_lat != "-" && $this->data['activities']->drop_location_long != "-") {
+					$dropLocation = $this->data['activities']->drop_location_lat . ',' . $this->data['activities']->drop_location_long;
+				} 
 			}
 
 			// $location_error_msg = [];

@@ -185,91 +185,91 @@ class ActivityReport extends Model {
 				}
 
 				//ACTIVITY DETAILS
-				$activityReport->sla_achieved_delayed = $activity->detail(278) ? $activity->detail(278)->value : NULL;
-				$activityReport->cc_waiting_time = $activity->detail(279) ? $activity->detail(279)->value : 0;
-				$activityReport->cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
-				$activityReport->cc_collected_amount = $activity->detail(281) ? $activity->detail(281)->value : 0;
-				$activityReport->cc_not_collected_amount = $activity->detail(282) ? $activity->detail(282)->value : 0;
+				$activityReport->sla_achieved_delayed = $activity->detail(278) ? checkValueHasValid($activity->detail(278)->value) : NULL;
+				$activityReport->cc_waiting_time = $activity->detail(279) ? checkValueHasValid($activity->detail(279)->value) : 0;
+				$activityReport->cc_total_km = $activity->detail(280) ? checkValueHasValid($activity->detail(280)->value) : 0;
+				$activityReport->cc_collected_amount = $activity->detail(281) ? checkValueHasValid($activity->detail(281)->value) : 0;
+				$activityReport->cc_not_collected_amount = $activity->detail(282) ? checkValueHasValid($activity->detail(282)->value) : 0;
 				$activityReport->asp_reached_date = $activity->detail(283) ? checkDateTimeAndReturnValidDateTimeVal($activity->detail(283)->value) : NULL;
-				$activityReport->asp_start_location = $activity->detail(284) ? $activity->detail(284)->value : NULL;
-				$activityReport->asp_end_location = $activity->detail(285) ? $activity->detail(285)->value : NULL;
-				$activityReport->onward_google_km = $activity->detail(286) ? $activity->detail(286)->value : NULL;
-				$activityReport->dealer_google_km = $activity->detail(287) ? $activity->detail(287)->value : NULL;
-				$activityReport->return_google_km = $activity->detail(288) ? $activity->detail(288)->value : NULL;
-				$activityReport->onward_km = $activity->detail(289) ? $activity->detail(289)->value : NULL;
-				$activityReport->dealer_km = $activity->detail(290) ? $activity->detail(290)->value : NULL;
-				$activityReport->return_km = $activity->detail(291) ? $activity->detail(291)->value : NULL;
-				$activityReport->drop_location_type = $activity->detail(293) ? $activity->detail(293)->value : NULL;
-				$activityReport->drop_dealer = $activity->detail(294) ? $activity->detail(294)->value : NULL;
-				$activityReport->drop_location = $activity->detail(295) ? $activity->detail(295)->value : NULL;
-				$activityReport->drop_location_lat = $activity->detail(296) ? $activity->detail(296)->value : NULL;
-				$activityReport->drop_location_long = $activity->detail(297) ? $activity->detail(297)->value : NULL;
-				$activityReport->amount = $activity->detail(298) ? $activity->detail(298)->value : 0;
-				$activityReport->paid_to = $activity->detail(299) ? $activity->detail(299)->value : NULL;
-				$activityReport->payment_mode = $activity->detail(300) ? $activity->detail(300)->value : NULL;
-				$activityReport->payment_receipt_no = $activity->detail(301) ? $activity->detail(301)->value : NULL;
+				$activityReport->asp_start_location = $activity->detail(284) ? checkValueHasValid($activity->detail(284)->value) : NULL;
+				$activityReport->asp_end_location = $activity->detail(285) ? checkValueHasValid($activity->detail(285)->value) : NULL;
+				$activityReport->onward_google_km = $activity->detail(286) ? checkValueHasValid($activity->detail(286)->value) : NULL;
+				$activityReport->dealer_google_km = $activity->detail(287) ? checkValueHasValid($activity->detail(287)->value) : NULL;
+				$activityReport->return_google_km = $activity->detail(288) ? checkValueHasValid($activity->detail(288)->value) : NULL;
+				$activityReport->onward_km = $activity->detail(289) ? checkValueHasValid($activity->detail(289)->value) : NULL;
+				$activityReport->dealer_km = $activity->detail(290) ? checkValueHasValid($activity->detail(290)->value) : NULL;
+				$activityReport->return_km = $activity->detail(291) ? checkValueHasValid($activity->detail(291)->value) : NULL;
+				$activityReport->drop_location_type = $activity->detail(293) ? checkValueHasValid($activity->detail(293)->value) : NULL;
+				$activityReport->drop_dealer = $activity->detail(294) ? checkValueHasValid($activity->detail(294)->value) : NULL;
+				$activityReport->drop_location = $activity->detail(295) ? checkValueHasValid($activity->detail(295)->value) : NULL;
+				$activityReport->drop_location_lat = $activity->detail(296) ? checkValueHasValid($activity->detail(296)->value) : NULL;
+				$activityReport->drop_location_long = $activity->detail(297) ? checkValueHasValid($activity->detail(297)->value) : NULL;
+				$activityReport->amount = $activity->detail(298) ? checkValueHasValid($activity->detail(298)->value) : 0;
+				$activityReport->paid_to = $activity->detail(299) ? checkValueHasValid($activity->detail(299)->value) : NULL;
+				$activityReport->payment_mode = $activity->detail(300) ? checkValueHasValid($activity->detail(300)->value) : NULL;
+				$activityReport->payment_receipt_no = $activity->detail(301) ? checkValueHasValid($activity->detail(301)->value) : NULL;
 
-				$activityReport->cc_service_charges = $activity->detail(302) ? $activity->detail(302)->value : 0;
-				$activityReport->cc_membership_charges = $activity->detail(303) ? $activity->detail(303)->value : 0;
-				$activityReport->cc_eatable_items_charges = $activity->detail(304) ? $activity->detail(304)->value : 0;
-				$activityReport->cc_toll_charges = $activity->detail(305) ? $activity->detail(305)->value : 0;
-				$activityReport->cc_green_tax_charges = $activity->detail(306) ? $activity->detail(306)->value : 0;
-				$activityReport->cc_border_charges = $activity->detail(307) ? $activity->detail(307)->value : 0;
-				$activityReport->cc_octroi_charges = $activity->detail(308) ? $activity->detail(308)->value : 0;
-				$activityReport->cc_excess_charges = $activity->detail(309) ? $activity->detail(309)->value : 0;
-				$activityReport->cc_fuel_charges = $activity->detail(310) ? $activity->detail(310)->value : 0;
+				$activityReport->cc_service_charges = $activity->detail(302) ? checkValueHasValid($activity->detail(302)->value) : 0;
+				$activityReport->cc_membership_charges = $activity->detail(303) ? checkValueHasValid($activity->detail(303)->value) : 0;
+				$activityReport->cc_eatable_items_charges = $activity->detail(304) ? checkValueHasValid($activity->detail(304)->value) : 0;
+				$activityReport->cc_toll_charges = $activity->detail(305) ? checkValueHasValid($activity->detail(305)->value) : 0;
+				$activityReport->cc_green_tax_charges = $activity->detail(306) ? checkValueHasValid($activity->detail(306)->value) : 0;
+				$activityReport->cc_border_charges = $activity->detail(307) ? checkValueHasValid($activity->detail(307)->value) : 0;
+				$activityReport->cc_octroi_charges = $activity->detail(308) ? checkValueHasValid($activity->detail(308)->value) : 0;
+				$activityReport->cc_excess_charges = $activity->detail(309) ? checkValueHasValid($activity->detail(309)->value) : 0;
+				$activityReport->cc_fuel_charges = $activity->detail(310) ? checkValueHasValid($activity->detail(310)->value) : 0;
 
-				$activityReport->asp_service_charges = $activity->detail(311) ? $activity->detail(311)->value : 0;
-				$activityReport->asp_membership_charges = $activity->detail(312) ? $activity->detail(312)->value : 0;
-				$activityReport->asp_eatable_items_charges = $activity->detail(313) ? $activity->detail(313)->value : 0;
-				$activityReport->asp_toll_charges = $activity->detail(314) ? $activity->detail(314)->value : 0;
-				$activityReport->asp_green_tax_charges = $activity->detail(315) ? $activity->detail(315)->value : 0;
-				$activityReport->asp_border_charges = $activity->detail(316) ? $activity->detail(316)->value : 0;
-				$activityReport->asp_octroi_charges = $activity->detail(317) ? $activity->detail(317)->value : 0;
-				$activityReport->asp_excess_charges = $activity->detail(318) ? $activity->detail(318)->value : 0;
-				$activityReport->asp_fuel_charges = $activity->detail(319) ? $activity->detail(319)->value : 0;
+				$activityReport->asp_service_charges = $activity->detail(311) ? checkValueHasValid($activity->detail(311)->value) : 0;
+				$activityReport->asp_membership_charges = $activity->detail(312) ? checkValueHasValid($activity->detail(312)->value) : 0;
+				$activityReport->asp_eatable_items_charges = $activity->detail(313) ? checkValueHasValid($activity->detail(313)->value) : 0;
+				$activityReport->asp_toll_charges = $activity->detail(314) ? checkValueHasValid($activity->detail(314)->value) : 0;
+				$activityReport->asp_green_tax_charges = $activity->detail(315) ? checkValueHasValid($activity->detail(315)->value) : 0;
+				$activityReport->asp_border_charges = $activity->detail(316) ? checkValueHasValid($activity->detail(316)->value) : 0;
+				$activityReport->asp_octroi_charges = $activity->detail(317) ? checkValueHasValid($activity->detail(317)->value) : 0;
+				$activityReport->asp_excess_charges = $activity->detail(318) ? checkValueHasValid($activity->detail(318)->value) : 0;
+				$activityReport->asp_fuel_charges = $activity->detail(319) ? checkValueHasValid($activity->detail(319)->value) : 0;
 
-				$activityReport->bo_service_charges = $activity->detail(320) ? $activity->detail(320)->value : 0;
-				$activityReport->bo_membership_charges = $activity->detail(321) ? $activity->detail(321)->value : 0;
-				$activityReport->bo_eatable_items_charges = $activity->detail(322) ? $activity->detail(322)->value : 0;
-				$activityReport->bo_toll_charges = $activity->detail(323) ? $activity->detail(323)->value : 0;
-				$activityReport->bo_green_tax_charges = $activity->detail(324) ? $activity->detail(324)->value : 0;
-				$activityReport->bo_border_charges = $activity->detail(325) ? $activity->detail(325)->value : 0;
-				$activityReport->bo_octroi_charges = $activity->detail(326) ? $activity->detail(326)->value : 0;
-				$activityReport->bo_excess_charges = $activity->detail(327) ? $activity->detail(327)->value : 0;
-				$activityReport->bo_fuel_charges = $activity->detail(328) ? $activity->detail(328)->value : 0;
+				$activityReport->bo_service_charges = $activity->detail(320) ? checkValueHasValid($activity->detail(320)->value) : 0;
+				$activityReport->bo_membership_charges = $activity->detail(321) ? checkValueHasValid($activity->detail(321)->value) : 0;
+				$activityReport->bo_eatable_items_charges = $activity->detail(322) ? checkValueHasValid($activity->detail(322)->value) : 0;
+				$activityReport->bo_toll_charges = $activity->detail(323) ? checkValueHasValid($activity->detail(323)->value) : 0;
+				$activityReport->bo_green_tax_charges = $activity->detail(324) ? checkValueHasValid($activity->detail(324)->value) : 0;
+				$activityReport->bo_border_charges = $activity->detail(325) ? checkValueHasValid($activity->detail(325)->value) : 0;
+				$activityReport->bo_octroi_charges = $activity->detail(326) ? checkValueHasValid($activity->detail(326)->value) : 0;
+				$activityReport->bo_excess_charges = $activity->detail(327) ? checkValueHasValid($activity->detail(327)->value) : 0;
+				$activityReport->bo_fuel_charges = $activity->detail(328) ? checkValueHasValid($activity->detail(328)->value) : 0;
 
-				$activityReport->asp_waiting_time = $activity->detail(329) ? $activity->detail(329)->value : 0;
-				$activityReport->bo_waiting_time = $activity->detail(330) ? $activity->detail(330)->value : 0;
-				$activityReport->cc_waiting_charges = $activity->detail(331) ? $activity->detail(331)->value : 0;
-				$activityReport->asp_waiting_charges = $activity->detail(332) ? $activity->detail(332)->value : 0;
-				$activityReport->bo_waiting_charges = $activity->detail(333) ? $activity->detail(333)->value : 0;
+				$activityReport->asp_waiting_time = $activity->detail(329) ? checkValueHasValid($activity->detail(329)->value) : 0;
+				$activityReport->bo_waiting_time = $activity->detail(330) ? checkValueHasValid($activity->detail(330)->value) : 0;
+				$activityReport->cc_waiting_charges = $activity->detail(331) ? checkValueHasValid($activity->detail(331)->value) : 0;
+				$activityReport->asp_waiting_charges = $activity->detail(332) ? checkValueHasValid($activity->detail(332)->value) : 0;
+				$activityReport->bo_waiting_charges = $activity->detail(333) ? checkValueHasValid($activity->detail(333)->value) : 0;
 
-				$activityReport->cc_service_type = $activity->detail(153) ? $activity->detail(153)->value : NULL;
-				$activityReport->asp_service_type = $activity->detail(157) ? $activity->detail(157)->value : NULL;
-				$activityReport->bo_service_type = $activity->detail(161) ? $activity->detail(161)->value : NULL;
+				$activityReport->cc_service_type = $activity->detail(153) ? checkValueHasValid($activity->detail(153)->value) : NULL;
+				$activityReport->asp_service_type = $activity->detail(157) ? checkValueHasValid($activity->detail(157)->value) : NULL;
+				$activityReport->bo_service_type = $activity->detail(161) ? checkValueHasValid($activity->detail(161)->value) : NULL;
 
-				$activityReport->bo_km_travelled = $activity->detail(158) ? $activity->detail(158)->value : 0;
-				$activityReport->bo_collected = $activity->detail(159) ? $activity->detail(159)->value : 0;
-				$activityReport->bo_not_collected = $activity->detail(160) ? $activity->detail(160)->value : 0;
+				$activityReport->bo_km_travelled = $activity->detail(158) ? checkValueHasValid($activity->detail(158)->value) : 0;
+				$activityReport->bo_collected = $activity->detail(159) ? checkValueHasValid($activity->detail(159)->value) : 0;
+				$activityReport->bo_not_collected = $activity->detail(160) ? checkValueHasValid($activity->detail(160)->value) : 0;
 
-				$activityReport->asp_km_travelled = $activity->detail(154) ? $activity->detail(154)->value : 0;
-				$activityReport->asp_collected = $activity->detail(155) ? $activity->detail(155)->value : 0;
-				$activityReport->asp_not_collected = $activity->detail(156) ? $activity->detail(156)->value : 0;
+				$activityReport->asp_km_travelled = $activity->detail(154) ? checkValueHasValid($activity->detail(154)->value) : 0;
+				$activityReport->asp_collected = $activity->detail(155) ? checkValueHasValid($activity->detail(155)->value) : 0;
+				$activityReport->asp_not_collected = $activity->detail(156) ? checkValueHasValid($activity->detail(156)->value) : 0;
 
-				$activityReport->cc_po_amount = $activity->detail(170) ? $activity->detail(170)->value : 0;
-				$activityReport->cc_net_amount = $activity->detail(174) ? $activity->detail(174)->value : 0;
-				$activityReport->cc_amount = $activity->detail(180) ? $activity->detail(180)->value : 0;
+				$activityReport->cc_po_amount = $activity->detail(170) ? checkValueHasValid($activity->detail(170)->value) : 0;
+				$activityReport->cc_net_amount = $activity->detail(174) ? checkValueHasValid($activity->detail(174)->value) : 0;
+				$activityReport->cc_amount = $activity->detail(180) ? checkValueHasValid($activity->detail(180)->value) : 0;
 
-				$activityReport->bo_tax_amount = $activity->detail(179) ? $activity->detail(179)->value : 0;
-				$activityReport->bo_net_amount = $activity->detail(176) ? $activity->detail(176)->value : 0;
-				$activityReport->bo_po_amount = $activity->detail(172) ? $activity->detail(172)->value : 0;
-				$activityReport->bo_deduction = $activity->detail(173) ? $activity->detail(173)->value : 0;
-				$activityReport->bo_amount = $activity->detail(182) ? $activity->detail(182)->value : 0;
+				$activityReport->bo_tax_amount = $activity->detail(179) ? checkValueHasValid($activity->detail(179)->value) : 0;
+				$activityReport->bo_net_amount = $activity->detail(176) ? checkValueHasValid($activity->detail(176)->value) : 0;
+				$activityReport->bo_po_amount = $activity->detail(172) ? checkValueHasValid($activity->detail(172)->value) : 0;
+				$activityReport->bo_deduction = $activity->detail(173) ? checkValueHasValid($activity->detail(173)->value) : 0;
+				$activityReport->bo_amount = $activity->detail(182) ? checkValueHasValid($activity->detail(182)->value) : 0;
 
-				$activityReport->asp_po_amount = $activity->detail(171) ? $activity->detail(171)->value : 0;
-				$activityReport->asp_net_amount = $activity->detail(175) ? $activity->detail(175)->value : 0;
-				$activityReport->asp_amount = $activity->detail(181) ? $activity->detail(181)->value : 0;
+				$activityReport->asp_po_amount = $activity->detail(171) ? checkValueHasValid($activity->detail(171)->value) : 0;
+				$activityReport->asp_net_amount = $activity->detail(175) ? checkValueHasValid($activity->detail(175)->value) : 0;
+				$activityReport->asp_amount = $activity->detail(181) ? checkValueHasValid($activity->detail(181)->value) : 0;
 
 				//ACTIVITY LOG
 				if ($activity->log) {

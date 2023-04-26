@@ -1399,45 +1399,31 @@ class ActivityController extends Controller {
 			$this->data['activities']['eligibleForOthersplitupCharges'] = $eligibleForOthersplitupCharges;
 
 			// Google Map Link for ASP KM travelled view
-			if (isset($activity->asp->full_address) && !empty($activity->asp->full_address)) {
-				$aspStartEndLocation = $activity->asp->full_address;
-			} else {
+			$aspStartEndLocation = '';
+			if (!empty($activity->asp->lat) && !empty($activity->asp->long)) {
 				$aspStartEndLocation = $activity->asp->lat . ',' . $activity->asp->long;
+			} elseif (isset($activity->asp->full_address) && !empty($activity->asp->full_address)) {
+				$aspStartEndLocation = $activity->asp->full_address;
 			}
 
 			$bdLocation = '';
-			if (!empty($this->data['activities']->bd_location) && $this->data['activities']->bd_location != '-') {
-				$bdLocation = $this->data['activities']->bd_location;
-			} elseif (!empty($this->data['activities']->bd_lat) && !empty($this->data['activities']->bd_long) && $this->data['activities']->bd_lat != '-' && $this->data['activities']->bd_long != '-') {
+			if (!empty($this->data['activities']->bd_lat) && !empty($this->data['activities']->bd_long) && $this->data['activities']->bd_lat != '-' && $this->data['activities']->bd_long != '-') {
 				$bdLocation = $this->data['activities']->bd_lat . ',' . $this->data['activities']->bd_long;
+			} elseif (!empty($this->data['activities']->bd_location) && $this->data['activities']->bd_location != '-') {
+				$bdLocation = $this->data['activities']->bd_location;
 			}
 
 			$dropLocation = '';
 			//ONLY TOW SERVICES
 			if ($this->data['activities']->serviceType->service_group_id == 3) {
-				if (!empty($this->data['activities']->drop_location) && $this->data['activities']->drop_location != '-') {
-					$dropLocation = $this->data['activities']->drop_location;
-				} elseif (!empty($this->data['activities']->drop_location_lat) && !empty($this->data['activities']->drop_location_long) && $this->data['activities']->drop_location_lat != "-" && $this->data['activities']->drop_location_long != "-") {
+				if (isset($this->data['activities']->drop_location_lat) && isset($this->data['activities']->drop_location_long) && !empty($this->data['activities']->drop_location_lat) && !empty($this->data['activities']->drop_location_long) && $this->data['activities']->drop_location_lat != "-" && $this->data['activities']->drop_location_long != "-") {
 					$dropLocation = $this->data['activities']->drop_location_lat . ',' . $this->data['activities']->drop_location_long;
+				} elseif (isset($this->data['activities']->drop_location) && !empty($this->data['activities']->drop_location) && $this->data['activities']->drop_location != '-') {
+					$dropLocation = $this->data['activities']->drop_location;
 				}
 			}
 
-			// $location_error_msg = [];
-
-			// if (isset($bdLocation['message'])) {
-			// 	array_push($location_error_msg, $bdLocation['message']);
-			// 	$bdLocation = '';
-			// }
-
-			// if (isset($dropLocation['message'])) {
-			// 	array_push($location_error_msg, $dropLocation['message']);
-			// 	$dropLocation = '';
-			// }
-
-			// $this->data['activities']['location_error_msg'] = array_unique($location_error_msg);
-			$this->data['activities']['location_error_msg'] = '';
-
-			$locationUrl = "https://www.google.co.in/maps/dir/" . $aspStartEndLocation;
+			$locationUrl = "https://www.google.com/maps/dir/" . $aspStartEndLocation;
 
 			if (!empty($bdLocation)) {
 				$locationUrl .= "/" . $bdLocation;

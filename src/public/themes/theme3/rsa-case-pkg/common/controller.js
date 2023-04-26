@@ -285,15 +285,6 @@ app.component('billingDetails', {
                 self.csrf = token;
                 self.data.raw_bo_waiting_charges = (self.data.raw_bo_waiting_charges == '' || self.data.raw_bo_waiting_charges == '-') ? 0.00 : self.data.raw_bo_waiting_charges;
 
-                //AUTO GOOGLE MAP LINK EXCEPTION ERROR
-                if (self.data.location_error_msg.length != 0) {
-                    let errors = '';
-                    for (let i in self.data.location_error_msg) {
-                        errors += '<li>' + self.data.location_error_msg[i] + '</li>';
-                    }
-                    custom_noty('error', "Mappls throws the following error while try to get ASP location detail." + errors);
-                }
-
                 $scope.boWaitingTime = () => {
                     let seconds = parseFloat(self.data.bo_waiting_time) * 60;
 

@@ -162,6 +162,7 @@
     var releaseOnHoldActivity = "{{url('rsa-case-pkg/onhold-activity/release')}}";
 
     var getServiceTypeRateCardDetail = "{{route('getActivityServiceTypeRateCardDetail')}}";
+    var showTravelledKmMapView = "{{route('locatorMapMyIndia')}}";
 
 </script>
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/common/controller.js?v=12')}}"></script>

@@ -285,7 +285,6 @@ app.component('billingDetails', {
                 self.csrf = token;
                 self.data.raw_bo_waiting_charges = (self.data.raw_bo_waiting_charges == '' || self.data.raw_bo_waiting_charges == '-') ? 0.00 : self.data.raw_bo_waiting_charges;
 
-
                 $scope.boWaitingTime = () => {
                     let seconds = parseFloat(self.data.bo_waiting_time) * 60;
 

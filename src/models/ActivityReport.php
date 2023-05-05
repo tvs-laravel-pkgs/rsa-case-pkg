@@ -4,6 +4,7 @@ namespace Abs\RsaCasePkg;
 
 use Abs\HelperPkg\Traits\SeederTrait;
 use Abs\RsaCasePkg\Activity;
+use App\Jobs\ElkJobQueue;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Database\Eloquent\Model;
@@ -472,7 +473,43 @@ class ActivityReport extends Model {
 				$activityReport->deleted_by_id = $activity->deleted_by_id;
 				$activityReport->deleted_at = $activity->deleted_at;
 				$activityReport->save();
+
+				//UPDATE DATA TO ELK
+				$activityReport->elkPush();
 			}
+		}
+	}
+
+	public function elkPush() {
+		if (!empty($this->toArray())) {
+			$updateFields = [];
+			$updateFields = $this->toArray();
+			$updateFields['created_at'] = !empty($this->created_at) ? Carbon::parse($this->created_at)->timestamp * 1000 : NULL;
+			$updateFields['updated_at'] = !empty($this->updated_at) ? Carbon::parse($this->updated_at)->timestamp * 1000 : NULL;
+			$updateFields['case_date'] = !empty($this->case_date) ? Carbon::parse($this->case_date)->timestamp * 1000 : NULL;
+			$updateFields['case_submission_closing_date'] = !empty($this->case_submission_closing_date) ? Carbon::parse($this->case_submission_closing_date)->timestamp * 1000 : NULL;
+			$updateFields['activity_created_date'] = !empty($this->activity_created_date) ? Carbon::parse($this->activity_created_date)->timestamp * 1000 : NULL;
+			$updateFields['asp_reached_date'] = !empty($this->asp_reached_date) ? Carbon::parse($this->asp_reached_date)->timestamp * 1000 : NULL;
+			$updateFields['imported_date'] = !empty($this->imported_date) ? Carbon::parse($this->imported_date)->timestamp * 1000 : NULL;
+			$updateFields['asp_data_filled_date'] = !empty($this->asp_data_filled_date) ? Carbon::parse($this->asp_data_filled_date)->timestamp * 1000 : NULL;
+			$updateFields['l1_deffered_date'] = !empty($this->l1_deffered_date) ? Carbon::parse($this->l1_deffered_date)->timestamp * 1000 : NULL;
+			$updateFields['l1_approved_date'] = !empty($this->l1_approved_date) ? Carbon::parse($this->l1_approved_date)->timestamp * 1000 : NULL;
+			$updateFields['l2_deffered_date'] = !empty($this->l2_deffered_date) ? Carbon::parse($this->l2_deffered_date)->timestamp * 1000 : NULL;
+			$updateFields['l2_approved_date'] = !empty($this->l2_approved_date) ? Carbon::parse($this->l2_approved_date)->timestamp * 1000 : NULL;
+			$updateFields['l3_deffered_date'] = !empty($this->l3_deffered_date) ? Carbon::parse($this->l3_deffered_date)->timestamp * 1000 : NULL;
+			$updateFields['l3_approved_date'] = !empty($this->l3_approved_date) ? Carbon::parse($this->l3_approved_date)->timestamp * 1000 : NULL;
+			$updateFields['l4_deffered_date'] = !empty($this->l4_deffered_date) ? Carbon::parse($this->l4_deffered_date)->timestamp * 1000 : NULL;
+			$updateFields['l4_approved_date'] = !empty($this->l4_approved_date) ? Carbon::parse($this->l4_approved_date)->timestamp * 1000 : NULL;
+			$updateFields['invoice_generated_date'] = !empty($this->invoice_generated_date) ? Carbon::parse($this->invoice_generated_date)->timestamp * 1000 : NULL;
+			$updateFields['axapta_generated_date'] = !empty($this->axapta_generated_date) ? Carbon::parse($this->axapta_generated_date)->timestamp * 1000 : NULL;
+			$updateFields['payment_completed_date'] = !empty($this->payment_completed_date) ? Carbon::parse($this->payment_completed_date)->timestamp * 1000 : NULL;
+			$updateFields['deleted_at'] = !empty($this->deleted_at) ? Carbon::parse($this->deleted_at)->timestamp * 1000 : NULL;
+
+			$elkParams = [];
+			$elkParams['id'] = $this->id;
+			$elkParams['index'] = 'activity_reports';
+			$elkParams['updatedDoc'] = $updateFields;
+			ElkJobQueue::dispatch($elkParams);
 		}
 	}
 

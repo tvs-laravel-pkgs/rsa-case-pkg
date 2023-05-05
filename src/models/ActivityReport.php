@@ -504,6 +504,10 @@ class ActivityReport extends Model {
 			$updateFields['axapta_generated_date'] = !empty($this->axapta_generated_date) ? Carbon::parse($this->axapta_generated_date)->timestamp * 1000 : NULL;
 			$updateFields['payment_completed_date'] = !empty($this->payment_completed_date) ? Carbon::parse($this->payment_completed_date)->timestamp * 1000 : NULL;
 			$updateFields['deleted_at'] = !empty($this->deleted_at) ? Carbon::parse($this->deleted_at)->timestamp * 1000 : NULL;
+			unset($updateFields['synched_to_elk_api']);
+			unset($updateFields['elk_api_status_id']);
+			unset($updateFields['elk_api_request']);
+			unset($updateFields['elk_api_response']);
 
 			$elkParams = [];
 			$elkParams['id'] = $this->id;

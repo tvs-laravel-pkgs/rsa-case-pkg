@@ -144,7 +144,7 @@ class ActivityReport extends Model {
 				$activityReport->asp_po_rejected_reason = !empty($activity->asp_po_rejected_reason) ? $activity->asp_po_rejected_reason : NULL;
 				$activityReport->portal_status = $activity->status ? $activity->status->name : NULL;
 				$activityReport->activity_status = $activity->activityStatus ? $activity->activityStatus->name : NULL;
-				$activityReport->activity_description = $activity->description;
+				$activityReport->activity_description = !empty($activity->description) ? $activity->description : NULL;
 				$activityReport->is_towing_attachment_mandatory = $activity->is_towing_attachments_mandatory == 1 ? "Yes" : "No";
 				$activityReport->towing_attachment_mandatory_by = $activity->towingAttachmentMandatoryBy ? $activity->towingAttachmentMandatoryBy->name : NULL;
 

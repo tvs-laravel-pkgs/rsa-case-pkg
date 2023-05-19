@@ -53,58 +53,7 @@
                     </li>
                 </ul>
             </div>
-            <div class="col-xs-12 col-sm-3 col-md-3">
-                <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
-                        <p>KM During Breakdown</p>
-                        <h3>{{$ctrl.data.km_during_breakdown}}</h3>
-                    </li>
-                </ul>
-            </div>
-            <div class="col-xs-12 col-sm-3 col-md-3">
-                <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
-                        <p>BD Lat</p>
-                        <h3>{{$ctrl.data.bd_lat ? $ctrl.data.bd_lat :'-'}}</h3>
-                    </li>
-                </ul>
-            </div>
-            <div class="col-xs-12 col-sm-3 col-md-3">
-                <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
-                        <p>BD Long</p>
-                        <h3>{{$ctrl.data.bd_long ? $ctrl.data.bd_long :'-'}}</h3>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-    <div class="viewData-threeColumn--wrapper">
-        <div class="row">
-            <div class="col-xs-12 col-sm-3 col-md-3">
-                <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
-                        <p>BD Location</p>
-                        <h3>{{$ctrl.data.bd_location ? $ctrl.data.bd_location:'-'}}</h3>
-                    </li>
-                </ul>
-            </div>
-            <div class="col-xs-12 col-sm-3 col-md-3">
-                <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
-                        <p>BD City</p>
-                        <h3>{{$ctrl.data.bd_city ? $ctrl.data.bd_city :'-'}}</h3>
-                    </li>
-                </ul>
-            </div>
-            <div class="col-xs-12 col-sm-3 col-md-3">
-                <ul class="viewData-threeColumn--group m-t-50 m-b-20">
-                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
-                        <p>BD State</p>
-                        <h3>{{$ctrl.data.bd_state ? $ctrl.data.bd_state :'-'}}</h3>
-                    </li>
-                </ul>
-            </div>
+
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
                     <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
@@ -113,10 +62,6 @@
                     </li>
                 </ul>
             </div>
-        </div>
-    </div>
-    <div class="viewData-threeColumn--wrapper">
-        <div class="row">
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
                     <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
@@ -125,6 +70,19 @@
                     </li>
                 </ul>
             </div>
+              <div class="col-xs-12 col-sm-3 col-md-3">
+                <ul class="viewData-threeColumn--group m-t-50 m-b-20">
+                    <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
+                        <p>Case Closing Date</p>
+                        <h3>{{$ctrl.data.submission_closing_date ? $ctrl.data.submission_closing_date :'-'}}</h3>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="viewData-threeColumn--wrapper">
+        <div class="row">
+            
             <!-- <div class="col-xs-12 col-sm-3 col-md-3" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">
     <ul class="viewData-threeColumn--group m-t-50 m-b-20">
         <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">

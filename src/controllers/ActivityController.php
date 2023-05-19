@@ -15,6 +15,7 @@ use App\CallCenter;
 use App\Client;
 use App\Config;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\MapMyIndiaController;
 use App\Invoices;
 use App\ServiceType;
 use App\StateUser;
@@ -1396,6 +1397,44 @@ class ActivityController extends Controller {
 			$this->data['activities']['is_case_lapsed'] = $is_case_lapsed;
 			$this->data['activities']['submission_closing_date'] = $submission_closing_date;
 			$this->data['activities']['eligibleForOthersplitupCharges'] = $eligibleForOthersplitupCharges;
+
+			// Google Map Link for ASP KM travelled view
+			$aspStartEndLocation = '';
+			if (!empty($activity->asp->lat) && !empty($activity->asp->long)) {
+				$aspStartEndLocation = $activity->asp->lat . ',' . $activity->asp->long;
+			} elseif (isset($activity->asp->full_address) && !empty($activity->asp->full_address)) {
+				$aspStartEndLocation = $activity->asp->full_address;
+			}
+
+			$bdLocation = '';
+			if (!empty($this->data['activities']->bd_lat) && !empty($this->data['activities']->bd_long) && $this->data['activities']->bd_lat != '-' && $this->data['activities']->bd_long != '-') {
+				$bdLocation = $this->data['activities']->bd_lat . ',' . $this->data['activities']->bd_long;
+			} elseif (!empty($this->data['activities']->bd_location) && $this->data['activities']->bd_location != '-') {
+				$bdLocation = $this->data['activities']->bd_location;
+			}
+
+			$dropLocation = '';
+			//ONLY TOW SERVICES
+			if ($this->data['activities']->serviceType->service_group_id == 3) {
+				if (isset($this->data['activities']->drop_location_lat) && isset($this->data['activities']->drop_location_long) && !empty($this->data['activities']->drop_location_lat) && !empty($this->data['activities']->drop_location_long) && $this->data['activities']->drop_location_lat != "-" && $this->data['activities']->drop_location_long != "-") {
+					$dropLocation = $this->data['activities']->drop_location_lat . ',' . $this->data['activities']->drop_location_long;
+				} elseif (isset($this->data['activities']->drop_location) && !empty($this->data['activities']->drop_location) && $this->data['activities']->drop_location != '-') {
+					$dropLocation = $this->data['activities']->drop_location;
+				}
+			}
+
+			$locationUrl = "https://www.google.com/maps/dir/" . $aspStartEndLocation;
+
+			if (!empty($bdLocation)) {
+				$locationUrl .= "/" . $bdLocation;
+			}
+
+			if (!empty($dropLocation)) {
+				$locationUrl .= "/" . $dropLocation;
+			}
+
+			$locationUrl .= "/" . $aspStartEndLocation;
+			$this->data['activities']['asp_km_travelled_map_url'] = $locationUrl;
 
 			return response()->json(['success' => true, 'data' => $this->data]);
 		} catch (\Exception $e) {
@@ -5847,12 +5886,12 @@ class ActivityController extends Controller {
 					//ASP Rejected CC Details - Waiting for ASP Data Entry || On Hold
 					if ($activity->status_id == 2 || $activity->status_id == 17) {
 						$url = '';
-						//CASE WITH EXTENSION
-						if (!empty($activity->caseSubmissionClosingDate) && Carbon::parse($activity->caseSubmissionClosingDate)->format('Y-m-d H:i:s') >= $today) {
-							$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
-						} else if (Carbon::parse($activity->caseCreatedAt)->format('Y-m-d H:i:s') >= $threeMonthsBefore) {
-							$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
-						}
+						//CASE WITH EXTENSION - DISABLED FOR NOW SAID BY HYDER 04 APRIL 2023
+						// if (!empty($activity->caseSubmissionClosingDate) && Carbon::parse($activity->caseSubmissionClosingDate)->format('Y-m-d H:i:s') >= $today) {
+						// 	$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
+						// } else if (Carbon::parse($activity->caseCreatedAt)->format('Y-m-d H:i:s') >= $threeMonthsBefore) {
+						// 	$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
+						// }
 					} elseif ($activity->status_id == 15 || $activity->status_id == 16) {
 						//Not Eligible for Payout || Own Patrol Activity - Not Eligible for Payout
 						$url = '';
@@ -5900,5 +5939,21 @@ class ActivityController extends Controller {
 				return $action;
 			})
 			->make(true);
+	}
+
+	public function getLatLongBasedOnLocation($location) {
+		$mapMyIndiaController = new MapMyIndiaController;
+		$get_eloc = $mapMyIndiaController->customTextPlaceDetailApi($location);
+		if ($get_eloc['success'] && isset($get_eloc['data']->suggestedLocations[0]) && $get_eloc['data']->suggestedLocations[0]->eLoc) {
+			$get_lat_lon = $mapMyIndiaController->elocPlaceDetailApi($get_eloc['data']->suggestedLocations[0]->eLoc);
+			if ($get_lat_lon['success'] && !empty($get_lat_lon['data']->latitude) && !empty($get_lat_lon['data']->longitude)) {
+				return $get_lat_lon['data']->latitude . ',' . $get_lat_lon['data']->longitude;
+			} else {
+				return $get_lat_lon;
+			}
+
+		} else {
+			return $get_eloc;
+		}
 	}
 }

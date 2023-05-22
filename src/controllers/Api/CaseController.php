@@ -470,7 +470,7 @@ class CaseController extends Controller {
 									}
 
 									//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
-									if (floatval($cc_total_km) < 2) {
+									if (floatval($cc_total_km) <= 2) {
 										$status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 									}
 
@@ -489,7 +489,7 @@ class CaseController extends Controller {
 								}
 
 								//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
-								if (floatval($cc_total_km) < 2) {
+								if (floatval($cc_total_km) <= 2) {
 									$status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 								}
 
@@ -520,7 +520,7 @@ class CaseController extends Controller {
 							}
 
 							//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
-							if (floatval($cc_total_km) < 2) {
+							if (floatval($cc_total_km) <= 2) {
 								$status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 							}
 

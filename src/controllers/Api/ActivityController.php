@@ -683,14 +683,13 @@ class ActivityController extends Controller {
 
 			//RELEASE ONHOLD / ASP COMPLETED DATA ENTRY - WAITING FOR CALL CENTER DATA ENTRY ACTIVITIES WITH CLOSED OR CANCELLED CASES
 			if (($case->status_id == 4 || $case->status_id == 3) && ($activity->status_id == 17 || $activity->status_id == 26)) {
-
+				$checkCCKmValidation = true;
 				//WHATSAPP FLOW
 				if ($breakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 					// ROS SERVICE
 					if ($service_type->service_group_id != 3) {
 
 						$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
-						$checkCCKmValidation = true;
 
 						if (!$disableWhatsappAutoApproval) {
 							$autoApprovalProcessResponse = $activity->autoApprovalProcess();

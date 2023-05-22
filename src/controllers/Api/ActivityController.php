@@ -518,7 +518,12 @@ class ActivityController extends Controller {
 					// TOW SERVICE
 					if ($service_type->service_group_id == 3) {
 						if ($asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
-							$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+							//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+							if (floatval($request->cc_total_km) < 2) {
+								$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+							} else {
+								$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+							}
 						} else {
 							$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 						}
@@ -590,7 +595,12 @@ class ActivityController extends Controller {
 							// TOW SERVICE
 							if ($service_type->service_group_id == 3) {
 								if ($asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
-									$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+									//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+									if (floatval($request->cc_total_km) < 2) {
+										$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+									} else {
+										$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+									}
 								} else {
 									$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 								}
@@ -598,7 +608,12 @@ class ActivityController extends Controller {
 								$activity->status_id = 17; //ON HOLD
 							}
 						} elseif ($asp->is_corporate == 1) {
-							$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+							//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+							if (floatval($request->cc_total_km) < 2) {
+								$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+							} else {
+								$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+							}
 						} else {
 							$activity->status_id = 17; //ON HOLD
 						}
@@ -709,6 +724,12 @@ class ActivityController extends Controller {
 									$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 								}
 							}
+
+							//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+							if (floatval($request->cc_total_km) < 2) {
+								$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+							}
+
 							$activity->status_id = $statusId;
 							$activity->save();
 						}
@@ -720,6 +741,12 @@ class ActivityController extends Controller {
 						} else {
 							$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 						}
+
+						//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+						if (floatval($request->cc_total_km) < 2) {
+							$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+						}
+
 						$activity->status_id = $statusId;
 						$activity->save();
 					}
@@ -743,6 +770,12 @@ class ActivityController extends Controller {
 							$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 						}
 					}
+
+					//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+					if (floatval($request->cc_total_km) < 2) {
+						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+					}
+
 					$activity->status_id = $statusId;
 					$activity->save();
 				}

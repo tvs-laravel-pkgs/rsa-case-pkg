@@ -1313,7 +1313,12 @@ class Activity extends Model {
 									// TOW SERVICE
 									if ($service_type->service_group_id == 3) {
 										if ($asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
-											$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+											//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+											if (floatval($record['cc_total_km']) < 2) {
+												$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+											} else {
+												$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+											}
 										} else {
 											$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 										}
@@ -1376,7 +1381,12 @@ class Activity extends Model {
 											// TOW SERVICE
 											if ($service_type->service_group_id == 3) {
 												if ($asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
-													$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+													//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+													if (floatval($record['cc_total_km']) < 2) {
+														$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+													} else {
+														$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+													}
 												} else {
 													$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 												}
@@ -1384,7 +1394,12 @@ class Activity extends Model {
 												$activity->status_id = 17; //ON HOLD
 											}
 										} elseif ($asp->is_corporate == 1) {
-											$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+											//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+											if (floatval($record['cc_total_km']) < 2) {
+												$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+											} else {
+												$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+											}
 										} else {
 											$activity->status_id = 17; //ON HOLD
 										}
@@ -1490,6 +1505,7 @@ class Activity extends Model {
 								if ($caseActivities->isNotEmpty()) {
 									foreach ($caseActivities as $key => $caseActivity) {
 										$caseActivityBreakdownAlertSent = self::breakdownAlertSent($caseActivity->id);
+										$cc_total_km = $caseActivity->detail(280) ? $caseActivity->detail(280)->value : 0;
 
 										//WHATSAPP FLOW
 										if ($caseActivityBreakdownAlertSent && $caseActivity->asp && !empty($caseActivity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $caseActivity->asp->has_whatsapp_flow == 1))) {
@@ -1504,7 +1520,6 @@ class Activity extends Model {
 												} else {
 													//MECHANICAL SERVICE GROUP
 													if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id == 2) {
-														$cc_total_km = $caseActivity->detail(280) ? $caseActivity->detail(280)->value : 0;
 														$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id, $vehicle_model_by_make->vehicle_category_id);
 														if ($isBulk) {
 															//ASP Completed Data Entry - Waiting for L1 Bulk Verification
@@ -1520,6 +1535,12 @@ class Activity extends Model {
 															$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 														}
 													}
+
+													//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+													if (floatval($cc_total_km) < 2) {
+														$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+													}
+
 													$caseActivity->update([
 														'status_id' => $statusId,
 													]);
@@ -1533,6 +1554,12 @@ class Activity extends Model {
 												} else {
 													$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 												}
+
+												//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+												if (floatval($cc_total_km) < 2) {
+													$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+												}
+
 												$caseActivity->update([
 													'status_id' => $statusId,
 												]);
@@ -1542,7 +1569,6 @@ class Activity extends Model {
 
 											//MECHANICAL SERVICE GROUP
 											if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id == 2) {
-												$cc_total_km = $caseActivity->detail(280) ? $caseActivity->detail(280)->value : 0;
 												$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id, $vehicle_model_by_make->vehicle_category_id);
 												if ($isBulk) {
 													//ASP Completed Data Entry - Waiting for L1 Bulk Verification
@@ -1558,6 +1584,12 @@ class Activity extends Model {
 													$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 												}
 											}
+
+											//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+											if (floatval($cc_total_km) < 2) {
+												$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+											}
+
 											$caseActivity->update([
 												'status_id' => $statusId,
 											]);

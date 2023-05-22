@@ -444,6 +444,7 @@ class CaseController extends Controller {
 				$activities = $case->activities()->whereIn('status_id', [17, 26])->get();
 				if ($activities->isNotEmpty()) {
 					foreach ($activities as $key => $activity) {
+						$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
 						$activityBreakdownAlertSent = Activity::breakdownAlertSent($activity->id);
 						//WHATSAPP FLOW
 						if ($activityBreakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
@@ -468,7 +469,6 @@ class CaseController extends Controller {
 								} else {
 									//MECHANICAL SERVICE GROUP
 									if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
-										$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
 										$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $case->vehicleModel->vehiclecategory->id);
 										if ($is_bulk) {
 											//ASP Completed Data Entry - Waiting for L1 Bulk Verification
@@ -485,6 +485,12 @@ class CaseController extends Controller {
 											$status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 										}
 									}
+
+									//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+									if (floatval($cc_total_km) < 2) {
+										$status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+									}
+
 									$activity->update([
 										'status_id' => $status_id,
 									]);
@@ -498,6 +504,12 @@ class CaseController extends Controller {
 								} else {
 									$status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 								}
+
+								//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+								if (floatval($cc_total_km) < 2) {
+									$status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+								}
+
 								$activity->update([
 									'status_id' => $status_id,
 								]);
@@ -507,7 +519,6 @@ class CaseController extends Controller {
 
 							//MECHANICAL SERVICE GROUP
 							if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
-								$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
 								$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $case->vehicleModel->vehiclecategory->id);
 								if ($is_bulk) {
 									//ASP Completed Data Entry - Waiting for L1 Bulk Verification
@@ -524,6 +535,12 @@ class CaseController extends Controller {
 									$status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 								}
 							}
+
+							//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+							if (floatval($cc_total_km) < 2) {
+								$status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+							}
+
 							$activity->update([
 								'status_id' => $status_id,
 							]);

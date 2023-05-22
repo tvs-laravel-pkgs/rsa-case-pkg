@@ -5816,6 +5816,7 @@ class ActivityController extends Controller {
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
 			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);
 			$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
+			$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
 
 			//WHATSAPP FLOW
 			if ($breakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
@@ -5838,7 +5839,6 @@ class ActivityController extends Controller {
 					} else {
 						//MECHANICAL SERVICE GROUP
 						if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
-							$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
 							$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->vehicleModel->vehiclecategory->id);
 							if ($is_bulk) {
 								$statusId = 5; //ASP Completed Data Entry - Waiting for L1 Bulk Verification
@@ -5852,6 +5852,12 @@ class ActivityController extends Controller {
 								$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 							}
 						}
+
+						//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+						if (floatval($cc_total_km) < 2) {
+							$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+						}
+
 					}
 
 				} else {
@@ -5861,13 +5867,18 @@ class ActivityController extends Controller {
 					} else {
 						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 					}
+
+					//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+					if (floatval($cc_total_km) < 2) {
+						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+					}
+
 				}
 			} else {
 				// NORMAL FLOW
 
 				//MECHANICAL SERVICE GROUP
 				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
-					$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
 					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->vehicleModel->vehiclecategory->id);
 					if ($is_bulk) {
 						$statusId = 5; //ASP Completed Data Entry - Waiting for L1 Bulk Verification
@@ -5881,6 +5892,12 @@ class ActivityController extends Controller {
 						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 					}
 				}
+
+				//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+				if (floatval($cc_total_km) < 2) {
+					$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+				}
+
 			}
 
 			$activity->update([

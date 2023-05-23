@@ -2,6 +2,7 @@
 
 namespace Abs\RsaCasePkg;
 use Abs\RsaCasePkg\Activity;
+use Abs\RsaCasePkg\ActivityReport;
 use App\Asp;
 use App\Attachment;
 use App\Http\Controllers\Admin\AxaptaExportController;
@@ -525,7 +526,26 @@ class InvoiceController extends Controller {
 					],
 				]);
 			}
-			Activity::whereIn('invoice_id', $request->invoiceIds)->update(['invoice_id' => NULL, 'status_id' => 6]);
+
+			$invoiceActivities = Activity::select([
+				'id',
+				'status_id',
+				'invoice_id',
+			])
+				->whereIn('invoice_id', $request->invoiceIds)
+				->get();
+			if ($invoiceActivities->isNotEmpty()) {
+				foreach ($invoiceActivities as $activityKey => $activityVal) {
+
+					$activityVal->invoice_id = NULL;
+					$activityVal->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+					$activityVal->save();
+
+					//SAVE ACTIVITY REPORT FOR DASHBOARD
+					ActivityReport::saveReport($activityVal->id);
+				}
+			}
+
 			Invoices::whereIn('id', $request->invoiceIds)->delete();
 			return response()->json([
 				'success' => true,

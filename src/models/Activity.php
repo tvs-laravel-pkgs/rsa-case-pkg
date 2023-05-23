@@ -9,6 +9,7 @@ use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityRatecard;
+use Abs\RsaCasePkg\ActivityReport;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\ActivityWhatsappLog;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
@@ -92,6 +93,10 @@ class Activity extends Model {
 
 	public function activityDetail() {
 		return $this->hasOne('Abs\RsaCasePkg\ActivityDetail', 'activity_id');
+	}
+
+	public function rateCard() {
+		return $this->hasOne('Abs\RsaCasePkg\ActivityRatecard', 'activity_id');
 	}
 
 	public function log() {
@@ -1400,6 +1405,9 @@ class Activity extends Model {
 											$activity->update([
 												'status_id' => $status_id,
 											]);
+
+											//SAVE ACTIVITY REPORT FOR DASHBOARD
+											ActivityReport::saveReport($activity->id);
 										}
 									}
 								}
@@ -1430,18 +1438,14 @@ class Activity extends Model {
 											$invoiceAmountCalculatedActivity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 										}
 
+										$invoiceAmountCalculatedActivity->update([
+											'status_id' => 1, //Case Closed - Waiting for ASP to Generate Invoice
+										]);
+
+										//SAVE ACTIVITY REPORT FOR DASHBOARD
+										ActivityReport::saveReport($invoiceAmountCalculatedActivity->id);
 									}
 								}
-
-								$case->activities()
-									->where([
-										// Invoice Amount Calculated - Waiting for Case Closure
-										'status_id' => 10,
-									])
-									->update([
-										// Case Closed - Waiting for ASP to Generate Invoice
-										'status_id' => 1,
-									]);
 							}
 
 							$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
@@ -1556,6 +1560,9 @@ class Activity extends Model {
 												'status_id' => $statusId,
 											]);
 										}
+
+										//SAVE ACTIVITY REPORT FOR DASHBOARD
+										ActivityReport::saveReport($caseActivity->id);
 									}
 								}
 							}
@@ -1577,10 +1584,10 @@ class Activity extends Model {
 							$activity_log->imported_at = date('Y-m-d H:i:s');
 							$activity_log->imported_by_id = $job->created_by_id;
 							$activity_log->asp_data_filled_at = date('Y-m-d H:i:s');
-							if ($record['asp_accepted_cc_details']) {
-								$activity_log->bo_approved_at = date('Y-m-d H:i:s');
-								$activity_log->bo_approved_by_id = $job->created_by_id;
-							}
+							// if ($record['asp_accepted_cc_details']) {
+							// 	$activity_log->bo_approved_at = date('Y-m-d H:i:s');
+							// 	$activity_log->bo_approved_by_id = $job->created_by_id;
+							// }
 							//NEW
 							if (!$activity_log->exists) {
 								$activity_log->created_by_id = 72;
@@ -1588,6 +1595,9 @@ class Activity extends Model {
 								$activity_log->updated_by_id = 72;
 							}
 							$activity_log->save();
+
+							//SAVE ACTIVITY REPORT FOR DASHBOARD
+							ActivityReport::saveReport($activity->id);
 						}
 					}
 

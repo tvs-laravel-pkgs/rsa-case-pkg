@@ -3,6 +3,7 @@
 namespace Abs\RsaCasePkg\Api;
 use Abs\RsaCasePkg\Activity;
 use Abs\RsaCasePkg\ActivityLog;
+use Abs\RsaCasePkg\ActivityReport;
 use Abs\RsaCasePkg\CaseCancelledReason;
 use Abs\RsaCasePkg\CaseStatus;
 use Abs\RsaCasePkg\RsaCase;
@@ -376,6 +377,9 @@ class CaseController extends Controller {
 							$activity->update([
 								'status_id' => $status_id,
 							]);
+
+							//SAVE ACTIVITY REPORT FOR DASHBOARD
+							ActivityReport::saveReport($activity->id);
 						}
 					}
 				}
@@ -407,18 +411,14 @@ class CaseController extends Controller {
 							$invoiceAmountCalculatedActivity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 						}
 
+						$invoiceAmountCalculatedActivity->update([
+							'status_id' => 1, //Case Closed - Waiting for ASP to Generate Invoice
+						]);
+
+						//SAVE ACTIVITY REPORT FOR DASHBOARD
+						ActivityReport::saveReport($invoiceAmountCalculatedActivity->id);
 					}
 				}
-
-				$case->activities()
-					->where([
-						// Invoice Amount Calculated - Waiting for Case Closure
-						'status_id' => 10,
-					])
-					->update([
-						// Case Closed - Waiting for ASP to Generate Invoice
-						'status_id' => 1,
-					]);
 			}
 
 			$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
@@ -545,6 +545,9 @@ class CaseController extends Controller {
 								'status_id' => $status_id,
 							]);
 						}
+
+						//SAVE ACTIVITY REPORT FOR DASHBOARD
+						ActivityReport::saveReport($activity->id);
 					}
 				}
 			}

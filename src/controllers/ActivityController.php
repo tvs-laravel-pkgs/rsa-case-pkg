@@ -7,6 +7,7 @@ use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityPortalStatus;
 use Abs\RsaCasePkg\ActivityRatecard;
+use Abs\RsaCasePkg\ActivityReport;
 use Abs\RsaCasePkg\ActivityStatus;
 use App\Asp;
 use App\AspServiceType;
@@ -274,6 +275,9 @@ class ActivityController extends Controller {
 				$activity->updated_by_id = Auth::user()->id;
 				$activity->save();
 
+				//SAVE ACTIVITY REPORT FOR DASHBOARD
+				ActivityReport::saveReport($activity->id);
+
 				if ($activity) {
 					//log message
 					$log_status = config('rsa.LOG_STATUES_TEMPLATES.ADMIN_TICKET_BACK_ASP');
@@ -305,6 +309,9 @@ class ActivityController extends Controller {
 				$activity->updated_at = Carbon::now();
 				$activity->updated_by_id = Auth::user()->id;
 				$activity->save();
+
+				//SAVE ACTIVITY REPORT FOR DASHBOARD
+				ActivityReport::saveReport($activity->id);
 
 				if ($activity) {
 					//log message
@@ -346,6 +353,9 @@ class ActivityController extends Controller {
 		}
 		$deleteActivityQuery = clone $deleteActivityBaseQuery;
 		$deleteActivityQuery->delete();
+
+		//SAVE ACTIVITY REPORT FOR DASHBOARD
+		ActivityReport::saveReport($id);
 
 		return response()->json(['success' => true]);
 	}
@@ -2211,6 +2221,9 @@ class ActivityController extends Controller {
 			$activityLog->updated_at = Carbon::now();
 			$activityLog->save();
 
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
+
 			DB::commit();
 			return response()->json([
 				'success' => true,
@@ -2674,6 +2687,9 @@ class ActivityController extends Controller {
 					$activityLog->updated_at = Carbon::now();
 					$activityLog->save();
 
+					//SAVE ACTIVITY REPORT FOR DASHBOARD
+					ActivityReport::saveReport($activity->id);
+
 				} else {
 					return response()->json([
 						'success' => false,
@@ -2837,6 +2853,9 @@ class ActivityController extends Controller {
 			$activityLog->updated_at = Carbon::now();
 			$activityLog->save();
 
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
+
 			//Saving log record
 			if ($eligleForAspReEntry) {
 				$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_DEFERED_DONE');
@@ -2875,6 +2894,7 @@ class ActivityController extends Controller {
 			]);
 		}
 	}
+
 	public function verifyActivity(Request $request) {
 		//dd($request->all());
 		$number = str_replace(' ', '', $request->number);
@@ -3271,6 +3291,9 @@ class ActivityController extends Controller {
 				$activity->save();
 			}
 
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
+
 			return response()->json([
 				'success' => true,
 				'serviceType' => $serviceType,
@@ -3510,7 +3533,7 @@ class ActivityController extends Controller {
 			}
 
 			$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
-				->where('service_type_id', $cc_service_type->id)
+				->where('service_type_id', $request->asp_service_type_id)
 				->where('vehicle_category_id', $activity->case->vehicleModel->vehiclecategory->id)
 				->where('is_mobile', $isMobile)
 				->first();
@@ -3955,6 +3978,9 @@ class ActivityController extends Controller {
 			$activity_log->asp_data_filled_by_id = Auth::id();
 			$activity_log->updated_by_id = Auth::id();
 			$activity_log->save();
+
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
 
 			if ($sendNoty) {
 				//sending confirmation SMS to ASP
@@ -4629,6 +4655,9 @@ class ActivityController extends Controller {
 				'submission_closing_date_remarks' => $r->remarks,
 			]);
 
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
+
 			DB::commit();
 			return response()->json([
 				'success' => true,
@@ -4691,6 +4720,10 @@ class ActivityController extends Controller {
 			$activity->exceptional_reason = $exceptionalReason;
 			$activity->status_id = 15; //Not Eligible for Payout
 			$activity->save();
+
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
+
 			DB::commit();
 
 			return response()->json([
@@ -4736,6 +4769,10 @@ class ActivityController extends Controller {
 			$activity->is_towing_attachments_mandatory = $request->isTowingAttachmentsMandatory;
 			$activity->towing_attachments_mandatory_by_id = Auth::user()->id;
 			$activity->save();
+
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
+
 			DB::commit();
 			return response()->json([
 				'success' => true,
@@ -4753,6 +4790,1276 @@ class ActivityController extends Controller {
 	}
 
 	public function exportActivities(Request $request) {
+		// dd($request->all());
+		try {
+			ini_set('display_errors', 1);
+			ini_set('memory_limit', '-1');
+			ob_end_clean();
+			ob_start();
+
+			$errorMessages = [
+				'status_ids.required' => "Please Select Activity Status",
+			];
+
+			$validator = Validator::make($request->all(), [
+				'status_ids' => [
+					'required:true',
+				],
+			], $errorMessages);
+
+			if ($validator->fails()) {
+				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+					'errors' => $validator->errors()->all(),
+				]);
+			}
+
+			$date = explode("-", $request->period);
+			$range1 = date("Y-m-d", strtotime($date[0]));
+			$range2 = date("Y-m-d", strtotime($date[1]));
+
+			$statusIds = trim($request->status_ids, '""');
+			$statusIds = explode(',', $statusIds);
+
+			$activityReports = ActivityReport::join('activities', 'activities.id', 'activity_reports.activity_id')
+				->join('cases', 'cases.id', 'activities.case_id')
+				->join('asps', 'asps.id', 'activities.asp_id')
+				->whereIn('activities.status_id', $statusIds);
+
+			if ($request->filter_by == 'general') {
+				$activityReports->where(function ($q) use ($range1, $range2) {
+					$q->whereDate('cases.date', '>=', $range1)
+						->whereDate('cases.date', '<=', $range2);
+				});
+			} elseif ($request->filter_by == 'activity') {
+				$activityReports->where(function ($q) use ($range1, $range2) {
+					$q->where(function ($query) use ($range1, $range2) {
+						$query->whereRaw('DATE(activity_reports.imported_date) between "' . $range1 . '" and "' . $range2 . '"');
+					})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.asp_data_filled_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.l1_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.l1_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.l2_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.l2_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.l3_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.l3_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.l4_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.l4_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.invoice_generated_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.axapta_generated_date) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_reports.payment_completed_date) between "' . $range1 . '" and "' . $range2 . '"');
+						});
+				});
+			} elseif ($request->filter_by == 'invoiceDate') {
+				$activityReports->whereRaw('DATE(activity_reports.invoice_date) between "' . $range1 . '" and "' . $range2 . '"');
+			} elseif ($request->filter_by == 'transactionDate') {
+				$activityReports->whereRaw('DATE(activity_reports.transaction_date) between "' . $range1 . '" and "' . $range2 . '"');
+			}
+
+			$activityReports->select([
+				'activity_reports.id',
+				'activity_reports.activity_id as activityId',
+				DB::raw('COALESCE(activity_reports.case_number, "--") as caseNumber'),
+				DB::raw('DATE_FORMAT(activity_reports.case_date, "%d-%m-%Y %H:%i:%s") as caseDate'),
+				DB::raw('DATE_FORMAT(activity_reports.case_submission_closing_date, "%d-%m-%Y %H:%i:%s") as caseSubmissionClosingDate'),
+				DB::raw('COALESCE(activity_reports.case_submission_closing_date_remarks, "--") as caseSubmissionClosingDateRemarks'),
+				DB::raw('COALESCE(activity_reports.crm_activity_id, "--") as crmActivityId'),
+				DB::raw('COALESCE(activity_reports.activity_number, "--") as activityNumber'),
+				DB::raw('DATE_FORMAT(activity_reports.activity_created_date, "%d-%m-%Y %H:%i:%s") as activityCreatedDate'),
+				DB::raw('COALESCE(activity_reports.client, "--") as client'),
+				DB::raw('COALESCE(activity_reports.customer_name, "--") as customerName'),
+				DB::raw('COALESCE(activity_reports.customer_contact_number, "--") as customerContactNumber'),
+				DB::raw('COALESCE(activity_reports.asp_name, "--") as aspName'),
+				DB::raw('COALESCE(activity_reports.axapta_code, "--") as axaptaCode'),
+				DB::raw('COALESCE(activity_reports.asp_code, "--") as aspCode'),
+				'activity_reports.asp_contact_number as aspContactNumber',
+				DB::raw('COALESCE(activity_reports.asp_email, "--") as aspEmail'),
+				DB::raw('COALESCE(activity_reports.asp_has_gst, "--") as aspHasGst'),
+				DB::raw('COALESCE(activity_reports.asp_type, "--") as aspType'),
+				DB::raw('COALESCE(activity_reports.auto_invoice, "--") as autoInvoice'),
+				DB::raw('COALESCE(activity_reports.workshop_name, "--") as workshopName'),
+				DB::raw('COALESCE(activity_reports.workshop_type, "--") as workshopType'),
+				DB::raw('COALESCE(activity_reports.rm_name, "--") as rmName'),
+				DB::raw('COALESCE(activity_reports.zm_name, "--") as zmName'),
+				DB::raw('COALESCE(activity_reports.nm_name, "--") as nmName'),
+				DB::raw('COALESCE(activity_reports.location, "--") as location'),
+				DB::raw('COALESCE(activity_reports.district, "--") as district'),
+				DB::raw('COALESCE(activity_reports.state, "--") as state'),
+				DB::raw('COALESCE(activity_reports.vehicle_registration_number, "--") as vehicleRegistrationNumber'),
+				DB::raw('COALESCE(activity_reports.membership_type, "--") as membershipType'),
+				DB::raw('COALESCE(activity_reports.vehicle_model, "--") as vehicleModel'),
+				DB::raw('COALESCE(activity_reports.vehicle_make, "--") as vehicleMake'),
+				DB::raw('COALESCE(activity_reports.case_status, "--") as caseStatus'),
+				DB::raw('COALESCE(activity_reports.finance_status, "--") as financeStatus'),
+				DB::raw('COALESCE(activity_reports.final_approved_bo_service_type, "--") as finalApprovedBoServiceType'),
+				DB::raw('COALESCE(activity_reports.asp_activity_rejected_reason, "--") as aspActivityRejectedReason'),
+				DB::raw('COALESCE(activity_reports.asp_po_accepted, "--") as aspPoAccepted'),
+				DB::raw('COALESCE(activity_reports.asp_po_rejected_reason, "--") as aspPoRejectedReason'),
+				DB::raw('COALESCE(activity_reports.portal_status, "--") as portalStatus'),
+				DB::raw('COALESCE(activity_reports.activity_status, "--") as activityStatus'),
+				DB::raw('COALESCE(activity_reports.activity_description, "--") as activityDescription'),
+				DB::raw('COALESCE(activity_reports.is_towing_attachment_mandatory, "--") as isTowingAttachmentMandatory'),
+				DB::raw('COALESCE(activity_reports.towing_attachment_mandatory_by, "--") as towingAttachmentMandatoryBy'),
+				DB::raw('COALESCE(activity_reports.remarks, "--") as remarks'),
+				DB::raw('COALESCE(activity_reports.manual_uploading_remarks, "--") as manualUploadingRemarks'),
+				DB::raw('COALESCE(activity_reports.general_remarks, "--") as generalRemarks'),
+				DB::raw('COALESCE(activity_reports.bo_comments, "--") as boComments'),
+				DB::raw('COALESCE(activity_reports.deduction_reason, "--") as deductionReason'),
+				DB::raw('COALESCE(activity_reports.defer_reason, "--") as deferReason'),
+				DB::raw('COALESCE(activity_reports.asp_resolve_comments, "--") as aspResolveComments'),
+				DB::raw('COALESCE(activity_reports.is_exceptional, "--") as isExceptional'),
+				DB::raw('COALESCE(activity_reports.exceptional_reason, "--") as exceptionalReason'),
+				DB::raw('COALESCE(activity_reports.invoice_number, "--") as invoiceNumber'),
+				DB::raw('DATE_FORMAT(activity_reports.invoice_date, "%d-%m-%Y") as invoiceDate'),
+				DB::raw('COALESCE(activity_reports.invoice_amount, "--") as invoiceAmount'),
+				DB::raw('COALESCE(activity_reports.invoice_status, "--") as invoiceStatus'),
+				DB::raw('DATE_FORMAT(activity_reports.transaction_date, "%d-%m-%Y") as transactionDate'),
+				DB::raw('COALESCE(activity_reports.voucher, "--") as voucher'),
+				DB::raw('COALESCE(activity_reports.tds_amount, "--") as tdsAmount'),
+				DB::raw('COALESCE(activity_reports.paid_amount, "--") as paidAmount'),
+				DB::raw('COALESCE(activity_reports.bd_lat, "--") as bdLat'),
+				DB::raw('COALESCE(activity_reports.bd_long, "--") as bdLong'),
+				DB::raw('COALESCE(activity_reports.bd_location, "--") as bdLocation'),
+				DB::raw('COALESCE(activity_reports.bd_city, "--") as bdCity'),
+				DB::raw('COALESCE(activity_reports.bd_state, "--") as bdState'),
+				DB::raw('COALESCE(activity_reports.csr, "--") as csr'),
+				DB::raw('COALESCE(activity_reports.location_type, "--") as locationType'),
+				DB::raw('COALESCE(activity_reports.location_category, "--") as locationCategory'),
+				DB::raw('COALESCE(activity_reports.sla_achieved_delayed, "--") as slaAchievedDelayed'),
+				DB::raw('COALESCE(activity_reports.cc_waiting_time, "--") as ccWaitingTime'),
+				DB::raw('COALESCE(activity_reports.cc_total_km, "--") as ccTotalKm'),
+				DB::raw('COALESCE(FORMAT(activity_reports.cc_collected_amount, 2), "--") as ccCollectedAmount'),
+				DB::raw('COALESCE(FORMAT(activity_reports.cc_not_collected_amount, 2), "--") as ccNotCollectedAmount'),
+				DB::raw('DATE_FORMAT(activity_reports.asp_reached_date, "%d-%m-%Y %H:%i:%s") as aspReachedDate'),
+				DB::raw('COALESCE(activity_reports.asp_start_location, "--") as aspStartLocation'),
+				DB::raw('COALESCE(activity_reports.asp_end_location, "--") as aspEndLocation'),
+				DB::raw('COALESCE(activity_reports.onward_google_km, "--") as onwardGoogleKm'),
+				DB::raw('COALESCE(activity_reports.dealer_google_km, "--") as dealerGoogleKm'),
+				DB::raw('COALESCE(activity_reports.return_google_km, "--") as returnGoogleKm'),
+				DB::raw('COALESCE(activity_reports.onward_km, "--") as onwardKm'),
+				DB::raw('COALESCE(activity_reports.dealer_km, "--") as dealerKm'),
+				DB::raw('COALESCE(activity_reports.return_km, "--") as returnKm'),
+				DB::raw('COALESCE(activity_reports.drop_location_type, "--") as dropLocationType'),
+				DB::raw('COALESCE(activity_reports.drop_dealer, "--") as dropDealer'),
+				DB::raw('COALESCE(activity_reports.drop_location, "--") as dropLocation'),
+				DB::raw('COALESCE(activity_reports.drop_location_lat, "--") as dropLocationLat'),
+				DB::raw('COALESCE(activity_reports.drop_location_long, "--") as dropLocationLong'),
+				DB::raw('COALESCE(FORMAT(activity_reports.amount, 2), "--") as amount'),
+				DB::raw('COALESCE(activity_reports.paid_to, "--") as paidTo'),
+				DB::raw('COALESCE(activity_reports.payment_mode, "--") as paymentMode'),
+				DB::raw('COALESCE(activity_reports.payment_receipt_no, "--") as paymentReceiptNo'),
+				DB::raw('COALESCE(FORMAT(activity_reports.cc_service_charges, 2), "--") as ccServiceCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.cc_membership_charges, 2), "--") as ccMembershipCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.cc_eatable_items_charges, 2), "--") as ccEatableItemsCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.cc_toll_charges, 2), "--") as ccTollCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.cc_green_tax_charges, 2), "--") as ccGreenTaxCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.cc_border_charges, 2), "--") as ccBorderCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.cc_octroi_charges, 2), "--") as ccOctroiCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.cc_excess_charges, 2), "--") as ccExcessCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.cc_fuel_charges, 2), "--") as ccFuelCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.asp_service_charges, 2), "--") as aspServiceCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.asp_membership_charges, 2), "--") as aspMembershipCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.asp_eatable_items_charges, 2), "--") as aspEatableItemsCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.asp_toll_charges, 2), "--") as aspTollCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.asp_green_tax_charges, 2), "--") as aspGreenTaxCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.asp_border_charges, 2), "--") as aspBorderCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.asp_octroi_charges, 2), "--") as aspOctroiCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.asp_excess_charges, 2), "--") as aspExcessCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.asp_fuel_charges, 2), "--") as aspFuelCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.bo_service_charges, 2), "--") as boServiceCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.bo_membership_charges, 2), "--") as boMembershipCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.bo_eatable_items_charges, 2), "--") as boEatableItemsCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.bo_toll_charges, 2), "--") as boTollCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.bo_green_tax_charges, 2), "--") as boGreenTaxCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.bo_border_charges, 2), "--") as boBorderCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.bo_octroi_charges, 2), "--") as boOctroiCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.bo_excess_charges, 2), "--") as boExcessCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.bo_fuel_charges, 2), "--") as boFuelCharges'),
+				DB::raw('COALESCE(activity_reports.asp_waiting_time, "--") as aspWaitingTime'),
+				DB::raw('COALESCE(activity_reports.bo_waiting_time, "--") as boWaitingTime'),
+				DB::raw('COALESCE(FORMAT(activity_reports.cc_waiting_charges, 2), "--") as ccWaitingCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.asp_waiting_charges, 2), "--") as aspWaitingCharges'),
+				DB::raw('COALESCE(FORMAT(activity_reports.bo_waiting_charges, 2), "--") as boWaitingCharges'),
+				DB::raw('COALESCE(activity_reports.cc_service_type, "--") as ccServiceType'),
+				DB::raw('COALESCE(activity_reports.asp_service_type, "--") as aspServiceType'),
+				DB::raw('COALESCE(activity_reports.bo_service_type, "--") as boServiceType'),
+				DB::raw('COALESCE(activity_reports.bo_km_travelled, "--") as boKmTravelled'),
+				DB::raw('COALESCE(FORMAT(activity_reports.bo_collected, 2), "--") as boCollected'),
+				DB::raw('COALESCE(FORMAT(activity_reports.bo_not_collected, 2), "--") as boNotCollected'),
+				DB::raw('COALESCE(activity_reports.asp_km_travelled, "--") as aspKmTravelled'),
+				DB::raw('COALESCE(FORMAT(activity_reports.asp_collected, 2), "--") as aspCollected'),
+				DB::raw('COALESCE(FORMAT(activity_reports.asp_not_collected, 2), "--") as aspNotCollected'),
+				DB::raw('COALESCE(FORMAT(activity_reports.cc_po_amount, 2), "--") as ccPoAmount'),
+				DB::raw('COALESCE(FORMAT(activity_reports.cc_net_amount, 2), "--") as ccNetAmount'),
+				DB::raw('COALESCE(FORMAT(activity_reports.cc_amount, 2), "--") as ccAmount'),
+				DB::raw('COALESCE(FORMAT(activity_reports.bo_tax_amount, 2), "--") as boTaxAmount'),
+				DB::raw('COALESCE(FORMAT(activity_reports.bo_net_amount, 2), "--") as boNetAmount'),
+				DB::raw('COALESCE(FORMAT(activity_reports.bo_po_amount, 2), "--") as boPoAmount'),
+				DB::raw('COALESCE(FORMAT(activity_reports.bo_deduction, 2), "--") as boDeduction'),
+				DB::raw('COALESCE(FORMAT(activity_reports.bo_amount, 2), "--") as boAmount'),
+				DB::raw('COALESCE(FORMAT(activity_reports.asp_po_amount, 2), "--") as aspPoAmount'),
+				DB::raw('COALESCE(FORMAT(activity_reports.asp_net_amount, 2), "--") as aspNetAmount'),
+				DB::raw('COALESCE(FORMAT(activity_reports.asp_amount, 2), "--") as aspAmount'),
+				DB::raw('DATE_FORMAT(activity_reports.imported_date, "%d-%m-%Y %H:%i:%s") as importedDate'),
+				DB::raw('COALESCE(activity_reports.imported_by, "--") as importedBy'),
+				DB::raw('COALESCE(activity_reports.duration_between_import_and_asp_data_filled, "--") as durationBetweenImportAndAspDataFilled'),
+				DB::raw('DATE_FORMAT(activity_reports.asp_data_filled_date, "%d-%m-%Y %H:%i:%s") as aspDataFilledDate'),
+				DB::raw('COALESCE(activity_reports.asp_data_filled_by, "--") as aspDataFilledBy'),
+				DB::raw('COALESCE(activity_reports.duration_between_asp_data_filled_and_l1_deffered, "--") as durationBetweenAspDataFilledAndL1Deffered'),
+				DB::raw('DATE_FORMAT(activity_reports.l1_deffered_date, "%d-%m-%Y %H:%i:%s") as l1DefferedDate'),
+				DB::raw('COALESCE(activity_reports.l1_deffered_by, "--") as l1DefferedBy'),
+				DB::raw('COALESCE(activity_reports.duration_between_asp_data_filled_and_l1_approved, "--") as durationBetweenAspDataFilledAndL1Approved'),
+				DB::raw('DATE_FORMAT(activity_reports.l1_approved_date, "%d-%m-%Y %H:%i:%s") as l1ApprovedDate'),
+				DB::raw('COALESCE(activity_reports.l1_approved_by, "--") as l1ApprovedBy'),
+				DB::raw('COALESCE(activity_reports.duration_between_l1_approved_and_invoice_generated, "--") as durationBetweenL1ApprovedAndInvoiceGenerated'),
+				DB::raw('COALESCE(activity_reports.duration_between_l1_approved_and_l2_deffered, "--") as durationBetweenL1ApprovedAndL2Deffered'),
+				DB::raw('DATE_FORMAT(activity_reports.l2_deffered_date, "%d-%m-%Y %H:%i:%s") as l2DefferedDate'),
+				DB::raw('COALESCE(activity_reports.l2_deffered_by, "--") as l2DefferedBy'),
+				DB::raw('COALESCE(activity_reports.duration_between_l1_approved_and_l2_approved, "--") as durationBetweenL1ApprovedAndL2Approved'),
+				DB::raw('DATE_FORMAT(activity_reports.l2_approved_date, "%d-%m-%Y %H:%i:%s") as l2ApprovedDate'),
+				DB::raw('COALESCE(activity_reports.l2_approved_by, "--") as l2ApprovedBy'),
+				DB::raw('COALESCE(activity_reports.duration_between_l2_approved_and_invoice_generated, "--") as durationBetweenL2ApprovedAndInvoiceGenerated'),
+				DB::raw('COALESCE(activity_reports.duration_between_l1_approved_and_l3_deffered, "--") as durationBetweenL1ApprovedAndL3Deffered'),
+				DB::raw('COALESCE(activity_reports.duration_between_l2_approved_and_l3_deffered, "--") as durationBetweenL2ApprovedAndL3Deffered'),
+				DB::raw('DATE_FORMAT(activity_reports.l3_deffered_date, "%d-%m-%Y %H:%i:%s") as l3DefferedDate'),
+				DB::raw('COALESCE(activity_reports.l3_deffered_by, "--") as l3DefferedBy'),
+				DB::raw('COALESCE(activity_reports.duration_between_l2_approved_and_l3_approved, "--") as durationBetweenL2ApprovedAndL3Approved'),
+				DB::raw('DATE_FORMAT(activity_reports.l3_approved_date, "%d-%m-%Y %H:%i:%s") as l3ApprovedDate'),
+				DB::raw('COALESCE(activity_reports.l3_approved_by, "--") as l3ApprovedBy'),
+				DB::raw('COALESCE(activity_reports.duration_between_l3_approved_and_invoice_generated, "--") as durationBetweenL3ApprovedAndInvoiceGenerated'),
+				DB::raw('COALESCE(activity_reports.duration_between_l1_approved_and_l4_deffered, "--") as durationBetweenL1ApprovedAndL4Deffered'),
+				DB::raw('COALESCE(activity_reports.duration_between_l2_approved_and_l4_deffered, "--") as durationBetweenL2ApprovedAndL4Deffered'),
+				DB::raw('COALESCE(activity_reports.duration_between_l3_approved_and_l4_deffered, "--") as durationBetweenL3ApprovedAndL4Deffered'),
+				DB::raw('DATE_FORMAT(activity_reports.l4_deffered_date, "%d-%m-%Y %H:%i:%s") as l4DefferedDate'),
+				DB::raw('COALESCE(activity_reports.l4_deffered_by, "--") as l4DefferedBy'),
+				DB::raw('COALESCE(activity_reports.duration_between_l3_approved_and_l4_approved, "--") as durationBetweenL3ApprovedAndL4Approved'),
+				DB::raw('DATE_FORMAT(activity_reports.l4_approved_date, "%d-%m-%Y %H:%i:%s") as l4ApprovedDate'),
+				DB::raw('COALESCE(activity_reports.l4_approved_by, "--") as l4ApprovedBy'),
+				DB::raw('COALESCE(activity_reports.duration_between_l4_approved_and_invoice_generated, "--") as durationBetweenL4ApprovedAndInvoiceGenerated'),
+				DB::raw('DATE_FORMAT(activity_reports.invoice_generated_date, "%d-%m-%Y %H:%i:%s") as invoiceGeneratedDate'),
+				DB::raw('COALESCE(activity_reports.invoice_generated_by, "--") as invoiceGeneratedBy'),
+				DB::raw('COALESCE(activity_reports.duration_between_invoice_generated_and_axapta_generated, "--") as durationBetweenInvoiceGeneratedAndAxaptaGenerated'),
+				DB::raw('DATE_FORMAT(activity_reports.axapta_generated_date, "%d-%m-%Y %H:%i:%s") as axaptaGeneratedDate'),
+				DB::raw('COALESCE(activity_reports.axapta_generated_by, "--") as axaptaGeneratedBy'),
+				DB::raw('COALESCE(activity_reports.duration_between_axapta_generated_and_payment_completed, "--") as durationBetweenAxaptaGeneratedAndPaymentCompleted'),
+				DB::raw('DATE_FORMAT(activity_reports.payment_completed_date, "%d-%m-%Y %H:%i:%s") as paymentCompletedDate'),
+				DB::raw('COALESCE(activity_reports.total_no_of_days, "--") as totalNoOfDays'),
+				DB::raw('COALESCE(activity_reports.source, "--") as source'),
+				DB::raw('COALESCE(activity_reports.range_limit, "--") as rangeLimit'),
+				DB::raw('COALESCE(FORMAT(activity_reports.below_range_price, 2), "--") as belowRangePrice'),
+				DB::raw('COALESCE(FORMAT(activity_reports.above_range_price, 2), "--") as aboveRangePrice'),
+				DB::raw('COALESCE(FORMAT(activity_reports.waiting_charge_per_hour, 2), "--") as waitingChargePerHour'),
+				DB::raw('COALESCE(FORMAT(activity_reports.empty_return_range_price, 2), "--") as emptyReturnRangePrice'),
+				DB::raw('COALESCE(activity_reports.adjustment_type, "--") as adjustmentType'),
+				DB::raw('COALESCE(activity_reports.adjustment, "--") as adjustment'),
+			]);
+
+			if (!empty($request->get('asp_id'))) {
+				if (Entrust::can('export-own-activities')) {
+					// ASP FINANCE ADMIN
+					if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
+						$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+						$aspIds[] = Auth::user()->asp->id;
+						$activityReports = $activityReports->whereIn('activities.asp_id', $aspIds);
+					} else {
+						$activityReports = $activityReports->where('activities.asp_id', $request->get('asp_id'));
+					}
+				} else {
+					$activityReports = $activityReports->where('activities.asp_id', $request->get('asp_id'));
+				}
+			}
+			if (!empty($request->get('client_id'))) {
+				$activityReports = $activityReports->where('cases.client_id', $request->get('client_id'));
+			}
+			if (!empty($request->get('ticket'))) {
+				$activityReports = $activityReports->where('cases.number', $request->get('ticket'));
+			}
+
+			if (!Entrust::can('view-all-activities')) {
+				if (Entrust::can('view-mapped-state-activities')) {
+					$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
+					$activityReports = $activityReports->whereIn('asps.state_id', $states);
+				}
+				if (Entrust::can('export-own-activities')) {
+					$activityReports = $activityReports->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
+				}
+				if (Entrust::can('export-own-rm-asp-activities')) {
+					$aspIds = Asp::where('regional_manager_id', Auth::user()->id)->pluck('id')->toArray();
+					$activityReports = $activityReports->whereIn('asps.id', $aspIds)
+						->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
+				}
+				if (Entrust::can('export-own-zm-asp-activities')) {
+					$aspIds = Asp::where('zm_id', Auth::user()->id)->pluck('id')->toArray();
+					$activityReports = $activityReports->whereIn('asps.id', $aspIds)
+						->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
+				}
+				if (Entrust::can('export-own-nm-asp-activities')) {
+					$aspIds = Asp::where('nm_id', Auth::user()->id)->pluck('id')->toArray();
+					$activityReports = $activityReports->whereIn('asps.id', $aspIds);
+				}
+			}
+			$activitesTotalCount = $activityReports;
+			$totalCount = $activitesTotalCount->groupBy('activity_reports.id')->get()->count();
+			if ($totalCount == 0) {
+				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+					'errors' => [
+						'No activities found for given period & statuses',
+					],
+				]);
+			}
+
+			$selected_statuses = $statusIds;
+			$summaryPeriod = ['Period', date('d/M/Y', strtotime($range1)) . ' to ' . date('d/M/Y', strtotime($range2))];
+			$summary[] = ['Status', 'Count'];
+
+			if (!empty($statusIds)) {
+				$activityPortalStatuses = ActivityPortalStatus::select([
+					'id',
+					'name',
+				])
+					->get();
+				foreach ($statusIds as $statusKey => $statusId) {
+					$activityPortalStatus = $activityPortalStatuses->where('id', $statusId)->first();
+					if ($activityPortalStatus) {
+						$activitiesSummaryCountQuery = ActivityReport::select([
+							'activity_reports.id',
+						])
+							->join('activities', 'activities.id', 'activity_reports.activity_id')
+							->join('cases', 'cases.id', 'activities.case_id')
+							->where('activities.status_id', $statusId);
+
+						if ($request->filter_by == 'general') {
+							$activitiesSummaryCountQuery->where(function ($q) use ($range1, $range2) {
+								$q->whereDate('cases.date', '>=', $range1)
+									->whereDate('cases.date', '<=', $range2);
+							});
+						} elseif ($request->filter_by == 'activity') {
+							$activitiesSummaryCountQuery->where(function ($q) use ($range1, $range2) {
+								$q->where(function ($query) use ($range1, $range2) {
+									$query->whereRaw('DATE(activity_reports.imported_date) between "' . $range1 . '" and "' . $range2 . '"');
+								})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.asp_data_filled_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.l1_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.l1_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.l2_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.l2_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.l3_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.l3_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.l4_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.l4_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.invoice_generated_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.axapta_generated_date) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_reports.payment_completed_date) between "' . $range1 . '" and "' . $range2 . '"');
+									});
+							});
+						} elseif ($request->filter_by == 'invoiceDate') {
+							$activitiesSummaryCountQuery->whereRaw('DATE(activity_reports.invoice_date) between "' . $range1 . '" and "' . $range2 . '"');
+						} elseif ($request->filter_by == 'transactionDate') {
+							$activitiesSummaryCountQuery->whereRaw('DATE(activity_reports.transaction_date) between "' . $range1 . '" and "' . $range2 . '"');
+						}
+
+						if (!empty($request->get('asp_id'))) {
+							if (Entrust::can('export-own-activities')) {
+								// ASP FINANCE ADMIN
+								if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
+									$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+									$aspIds[] = Auth::user()->asp->id;
+									$activitiesSummaryCountQuery->whereIn('activities.asp_id', $aspIds);
+								} else {
+									$activitiesSummaryCountQuery->where('activities.asp_id', $request->get('asp_id'));
+								}
+							} else {
+								$activitiesSummaryCountQuery->where('activities.asp_id', $request->get('asp_id'));
+							}
+						}
+						if (!empty($request->get('client_id'))) {
+							$activitiesSummaryCountQuery->where('cases.client_id', $request->get('client_id'));
+						}
+						if (!empty($request->get('ticket'))) {
+							$activitiesSummaryCountQuery->where('cases.number', $request->get('ticket'));
+						}
+						if (!Entrust::can('view-all-activities')) {
+							if (Entrust::can('view-mapped-state-activities')) {
+								$stateIds = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
+								$activitiesSummaryCountQuery->join('asps', 'activities.asp_id', '=', 'asps.id')
+									->whereIn('asps.state_id', $stateIds);
+							}
+							if (Entrust::can('export-own-rm-asp-activities')) {
+								$aspIds = Asp::where('regional_manager_id', Auth::user()->id)->pluck('id')->toArray();
+								$activitiesSummaryCountQuery->join('asps', 'activities.asp_id', '=', 'asps.id')
+									->whereIn('asps.id', $aspIds);
+							}
+							if (Entrust::can('export-own-zm-asp-activities')) {
+								$aspIds = Asp::where('zm_id', Auth::user()->id)->pluck('id')->toArray();
+								$activitiesSummaryCountQuery->join('asps', 'activities.asp_id', '=', 'asps.id')
+									->whereIn('asps.id', $aspIds);
+							}
+							if (Entrust::can('export-own-nm-asp-activities')) {
+								$aspIds = Asp::where('nm_id', Auth::user()->id)->pluck('id')->toArray();
+								$activitiesSummaryCountQuery->join('asps', 'activities.asp_id', '=', 'asps.id')
+									->whereIn('asps.id', $aspIds);
+							}
+						}
+
+						$activitySummaryCount = $activitiesSummaryCountQuery->groupBy('activity_reports.id')->get()->count();
+						$summary[] = [
+							$activityPortalStatus->name,
+							$activitySummaryCount,
+						];
+					}
+				}
+			}
+
+			$summary[] = ['Total', $totalCount];
+
+			if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities')) {
+				$activityReportHeaders = [
+					'ID',
+					'Case Number',
+					'Case Date',
+					'CRM Activity ID',
+					'Activity Number',
+					'Activity Date',
+					'Client Name',
+					'ASP Name',
+					'Axapta Code',
+					'ASP Code',
+					'ASP Contact Number',
+					'ASP EMail',
+					'ASP has GST',
+					'Workshop Name',
+					'RM Name',
+					'Location',
+					'District',
+					'State',
+					'Vehicle Registration Number',
+					'Membership Type',
+					'Vehicle Model',
+					'Vehicle Make',
+					'Case Status',
+					'Finance Status',
+					'Final Approved BO Service Type',
+					'Portal Status',
+					'Activity Status',
+					'Remarks',
+					'General Remarks',
+					'Comments',
+					'Deduction Reason',
+					'Deferred Reason',
+					'ASP Resolve Comments',
+					'Invoice Number',
+					'Invoice Date',
+					'Invoice Status',
+					'Transaction Date',
+					'Voucher',
+					'TDS Amount',
+					'Paid Amount',
+					'BD Latitude',
+					'BD Longitude',
+					'BD Location',
+					'BD City',
+					'BD State',
+					'CSR',
+					'Drop Dealer',
+					'Drop Location',
+					'Drop Location Latitude',
+					'Drop Location Longitude',
+					'BO KM Travelled',
+					'BO Collected',
+					'BO Not Collected',
+					'BO Net Amount',
+					'BO Deduction',
+					'BO Amount',
+				];
+			} else {
+				$activityReportHeaders = [
+					'ID',
+					'Case Number',
+					'Case Date',
+					'Case Submission Closing Date',
+					'Case Submission Closing Date Remarks',
+					'CRM Activity ID',
+					'Activity Number',
+					'Activity Date',
+					'Client Name',
+					'Customer Name',
+					'Customer Contact Number',
+					'ASP Name',
+					'Axapta Code',
+					'ASP Code',
+					'ASP Contact Number',
+					'ASP Email',
+					'ASP has GST',
+					'ASP Type',
+					'Auto Invoice',
+					'Workshop Name',
+					'Workshop Type',
+					'RM Name',
+					'Location',
+					'District',
+					'State',
+					'Vehicle Registration Number',
+					'Membership Type',
+					'Vehicle Model',
+					'Vehicle Make',
+					'Case Status',
+					'Finance Status',
+					'Final Approved BO Service Type',
+					'ASP Activity Rejected Reason',
+					'ASP PO Accepted',
+					'ASP PO Rejected Reason',
+					'Portal Status',
+					'Activity Status',
+					'Activity Description',
+					'Is Towing Attachment Mandatory',
+					'Towing Attachment Mandatory By',
+					'Remarks',
+					'Manual Uploading Remarks',
+					'General Remarks',
+					'Comments',
+					'Deduction Reason',
+					'Deferred Reason',
+					'ASP Resolve Comments',
+					'Is Exceptional',
+					'Exceptional Reason',
+					'Invoice Number',
+					'Invoice Date',
+					'Invoice Amount',
+					'Invoice Status',
+					'Transaction Date',
+					'Voucher',
+					'TDS Amount',
+					'Paid Amount',
+					'BD Latitude',
+					'BD Longitude',
+					'BD Location',
+					'BD City',
+					'BD State',
+					'CSR',
+					'Location Type',
+					'Location Category',
+					'SLA Achieved Delayed',
+					'CC Waiting Time',
+					'CC Total KM',
+					'CC Collected Amount',
+					'CC Not Collected Amount',
+					'ASP Reached Date',
+					'ASP Start Location',
+					'ASP End Location',
+					'Onward Google KM',
+					'Dealer Google KM',
+					'Return Google KM',
+					'Onward KM',
+					'Dealer KM',
+					'Return KM',
+					'Drop Location Type',
+					'Drop Dealer',
+					'Drop Location',
+					'Drop Location Latitude',
+					'Drop Location Longitude',
+					'Amount',
+					'Paid To',
+					'Payment Mode',
+					'Payment Receipt No',
+					'CC Service Charges',
+					'CC Membership Charges',
+					'CC Eatable Items Charges',
+					'CC Toll Charges',
+					'CC Green Tax Charges',
+					'CC Border Charges',
+					'CC Octroi Charges',
+					'CC Excess Charges',
+					'CC Fuel Charges',
+					'ASP Service Charges',
+					'ASP Membership Charges',
+					'ASP Eatable Items Charges',
+					'ASP Toll Charges',
+					'ASP Green Tax Charges',
+					'ASP Border Charges',
+					'ASP Octroi Charges',
+					'ASP Excess Charges',
+					'ASP Fuel Charges',
+					'BO Service Charges',
+					'BO Membership Charges',
+					'BO Eatable Items Charges',
+					'BO Toll Charges',
+					'BO Green Tax Charges',
+					'BO Border Charges',
+					'BO Octroi Charges',
+					'BO Excess Charges',
+					'BO Fuel Charges',
+					'ASP Waiting Time',
+					'BO Waiting Time',
+					'CC Waiting Charges',
+					'ASP Waiting Charges',
+					'BO Waiting Charges',
+					'CC Service Type',
+					'ASP Service Type',
+					'BO Service Type',
+					'BO KM Travelled',
+					'BO Collected',
+					'BO Not Collected',
+					'ASP KM Travelled',
+					'ASP Collected',
+					'ASP Not Collected',
+					'CC PO Amount',
+					'CC Net Amount',
+					'CC Amount',
+					'BO Tax Amount',
+					'BO Net Amount',
+					'BO PO Amount',
+					'BO Deduction',
+					'BO Amount',
+					'ASP PO Amount',
+					'ASP Net Amount',
+					'ASP Amount',
+				];
+			}
+
+			if (!Entrust::can('export-own-activities') && !Entrust::can('export-own-rm-asp-activities') && !Entrust::can('export-own-zm-asp-activities')) {
+				$logHeaders = [
+					'Imported through MIS Import',
+					'Imported By',
+					'Duration Between Import and ASP Data Filled',
+					'ASP Data Filled',
+					'ASP Data Filled By',
+					'Duration Between ASP Data Filled and L1 deffered',
+					'L1 Deferred',
+					'L1 Deferred By',
+					'Duration Between ASP Data Filled and L1 approved',
+					'L1 Approved',
+					'L1 Approved By',
+					'Duration Between L1 approved and Invoice generated',
+					'Duration Between L1 approved and L2 deffered',
+					'L2 Deferred',
+					'L2 Deferred By',
+					'Duration Between L1 approved and L2 approved',
+					'L2 Approved',
+					'L2 Approved By',
+					'Duration Between L2 approved and Invoice generated',
+					'Duration Between L1 approved and L3 deffered',
+					'Duration Between L2 approved and L3 deffered',
+					'L3 Deferred',
+					'L3 Deferred By',
+					'Duration Between L2 approved and L3 approved',
+					'L3 Approved',
+					'L3 Approved By',
+					'Duration Between L3 approved and Invoice generated',
+					'Duration Between L1 approved and L4 deffered',
+					'Duration Between L2 approved and L4 deffered',
+					'Duration Between L3 approved and L4 deffered',
+					'L4 Deferred',
+					'L4 Deferred By',
+					'Duration Between L3 approved and L4 approved',
+					'L4 Approved',
+					'L4 Approved By',
+					'Duration Between L4 approved and Invoice generated',
+					'Invoice Generated',
+					'Invoice Generated By',
+					'Duration Between Invoice generated and Axapta Generated',
+					'Axapta Generated',
+					'Axapta Generated By',
+					'Duration Between Axapta Generated and Payment Completed',
+					'Payment Completed',
+					'Total No. Of Days',
+					'Source',
+				];
+				$activityReportHeaders = array_merge($activityReportHeaders, $logHeaders);
+			}
+
+			$rateCardHeaders = [
+				'Range Limit',
+				'Below Range Price',
+				'Above Range Price',
+				'Waiting Charge Per Hour',
+				'Empty Return Range Price',
+				'Adjustment Type',
+				'Adjustment',
+			];
+			$activityReportHeaders = array_merge($activityReportHeaders, $rateCardHeaders);
+
+			$activityReports = $activityReports->groupBy('activity_reports.id')->get();
+
+			$activityReportDetails = [];
+			foreach ($activityReports as $activityReportKey => $activityReportVal) {
+
+				if (!empty($activityReportVal->aspContactNumber)) {
+					if (Entrust::can('display-asp-number-in-activities')) {
+						$aspContactNumber = $activityReportVal->aspContactNumber;
+					} else {
+						$aspContactNumber = maskPhoneNumber($activityReportVal->aspContactNumber);
+					}
+				} else {
+					$aspContactNumber = "--";
+				}
+
+				if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities')) {
+					$activityReportDetails[] = [
+						$activityReportVal->activityId,
+						$activityReportVal->caseNumber,
+						$activityReportVal->caseDate,
+						$activityReportVal->crmActivityId,
+						$activityReportVal->activityNumber,
+						$activityReportVal->activityCreatedDate,
+						$activityReportVal->client,
+						$activityReportVal->aspName,
+						$activityReportVal->axaptaCode,
+						$activityReportVal->aspCode,
+						$aspContactNumber,
+						$activityReportVal->aspEmail,
+						$activityReportVal->aspHasGst,
+						$activityReportVal->workshopName,
+						$activityReportVal->rmName,
+						$activityReportVal->location,
+						$activityReportVal->district,
+						$activityReportVal->state,
+						$activityReportVal->vehicleRegistrationNumber,
+						$activityReportVal->membershipType,
+						$activityReportVal->vehicleModel,
+						$activityReportVal->vehicleMake,
+						$activityReportVal->caseStatus,
+						$activityReportVal->financeStatus,
+						$activityReportVal->finalApprovedBoServiceType,
+						$activityReportVal->portalStatus,
+						$activityReportVal->activityStatus,
+						$activityReportVal->remarks,
+						$activityReportVal->generalRemarks,
+						$activityReportVal->boComments,
+						$activityReportVal->deductionReason,
+						$activityReportVal->deferReason,
+						$activityReportVal->aspResolveComments,
+						$activityReportVal->invoiceNumber,
+						$activityReportVal->invoiceDate,
+						$activityReportVal->invoiceStatus,
+						$activityReportVal->transactionDate,
+						$activityReportVal->voucher,
+						$activityReportVal->tdsAmount,
+						$activityReportVal->paidAmount,
+						$activityReportVal->bdLat,
+						$activityReportVal->bdLong,
+						$activityReportVal->bdLocation,
+						$activityReportVal->bdCity,
+						$activityReportVal->bdState,
+						$activityReportVal->csr,
+						$activityReportVal->dropDealer,
+						$activityReportVal->dropLocation,
+						$activityReportVal->dropLocationLat,
+						$activityReportVal->dropLocationLong,
+						$activityReportVal->boKmTravelled,
+						$activityReportVal->boCollected,
+						$activityReportVal->boNotCollected,
+						$activityReportVal->boNetAmount,
+						$activityReportVal->boDeduction,
+						$activityReportVal->boAmount,
+					];
+				} else {
+					$activityReportDetails[] = [
+						$activityReportVal->activityId,
+						$activityReportVal->caseNumber,
+						$activityReportVal->caseDate,
+						$activityReportVal->caseSubmissionClosingDate,
+						$activityReportVal->caseSubmissionClosingDateRemarks,
+						$activityReportVal->crmActivityId,
+						$activityReportVal->activityNumber,
+						$activityReportVal->activityCreatedDate,
+						$activityReportVal->client,
+						$activityReportVal->customerName,
+						$activityReportVal->customerContactNumber,
+						$activityReportVal->aspName,
+						$activityReportVal->axaptaCode,
+						$activityReportVal->aspCode,
+						$aspContactNumber,
+						$activityReportVal->aspEmail,
+						$activityReportVal->aspHasGst,
+						$activityReportVal->aspType,
+						$activityReportVal->autoInvoice,
+						$activityReportVal->workshopName,
+						$activityReportVal->workshopType,
+						$activityReportVal->rmName,
+						$activityReportVal->location,
+						$activityReportVal->district,
+						$activityReportVal->state,
+						$activityReportVal->vehicleRegistrationNumber,
+						$activityReportVal->membershipType,
+						$activityReportVal->vehicleModel,
+						$activityReportVal->vehicleMake,
+						$activityReportVal->caseStatus,
+						$activityReportVal->financeStatus,
+						$activityReportVal->finalApprovedBoServiceType,
+						$activityReportVal->aspActivityRejectedReason,
+						$activityReportVal->aspPoAccepted,
+						$activityReportVal->aspPoRejectedReason,
+						$activityReportVal->portalStatus,
+						$activityReportVal->activityStatus,
+						$activityReportVal->activityDescription,
+						$activityReportVal->isTowingAttachmentMandatory,
+						$activityReportVal->towingAttachmentMandatoryBy,
+						$activityReportVal->remarks,
+						$activityReportVal->manualUploadingRemarks,
+						$activityReportVal->generalRemarks,
+						$activityReportVal->boComments,
+						$activityReportVal->deductionReason,
+						$activityReportVal->deferReason,
+						$activityReportVal->aspResolveComments,
+						$activityReportVal->isExceptional,
+						$activityReportVal->exceptionalReason,
+						$activityReportVal->invoiceNumber,
+						$activityReportVal->invoiceDate,
+						$activityReportVal->invoiceAmount,
+						$activityReportVal->invoiceStatus,
+						$activityReportVal->transactionDate,
+						$activityReportVal->voucher,
+						$activityReportVal->tdsAmount,
+						$activityReportVal->paidAmount,
+						$activityReportVal->bdLat,
+						$activityReportVal->bdLong,
+						$activityReportVal->bdLocation,
+						$activityReportVal->bdCity,
+						$activityReportVal->bdState,
+						$activityReportVal->csr,
+						$activityReportVal->locationType,
+						$activityReportVal->locationCategory,
+						$activityReportVal->slaAchievedDelayed,
+						$activityReportVal->ccWaitingTime,
+						$activityReportVal->ccTotalKm,
+						$activityReportVal->ccCollectedAmount,
+						$activityReportVal->ccNotCollectedAmount,
+						$activityReportVal->aspReachedDate,
+						$activityReportVal->aspStartLocation,
+						$activityReportVal->aspEndLocation,
+						$activityReportVal->onwardGoogleKm,
+						$activityReportVal->dealerGoogleKm,
+						$activityReportVal->returnGoogleKm,
+						$activityReportVal->onwardKm,
+						$activityReportVal->dealerKm,
+						$activityReportVal->returnKm,
+						$activityReportVal->dropLocationType,
+						$activityReportVal->dropDealer,
+						$activityReportVal->dropLocation,
+						$activityReportVal->dropLocationLat,
+						$activityReportVal->dropLocationLong,
+						$activityReportVal->amount,
+						$activityReportVal->paidTo,
+						$activityReportVal->paymentMode,
+						$activityReportVal->paymentReceiptNo,
+						$activityReportVal->ccServiceCharges,
+						$activityReportVal->ccMembershipCharges,
+						$activityReportVal->ccEatableItemsCharges,
+						$activityReportVal->ccTollCharges,
+						$activityReportVal->ccGreenTaxCharges,
+						$activityReportVal->ccBorderCharges,
+						$activityReportVal->ccOctroiCharges,
+						$activityReportVal->ccExcessCharges,
+						$activityReportVal->ccFuelCharges,
+						$activityReportVal->aspServiceCharges,
+						$activityReportVal->aspMembershipCharges,
+						$activityReportVal->aspEatableItemsCharges,
+						$activityReportVal->aspTollCharges,
+						$activityReportVal->aspGreenTaxCharges,
+						$activityReportVal->aspBorderCharges,
+						$activityReportVal->aspOctroiCharges,
+						$activityReportVal->aspExcessCharges,
+						$activityReportVal->aspFuelCharges,
+						$activityReportVal->boServiceCharges,
+						$activityReportVal->boMembershipCharges,
+						$activityReportVal->boEatableItemsCharges,
+						$activityReportVal->boTollCharges,
+						$activityReportVal->boGreenTaxCharges,
+						$activityReportVal->boBorderCharges,
+						$activityReportVal->boOctroiCharges,
+						$activityReportVal->boExcessCharges,
+						$activityReportVal->boFuelCharges,
+						$activityReportVal->aspWaitingTime,
+						$activityReportVal->boWaitingTime,
+						$activityReportVal->ccWaitingCharges,
+						$activityReportVal->aspWaitingCharges,
+						$activityReportVal->boWaitingCharges,
+						$activityReportVal->ccServiceType,
+						$activityReportVal->aspServiceType,
+						$activityReportVal->boServiceType,
+						$activityReportVal->boKmTravelled,
+						$activityReportVal->boCollected,
+						$activityReportVal->boNotCollected,
+						$activityReportVal->aspKmTravelled,
+						$activityReportVal->aspCollected,
+						$activityReportVal->aspNotCollected,
+						$activityReportVal->ccPoAmount,
+						$activityReportVal->ccNetAmount,
+						$activityReportVal->ccAmount,
+						$activityReportVal->boTaxAmount,
+						$activityReportVal->boNetAmount,
+						$activityReportVal->boPoAmount,
+						$activityReportVal->boDeduction,
+						$activityReportVal->boAmount,
+						$activityReportVal->aspPoAmount,
+						$activityReportVal->aspNetAmount,
+						$activityReportVal->aspAmount,
+					];
+				}
+
+				if (!Entrust::can('export-own-activities') && !Entrust::can('export-own-rm-asp-activities') && !Entrust::can('export-own-zm-asp-activities')) {
+
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->importedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->importedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenImportAndAspDataFilled;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->aspDataFilledDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->aspDataFilledBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAspDataFilledAndL1Deffered;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAspDataFilledAndL1Approved;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l1ApprovedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l1ApprovedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndInvoiceGenerated;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL2Deffered;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l2DefferedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l2DefferedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL2Approved;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l2ApprovedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l2ApprovedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndInvoiceGenerated;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL3Deffered;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndL3Deffered;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l3DefferedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l3DefferedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndL3Approved;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l3ApprovedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l3ApprovedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL3ApprovedAndInvoiceGenerated;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL4Deffered;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndL4Deffered;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL3ApprovedAndL4Deffered;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l4DefferedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l4DefferedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL3ApprovedAndL4Approved;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l4ApprovedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->l4ApprovedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL4ApprovedAndInvoiceGenerated;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->invoiceGeneratedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->invoiceGeneratedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenInvoiceGeneratedAndAxaptaGenerated;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->axaptaGeneratedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->axaptaGeneratedBy;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAxaptaGeneratedAndPaymentCompleted;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->paymentCompletedDate;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->totalNoOfDays;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->source;
+				}
+				$activityReportDetails[$activityReportKey][] = $activityReportVal->rangeLimit;
+				$activityReportDetails[$activityReportKey][] = $activityReportVal->belowRangePrice;
+				$activityReportDetails[$activityReportKey][] = $activityReportVal->aboveRangePrice;
+				$activityReportDetails[$activityReportKey][] = $activityReportVal->waitingChargePerHour;
+				$activityReportDetails[$activityReportKey][] = $activityReportVal->emptyReturnRangePrice;
+				$activityReportDetails[$activityReportKey][] = $activityReportVal->adjustmentType;
+				$activityReportDetails[$activityReportKey][] = $activityReportVal->adjustment;
+			}
+
+			Excel::create('Activity Status Report', function ($excel) use ($summary, $activityReportHeaders, $activityReportDetails, $statusIds, $summaryPeriod) {
+				$excel->sheet('Summary', function ($sheet) use ($summary, $statusIds, $summaryPeriod) {
+					$sheet->fromArray($summary, NULL, 'A1');
+					$sheet->row(1, $summaryPeriod);
+					$sheet->cells('A1:B1', function ($cells) {
+						$cells->setFont(array(
+							'size' => '10',
+							'bold' => true,
+						))->setBackground('#CCC9C9');
+					});
+					$sheet->cells('A2:B2', function ($cells) {
+						$cells->setFont(array(
+							'size' => '10',
+							'bold' => true,
+						))->setBackground('#F3F3F3');
+					});
+					$cell_number = count($statusIds) + 3;
+					$sheet->cells('A' . $cell_number . ':B' . $cell_number, function ($cell) {
+						$cell->setFont(array(
+							'size' => '10',
+							'bold' => true,
+						))->setBackground('#F3F3F3');
+					});
+				});
+
+				$excel->sheet('Activity Informations', function ($sheet) use ($activityReportHeaders, $activityReportDetails) {
+					$sheet->fromArray($activityReportDetails, NULL, 'A1');
+					$sheet->row(1, $activityReportHeaders);
+					$sheet->row(1, function ($row) {
+						$row->setBackground('#CCC9C9');
+						$row->setFontSize(10);
+						$row->setFontWeight('bold');
+					});
+					$sheet->setAutoSize(true);
+				});
+			})->export('xlsx');
+
+			return redirect()->back()->with(['success' => 'exported!']);
+		} catch (\Exception $e) {
+			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+				'errors' => [
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
+		}
+	}
+
+	// NOT USED NOW
+	public function releaseOnHold(Request $r) {
+		// dd($r->all());
+		DB::beginTransaction();
+		try {
+			if (empty($r->case_date)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Please Select Case Date',
+					],
+				]);
+			}
+			$case_date = date('Y-m-d', strtotime($r->case_date));
+			$activities = Activity::select([
+				'activities.id',
+				'activities.service_type_id',
+				'activities.asp_id',
+			])
+				->join('cases', 'cases.id', 'activities.case_id')
+				->where('activities.status_id', 17) //ONHOLD
+				->whereIn('cases.status_id', [3, 4]) //CANCELLED/CLOSED
+				->whereDate('cases.date', '<=', $case_date)
+				->get();
+
+			if ($activities->isEmpty()) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'No activities in the selected case date',
+					],
+				]);
+			}
+
+			foreach ($activities as $key => $activity) {
+				//MECHANICAL SERVICE GROUP
+				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
+					$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
+					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+					if ($is_bulk) {
+						//ASP Completed Data Entry - Waiting for BO Bulk Verification
+						$status_id = 5;
+					} else {
+						//ASP Completed Data Entry - Waiting for BO Individual Verification
+						$status_id = 6;
+					}
+				} else {
+					$status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+				}
+				$activity->update([
+					'status_id' => $status_id,
+					'updated_by_id' => Auth::id(),
+				]);
+			}
+			DB::commit();
+			return response()->json([
+				'success' => true,
+				'message' => 'On Hold Cases have been released for the selected case date',
+			]);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
+		}
+	}
+
+	public function releaseOnHoldActivity($activityId) {
+		// dd($activityId);
+		DB::beginTransaction();
+		try {
+			$activity = Activity::withTrashed()->whereIn('status_id', [17, 26]) // ONHOLD / ASP COMPLETED DATA ENTRY - WAITING FOR CALL CENTER DATA ENTRY
+				->find($activityId);
+			if (!$activity) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Ticket not found',
+					],
+				]);
+			}
+
+			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
+			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);
+			$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
+			$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
+
+			//WHATSAPP FLOW
+			if ($breakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+				// ROS SERVICE
+				if ($activity->serviceType && $activity->serviceType->service_group_id != 3) {
+
+					if (!$disableWhatsappAutoApproval) {
+						$autoApprovalProcessResponse = $activity->autoApprovalProcess();
+						if (!$autoApprovalProcessResponse['success']) {
+							//SAVE CASE API LOG
+							DB::rollBack();
+							return response()->json([
+								'success' => false,
+								'errors' => [
+									$autoApprovalProcessResponse['error'],
+								],
+							]);
+						}
+						$statusId = 25; // Waiting for Charges Acceptance by ASP
+					} else {
+						//MECHANICAL SERVICE GROUP
+						if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
+							$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+							if ($is_bulk) {
+								$statusId = 5; //ASP Completed Data Entry - Waiting for L1 Bulk Verification
+							} else {
+								$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+							}
+						} else {
+							if (($activity->asp && $activity->asp->is_corporate == 1) || $activity->is_asp_data_entry_done == 1) {
+								$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+							} else {
+								$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+							}
+						}
+
+						//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+						if (floatval($cc_total_km) <= 2 && $activity->is_asp_data_entry_done != 1) {
+							$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+						}
+
+					}
+
+				} else {
+					// TOW SERVICE
+					if ($activity->asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
+						$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+					} else {
+						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+					}
+
+					//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+					if (floatval($cc_total_km) <= 2 && $activity->is_asp_data_entry_done != 1) {
+						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+					}
+
+				}
+			} else {
+				// NORMAL FLOW
+
+				//MECHANICAL SERVICE GROUP
+				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
+					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+					if ($is_bulk) {
+						$statusId = 5; //ASP Completed Data Entry - Waiting for L1 Bulk Verification
+					} else {
+						$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+					}
+				} else {
+					if (($activity->asp && $activity->asp->is_corporate == 1) || $activity->is_asp_data_entry_done == 1) {
+						$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+					} else {
+						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+					}
+				}
+
+				//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+				if (floatval($cc_total_km) <= 2 && $activity->is_asp_data_entry_done != 1) {
+					$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+				}
+
+			}
+
+			$activity->update([
+				'status_id' => $statusId,
+				'onhold_released_by_id' => Auth::user()->id,
+				'onhold_released_at' => Carbon::now(),
+				'updated_by_id' => Auth::user()->id,
+			]);
+
+			DB::commit();
+			return response()->json([
+				'success' => true,
+				'message' => 'Activity released successfully',
+			]);
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
+		}
+	}
+
+	public static function findDifference($date1, $date2) {
+		$date1 = date_create(date('Y-m-d', strtotime($date1)));
+		$date2 = date_create(date('Y-m-d', strtotime($date2)));
+		$diff_date = date_diff($date1, $date2);
+		$duration = ($diff_date->format("%d") > 1) ? $diff_date->format("%d") : $diff_date->format("%d");
+		return $duration;
+	}
+
+	public function searchAsps(Request $request) {
+		return Asp::searchAllAsps($request);
+	}
+
+	public function searchClients(Request $request) {
+		return Client::searchClient($request);
+	}
+
+	public function exportActivitiesBackup(Request $request) {
 		// dd($request->all());
 		try {
 			$error_messages = [
@@ -5455,7 +6762,7 @@ class ActivityController extends Controller {
 						!empty($activity->deduction_reason) ? $activity->deduction_reason : '',
 						!empty($activity->defer_reason) ? strip_tags($activity->defer_reason) : '',
 						!empty($activity->asp_resolve_comments) ? strip_tags($activity->asp_resolve_comments) : '',
-						$activity->is_exceptional_check == 1 ? 'Yes' : 'No',
+						$activity->is_exceptional_check,
 						!empty($activity->exceptional_reason) ? strip_tags($activity->exceptional_reason) : '',
 						// $activity->invoice ? ($activity->asp->has_gst == 1 && $activity->asp->is_auto_invoice == 0 ? ($activity->invoice->invoice_no) : ($activity->invoice->invoice_no . '-' . $activity->invoice->id)) : '',
 						$activity->invoice_no,
@@ -5706,254 +7013,6 @@ class ActivityController extends Controller {
 				],
 			]);
 		}
-	}
-
-	// NOT USED NOW
-	public function releaseOnHold(Request $r) {
-		// dd($r->all());
-		DB::beginTransaction();
-		try {
-			if (empty($r->case_date)) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Please Select Case Date',
-					],
-				]);
-			}
-			$case_date = date('Y-m-d', strtotime($r->case_date));
-			$activities = Activity::select([
-				'activities.id',
-				'activities.service_type_id',
-				'activities.asp_id',
-			])
-				->join('cases', 'cases.id', 'activities.case_id')
-				->where('activities.status_id', 17) //ONHOLD
-				->whereIn('cases.status_id', [3, 4]) //CANCELLED/CLOSED
-				->whereDate('cases.date', '<=', $case_date)
-				->get();
-
-			if ($activities->isEmpty()) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'No activities in the selected case date',
-					],
-				]);
-			}
-
-			foreach ($activities as $key => $activity) {
-
-				if (!$activity->case->vehicleModel) {
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							'Vehicle model is required. Case Number: ' . $activity->case->number,
-						],
-					]);
-				}
-
-				if (!$activity->case->vehicleModel->vehiclecategory) {
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							'Vehicle category not mapped for the vehicle model. Case Number: ' . $activity->case->number,
-						],
-					]);
-				}
-
-				//MECHANICAL SERVICE GROUP
-				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
-					$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
-					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->vehicleModel->vehiclecategory->id);
-					if ($is_bulk) {
-						//ASP Completed Data Entry - Waiting for BO Bulk Verification
-						$status_id = 5;
-					} else {
-						//ASP Completed Data Entry - Waiting for BO Individual Verification
-						$status_id = 6;
-					}
-				} else {
-					$status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
-				}
-				$activity->update([
-					'status_id' => $status_id,
-					'updated_by_id' => Auth::id(),
-				]);
-			}
-			DB::commit();
-			return response()->json([
-				'success' => true,
-				'message' => 'On Hold Cases have been released for the selected case date',
-			]);
-
-		} catch (\Exception $e) {
-			DB::rollBack();
-			return response()->json([
-				'success' => false,
-				'errors' => [
-					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
-				],
-			]);
-		}
-	}
-
-	public function releaseOnHoldActivity($activityId) {
-		// dd($activityId);
-		DB::beginTransaction();
-		try {
-			$activity = Activity::withTrashed()->whereIn('status_id', [17, 26]) // ONHOLD / ASP COMPLETED DATA ENTRY - WAITING FOR CALL CENTER DATA ENTRY
-				->find($activityId);
-			if (!$activity) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Ticket not found',
-					],
-				]);
-			}
-
-			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
-			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);
-			$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
-			$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
-			$checkCCKmValidation = true;
-
-			//WHATSAPP FLOW
-			if ($breakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
-				// ROS SERVICE
-				if ($activity->serviceType && $activity->serviceType->service_group_id != 3) {
-
-					if (!$disableWhatsappAutoApproval) {
-						$autoApprovalProcessResponse = $activity->autoApprovalProcess();
-						if (!$autoApprovalProcessResponse['success']) {
-							//SAVE CASE API LOG
-							DB::rollBack();
-							return response()->json([
-								'success' => false,
-								'errors' => [
-									$autoApprovalProcessResponse['error'],
-								],
-							]);
-						}
-						$statusId = 25; // Waiting for Charges Acceptance by ASP
-					} else {
-						//MECHANICAL SERVICE GROUP
-						if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
-							$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->vehicleModel->vehiclecategory->id);
-							if ($is_bulk) {
-								$statusId = 5; //ASP Completed Data Entry - Waiting for L1 Bulk Verification
-							} else {
-								$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
-							}
-						} else {
-							if (($activity->asp && $activity->asp->is_corporate == 1) || $activity->is_asp_data_entry_done == 1) {
-								$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
-
-								//NO NEED TO CHECK CC TOTAL KM DUE TO ALREADY DATA ENTRY DONE
-								if ($activity->is_asp_data_entry_done == 1) {
-									$checkCCKmValidation = false;
-								}
-							} else {
-								$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
-							}
-						}
-
-						//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
-						if (floatval($cc_total_km) <= 2 && $checkCCKmValidation) {
-							$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
-						}
-
-					}
-
-				} else {
-					// TOW SERVICE
-					if ($activity->asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
-						$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
-
-						//NO NEED TO CHECK CC TOTAL KM DUE TO ALREADY DATA ENTRY DONE
-						if ($activity->is_asp_data_entry_done == 1) {
-							$checkCCKmValidation = false;
-						}
-					} else {
-						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
-					}
-
-					//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
-					if (floatval($cc_total_km) <= 2 && $checkCCKmValidation) {
-						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
-					}
-
-				}
-			} else {
-				// NORMAL FLOW
-
-				//MECHANICAL SERVICE GROUP
-				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
-					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->vehicleModel->vehiclecategory->id);
-					if ($is_bulk) {
-						$statusId = 5; //ASP Completed Data Entry - Waiting for L1 Bulk Verification
-					} else {
-						$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
-					}
-				} else {
-					if (($activity->asp && $activity->asp->is_corporate == 1) || $activity->is_asp_data_entry_done == 1) {
-						$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
-
-						//NO NEED TO CHECK CC TOTAL KM DUE TO ALREADY DATA ENTRY DONE
-						if ($activity->is_asp_data_entry_done == 1) {
-							$checkCCKmValidation = false;
-						}
-					} else {
-						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
-					}
-				}
-
-				//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
-				if (floatval($cc_total_km) <= 2 && $checkCCKmValidation) {
-					$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
-				}
-
-			}
-
-			$activity->update([
-				'status_id' => $statusId,
-				'onhold_released_by_id' => Auth::user()->id,
-				'onhold_released_at' => Carbon::now(),
-				'updated_by_id' => Auth::user()->id,
-			]);
-
-			DB::commit();
-			return response()->json([
-				'success' => true,
-				'message' => 'Activity released successfully',
-			]);
-
-		} catch (\Exception $e) {
-			DB::rollBack();
-			return response()->json([
-				'success' => false,
-				'errors' => [
-					'Exception Error' => $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
-				],
-			]);
-		}
-	}
-
-	public static function findDifference($date1, $date2) {
-		$date1 = date_create(date('Y-m-d', strtotime($date1)));
-		$date2 = date_create(date('Y-m-d', strtotime($date2)));
-		$diff_date = date_diff($date1, $date2);
-		$duration = ($diff_date->format("%d") > 1) ? $diff_date->format("%d") : $diff_date->format("%d");
-		return $duration;
-	}
-
-	public function searchAsps(Request $request) {
-		return Asp::searchAllAsps($request);
-	}
-
-	public function searchClients(Request $request) {
-		return Client::searchClient($request);
 	}
 
 	public function getSearchList(Request $request) {

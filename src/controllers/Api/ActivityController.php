@@ -579,7 +579,7 @@ class ActivityController extends Controller {
 							}
 						} elseif ($asp->is_corporate == 1) {
 							//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
-							if (floatval($request->cc_total_km) <= 2) {
+							if (floatval($request->cc_total_km) <= 2 && $activity->is_asp_data_entry_done != 1) {
 								$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 							} else {
 								$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
@@ -653,7 +653,6 @@ class ActivityController extends Controller {
 
 			//RELEASE ONHOLD / ASP COMPLETED DATA ENTRY - WAITING FOR CALL CENTER DATA ENTRY ACTIVITIES WITH CLOSED OR CANCELLED CASES
 			if (($case->status_id == 4 || $case->status_id == 3) && ($activity->status_id == 17 || $activity->status_id == 26)) {
-				$checkCCKmValidation = true;
 				//WHATSAPP FLOW
 				if ($breakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 					// ROS SERVICE
@@ -690,18 +689,13 @@ class ActivityController extends Controller {
 							} else {
 								if ($asp->is_corporate == 1 || $activity->is_asp_data_entry_done == 1) {
 									$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
-
-									//NO NEED TO CHECK CC TOTAL KM DUE TO ALREADY DATA ENTRY DONE
-									if ($activity->is_asp_data_entry_done == 1) {
-										$checkCCKmValidation = false;
-									}
 								} else {
 									$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 								}
 							}
 
 							//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
-							if (floatval($request->cc_total_km) <= 2 && $checkCCKmValidation) {
+							if (floatval($request->cc_total_km) <= 2 && $activity->is_asp_data_entry_done != 1) {
 								$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 							}
 
@@ -713,17 +707,12 @@ class ActivityController extends Controller {
 						// TOW SERVICE
 						if ($asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
 							$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
-
-							//NO NEED TO CHECK CC TOTAL KM DUE TO ALREADY DATA ENTRY DONE
-							if ($activity->is_asp_data_entry_done == 1) {
-								$checkCCKmValidation = false;
-							}
 						} else {
 							$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 						}
 
 						//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
-						if (floatval($request->cc_total_km) <= 2 && $checkCCKmValidation) {
+						if (floatval($request->cc_total_km) <= 2 && $activity->is_asp_data_entry_done != 1) {
 							$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 						}
 
@@ -746,18 +735,13 @@ class ActivityController extends Controller {
 					} else {
 						if ($asp->is_corporate == 1 || $activity->is_asp_data_entry_done == 1) {
 							$statusId = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
-
-							//NO NEED TO CHECK CC TOTAL KM DUE TO ALREADY DATA ENTRY DONE
-							if ($activity->is_asp_data_entry_done == 1) {
-								$checkCCKmValidation = false;
-							}
 						} else {
 							$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 						}
 					}
 
 					//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
-					if (floatval($request->cc_total_km) <= 2 && $checkCCKmValidation) {
+					if (floatval($request->cc_total_km) <= 2 && $activity->is_asp_data_entry_done != 1) {
 						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 					}
 

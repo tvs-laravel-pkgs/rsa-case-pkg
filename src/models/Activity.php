@@ -9,6 +9,7 @@ use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityRatecard;
+use Abs\RsaCasePkg\ActivityReport;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\ActivityWhatsappLog;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
@@ -93,6 +94,10 @@ class Activity extends Model {
 
 	public function activityDetail() {
 		return $this->hasOne('Abs\RsaCasePkg\ActivityDetail', 'activity_id');
+	}
+
+	public function rateCard() {
+		return $this->hasOne('Abs\RsaCasePkg\ActivityRatecard', 'activity_id');
 	}
 
 	public function log() {
@@ -1263,7 +1268,12 @@ class Activity extends Model {
 									// TOW SERVICE
 									if ($service_type->service_group_id == 3) {
 										if ($asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
-											$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+											//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+											if (floatval($record['cc_total_km']) <= 2 && $activity->is_asp_data_entry_done != 1) {
+												$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+											} else {
+												$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+											}
 										} else {
 											$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 										}
@@ -1326,7 +1336,12 @@ class Activity extends Model {
 											// TOW SERVICE
 											if ($service_type->service_group_id == 3) {
 												if ($asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
-													$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+													//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+													if (floatval($record['cc_total_km']) <= 2 && $activity->is_asp_data_entry_done != 1) {
+														$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+													} else {
+														$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+													}
 												} else {
 													$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 												}
@@ -1334,7 +1349,12 @@ class Activity extends Model {
 												$activity->status_id = 17; //ON HOLD
 											}
 										} elseif ($asp->is_corporate == 1) {
-											$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+											//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+											if (floatval($record['cc_total_km']) <= 2 && $activity->is_asp_data_entry_done != 1) {
+												$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+											} else {
+												$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+											}
 										} else {
 											$activity->status_id = 17; //ON HOLD
 										}
@@ -1389,6 +1409,9 @@ class Activity extends Model {
 											$activity->update([
 												'status_id' => $status_id,
 											]);
+
+											//SAVE ACTIVITY REPORT FOR DASHBOARD
+											ActivityReport::saveReport($activity->id);
 										}
 									}
 								}
@@ -1419,18 +1442,14 @@ class Activity extends Model {
 											$invoiceAmountCalculatedActivity->sendBreakdownOrEmptyreturnChargesWhatsappSms();
 										}
 
+										$invoiceAmountCalculatedActivity->update([
+											'status_id' => 1, //Case Closed - Waiting for ASP to Generate Invoice
+										]);
+
+										//SAVE ACTIVITY REPORT FOR DASHBOARD
+										ActivityReport::saveReport($invoiceAmountCalculatedActivity->id);
 									}
 								}
-
-								$case->activities()
-									->where([
-										// Invoice Amount Calculated - Waiting for Case Closure
-										'status_id' => 10,
-									])
-									->update([
-										// Case Closed - Waiting for ASP to Generate Invoice
-										'status_id' => 1,
-									]);
 							}
 
 							$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
@@ -1440,6 +1459,7 @@ class Activity extends Model {
 								if ($caseActivities->isNotEmpty()) {
 									foreach ($caseActivities as $key => $caseActivity) {
 										$caseActivityBreakdownAlertSent = self::breakdownAlertSent($caseActivity->id);
+										$cc_total_km = $caseActivity->detail(280) ? $caseActivity->detail(280)->value : 0;
 
 										//WHATSAPP FLOW
 										if ($caseActivityBreakdownAlertSent && $caseActivity->asp && !empty($caseActivity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $caseActivity->asp->has_whatsapp_flow == 1))) {
@@ -1454,7 +1474,6 @@ class Activity extends Model {
 												} else {
 													//MECHANICAL SERVICE GROUP
 													if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id == 2) {
-														$cc_total_km = $caseActivity->detail(280) ? $caseActivity->detail(280)->value : 0;
 														$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id);
 														if ($isBulk) {
 															//ASP Completed Data Entry - Waiting for L1 Bulk Verification
@@ -1470,6 +1489,12 @@ class Activity extends Model {
 															$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 														}
 													}
+
+													//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+													if (floatval($cc_total_km) <= 2 && $caseActivity->is_asp_data_entry_done != 1) {
+														$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+													}
+
 													$caseActivity->update([
 														'status_id' => $statusId,
 													]);
@@ -1483,6 +1508,12 @@ class Activity extends Model {
 												} else {
 													$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 												}
+
+												//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+												if (floatval($cc_total_km) <= 2 && $caseActivity->is_asp_data_entry_done != 1) {
+													$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+												}
+
 												$caseActivity->update([
 													'status_id' => $statusId,
 												]);
@@ -1492,7 +1523,6 @@ class Activity extends Model {
 
 											//MECHANICAL SERVICE GROUP
 											if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id == 2) {
-												$cc_total_km = $caseActivity->detail(280) ? $caseActivity->detail(280)->value : 0;
 												$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id);
 												if ($isBulk) {
 													//ASP Completed Data Entry - Waiting for L1 Bulk Verification
@@ -1508,10 +1538,19 @@ class Activity extends Model {
 													$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 												}
 											}
+
+											//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+											if (floatval($cc_total_km) <= 2 && $caseActivity->is_asp_data_entry_done != 1) {
+												$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+											}
+
 											$caseActivity->update([
 												'status_id' => $statusId,
 											]);
 										}
+
+										//SAVE ACTIVITY REPORT FOR DASHBOARD
+										ActivityReport::saveReport($caseActivity->id);
 									}
 								}
 							}
@@ -1533,10 +1572,10 @@ class Activity extends Model {
 							$activity_log->imported_at = date('Y-m-d H:i:s');
 							$activity_log->imported_by_id = $job->created_by_id;
 							$activity_log->asp_data_filled_at = date('Y-m-d H:i:s');
-							if ($record['asp_accepted_cc_details']) {
-								$activity_log->bo_approved_at = date('Y-m-d H:i:s');
-								$activity_log->bo_approved_by_id = $job->created_by_id;
-							}
+							// if ($record['asp_accepted_cc_details']) {
+							// 	$activity_log->bo_approved_at = date('Y-m-d H:i:s');
+							// 	$activity_log->bo_approved_by_id = $job->created_by_id;
+							// }
 							//NEW
 							if (!$activity_log->exists) {
 								$activity_log->created_by_id = 72;
@@ -1544,6 +1583,9 @@ class Activity extends Model {
 								$activity_log->updated_by_id = 72;
 							}
 							$activity_log->save();
+
+							//SAVE ACTIVITY REPORT FOR DASHBOARD
+							ActivityReport::saveReport($activity->id);
 						}
 					}
 

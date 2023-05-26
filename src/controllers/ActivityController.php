@@ -3177,6 +3177,7 @@ class ActivityController extends Controller {
 		return response()->json($this->data);
 	}
 
+	//GET SERVICE TYPE DETAIL BASED ON SERVICE TYPE CHANGE IN ASP DATA ENTRY
 	public function activityNewGetServiceTypeDetail($id, $activityId) {
 		try {
 			$serviceType = ServiceType::select([

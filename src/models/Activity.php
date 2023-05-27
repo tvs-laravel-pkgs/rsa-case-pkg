@@ -2702,7 +2702,7 @@ class Activity extends Model {
 		;
 
 		$aspAmendmentNewServiceTypeExistSubQuery = clone $aspAmendmentServiceTypeExistBaseQuery;
-		$aspAmendmentNewServiceTypeExist = $aspAmendmentNewServiceTypeExistSubQuery->whereDate('asp_amendment_service_types.effective_from', '<=', date('Y-m-d', strtotime($caseDate)))
+		$aspAmendmentNewServiceTypeExist = $aspAmendmentNewServiceTypeExistSubQuery->where('asp_amendment_service_types.effective_from', '<=', date('Y-m-d', strtotime($caseDate)))
 			->where('asp_amendment_service_types.type_id', 1311) //NEW
 			->orderBy('asp_amendment_service_types.amendment_id', 'desc')
 			->first();

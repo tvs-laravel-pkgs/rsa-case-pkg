@@ -382,27 +382,7 @@ class Activity extends Model {
 			$isMobile = 1;
 		}
 
-		$aspServiceTypeRateCard = AspServiceType::select([
-			'range_limit',
-			'below_range_price',
-			'above_range_price',
-			'waiting_charge_per_hour',
-			'empty_return_range_price',
-			'adjustment_type',
-			'adjustment',
-			'below_range_price_margin',
-			'above_range_price_margin',
-			'fleet_count',
-			'is_mobile',
-		])
-			->where('asp_id', $this->asp->id)
-			->where('service_type_id', $this->serviceType->id)
-			->where('is_mobile', $isMobile)
-			->first();
-
-		//AMENDMENT CHANGES - DISABLED FOR NOW
-		// $aspServiceTypeRateCard = self::getActivityServiceRateCard($this->asp->id, $this->case->date, $this->serviceType->id, $isMobile);
-
+		$aspServiceTypeRateCard = self::getAspServiceRateCardByAmendment($this->asp->id, $this->case->date, $this->serviceType->id, $isMobile);
 		if (!$aspServiceTypeRateCard) {
 			return [
 				'success' => false,

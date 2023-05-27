@@ -506,7 +506,7 @@ class Activity extends Model {
 		}
 
 		if ($data_src == 'CC') {
-			$response = getActivityKMPrices($this->serviceType, $this->asp, $this->data_src_id);
+			$response = getActivityKMPrices($this->serviceType, $this->asp, $this->data_src_id, $this->case->date);
 			if (!$response['success']) {
 				return [
 					'success' => false,
@@ -1668,7 +1668,7 @@ class Activity extends Model {
 
 		$is_bulk = true;
 		$range_limit = 0;
-		$aspServiceType = Activity::getAspServiceRateCardByAmendment($asp_id, $caseDate, $service_type_id, $isMobile);
+		$aspServiceType = self::getAspServiceRateCardByAmendment($asp_id, $caseDate, $service_type_id, $isMobile);
 		if ($aspServiceType) {
 			$range_limit = $aspServiceType->range_limit;
 		}
@@ -1931,7 +1931,7 @@ class Activity extends Model {
 		// GREATER THAN PREDEFINED AUTO APPROVAL KM THEN APPROVE ONLY FOR PREDEFINED KM
 		if (floatval($totalKm) >= floatval($autoApprovalKm)) {
 
-			$aspServiceTypeGetResponse = getActivityKMPrices($this->serviceType, $this->asp, $this->data_src_id);
+			$aspServiceTypeGetResponse = getActivityKMPrices($this->serviceType, $this->asp, $this->data_src_id, $this->case->date);
 			if (!$aspServiceTypeGetResponse['success']) {
 				$response['success'] = false;
 				$response['error'] = $aspServiceTypeGetResponse['error'];

@@ -2357,7 +2357,7 @@ class ActivityController extends Controller {
 						]);
 					}
 
-					$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id);
+					$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id, $activity->case->date);
 
 					$price = $response['asp_service_price'];
 
@@ -3780,7 +3780,7 @@ class ActivityController extends Controller {
 				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $activity->id, 'key_id' => $key_id, 'company_id' => 1], ['value' => $value]);
 			}
 
-			$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id);
+			$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id, $activity->case->date);
 			if (!$response['success']) {
 				return response()->json([
 					'success' => false,

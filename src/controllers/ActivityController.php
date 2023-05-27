@@ -1470,6 +1470,7 @@ class ActivityController extends Controller {
 		}
 	}
 
+	// ON CHANGE SERVICE TYPE RATE CARD ON APPROVAL FORM
 	public function getServiceTypeRateCardDetail(Request $request) {
 		try {
 			$validator = Validator::make($request->all(), [

@@ -224,16 +224,7 @@ class Activity extends Model {
 		if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
 			$isMobile = 1;
 		}
-		$data['service_types'] = Asp::select([
-			'service_types.name',
-			'asp_service_types.service_type_id as id',
-		])
-			->join('asp_service_types', 'asp_service_types.asp_id', '=', 'asps.id')
-			->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')
-			->where('asp_service_types.is_mobile', $isMobile)
-			->where('asps.id', $activity->asp_id)
-			->groupBy('service_types.id')
-			->get();
+		$data['service_types'] = self::getAspServiceTypesByAmendment($activity->asp_id, $activity->case->date, $isMobile);
 		if ($for_deffer_activity) {
 			$asp_km_travelled = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 154]])->first();
 			if (!$asp_km_travelled) {
@@ -296,10 +287,7 @@ class Activity extends Model {
 		$data['waiting_time'] = $activity->detail(329) ? $activity->detail(329)->value : 0;
 
 		$range_limit = "";
-		$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
-			->where('service_type_id', $activity->service_type_id)
-			->where('is_mobile', $isMobile)
-			->first();
+		$aspServiceType = self::getAspServiceRateCardByAmendment($activity->asp_id, $activity->case->date, $activity->service_type_id, $isMobile);
 		if ($aspServiceType) {
 			$range_limit = $aspServiceType->range_limit;
 		}
@@ -2659,7 +2647,7 @@ class Activity extends Model {
 		sendWhatsappSMS($this->id, 1200, $inputRequests);
 	}
 
-	//CHECK ASP HAS SERVICE TYPE AMENDMENT IF NOT EXIST THEN TAKE IT FROM ASP SERVICE TYPE
+	//CHECK ASP HAS SERVICE TYPE AMENDMENT IF NOT EXIST THEN TAKE IT FROM ASP SERVICE TYPE (GET RATE CARD DETAILS)
 	public static function getAspServiceRateCardByAmendment($aspId, $caseDate, $serviceTypeId, $isMobile) {
 
 		//CHECK IF IT HAS AMENDMENT SERVICE TYPE
@@ -2729,6 +2717,76 @@ class Activity extends Model {
 		}
 
 		return $aspServiceTypeRateCard;
+
+	}
+
+	//CHECK ASP HAS SERVICE TYPE AMENDMENT IF NOT EXIST THEN TAKE IT FROM ASP SERVICE TYPE (GET SUB SERVICE LIST)
+	public static function getAspServiceTypesByAmendment($aspId, $caseDate, $isMobile) {
+
+		//CHECK IF IT HAS AMENDMENT SERVICE TYPE
+		$aspAmendmentServiceTypeExistBaseQuery = AspAmendmentServiceType::select([
+			'asp_amendment_service_types.amendment_id',
+		])
+			->join('asp_amendments', 'asp_amendments.id', 'asp_amendment_service_types.amendment_id')
+			->where('asp_amendment_service_types.asp_id', $aspId)
+			->where('asp_amendment_service_types.is_mobile', $isMobile)
+			->where('asp_amendments.status_id', 1307) //APPROVED
+		;
+
+		$aspAmendmentNewServiceTypeExistSubQuery = clone $aspAmendmentServiceTypeExistBaseQuery;
+		$aspAmendmentNewServiceTypeExist = $aspAmendmentNewServiceTypeExistSubQuery->where('asp_amendment_service_types.effective_from', '<=', date('Y-m-d', strtotime($caseDate)))
+			->where('asp_amendment_service_types.type_id', 1311) //NEW
+			->orderBy('asp_amendment_service_types.amendment_id', 'desc')
+			->first();
+
+		if ($aspAmendmentNewServiceTypeExist) {
+			$aspServiceTypes = AspAmendmentServiceType::select([
+				'service_types.name',
+				'service_types.id',
+			])
+				->join('service_types', 'service_types.id', 'asp_amendment_service_types.service_type_id')
+				->where('asp_amendment_service_types.amendment_id', $aspAmendmentNewServiceTypeExist->amendment_id)
+				->where('asp_amendment_service_types.asp_id', $aspId)
+				->where('asp_amendment_service_types.is_mobile', $isMobile)
+				->where('asp_amendment_service_types.type_id', 1311) //NEW
+				->groupBy('asp_amendment_service_types.service_type_id')
+				->get();
+		} else {
+
+			//IF NEW SERVICE TYPE NOT EXIST TAKE OLD ONE
+			$aspAmendmentOldServiceTypeExistSubQuery = clone $aspAmendmentServiceTypeExistBaseQuery;
+			$aspAmendmentOldServiceTypeExist = $aspAmendmentOldServiceTypeExistSubQuery->where('asp_amendment_service_types.type_id', 1312) //OLD
+				->orderBy('asp_amendment_service_types.amendment_id', 'asc')
+				->first();
+
+			if ($aspAmendmentOldServiceTypeExist) {
+				$aspServiceTypes = AspAmendmentServiceType::select([
+					'service_types.name',
+					'service_types.id',
+				])
+					->join('service_types', 'service_types.id', 'asp_amendment_service_types.service_type_id')
+					->where('asp_amendment_service_types.amendment_id', $aspAmendmentOldServiceTypeExist->amendment_id)
+					->where('asp_amendment_service_types.asp_id', $aspId)
+					->where('asp_amendment_service_types.is_mobile', $isMobile)
+					->where('asp_amendment_service_types.type_id', 1312) //OLD
+					->groupBy('asp_amendment_service_types.service_type_id')
+					->get();
+			} else {
+				//ASP SERVICE TYPES
+				$aspServiceTypes = AspServiceType::select([
+					'service_types.name',
+					'service_types.id',
+				])
+					->join('service_types', 'service_types.id', 'asp_service_types.service_type_id')
+					->where('asp_service_types.asp_id', $aspId)
+					->where('asp_service_types.is_mobile', $isMobile)
+					->groupBy('asp_service_types.service_type_id')
+					->get();
+			}
+
+		}
+
+		return $aspServiceTypes;
 
 	}
 

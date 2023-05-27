@@ -3441,10 +3441,7 @@ class ActivityController extends Controller {
 				$isMobile = 1;
 			}
 
-			$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
-				->where('service_type_id', $request->asp_service_type_id)
-				->where('is_mobile', $isMobile)
-				->first();
+			$aspServiceType = Activity::getAspServiceRateCardByAmendment($activity->asp_id, $activity->case->date, $request->asp_service_type_id, $isMobile);
 			if ($aspServiceType) {
 				$range_limit = $aspServiceType->range_limit;
 				$waiting_charge_per_hour = $aspServiceType->waiting_charge_per_hour;

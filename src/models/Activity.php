@@ -1255,7 +1255,7 @@ class Activity extends Model {
 								if ($case->status_id == 4) {
 									//IF MECHANICAL SERVICE GROUP - DISABLED
 									// if ($service_type->service_group_id == 2) {
-									// 	$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $dataSourceId);
+									// 	$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $dataSourceId, $case->date);
 									// 	if ($is_bulk) {
 									// 		//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 									// 		$activity->status_id = 5;
@@ -1361,7 +1361,7 @@ class Activity extends Model {
 
 										// //IF MECHANICAL SERVICE GROUP - DISABLED
 										// if ($service_type->service_group_id == 2) {
-										// 	$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $activity->data_src_id);
+										// 	$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $activity->data_src_id, $case->date);
 										// 	if ($is_bulk) {
 										// 		//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 										// 		$activity->status_id = 5;
@@ -1474,7 +1474,7 @@ class Activity extends Model {
 												} else {
 													//MECHANICAL SERVICE GROUP
 													if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id == 2) {
-														$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id);
+														$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id, $caseActivity->case->date);
 														if ($isBulk) {
 															//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 															$statusId = 5;
@@ -1523,7 +1523,7 @@ class Activity extends Model {
 
 											//MECHANICAL SERVICE GROUP
 											if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id == 2) {
-												$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id);
+												$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id, $caseActivity->case->date);
 												if ($isBulk) {
 													//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 													$statusId = 5;
@@ -1659,7 +1659,7 @@ class Activity extends Model {
 		return $km_charge;
 	}
 
-	public static function checkTicketIsBulk($asp_id, $service_type_id, $asp_km, $dataSourceId) {
+	public static function checkTicketIsBulk($asp_id, $service_type_id, $asp_km, $dataSourceId, $caseDate) {
 		$isMobile = 0; //WEB
 		//MOBILE APP
 		if ($dataSourceId == 260 || $dataSourceId == 263) {
@@ -1668,10 +1668,7 @@ class Activity extends Model {
 
 		$is_bulk = true;
 		$range_limit = 0;
-		$aspServiceType = AspServiceType::where('asp_id', $asp_id)
-			->where('service_type_id', $service_type_id)
-			->where('is_mobile', $isMobile)
-			->first();
+		$aspServiceType = Activity::getAspServiceRateCardByAmendment($asp_id, $caseDate, $service_type_id, $isMobile);
 		if ($aspServiceType) {
 			$range_limit = $aspServiceType->range_limit;
 		}
@@ -2682,7 +2679,8 @@ class Activity extends Model {
 		sendWhatsappSMS($this->id, 1200, $inputRequests);
 	}
 
-	public static function getActivityServiceRateCard($aspId, $caseDate, $serviceTypeId, $isMobile) {
+	//CHECK ASP HAS SERVICE TYPE AMENDMENT IF NOT EXIST THEN TAKE IT FROM ASP SERVICE TYPE
+	public static function getAspServiceRateCardByAmendment($aspId, $caseDate, $serviceTypeId, $isMobile) {
 
 		//CHECK IF IT HAS AMENDMENT SERVICE TYPE
 		$aspAmendmentServiceTypeExistBaseQuery = AspAmendmentServiceType::select([

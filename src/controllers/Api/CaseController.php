@@ -453,7 +453,7 @@ class CaseController extends Controller {
 								} else {
 									//MECHANICAL SERVICE GROUP
 									if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
-										$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+										$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->date);
 										if ($is_bulk) {
 											//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 											$status_id = 5;
@@ -503,7 +503,7 @@ class CaseController extends Controller {
 
 							//MECHANICAL SERVICE GROUP
 							if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
-								$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+								$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->date);
 								if ($is_bulk) {
 									//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 									$status_id = 5;

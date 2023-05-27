@@ -5765,7 +5765,7 @@ class ActivityController extends Controller {
 				//MECHANICAL SERVICE GROUP
 				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
 					$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
-					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->date);
 					if ($is_bulk) {
 						//ASP Completed Data Entry - Waiting for BO Bulk Verification
 						$status_id = 5;
@@ -5839,7 +5839,7 @@ class ActivityController extends Controller {
 					} else {
 						//MECHANICAL SERVICE GROUP
 						if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
-							$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+							$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->date);
 							if ($is_bulk) {
 								$statusId = 5; //ASP Completed Data Entry - Waiting for L1 Bulk Verification
 							} else {
@@ -5879,7 +5879,7 @@ class ActivityController extends Controller {
 
 				//MECHANICAL SERVICE GROUP
 				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
-					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->date);
 					if ($is_bulk) {
 						$statusId = 5; //ASP Completed Data Entry - Waiting for L1 Bulk Verification
 					} else {

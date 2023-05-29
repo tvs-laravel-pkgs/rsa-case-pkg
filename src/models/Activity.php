@@ -224,16 +224,7 @@ class Activity extends Model {
 		if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
 			$isMobile = 1;
 		}
-		$data['service_types'] = Asp::select([
-			'service_types.name',
-			'asp_service_types.service_type_id as id',
-		])
-			->join('asp_service_types', 'asp_service_types.asp_id', '=', 'asps.id')
-			->join('service_types', 'service_types.id', '=', 'asp_service_types.service_type_id')
-			->where('asp_service_types.is_mobile', $isMobile)
-			->where('asps.id', $activity->asp_id)
-			->groupBy('service_types.id')
-			->get();
+		$data['service_types'] = self::getAspServiceTypesByAmendment($activity->asp_id, $activity->case->date, $isMobile);
 		if ($for_deffer_activity) {
 			$asp_km_travelled = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 154]])->first();
 			if (!$asp_km_travelled) {
@@ -296,10 +287,7 @@ class Activity extends Model {
 		$data['waiting_time'] = $activity->detail(329) ? $activity->detail(329)->value : 0;
 
 		$range_limit = "";
-		$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
-			->where('service_type_id', $activity->service_type_id)
-			->where('is_mobile', $isMobile)
-			->first();
+		$aspServiceType = self::getAspServiceRateCardByAmendment($activity->asp_id, $activity->case->date, $activity->service_type_id, $isMobile);
 		if ($aspServiceType) {
 			$range_limit = $aspServiceType->range_limit;
 		}
@@ -382,27 +370,7 @@ class Activity extends Model {
 			$isMobile = 1;
 		}
 
-		$aspServiceTypeRateCard = AspServiceType::select([
-			'range_limit',
-			'below_range_price',
-			'above_range_price',
-			'waiting_charge_per_hour',
-			'empty_return_range_price',
-			'adjustment_type',
-			'adjustment',
-			'below_range_price_margin',
-			'above_range_price_margin',
-			'fleet_count',
-			'is_mobile',
-		])
-			->where('asp_id', $this->asp->id)
-			->where('service_type_id', $this->serviceType->id)
-			->where('is_mobile', $isMobile)
-			->first();
-
-		//AMENDMENT CHANGES - DISABLED FOR NOW
-		// $aspServiceTypeRateCard = self::getActivityServiceRateCard($this->asp->id, $this->case->date, $this->serviceType->id, $isMobile);
-
+		$aspServiceTypeRateCard = self::getAspServiceRateCardByAmendment($this->asp->id, $this->case->date, $this->serviceType->id, $isMobile);
 		if (!$aspServiceTypeRateCard) {
 			return [
 				'success' => false,
@@ -506,7 +474,7 @@ class Activity extends Model {
 		}
 
 		if ($data_src == 'CC') {
-			$response = getActivityKMPrices($this->serviceType, $this->asp, $this->data_src_id);
+			$response = getActivityKMPrices($this->serviceType, $this->asp, $this->data_src_id, $this->case->date);
 			if (!$response['success']) {
 				return [
 					'success' => false,
@@ -1255,7 +1223,7 @@ class Activity extends Model {
 								if ($case->status_id == 4) {
 									//IF MECHANICAL SERVICE GROUP - DISABLED
 									// if ($service_type->service_group_id == 2) {
-									// 	$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $dataSourceId);
+									// 	$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $dataSourceId, $case->date);
 									// 	if ($is_bulk) {
 									// 		//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 									// 		$activity->status_id = 5;
@@ -1268,7 +1236,12 @@ class Activity extends Model {
 									// TOW SERVICE
 									if ($service_type->service_group_id == 3) {
 										if ($asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
-											$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+											//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+											if (floatval($record['cc_total_km']) <= 2 && $activity->is_asp_data_entry_done != 1) {
+												$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+											} else {
+												$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+											}
 										} else {
 											$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 										}
@@ -1331,7 +1304,12 @@ class Activity extends Model {
 											// TOW SERVICE
 											if ($service_type->service_group_id == 3) {
 												if ($asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
-													$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+													//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+													if (floatval($record['cc_total_km']) <= 2 && $activity->is_asp_data_entry_done != 1) {
+														$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+													} else {
+														$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+													}
 												} else {
 													$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 												}
@@ -1339,14 +1317,19 @@ class Activity extends Model {
 												$activity->status_id = 17; //ON HOLD
 											}
 										} elseif ($asp->is_corporate == 1) {
-											$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+											//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+											if (floatval($record['cc_total_km']) <= 2 && $activity->is_asp_data_entry_done != 1) {
+												$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+											} else {
+												$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+											}
 										} else {
 											$activity->status_id = 17; //ON HOLD
 										}
 
 										// //IF MECHANICAL SERVICE GROUP - DISABLED
 										// if ($service_type->service_group_id == 2) {
-										// 	$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $activity->data_src_id);
+										// 	$is_bulk = self::checkTicketIsBulk($asp->id, $service_type->id, $record['cc_total_km'], $activity->data_src_id, $case->date);
 										// 	if ($is_bulk) {
 										// 		//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 										// 		$activity->status_id = 5;
@@ -1444,6 +1427,7 @@ class Activity extends Model {
 								if ($caseActivities->isNotEmpty()) {
 									foreach ($caseActivities as $key => $caseActivity) {
 										$caseActivityBreakdownAlertSent = self::breakdownAlertSent($caseActivity->id);
+										$cc_total_km = $caseActivity->detail(280) ? $caseActivity->detail(280)->value : 0;
 
 										//WHATSAPP FLOW
 										if ($caseActivityBreakdownAlertSent && $caseActivity->asp && !empty($caseActivity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $caseActivity->asp->has_whatsapp_flow == 1))) {
@@ -1458,8 +1442,7 @@ class Activity extends Model {
 												} else {
 													//MECHANICAL SERVICE GROUP
 													if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id == 2) {
-														$cc_total_km = $caseActivity->detail(280) ? $caseActivity->detail(280)->value : 0;
-														$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id);
+														$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id, $caseActivity->case->date);
 														if ($isBulk) {
 															//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 															$statusId = 5;
@@ -1474,6 +1457,12 @@ class Activity extends Model {
 															$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 														}
 													}
+
+													//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+													if (floatval($cc_total_km) <= 2 && $caseActivity->is_asp_data_entry_done != 1) {
+														$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+													}
+
 													$caseActivity->update([
 														'status_id' => $statusId,
 													]);
@@ -1487,6 +1476,12 @@ class Activity extends Model {
 												} else {
 													$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 												}
+
+												//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+												if (floatval($cc_total_km) <= 2 && $caseActivity->is_asp_data_entry_done != 1) {
+													$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+												}
+
 												$caseActivity->update([
 													'status_id' => $statusId,
 												]);
@@ -1496,8 +1491,7 @@ class Activity extends Model {
 
 											//MECHANICAL SERVICE GROUP
 											if ($caseActivity->serviceType && $caseActivity->serviceType->service_group_id == 2) {
-												$cc_total_km = $caseActivity->detail(280) ? $caseActivity->detail(280)->value : 0;
-												$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id);
+												$isBulk = self::checkTicketIsBulk($caseActivity->asp_id, $caseActivity->serviceType->id, $cc_total_km, $activity->data_src_id, $caseActivity->case->date);
 												if ($isBulk) {
 													//ASP Completed Data Entry - Waiting for L1 Bulk Verification
 													$statusId = 5;
@@ -1512,6 +1506,12 @@ class Activity extends Model {
 													$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 												}
 											}
+
+											//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+											if (floatval($cc_total_km) <= 2 && $caseActivity->is_asp_data_entry_done != 1) {
+												$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+											}
+
 											$caseActivity->update([
 												'status_id' => $statusId,
 											]);
@@ -1627,7 +1627,7 @@ class Activity extends Model {
 		return $km_charge;
 	}
 
-	public static function checkTicketIsBulk($asp_id, $service_type_id, $asp_km, $dataSourceId) {
+	public static function checkTicketIsBulk($asp_id, $service_type_id, $asp_km, $dataSourceId, $caseDate) {
 		$isMobile = 0; //WEB
 		//MOBILE APP
 		if ($dataSourceId == 260 || $dataSourceId == 263) {
@@ -1636,10 +1636,7 @@ class Activity extends Model {
 
 		$is_bulk = true;
 		$range_limit = 0;
-		$aspServiceType = AspServiceType::where('asp_id', $asp_id)
-			->where('service_type_id', $service_type_id)
-			->where('is_mobile', $isMobile)
-			->first();
+		$aspServiceType = self::getAspServiceRateCardByAmendment($asp_id, $caseDate, $service_type_id, $isMobile);
 		if ($aspServiceType) {
 			$range_limit = $aspServiceType->range_limit;
 		}
@@ -1902,7 +1899,7 @@ class Activity extends Model {
 		// GREATER THAN PREDEFINED AUTO APPROVAL KM THEN APPROVE ONLY FOR PREDEFINED KM
 		if (floatval($totalKm) >= floatval($autoApprovalKm)) {
 
-			$aspServiceTypeGetResponse = getActivityKMPrices($this->serviceType, $this->asp, $this->data_src_id);
+			$aspServiceTypeGetResponse = getActivityKMPrices($this->serviceType, $this->asp, $this->data_src_id, $this->case->date);
 			if (!$aspServiceTypeGetResponse['success']) {
 				$response['success'] = false;
 				$response['error'] = $aspServiceTypeGetResponse['error'];
@@ -2650,7 +2647,8 @@ class Activity extends Model {
 		sendWhatsappSMS($this->id, 1200, $inputRequests);
 	}
 
-	public static function getActivityServiceRateCard($aspId, $caseDate, $serviceTypeId, $isMobile) {
+	//CHECK ASP HAS SERVICE TYPE AMENDMENT IF NOT EXIST THEN TAKE IT FROM ASP SERVICE TYPE (GET RATE CARD DETAILS)
+	public static function getAspServiceRateCardByAmendment($aspId, $caseDate, $serviceTypeId, $isMobile) {
 
 		//CHECK IF IT HAS AMENDMENT SERVICE TYPE
 		$aspAmendmentServiceTypeExistBaseQuery = AspAmendmentServiceType::select([
@@ -2670,7 +2668,7 @@ class Activity extends Model {
 		;
 
 		$aspAmendmentNewServiceTypeExistSubQuery = clone $aspAmendmentServiceTypeExistBaseQuery;
-		$aspAmendmentNewServiceTypeExist = $aspAmendmentNewServiceTypeExistSubQuery->whereDate('asp_amendment_service_types.effective_from', '<=', date('Y-m-d', strtotime($caseDate)))
+		$aspAmendmentNewServiceTypeExist = $aspAmendmentNewServiceTypeExistSubQuery->where('asp_amendment_service_types.effective_from', '<=', date('Y-m-d', strtotime($caseDate)))
 			->where('asp_amendment_service_types.type_id', 1311) //NEW
 			->orderBy('asp_amendment_service_types.amendment_id', 'desc')
 			->first();
@@ -2719,6 +2717,76 @@ class Activity extends Model {
 		}
 
 		return $aspServiceTypeRateCard;
+
+	}
+
+	//CHECK ASP HAS SERVICE TYPE AMENDMENT IF NOT EXIST THEN TAKE IT FROM ASP SERVICE TYPE (GET SUB SERVICE LIST)
+	public static function getAspServiceTypesByAmendment($aspId, $caseDate, $isMobile) {
+
+		//CHECK IF IT HAS AMENDMENT SERVICE TYPE
+		$aspAmendmentServiceTypeExistBaseQuery = AspAmendmentServiceType::select([
+			'asp_amendment_service_types.amendment_id',
+		])
+			->join('asp_amendments', 'asp_amendments.id', 'asp_amendment_service_types.amendment_id')
+			->where('asp_amendment_service_types.asp_id', $aspId)
+			->where('asp_amendment_service_types.is_mobile', $isMobile)
+			->where('asp_amendments.status_id', 1307) //APPROVED
+		;
+
+		$aspAmendmentNewServiceTypeExistSubQuery = clone $aspAmendmentServiceTypeExistBaseQuery;
+		$aspAmendmentNewServiceTypeExist = $aspAmendmentNewServiceTypeExistSubQuery->where('asp_amendment_service_types.effective_from', '<=', date('Y-m-d', strtotime($caseDate)))
+			->where('asp_amendment_service_types.type_id', 1311) //NEW
+			->orderBy('asp_amendment_service_types.amendment_id', 'desc')
+			->first();
+
+		if ($aspAmendmentNewServiceTypeExist) {
+			$aspServiceTypes = AspAmendmentServiceType::select([
+				'service_types.name',
+				'service_types.id',
+			])
+				->join('service_types', 'service_types.id', 'asp_amendment_service_types.service_type_id')
+				->where('asp_amendment_service_types.amendment_id', $aspAmendmentNewServiceTypeExist->amendment_id)
+				->where('asp_amendment_service_types.asp_id', $aspId)
+				->where('asp_amendment_service_types.is_mobile', $isMobile)
+				->where('asp_amendment_service_types.type_id', 1311) //NEW
+				->groupBy('asp_amendment_service_types.service_type_id')
+				->get();
+		} else {
+
+			//IF NEW SERVICE TYPE NOT EXIST TAKE OLD ONE
+			$aspAmendmentOldServiceTypeExistSubQuery = clone $aspAmendmentServiceTypeExistBaseQuery;
+			$aspAmendmentOldServiceTypeExist = $aspAmendmentOldServiceTypeExistSubQuery->where('asp_amendment_service_types.type_id', 1312) //OLD
+				->orderBy('asp_amendment_service_types.amendment_id', 'asc')
+				->first();
+
+			if ($aspAmendmentOldServiceTypeExist) {
+				$aspServiceTypes = AspAmendmentServiceType::select([
+					'service_types.name',
+					'service_types.id',
+				])
+					->join('service_types', 'service_types.id', 'asp_amendment_service_types.service_type_id')
+					->where('asp_amendment_service_types.amendment_id', $aspAmendmentOldServiceTypeExist->amendment_id)
+					->where('asp_amendment_service_types.asp_id', $aspId)
+					->where('asp_amendment_service_types.is_mobile', $isMobile)
+					->where('asp_amendment_service_types.type_id', 1312) //OLD
+					->groupBy('asp_amendment_service_types.service_type_id')
+					->get();
+			} else {
+				//ASP SERVICE TYPES
+				$aspServiceTypes = AspServiceType::select([
+					'service_types.name',
+					'service_types.id',
+				])
+					->join('service_types', 'service_types.id', 'asp_service_types.service_type_id')
+					->where('asp_service_types.asp_id', $aspId)
+					->where('asp_service_types.is_mobile', $isMobile)
+					->groupBy('asp_service_types.service_type_id')
+					->get();
+			}
+
+		}
+
+		return $aspServiceTypes;
 
 	}
 

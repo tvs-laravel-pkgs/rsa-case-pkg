@@ -1075,22 +1075,16 @@ class ActivityController extends Controller {
 				$isMobile = 1;
 			}
 
-			$asp_service_type_data = AspServiceType::where('asp_id', $activity->asp_id)
-				->where('service_type_id', $activity->service_type_id)
-				->where('is_mobile', $isMobile)
-				->first();
-
-			// AMENDMENT CHANGES - DISABLED FOR NOW
-			// $caseDate = date('Y-m-d H:i:s', strtotime($activity->case_date));
-			// $asp_service_type_data = Activity::getActivityServiceRateCard($activity->asp_id, $caseDate, $activity->service_type_id, $isMobile);
-			// if (!$asp_service_type_data) {
-			// 	return response()->json([
-			// 		'success' => false,
-			// 		'errors' => [
-			// 			'ASP rate card not found',
-			// 		],
-			// 	]);
-			// }
+			$caseDate = date('Y-m-d H:i:s', strtotime($activity->case_date));
+			$asp_service_type_data = Activity::getAspServiceRateCardByAmendment($activity->asp_id, $caseDate, $activity->service_type_id, $isMobile);
+			if (!$asp_service_type_data) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'ASP rate card not found',
+					],
+				]);
+			}
 
 			$casewiseRatecardEffectDatetime = config('rsa.CASEWISE_RATECARD_EFFECT_DATETIME');
 			//Activity creation datetime greater than effective datetime
@@ -1159,10 +1153,7 @@ class ActivityController extends Controller {
 				//KM Travelled
 				$service_type = ServiceType::where('name', $cc_service_type->value)->first();
 				if ($service_type) {
-					$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
-						->where('service_type_id', $service_type->id)
-						->where('is_mobile', $isMobile)
-						->first();
+					$aspServiceType = Activity::getAspServiceRateCardByAmendment($activity->asp_id, $caseDate, $service_type->id, $isMobile);
 					if ($aspServiceType) {
 						$range_limit = $aspServiceType->range_limit;
 					} else {
@@ -1355,14 +1346,7 @@ class ActivityController extends Controller {
 				}
 			}
 
-			$serviceTypes = AspServiceType::select([
-				'service_types.id',
-				'service_types.name',
-			])
-				->join('service_types', 'service_types.id', 'asp_service_types.service_type_id')
-				->where('asp_service_types.asp_id', $activity->asp_id)
-				->groupBy('asp_service_types.service_type_id')
-				->get();
+			$serviceTypes = Activity::getAspServiceTypesByAmendment($activity->asp_id, $caseDate, $isMobile);
 			$boServiceTypeId = '';
 			$boServiceTypeData = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', 161)->first();
 			if ($boServiceTypeData) {
@@ -1470,6 +1454,7 @@ class ActivityController extends Controller {
 		}
 	}
 
+	// ON CHANGE SERVICE TYPE RATE CARD ON APPROVAL FORM
 	public function getServiceTypeRateCardDetail(Request $request) {
 		try {
 			$validator = Validator::make($request->all(), [
@@ -1506,21 +1491,15 @@ class ActivityController extends Controller {
 				$isMobile = 1;
 			}
 
-			$asp_service_type_data = AspServiceType::where('asp_id', $request->asp_id)
-				->where('service_type_id', $request->service_type_id)
-				->where('is_mobile', $isMobile)
-				->first();
-
-			//AMENDMENT CHANGES - DISABLED FOR NOW
-			// $asp_service_type_data = Activity::getActivityServiceRateCard($request->asp_id, $activity->case->date, $request->service_type_id, $isMobile);
-			// if (!$asp_service_type_data) {
-			// 	return response()->json([
-			// 		'success' => false,
-			// 		'errors' => [
-			// 			'ASP rate card not found',
-			// 		],
-			// 	]);
-			// }
+			$asp_service_type_data = Activity::getAspServiceRateCardByAmendment($request->asp_id, $activity->case->date, $request->service_type_id, $isMobile);
+			if (!$asp_service_type_data) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'ASP rate card not found',
+					],
+				]);
+			}
 
 			return response()->json([
 				'success' => true,
@@ -2227,10 +2206,7 @@ class ActivityController extends Controller {
 			$isMobile = 1;
 		}
 
-		$aspRateCard = AspServiceType::where('asp_id', $activity->asp_id)
-			->where('service_type_id', $activity->service_type_id)
-			->where('is_mobile', $isMobile)
-			->first();
+		$aspRateCard = Activity::getAspServiceRateCardByAmendment($activity->asp_id, $activity->case->date, $activity->service_type_id, $isMobile);
 		if ($aspRateCard) {
 			$rangeLimit = floatval($aspRateCard->range_limit);
 		}
@@ -2331,10 +2307,7 @@ class ActivityController extends Controller {
 					$isMobile = 1;
 				}
 
-				$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
-					->where('service_type_id', $activity->service_type_id)
-					->where('is_mobile', $isMobile)
-					->first();
+				$aspServiceType = Activity::getAspServiceRateCardByAmendment($activity->asp_id, $activity->case->date, $activity->service_type_id, $isMobile);
 
 				if ($aspServiceType) {
 					// $bo_km_charge = $activity->detail(172) ? $activity->detail(172)->value : 0;
@@ -2356,7 +2329,7 @@ class ActivityController extends Controller {
 						]);
 					}
 
-					$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id);
+					$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id, $activity->case->date);
 
 					$price = $response['asp_service_price'];
 
@@ -3177,6 +3150,7 @@ class ActivityController extends Controller {
 		return response()->json($this->data);
 	}
 
+	//GET SERVICE TYPE DETAIL BASED ON SERVICE TYPE CHANGE IN ASP DATA ENTRY
 	public function activityNewGetServiceTypeDetail($id, $activityId) {
 		try {
 			$serviceType = ServiceType::select([
@@ -3439,10 +3413,7 @@ class ActivityController extends Controller {
 				$isMobile = 1;
 			}
 
-			$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
-				->where('service_type_id', $request->asp_service_type_id)
-				->where('is_mobile', $isMobile)
-				->first();
+			$aspServiceType = Activity::getAspServiceRateCardByAmendment($activity->asp_id, $activity->case->date, $request->asp_service_type_id, $isMobile);
 			if ($aspServiceType) {
 				$range_limit = $aspServiceType->range_limit;
 				$waiting_charge_per_hour = $aspServiceType->waiting_charge_per_hour;
@@ -3778,7 +3749,7 @@ class ActivityController extends Controller {
 				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $activity->id, 'key_id' => $key_id, 'company_id' => 1], ['value' => $value]);
 			}
 
-			$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id);
+			$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id, $activity->case->date);
 			if (!$response['success']) {
 				return response()->json([
 					'success' => false,
@@ -5763,7 +5734,7 @@ class ActivityController extends Controller {
 				//MECHANICAL SERVICE GROUP
 				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
 					$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
-					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->date);
 					if ($is_bulk) {
 						//ASP Completed Data Entry - Waiting for BO Bulk Verification
 						$status_id = 5;
@@ -5814,6 +5785,7 @@ class ActivityController extends Controller {
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
 			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);
 			$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
+			$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
 
 			//WHATSAPP FLOW
 			if ($breakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
@@ -5836,8 +5808,7 @@ class ActivityController extends Controller {
 					} else {
 						//MECHANICAL SERVICE GROUP
 						if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
-							$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
-							$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+							$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->date);
 							if ($is_bulk) {
 								$statusId = 5; //ASP Completed Data Entry - Waiting for L1 Bulk Verification
 							} else {
@@ -5850,6 +5821,12 @@ class ActivityController extends Controller {
 								$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 							}
 						}
+
+						//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+						if (floatval($cc_total_km) <= 2 && $activity->is_asp_data_entry_done != 1) {
+							$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+						}
+
 					}
 
 				} else {
@@ -5859,14 +5836,19 @@ class ActivityController extends Controller {
 					} else {
 						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 					}
+
+					//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+					if (floatval($cc_total_km) <= 2 && $activity->is_asp_data_entry_done != 1) {
+						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+					}
+
 				}
 			} else {
 				// NORMAL FLOW
 
 				//MECHANICAL SERVICE GROUP
 				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
-					$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
-					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->date);
 					if ($is_bulk) {
 						$statusId = 5; //ASP Completed Data Entry - Waiting for L1 Bulk Verification
 					} else {
@@ -5879,6 +5861,12 @@ class ActivityController extends Controller {
 						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 					}
 				}
+
+				//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+				if (floatval($cc_total_km) <= 2 && $activity->is_asp_data_entry_done != 1) {
+					$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+				}
+
 			}
 
 			$activity->update([
@@ -5887,9 +5875,6 @@ class ActivityController extends Controller {
 				'onhold_released_at' => Carbon::now(),
 				'updated_by_id' => Auth::user()->id,
 			]);
-
-			//SAVE ACTIVITY REPORT FOR DASHBOARD
-			ActivityReport::saveReport($activity->id);
 
 			DB::commit();
 			return response()->json([

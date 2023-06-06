@@ -247,6 +247,7 @@ app.component('newActivityUpdateDetails', {
                                 self.showTowingAttachment = false;
                             }
                             self.activity = res.activity;
+                            self.range_limit = res.range_limit;
                             $scope.$apply()
                         }
                     })

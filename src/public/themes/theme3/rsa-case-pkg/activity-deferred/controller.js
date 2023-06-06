@@ -381,6 +381,7 @@ app.component('deferredActivityUpdate', {
                             }
                             self.activity = res.activity;
                             self.range_limit = res.range_limit;
+                            self.kmTravelledHideShow();
                             $scope.$apply()
                         }
                     })

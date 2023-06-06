@@ -248,6 +248,7 @@ app.component('newActivityUpdateDetails', {
                             }
                             self.activity = res.activity;
                             self.range_limit = res.range_limit;
+                            $scope.onChangeKmTravelled();
                             $scope.$apply()
                         }
                     })

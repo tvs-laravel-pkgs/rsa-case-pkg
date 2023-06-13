@@ -4,7 +4,7 @@ namespace Abs\RsaCasePkg;
 
 use Abs\HelperPkg\Traits\SeederTrait;
 use Abs\RsaCasePkg\Activity;
-use App\Jobs\ElkJobQueue;
+// use App\Jobs\ElkJobQueue;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Database\Eloquent\Model;
@@ -513,7 +513,7 @@ class ActivityReport extends Model {
 			$elkParams['id'] = $this->id;
 			$elkParams['index'] = 'activity_reports';
 			$elkParams['updatedDoc'] = $updateFields;
-			ElkJobQueue::dispatch($elkParams);
+			// ElkJobQueue::dispatch($elkParams);
 		}
 	}
 

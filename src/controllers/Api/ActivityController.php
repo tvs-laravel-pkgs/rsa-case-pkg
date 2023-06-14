@@ -38,6 +38,14 @@ class ActivityController extends Controller {
 		DB::beginTransaction();
 		try {
 
+			$errorMessages = [
+				'description.regex' => "Special characters are not allowed as the first character for description!",
+				'remarks.regex' => "Special characters are not allowed as the first character for remarks!",
+				'asp_start_location.regex' => "Special characters are not allowed as the first character for ASP start location!",
+				'asp_end_location.regex' => "Special characters are not allowed as the first character for ASP end location!",
+				'drop_location.regex' => "Special characters are not allowed as the first character for drop location!",
+			];
+
 			$validator = Validator::make($request->all(), [
 				// 'crm_activity_id' => 'required|numeric|unique:activities',
 				'crm_activity_id' => 'required|numeric',
@@ -115,11 +123,27 @@ class ActivityController extends Controller {
 				'cc_colleced_amount' => 'nullable|numeric',
 				'cc_not_collected_amount' => 'nullable|numeric',
 				'cc_total_km' => 'nullable|numeric',
-				'description' => 'nullable|string',
-				'remarks' => 'nullable|string',
+				'description' => [
+					'nullable',
+					'string',
+					'regex:/^[a-zA-Z0-9]/',
+				],
+				'remarks' => [
+					'nullable',
+					'string',
+					'regex:/^[a-zA-Z0-9]/',
+				],
 				'asp_reached_date' => 'nullable|date_format:"Y-m-d H:i:s"',
-				'asp_start_location' => 'nullable|string',
-				'asp_end_location' => 'nullable|string',
+				'asp_start_location' => [
+					'nullable',
+					'string',
+					'regex:/^[a-zA-Z0-9]/',
+				],
+				'asp_end_location' => [
+					'nullable',
+					'string',
+					'regex:/^[a-zA-Z0-9]/',
+				],
 				'onward_google_km' => 'nullable|numeric',
 				'dealer_google_km' => 'nullable|numeric',
 				'return_google_km' => 'nullable|numeric',
@@ -128,7 +152,11 @@ class ActivityController extends Controller {
 				'return_km' => 'nullable|numeric',
 				'drop_location_type' => 'nullable|string|max:24',
 				'drop_dealer' => 'nullable|string',
-				'drop_location' => 'nullable|string',
+				'drop_location' => [
+					'nullable',
+					'string',
+					'regex:/^[a-zA-Z0-9]/',
+				],
 				'drop_location_lat' => 'nullable|numeric',
 				'drop_location_long' => 'nullable|numeric',
 				'amount' => 'nullable|numeric',
@@ -146,7 +174,7 @@ class ActivityController extends Controller {
 				'amount_collected_from_customer' => 'nullable|numeric',
 				'amount_refused_by_customer' => 'nullable|numeric',
 				'fuel_charges' => 'nullable|numeric',
-			]);
+			], $errorMessages);
 
 			if ($validator->fails()) {
 				//SAVE ACTIVITY API LOG

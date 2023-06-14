@@ -49,11 +49,21 @@ class CaseController extends Controller {
 			// 	], $this->successStatus);
 			// }
 
+			$errorMessages = [
+				'description.regex' => "Special characters are not allowed as the first character for description!",
+				'bd_location.regex' => "Special characters are not allowed as the first character for BD location!",
+			];
+
 			$validator = Validator::make($request->all(), [
 				'number' => 'required|string|max:32',
 				'date' => 'required|date_format:"Y-m-d H:i:s"',
 				'data_filled_date' => 'required|date_format:"Y-m-d H:i:s"',
-				'description' => 'nullable|string|max:255',
+				'description' => [
+					'nullable',
+					'string',
+					'max:255',
+					'regex:/^[a-zA-Z0-9]/',
+				],
 				'status' => [
 					'required',
 					'string',
@@ -130,7 +140,11 @@ class CaseController extends Controller {
 				'km_during_breakdown' => 'nullable|numeric',
 				'bd_lat' => 'nullable',
 				'bd_long' => 'nullable',
-				'bd_location' => 'nullable|string',
+				'bd_location' => [
+					'nullable',
+					'string',
+					'regex:/^[a-zA-Z0-9]/',
+				],
 				'bd_city' => 'nullable|string|max:255',
 				'bd_state' => 'nullable|string|max:255',
 				'bd_location_type' => [
@@ -160,7 +174,7 @@ class CaseController extends Controller {
 				// 			$query->whereNull('deleted_at');
 				// 		}),
 				// ],
-			]);
+			], $errorMessages);
 
 			if ($validator->fails()) {
 				//SAVE CASE API LOG

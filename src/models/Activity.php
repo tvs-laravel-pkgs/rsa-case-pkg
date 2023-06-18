@@ -1385,7 +1385,10 @@ class Activity extends Model {
 
 							//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
 							if ($newActivity && $activity->asp && !empty($activity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
-								$activity->sendBreakdownAlertWhatsappSms();
+								//OTHER THAN TOW SERVICES || TOW SERVICE WITH CC KM GREATER THAN 2
+								if ($service_type->service_group_id != 3 || ($service_type->service_group_id == 3 && floatval($record['cc_total_km']) > 2)) {
+									$activity->sendBreakdownAlertWhatsappSms();
+								}
 							}
 
 							$breakdownAlertSent = self::breakdownAlertSent($activity->id);
@@ -1921,9 +1924,9 @@ class Activity extends Model {
 		$notCollectedCharges = !empty($this->detail(282)->value) ? numberFormatToDecimalConversion(floatval($this->detail(282)->value)) : 0; //CC NOT COLLECTED AMOUNT
 		$autoApprovalKm = config('rsa')['ACTIVITY_AUTO_APPROVAL_KM'];
 
-		if (empty($totalKm) || floatval($totalKm) < 1) {
+		if (empty($totalKm) || floatval($totalKm) <= 2) {
 			$response['success'] = false;
-			$response['error'] = "KM Travelled should be greater than or equal to one";
+			$response['error'] = "KM Travelled should be greater than 2";
 			return $response;
 		}
 

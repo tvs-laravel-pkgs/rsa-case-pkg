@@ -3238,6 +3238,34 @@ class ActivityController extends Controller {
 				]);
 			}
 
+			// Check if the first character is a special character
+			if (isset($request->remarks_not_collected) && !empty($request->remarks_not_collected) && !preg_match('/^[a-zA-Z0-9]/', $request->remarks_not_collected)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Special characters are not allowed as the first character for remarks for charges not collected!',
+					],
+				]);
+			}
+
+			if (isset($request->general_remarks) && !empty($request->general_remarks) && !preg_match('/^[a-zA-Z0-9]/', $request->general_remarks)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Special characters are not allowed as the first character for general remarks!',
+					],
+				]);
+			}
+
+			if (isset($request->comments) && !empty($request->comments) && !preg_match('/^[a-zA-Z0-9]/', $request->comments)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Special characters are not allowed as the first character for resolve comments!',
+					],
+				]);
+			}
+
 			$enteredServiceType = ServiceType::select([
 				'id',
 				'service_group_id',

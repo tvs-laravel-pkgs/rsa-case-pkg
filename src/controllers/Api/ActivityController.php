@@ -6,6 +6,7 @@ use Abs\RsaCasePkg\ActivityAspStatus;
 use Abs\RsaCasePkg\ActivityDetail;
 use Abs\RsaCasePkg\ActivityFinanceStatus;
 use Abs\RsaCasePkg\ActivityLog;
+use Abs\RsaCasePkg\ActivityReport;
 use Abs\RsaCasePkg\ActivityStatus;
 use Abs\RsaCasePkg\ActivityWhatsappLog;
 use Abs\RsaCasePkg\AspActivityRejectedReason;
@@ -487,7 +488,12 @@ class ActivityController extends Controller {
 					// TOW SERVICE
 					if ($service_type->service_group_id == 3) {
 						if ($asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
-							$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+							//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+							if (floatval($request->cc_total_km) <= 2 && $activity->is_asp_data_entry_done != 1) {
+								$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+							} else {
+								$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+							}
 						} else {
 							$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 						}
@@ -559,7 +565,12 @@ class ActivityController extends Controller {
 							// TOW SERVICE
 							if ($service_type->service_group_id == 3) {
 								if ($asp->is_corporate == 1 || $activity->towing_attachments_uploaded_on_whatsapp == 1 || $activity->is_asp_data_entry_done == 1) {
-									$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+									//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+									if (floatval($request->cc_total_km) <= 2 && $activity->is_asp_data_entry_done != 1) {
+										$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+									} else {
+										$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+									}
 								} else {
 									$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 								}
@@ -567,7 +578,12 @@ class ActivityController extends Controller {
 								$activity->status_id = 17; //ON HOLD
 							}
 						} elseif ($asp->is_corporate == 1) {
-							$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+							//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+							if (floatval($request->cc_total_km) <= 2 && $activity->is_asp_data_entry_done != 1) {
+								$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+							} else {
+								$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+							}
 						} else {
 							$activity->status_id = 17; //ON HOLD
 						}
@@ -637,7 +653,6 @@ class ActivityController extends Controller {
 
 			//RELEASE ONHOLD / ASP COMPLETED DATA ENTRY - WAITING FOR CALL CENTER DATA ENTRY ACTIVITIES WITH CLOSED OR CANCELLED CASES
 			if (($case->status_id == 4 || $case->status_id == 3) && ($activity->status_id == 17 || $activity->status_id == 26)) {
-
 				//WHATSAPP FLOW
 				if ($breakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 					// ROS SERVICE
@@ -678,6 +693,12 @@ class ActivityController extends Controller {
 									$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 								}
 							}
+
+							//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+							if (floatval($request->cc_total_km) <= 2 && $activity->is_asp_data_entry_done != 1) {
+								$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+							}
+
 							$activity->status_id = $statusId;
 							$activity->save();
 						}
@@ -689,6 +710,12 @@ class ActivityController extends Controller {
 						} else {
 							$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 						}
+
+						//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+						if (floatval($request->cc_total_km) <= 2 && $activity->is_asp_data_entry_done != 1) {
+							$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+						}
+
 						$activity->status_id = $statusId;
 						$activity->save();
 					}
@@ -712,6 +739,12 @@ class ActivityController extends Controller {
 							$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 						}
 					}
+
+					//IF CC TOTAL KM IS LESS THAN 2 KM THEN MOVE ACTIVITY TO ASP DATA ENTRY TO AVOID VERIFICATION DEFER
+					if (floatval($request->cc_total_km) <= 2 && $activity->is_asp_data_entry_done != 1) {
+						$statusId = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+					}
+
 					$activity->status_id = $statusId;
 					$activity->save();
 				}
@@ -733,9 +766,9 @@ class ActivityController extends Controller {
 			]);
 			$activity_log->imported_at = date('Y-m-d H:i:s');
 			$activity_log->asp_data_filled_at = date('Y-m-d H:i:s');
-			if ($request->asp_accepted_cc_details) {
-				$activity_log->bo_approved_at = date('Y-m-d H:i:s');
-			}
+			// if ($request->asp_accepted_cc_details) {
+			// 	$activity_log->bo_approved_at = date('Y-m-d H:i:s');
+			// }
 			//NEW
 			if (!$activity_log->exists) {
 				$activity_log->created_by_id = 72;
@@ -746,6 +779,9 @@ class ActivityController extends Controller {
 
 			//SAVE ACTIVITY API LOG
 			saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 120);
+
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
 
 			DB::commit();
 			return response()->json([
@@ -909,6 +945,9 @@ class ActivityController extends Controller {
 			//SAVE REJECT ACTIVITY API LOG
 			saveApiLog(104, NULL, $request->all(), $errors, NULL, 120);
 
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
+
 			DB::commit();
 			return response()->json([
 				'success' => true,
@@ -1052,12 +1091,18 @@ class ActivityController extends Controller {
 
 								$activity->updateApprovalLog();
 
+								//SAVE ACTIVITY REPORT FOR DASHBOARD
+								ActivityReport::saveReport($activity->id);
+
 								//SEND ASP ACCEPTANCE CHARGES WHATSAPP SMS TO ASP
 								$activity->sendAspAcceptanceChargesWhatsappSms();
 							} else {
 								$activity->status_id = 2; // ASP Rejected CC Details - Waiting for ASP Data Entry
 								$activity->is_asp_data_entry_done = NULL;
 								$activity->save();
+
+								//SAVE ACTIVITY REPORT FOR DASHBOARD
+								ActivityReport::saveReport($activity->id);
 
 								//SEND ASP CHARGES REJECTION WHATSAPP SMS TO ASP
 								$activity->sendAspChargesRejectionWhatsappSms();
@@ -1505,6 +1550,9 @@ class ActivityController extends Controller {
 			}
 			$activity->towing_attachments_uploaded_on_whatsapp = 1; //UPLOADED
 			$activity->save();
+
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
 
 			DB::commit();
 			return response()->json([

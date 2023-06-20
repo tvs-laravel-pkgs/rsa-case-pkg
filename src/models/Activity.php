@@ -1381,7 +1381,7 @@ class Activity extends Model {
 							}
 
 							$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
-							$enableWhatsappFlow = false; // CURRENTLY NOT REQUIRED FOR IMPORTED TICKETS SAID BY MR.HYDER
+							$enableWhatsappFlow = config('rsa')['ENABLE_FOR_WHATSAPP_FLOW_FOR_IMPORT']; // CURRENTLY NOT REQUIRED FOR IMPORTED TICKETS SAID BY MR.HYDER
 
 							//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
 							if ($newActivity && $activity->asp && !empty($activity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {

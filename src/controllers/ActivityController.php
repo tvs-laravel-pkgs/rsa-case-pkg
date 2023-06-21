@@ -5473,283 +5473,285 @@ class ActivityController extends Controller {
 			];
 			$activityReportHeaders = array_merge($activityReportHeaders, $rateCardHeaders);
 
-			$activityReports = $activityReports->groupBy('activity_reports.id')->get();
+			$activityReportAllData = [];
+			$activityReports->groupBy('activity_reports.id')->chunk(5000, function ($activityReportValues) use (&$activityReportAllData) {
+				$activityReportDetails = [];
+				foreach ($activityReportValues as $activityReportKey => $activityReportVal) {
 
-			$activityReportDetails = [];
-			foreach ($activityReports as $activityReportKey => $activityReportVal) {
-
-				if (!empty($activityReportVal->aspContactNumber)) {
-					if (Entrust::can('display-asp-number-in-activities')) {
-						$aspContactNumber = $activityReportVal->aspContactNumber;
+					if (!empty($activityReportVal->aspContactNumber)) {
+						if (Entrust::can('display-asp-number-in-activities')) {
+							$aspContactNumber = $activityReportVal->aspContactNumber;
+						} else {
+							$aspContactNumber = maskPhoneNumber($activityReportVal->aspContactNumber);
+						}
 					} else {
-						$aspContactNumber = maskPhoneNumber($activityReportVal->aspContactNumber);
+						$aspContactNumber = "--";
 					}
-				} else {
-					$aspContactNumber = "--";
+
+					if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities')) {
+						$activityReportDetails[] = [
+							$activityReportVal->activityId,
+							$activityReportVal->caseNumber,
+							$activityReportVal->caseDate,
+							$activityReportVal->crmActivityId,
+							$activityReportVal->activityNumber,
+							$activityReportVal->activityCreatedDate,
+							$activityReportVal->client,
+							$activityReportVal->aspName,
+							$activityReportVal->axaptaCode,
+							$activityReportVal->aspCode,
+							$aspContactNumber,
+							$activityReportVal->aspEmail,
+							$activityReportVal->aspHasGst,
+							$activityReportVal->workshopName,
+							$activityReportVal->rmName,
+							$activityReportVal->location,
+							$activityReportVal->district,
+							$activityReportVal->state,
+							$activityReportVal->vehicleRegistrationNumber,
+							$activityReportVal->membershipType,
+							$activityReportVal->vehicleModel,
+							$activityReportVal->vehicleMake,
+							$activityReportVal->caseStatus,
+							$activityReportVal->financeStatus,
+							$activityReportVal->finalApprovedBoServiceType,
+							$activityReportVal->portalStatus,
+							$activityReportVal->activityStatus,
+							$activityReportVal->remarks,
+							$activityReportVal->generalRemarks,
+							$activityReportVal->boComments,
+							$activityReportVal->deductionReason,
+							$activityReportVal->deferReason,
+							$activityReportVal->aspResolveComments,
+							$activityReportVal->invoiceNumber,
+							$activityReportVal->invoiceDate,
+							$activityReportVal->invoiceStatus,
+							$activityReportVal->transactionDate,
+							$activityReportVal->voucher,
+							$activityReportVal->tdsAmount,
+							$activityReportVal->paidAmount,
+							$activityReportVal->bdLat,
+							$activityReportVal->bdLong,
+							$activityReportVal->bdLocation,
+							$activityReportVal->bdCity,
+							$activityReportVal->bdState,
+							$activityReportVal->csr,
+							$activityReportVal->dropDealer,
+							$activityReportVal->dropLocation,
+							$activityReportVal->dropLocationLat,
+							$activityReportVal->dropLocationLong,
+							$activityReportVal->boKmTravelled,
+							$activityReportVal->boCollected,
+							$activityReportVal->boNotCollected,
+							$activityReportVal->boNetAmount,
+							$activityReportVal->boDeduction,
+							$activityReportVal->boAmount,
+						];
+					} else {
+						$activityReportDetails[] = [
+							$activityReportVal->activityId,
+							$activityReportVal->caseNumber,
+							$activityReportVal->caseDate,
+							$activityReportVal->caseSubmissionClosingDate,
+							$activityReportVal->caseSubmissionClosingDateRemarks,
+							$activityReportVal->crmActivityId,
+							$activityReportVal->activityNumber,
+							$activityReportVal->activityCreatedDate,
+							$activityReportVal->client,
+							$activityReportVal->customerName,
+							$activityReportVal->customerContactNumber,
+							$activityReportVal->aspName,
+							$activityReportVal->axaptaCode,
+							$activityReportVal->aspCode,
+							$aspContactNumber,
+							$activityReportVal->aspEmail,
+							$activityReportVal->aspHasGst,
+							$activityReportVal->aspType,
+							$activityReportVal->autoInvoice,
+							$activityReportVal->workshopName,
+							$activityReportVal->workshopType,
+							$activityReportVal->rmName,
+							$activityReportVal->location,
+							$activityReportVal->district,
+							$activityReportVal->state,
+							$activityReportVal->vehicleRegistrationNumber,
+							$activityReportVal->membershipType,
+							$activityReportVal->vehicleModel,
+							$activityReportVal->vehicleMake,
+							$activityReportVal->caseStatus,
+							$activityReportVal->financeStatus,
+							$activityReportVal->finalApprovedBoServiceType,
+							$activityReportVal->aspActivityRejectedReason,
+							$activityReportVal->aspPoAccepted,
+							$activityReportVal->aspPoRejectedReason,
+							$activityReportVal->portalStatus,
+							$activityReportVal->activityStatus,
+							$activityReportVal->activityDescription,
+							$activityReportVal->isTowingAttachmentMandatory,
+							$activityReportVal->towingAttachmentMandatoryBy,
+							$activityReportVal->remarks,
+							$activityReportVal->manualUploadingRemarks,
+							$activityReportVal->generalRemarks,
+							$activityReportVal->boComments,
+							$activityReportVal->deductionReason,
+							$activityReportVal->deferReason,
+							$activityReportVal->aspResolveComments,
+							$activityReportVal->isExceptional,
+							$activityReportVal->exceptionalReason,
+							$activityReportVal->invoiceNumber,
+							$activityReportVal->invoiceDate,
+							$activityReportVal->invoiceAmount,
+							$activityReportVal->invoiceStatus,
+							$activityReportVal->transactionDate,
+							$activityReportVal->voucher,
+							$activityReportVal->tdsAmount,
+							$activityReportVal->paidAmount,
+							$activityReportVal->bdLat,
+							$activityReportVal->bdLong,
+							$activityReportVal->bdLocation,
+							$activityReportVal->bdCity,
+							$activityReportVal->bdState,
+							$activityReportVal->csr,
+							$activityReportVal->locationType,
+							$activityReportVal->locationCategory,
+							$activityReportVal->slaAchievedDelayed,
+							$activityReportVal->ccWaitingTime,
+							$activityReportVal->ccTotalKm,
+							$activityReportVal->ccCollectedAmount,
+							$activityReportVal->ccNotCollectedAmount,
+							$activityReportVal->aspReachedDate,
+							$activityReportVal->aspStartLocation,
+							$activityReportVal->aspEndLocation,
+							$activityReportVal->onwardGoogleKm,
+							$activityReportVal->dealerGoogleKm,
+							$activityReportVal->returnGoogleKm,
+							$activityReportVal->onwardKm,
+							$activityReportVal->dealerKm,
+							$activityReportVal->returnKm,
+							$activityReportVal->dropLocationType,
+							$activityReportVal->dropDealer,
+							$activityReportVal->dropLocation,
+							$activityReportVal->dropLocationLat,
+							$activityReportVal->dropLocationLong,
+							$activityReportVal->amount,
+							$activityReportVal->paidTo,
+							$activityReportVal->paymentMode,
+							$activityReportVal->paymentReceiptNo,
+							$activityReportVal->ccServiceCharges,
+							$activityReportVal->ccMembershipCharges,
+							$activityReportVal->ccEatableItemsCharges,
+							$activityReportVal->ccTollCharges,
+							$activityReportVal->ccGreenTaxCharges,
+							$activityReportVal->ccBorderCharges,
+							$activityReportVal->ccOctroiCharges,
+							$activityReportVal->ccExcessCharges,
+							$activityReportVal->ccFuelCharges,
+							$activityReportVal->aspServiceCharges,
+							$activityReportVal->aspMembershipCharges,
+							$activityReportVal->aspEatableItemsCharges,
+							$activityReportVal->aspTollCharges,
+							$activityReportVal->aspGreenTaxCharges,
+							$activityReportVal->aspBorderCharges,
+							$activityReportVal->aspOctroiCharges,
+							$activityReportVal->aspExcessCharges,
+							$activityReportVal->aspFuelCharges,
+							$activityReportVal->boServiceCharges,
+							$activityReportVal->boMembershipCharges,
+							$activityReportVal->boEatableItemsCharges,
+							$activityReportVal->boTollCharges,
+							$activityReportVal->boGreenTaxCharges,
+							$activityReportVal->boBorderCharges,
+							$activityReportVal->boOctroiCharges,
+							$activityReportVal->boExcessCharges,
+							$activityReportVal->boFuelCharges,
+							$activityReportVal->aspWaitingTime,
+							$activityReportVal->boWaitingTime,
+							$activityReportVal->ccWaitingCharges,
+							$activityReportVal->aspWaitingCharges,
+							$activityReportVal->boWaitingCharges,
+							$activityReportVal->ccServiceType,
+							$activityReportVal->aspServiceType,
+							$activityReportVal->boServiceType,
+							$activityReportVal->boKmTravelled,
+							$activityReportVal->boCollected,
+							$activityReportVal->boNotCollected,
+							$activityReportVal->aspKmTravelled,
+							$activityReportVal->aspCollected,
+							$activityReportVal->aspNotCollected,
+							$activityReportVal->ccPoAmount,
+							$activityReportVal->ccNetAmount,
+							$activityReportVal->ccAmount,
+							$activityReportVal->boTaxAmount,
+							$activityReportVal->boNetAmount,
+							$activityReportVal->boPoAmount,
+							$activityReportVal->boDeduction,
+							$activityReportVal->boAmount,
+							$activityReportVal->aspPoAmount,
+							$activityReportVal->aspNetAmount,
+							$activityReportVal->aspAmount,
+						];
+					}
+
+					if (!Entrust::can('export-own-activities') && !Entrust::can('export-own-rm-asp-activities') && !Entrust::can('export-own-zm-asp-activities')) {
+
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->importedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->importedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenImportAndAspDataFilled;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->aspDataFilledDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->aspDataFilledBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAspDataFilledAndL1Deffered;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAspDataFilledAndL1Approved;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l1ApprovedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l1ApprovedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndInvoiceGenerated;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL2Deffered;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l2DefferedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l2DefferedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL2Approved;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l2ApprovedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l2ApprovedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndInvoiceGenerated;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL3Deffered;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndL3Deffered;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l3DefferedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l3DefferedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndL3Approved;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l3ApprovedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l3ApprovedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL3ApprovedAndInvoiceGenerated;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL4Deffered;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndL4Deffered;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL3ApprovedAndL4Deffered;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l4DefferedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l4DefferedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL3ApprovedAndL4Approved;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l4ApprovedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l4ApprovedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL4ApprovedAndInvoiceGenerated;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->invoiceGeneratedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->invoiceGeneratedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenInvoiceGeneratedAndAxaptaGenerated;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->axaptaGeneratedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->axaptaGeneratedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAxaptaGeneratedAndPaymentCompleted;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->paymentCompletedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->totalNoOfDays;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->source;
+					}
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->rangeLimit;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->belowRangePrice;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->aboveRangePrice;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->waitingChargePerHour;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->emptyReturnRangePrice;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->adjustmentType;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->adjustment;
 				}
+				$activityReportAllData = array_merge($activityReportAllData, $activityReportDetails);
+			});
 
-				if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities')) {
-					$activityReportDetails[] = [
-						$activityReportVal->activityId,
-						$activityReportVal->caseNumber,
-						$activityReportVal->caseDate,
-						$activityReportVal->crmActivityId,
-						$activityReportVal->activityNumber,
-						$activityReportVal->activityCreatedDate,
-						$activityReportVal->client,
-						$activityReportVal->aspName,
-						$activityReportVal->axaptaCode,
-						$activityReportVal->aspCode,
-						$aspContactNumber,
-						$activityReportVal->aspEmail,
-						$activityReportVal->aspHasGst,
-						$activityReportVal->workshopName,
-						$activityReportVal->rmName,
-						$activityReportVal->location,
-						$activityReportVal->district,
-						$activityReportVal->state,
-						$activityReportVal->vehicleRegistrationNumber,
-						$activityReportVal->membershipType,
-						$activityReportVal->vehicleModel,
-						$activityReportVal->vehicleMake,
-						$activityReportVal->caseStatus,
-						$activityReportVal->financeStatus,
-						$activityReportVal->finalApprovedBoServiceType,
-						$activityReportVal->portalStatus,
-						$activityReportVal->activityStatus,
-						$activityReportVal->remarks,
-						$activityReportVal->generalRemarks,
-						$activityReportVal->boComments,
-						$activityReportVal->deductionReason,
-						$activityReportVal->deferReason,
-						$activityReportVal->aspResolveComments,
-						$activityReportVal->invoiceNumber,
-						$activityReportVal->invoiceDate,
-						$activityReportVal->invoiceStatus,
-						$activityReportVal->transactionDate,
-						$activityReportVal->voucher,
-						$activityReportVal->tdsAmount,
-						$activityReportVal->paidAmount,
-						$activityReportVal->bdLat,
-						$activityReportVal->bdLong,
-						$activityReportVal->bdLocation,
-						$activityReportVal->bdCity,
-						$activityReportVal->bdState,
-						$activityReportVal->csr,
-						$activityReportVal->dropDealer,
-						$activityReportVal->dropLocation,
-						$activityReportVal->dropLocationLat,
-						$activityReportVal->dropLocationLong,
-						$activityReportVal->boKmTravelled,
-						$activityReportVal->boCollected,
-						$activityReportVal->boNotCollected,
-						$activityReportVal->boNetAmount,
-						$activityReportVal->boDeduction,
-						$activityReportVal->boAmount,
-					];
-				} else {
-					$activityReportDetails[] = [
-						$activityReportVal->activityId,
-						$activityReportVal->caseNumber,
-						$activityReportVal->caseDate,
-						$activityReportVal->caseSubmissionClosingDate,
-						$activityReportVal->caseSubmissionClosingDateRemarks,
-						$activityReportVal->crmActivityId,
-						$activityReportVal->activityNumber,
-						$activityReportVal->activityCreatedDate,
-						$activityReportVal->client,
-						$activityReportVal->customerName,
-						$activityReportVal->customerContactNumber,
-						$activityReportVal->aspName,
-						$activityReportVal->axaptaCode,
-						$activityReportVal->aspCode,
-						$aspContactNumber,
-						$activityReportVal->aspEmail,
-						$activityReportVal->aspHasGst,
-						$activityReportVal->aspType,
-						$activityReportVal->autoInvoice,
-						$activityReportVal->workshopName,
-						$activityReportVal->workshopType,
-						$activityReportVal->rmName,
-						$activityReportVal->location,
-						$activityReportVal->district,
-						$activityReportVal->state,
-						$activityReportVal->vehicleRegistrationNumber,
-						$activityReportVal->membershipType,
-						$activityReportVal->vehicleModel,
-						$activityReportVal->vehicleMake,
-						$activityReportVal->caseStatus,
-						$activityReportVal->financeStatus,
-						$activityReportVal->finalApprovedBoServiceType,
-						$activityReportVal->aspActivityRejectedReason,
-						$activityReportVal->aspPoAccepted,
-						$activityReportVal->aspPoRejectedReason,
-						$activityReportVal->portalStatus,
-						$activityReportVal->activityStatus,
-						$activityReportVal->activityDescription,
-						$activityReportVal->isTowingAttachmentMandatory,
-						$activityReportVal->towingAttachmentMandatoryBy,
-						$activityReportVal->remarks,
-						$activityReportVal->manualUploadingRemarks,
-						$activityReportVal->generalRemarks,
-						$activityReportVal->boComments,
-						$activityReportVal->deductionReason,
-						$activityReportVal->deferReason,
-						$activityReportVal->aspResolveComments,
-						$activityReportVal->isExceptional,
-						$activityReportVal->exceptionalReason,
-						$activityReportVal->invoiceNumber,
-						$activityReportVal->invoiceDate,
-						$activityReportVal->invoiceAmount,
-						$activityReportVal->invoiceStatus,
-						$activityReportVal->transactionDate,
-						$activityReportVal->voucher,
-						$activityReportVal->tdsAmount,
-						$activityReportVal->paidAmount,
-						$activityReportVal->bdLat,
-						$activityReportVal->bdLong,
-						$activityReportVal->bdLocation,
-						$activityReportVal->bdCity,
-						$activityReportVal->bdState,
-						$activityReportVal->csr,
-						$activityReportVal->locationType,
-						$activityReportVal->locationCategory,
-						$activityReportVal->slaAchievedDelayed,
-						$activityReportVal->ccWaitingTime,
-						$activityReportVal->ccTotalKm,
-						$activityReportVal->ccCollectedAmount,
-						$activityReportVal->ccNotCollectedAmount,
-						$activityReportVal->aspReachedDate,
-						$activityReportVal->aspStartLocation,
-						$activityReportVal->aspEndLocation,
-						$activityReportVal->onwardGoogleKm,
-						$activityReportVal->dealerGoogleKm,
-						$activityReportVal->returnGoogleKm,
-						$activityReportVal->onwardKm,
-						$activityReportVal->dealerKm,
-						$activityReportVal->returnKm,
-						$activityReportVal->dropLocationType,
-						$activityReportVal->dropDealer,
-						$activityReportVal->dropLocation,
-						$activityReportVal->dropLocationLat,
-						$activityReportVal->dropLocationLong,
-						$activityReportVal->amount,
-						$activityReportVal->paidTo,
-						$activityReportVal->paymentMode,
-						$activityReportVal->paymentReceiptNo,
-						$activityReportVal->ccServiceCharges,
-						$activityReportVal->ccMembershipCharges,
-						$activityReportVal->ccEatableItemsCharges,
-						$activityReportVal->ccTollCharges,
-						$activityReportVal->ccGreenTaxCharges,
-						$activityReportVal->ccBorderCharges,
-						$activityReportVal->ccOctroiCharges,
-						$activityReportVal->ccExcessCharges,
-						$activityReportVal->ccFuelCharges,
-						$activityReportVal->aspServiceCharges,
-						$activityReportVal->aspMembershipCharges,
-						$activityReportVal->aspEatableItemsCharges,
-						$activityReportVal->aspTollCharges,
-						$activityReportVal->aspGreenTaxCharges,
-						$activityReportVal->aspBorderCharges,
-						$activityReportVal->aspOctroiCharges,
-						$activityReportVal->aspExcessCharges,
-						$activityReportVal->aspFuelCharges,
-						$activityReportVal->boServiceCharges,
-						$activityReportVal->boMembershipCharges,
-						$activityReportVal->boEatableItemsCharges,
-						$activityReportVal->boTollCharges,
-						$activityReportVal->boGreenTaxCharges,
-						$activityReportVal->boBorderCharges,
-						$activityReportVal->boOctroiCharges,
-						$activityReportVal->boExcessCharges,
-						$activityReportVal->boFuelCharges,
-						$activityReportVal->aspWaitingTime,
-						$activityReportVal->boWaitingTime,
-						$activityReportVal->ccWaitingCharges,
-						$activityReportVal->aspWaitingCharges,
-						$activityReportVal->boWaitingCharges,
-						$activityReportVal->ccServiceType,
-						$activityReportVal->aspServiceType,
-						$activityReportVal->boServiceType,
-						$activityReportVal->boKmTravelled,
-						$activityReportVal->boCollected,
-						$activityReportVal->boNotCollected,
-						$activityReportVal->aspKmTravelled,
-						$activityReportVal->aspCollected,
-						$activityReportVal->aspNotCollected,
-						$activityReportVal->ccPoAmount,
-						$activityReportVal->ccNetAmount,
-						$activityReportVal->ccAmount,
-						$activityReportVal->boTaxAmount,
-						$activityReportVal->boNetAmount,
-						$activityReportVal->boPoAmount,
-						$activityReportVal->boDeduction,
-						$activityReportVal->boAmount,
-						$activityReportVal->aspPoAmount,
-						$activityReportVal->aspNetAmount,
-						$activityReportVal->aspAmount,
-					];
-				}
-
-				if (!Entrust::can('export-own-activities') && !Entrust::can('export-own-rm-asp-activities') && !Entrust::can('export-own-zm-asp-activities')) {
-
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->importedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->importedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenImportAndAspDataFilled;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->aspDataFilledDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->aspDataFilledBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAspDataFilledAndL1Deffered;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAspDataFilledAndL1Approved;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l1ApprovedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l1ApprovedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndInvoiceGenerated;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL2Deffered;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l2DefferedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l2DefferedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL2Approved;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l2ApprovedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l2ApprovedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndInvoiceGenerated;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL3Deffered;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndL3Deffered;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l3DefferedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l3DefferedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndL3Approved;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l3ApprovedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l3ApprovedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL3ApprovedAndInvoiceGenerated;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL4Deffered;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndL4Deffered;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL3ApprovedAndL4Deffered;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l4DefferedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l4DefferedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL3ApprovedAndL4Approved;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l4ApprovedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l4ApprovedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL4ApprovedAndInvoiceGenerated;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->invoiceGeneratedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->invoiceGeneratedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenInvoiceGeneratedAndAxaptaGenerated;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->axaptaGeneratedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->axaptaGeneratedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAxaptaGeneratedAndPaymentCompleted;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->paymentCompletedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->totalNoOfDays;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->source;
-				}
-				$activityReportDetails[$activityReportKey][] = $activityReportVal->rangeLimit;
-				$activityReportDetails[$activityReportKey][] = $activityReportVal->belowRangePrice;
-				$activityReportDetails[$activityReportKey][] = $activityReportVal->aboveRangePrice;
-				$activityReportDetails[$activityReportKey][] = $activityReportVal->waitingChargePerHour;
-				$activityReportDetails[$activityReportKey][] = $activityReportVal->emptyReturnRangePrice;
-				$activityReportDetails[$activityReportKey][] = $activityReportVal->adjustmentType;
-				$activityReportDetails[$activityReportKey][] = $activityReportVal->adjustment;
-			}
-
-			Excel::create('Activity Status Report', function ($excel) use ($summary, $activityReportHeaders, $activityReportDetails, $statusIds, $summaryPeriod) {
+			Excel::create('Activity Status Report', function ($excel) use ($summary, $activityReportHeaders, $activityReportAllData, $statusIds, $summaryPeriod) {
 				$excel->sheet('Summary', function ($sheet) use ($summary, $statusIds, $summaryPeriod) {
 					$sheet->fromArray($summary, NULL, 'A1');
 					$sheet->row(1, $summaryPeriod);
@@ -5774,8 +5776,8 @@ class ActivityController extends Controller {
 					});
 				});
 
-				$excel->sheet('Activity Informations', function ($sheet) use ($activityReportHeaders, $activityReportDetails) {
-					$sheet->fromArray($activityReportDetails, NULL, 'A1');
+				$excel->sheet('Activity Informations', function ($sheet) use ($activityReportHeaders, $activityReportAllData) {
+					$sheet->fromArray($activityReportAllData, NULL, 'A1');
 					$sheet->row(1, $activityReportHeaders);
 					$sheet->row(1, function ($row) {
 						$row->setBackground('#CCC9C9');

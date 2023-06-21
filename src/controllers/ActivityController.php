@@ -2677,6 +2677,30 @@ class ActivityController extends Controller {
 				]);
 			}
 
+			$errorMessages = [
+				'defer_reason.regex' => "Special characters are not allowed as the first character for defer reason!",
+			];
+
+			$validator = Validator::make($request->all(), [
+				'activity_id' => [
+					'required',
+					'integer',
+					'exists:activities,id',
+				],
+				'defer_reason' => [
+					'required',
+					'string',
+					'regex:/^[a-zA-Z0-9]/',
+				],
+			], $errorMessages);
+
+			if ($validator->fails()) {
+				return response()->json([
+					'success' => false,
+					'errors' => $validator->errors()->all(),
+				]);
+			}
+
 			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24, 5, 8, 18, 20, 23])
 				->where('id', $request->activity_id)
 				->first();

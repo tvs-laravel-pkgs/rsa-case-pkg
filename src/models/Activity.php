@@ -732,11 +732,14 @@ class Activity extends Model {
 					$errorMessages = [
 						'case_description.regex' => "Special characters are not allowed as the first character for case description!",
 						'bd_location.regex' => "Special characters are not allowed as the first character for BD location!",
+						'asp_rejected_cc_details_reason.regex' => "Special characters are not allowed as the first character for asp rejected cc details reason!",
+						'asp_activity_rejected_reason.regex' => "Special characters are not allowed as the first character for asp activity rejected reason!",
 						'activity_description.regex' => "Special characters are not allowed as the first character for activity description!",
 						'activity_remarks.regex' => "Special characters are not allowed as the first character for activity remarks!",
 						'asp_start_location.regex' => "Special characters are not allowed as the first character for ASP start location!",
 						'asp_end_location.regex' => "Special characters are not allowed as the first character for ASP end location!",
 						'drop_location.regex' => "Special characters are not allowed as the first character for drop location!",
+						'manual_uploading_remarks.regex' => "Special characters are not allowed as the first character for manual uploading remarks!",
 					];
 
 					$validator = Validator::make($record, [
@@ -891,7 +894,11 @@ class Activity extends Model {
 								}),
 						],
 						'asp_accepted_cc_details' => 'required|numeric',
-						'asp_rejected_cc_details_reason' => 'nullable|string',
+						'asp_rejected_cc_details_reason' => [
+							'nullable',
+							'string',
+							'regex:/^[a-zA-Z0-9]/',
+						],
 						'finance_status' => [
 							'required',
 							'string',
@@ -915,6 +922,7 @@ class Activity extends Model {
 							'nullable',
 							'string',
 							'max:191',
+							'regex:/^[a-zA-Z0-9]/',
 							// Rule::exists('asp_activity_rejected_reasons', 'name')
 							// 	->where(function ($query) {
 							// 		$query->whereNull('deleted_at');
@@ -984,7 +992,11 @@ class Activity extends Model {
 						'border_charges' => 'nullable|numeric',
 						// 'octroi_charges' => 'nullable|numeric',
 						'excess_charges' => 'nullable|numeric',
-						'manual_uploading_remarks' => 'required|string',
+						'manual_uploading_remarks' => [
+							'required',
+							'string',
+							'regex:/^[a-zA-Z0-9]/',
+						],
 					], $errorMessages);
 
 					if ($validator->fails()) {

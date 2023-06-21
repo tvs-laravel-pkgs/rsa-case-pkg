@@ -39,6 +39,8 @@ class ActivityController extends Controller {
 		try {
 
 			$errorMessages = [
+				'reason_for_asp_rejected_cc_details.regex' => "Special characters are not allowed as the first character for reason for asp rejected cc details!",
+				'asp_activity_rejected_reason.regex' => "Special characters are not allowed as the first character for asp activity rejected reason!",
 				'description.regex' => "Special characters are not allowed as the first character for description!",
 				'remarks.regex' => "Special characters are not allowed as the first character for remarks!",
 				'asp_start_location.regex' => "Special characters are not allowed as the first character for ASP start location!",
@@ -78,7 +80,11 @@ class ActivityController extends Controller {
 						}),
 				],
 				'asp_accepted_cc_details' => 'required|numeric',
-				'reason_for_asp_rejected_cc_details' => 'nullable|string',
+				'reason_for_asp_rejected_cc_details' => [
+					'nullable',
+					'string',
+					'regex:/^[a-zA-Z0-9]/',
+				],
 				'finance_status' => [
 					'required',
 					'string',
@@ -104,6 +110,7 @@ class ActivityController extends Controller {
 					'nullable',
 					'string',
 					'max:191',
+					'regex:/^[a-zA-Z0-9]/',
 					// Rule::exists('asp_activity_rejected_reasons', 'name')
 					// 	->where(function ($query) {
 					// 		$query->whereNull('deleted_at');

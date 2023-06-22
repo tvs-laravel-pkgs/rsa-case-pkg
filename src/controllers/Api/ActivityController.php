@@ -39,8 +39,8 @@ class ActivityController extends Controller {
 		try {
 
 			$errorMessages = [
-				'reason_for_asp_rejected_cc_details.regex' => "Special characters are not allowed as the first character for reason for asp rejected CC details!",
-				'asp_activity_rejected_reason.regex' => "Special characters are not allowed as the first character for asp activity rejected reason!",
+				'reason_for_asp_rejected_cc_details.regex' => "Special characters are not allowed as the first character for reason for ASP rejected CC details!",
+				'asp_activity_rejected_reason.regex' => "Special characters are not allowed as the first character for ASP activity rejected reason!",
 				'description.regex' => "Special characters are not allowed as the first character for description!",
 				'remarks.regex' => "Special characters are not allowed as the first character for remarks!",
 				'asp_start_location.regex' => "Special characters are not allowed as the first character for ASP start location!",
@@ -937,10 +937,17 @@ class ActivityController extends Controller {
 		$errors = [];
 		DB::beginTransaction();
 		try {
+			$errorMessages = [
+				'asp_po_rejected_reason.regex' => "Special characters are not allowed as the first character for ASP PO rejected reason!",
+			];
 			$validator = Validator::make($request->all(), [
 				'crm_activity_id' => 'required|numeric|exists:activities,crm_activity_id',
-				'asp_po_rejected_reason' => 'required|string',
-			]);
+				'asp_po_rejected_reason' => [
+					'required',
+					'string',
+					'regex:/^[a-zA-Z0-9]/',
+				],
+			], $errorMessages);
 
 			if ($validator->fails()) {
 				//SAVE REJECT ACTIVITY API LOG
@@ -973,7 +980,7 @@ class ActivityController extends Controller {
 			}
 
 			$activity->asp_po_accepted = 0;
-			$activity->status_id = 4;
+			$activity->status_id = 4; //ASP Rejected Invoice Amount - Waiting for ASP Data Entry
 			$activity->asp_po_rejected_reason = $request->asp_po_rejected_reason;
 			$activity->save();
 

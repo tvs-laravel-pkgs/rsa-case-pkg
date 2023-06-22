@@ -732,8 +732,8 @@ class Activity extends Model {
 					$errorMessages = [
 						'case_description.regex' => "Special characters are not allowed as the first character for case description!",
 						'bd_location.regex' => "Special characters are not allowed as the first character for BD location!",
-						'asp_rejected_cc_details_reason.regex' => "Special characters are not allowed as the first character for asp rejected cc details reason!",
-						'asp_activity_rejected_reason.regex' => "Special characters are not allowed as the first character for asp activity rejected reason!",
+						'asp_rejected_cc_details_reason.regex' => "Special characters are not allowed as the first character for ASP rejected cc details reason!",
+						'asp_activity_rejected_reason.regex' => "Special characters are not allowed as the first character for ASP activity rejected reason!",
 						'activity_description.regex' => "Special characters are not allowed as the first character for activity description!",
 						'activity_remarks.regex' => "Special characters are not allowed as the first character for activity remarks!",
 						'asp_start_location.regex' => "Special characters are not allowed as the first character for ASP start location!",

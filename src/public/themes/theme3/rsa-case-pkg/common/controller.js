@@ -430,7 +430,6 @@ app.component('billingDetails', {
                         ).then(function(response) {
                             $(".loader-type-2").addClass("loader-hide");
                             $('.approve_btn').button('reset');
-                            $("#confirm-ticket-modal").modal("hide");
 
                             if (!response.data.success) {
                                 var errors = '';
@@ -440,6 +439,7 @@ app.component('billingDetails', {
                                 custom_noty('error', errors);
                                 return;
                             } else {
+                                $("#confirm-ticket-modal").modal("hide");
                                 custom_noty('success', response.data.message);
                                 setTimeout(function() {
                                     $location.path('/rsa-case-pkg/activity-verification/list');
@@ -473,7 +473,6 @@ app.component('billingDetails', {
                         ).then(function(response) {
                             $(".loader-type-2").addClass("loader-hide");
                             $('.differ_btn').button('reset');
-                            $("#reject-modal").modal("hide");
                             if (!response.data.success) {
                                 var errors = '';
                                 for (var i in response.data.errors) {
@@ -482,6 +481,7 @@ app.component('billingDetails', {
                                 custom_noty('error', errors);
                                 return;
                             } else {
+                                $("#reject-modal").modal("hide");
                                 custom_noty('success', response.data.message);
                                 setTimeout(function() {
                                     $location.path('/rsa-case-pkg/activity-verification/list');

@@ -262,6 +262,21 @@ app.component('newActivityUpdateDetails', {
         $.validator.addMethod('imageFileSize', function(value, element, param) {
             return this.optional(element) || (element.files[0].size <= param)
         });
+
+        // Check if the first character is a special character
+        jQuery.validator.addMethod("checkFirstCharAsSpecialChar", function(value, element) {
+            const enteredText = $(element).val();
+            const regex = /^[^a-zA-Z0-9]/;
+            if (regex.test(enteredText)) {
+                return false;
+            }
+            return true;
+        }, "Special characters are not allowed as the first character!");
+
+        jQuery.validator.addClassRules("checkFirstCharAsSpecialCharClass", {
+            checkFirstCharAsSpecialChar: true
+        });
+
         //Jquery Validation
         var form_id = '#new-tickect-form';
         var v = jQuery(form_id).validate({

@@ -39,7 +39,7 @@ class ActivityController extends Controller {
 		try {
 
 			$errorMessages = [
-				'reason_for_asp_rejected_cc_details.regex' => "Special characters are not allowed as the first character for reason for asp rejected cc details!",
+				'reason_for_asp_rejected_cc_details.regex' => "Special characters are not allowed as the first character for reason for asp rejected CC details!",
 				'asp_activity_rejected_reason.regex' => "Special characters are not allowed as the first character for asp activity rejected reason!",
 				'description.regex' => "Special characters are not allowed as the first character for description!",
 				'remarks.regex' => "Special characters are not allowed as the first character for remarks!",

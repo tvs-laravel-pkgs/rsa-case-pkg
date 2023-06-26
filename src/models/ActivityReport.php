@@ -20,7 +20,7 @@ class ActivityReport extends Model {
 	];
 
 	protected $table = 'activity_reports';
-	public $timestamps = true;
+	public $timestamps = false;
 
 	// Relationships --------------------------------------------------------------
 

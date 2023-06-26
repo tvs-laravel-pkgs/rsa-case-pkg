@@ -5986,6 +5986,9 @@ class ActivityController extends Controller {
 				'updated_by_id' => Auth::user()->id,
 			]);
 
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
+
 			DB::commit();
 			return response()->json([
 				'success' => true,

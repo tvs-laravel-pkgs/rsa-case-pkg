@@ -59,7 +59,7 @@
                 <table id="invoice_table" class="display table dataTable row_linked_table">
                     <thead>
                         <tr>
-                            <th ng-if="$ctrl.type_id != 3"><input type="checkbox" class="check_all" id="select_all_checkbox" autocomplete="off"></th>
+                            <th ng-if="$ctrl.hasPermission('cancel-asp-unpaid-invoices') && $ctrl.type_id != 3"><input type="checkbox" class="check_all" id="select_all_checkbox" autocomplete="off"></th>
                             <th>Invoice Number</th>
                             <th>Invoice Date</th>
                             <th>ASP Code</th>

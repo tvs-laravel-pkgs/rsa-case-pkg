@@ -48,7 +48,7 @@ app.component('invoiceList', {
             invoice_filter_url + '/' + $routeParams.type_id
         ).then(function(response) {
             self.extras = response.data.extras;
-            if (self.type_id != 3) {
+            if (self.hasPermission('cancel-asp-unpaid-invoices') && self.type_id != 3) {
                 var col1 = [
                     { data: 'action', searchable: false },
                 ];

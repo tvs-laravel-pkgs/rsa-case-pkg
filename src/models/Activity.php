@@ -797,8 +797,8 @@ class Activity extends Model {
 								}),
 						],
 						'km_during_breakdown' => 'nullable|numeric',
-						'bd_lat' => 'nullable',
-						'bd_long' => 'nullable',
+						'bd_lat' => 'nullable|numeric',
+						'bd_long' => 'nullable|numeric',
 						'bd_location' => [
 							'nullable',
 							'string',

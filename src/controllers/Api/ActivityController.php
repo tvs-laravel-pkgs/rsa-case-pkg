@@ -938,7 +938,8 @@ class ActivityController extends Controller {
 			}
 
 			$activity->asp_po_accepted = 0;
-			$activity->status_id = 4;
+			$activity->status_id = 4; //ASP Rejected Invoice Amount - Waiting for ASP Data Entry
+			$activity->is_asp_data_entry_done = NULL;
 			$activity->asp_po_rejected_reason = $request->asp_po_rejected_reason;
 			$activity->save();
 

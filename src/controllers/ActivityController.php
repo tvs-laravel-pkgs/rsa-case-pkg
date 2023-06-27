@@ -7080,7 +7080,7 @@ class ActivityController extends Controller {
 				// ASP || ASP FINANCE ADMIN
 				if (Entrust::can('own-asp-activity-search')) {
 					//ASP Rejected CC Details - Waiting for ASP Data Entry || On Hold
-					if ($activity->status_id == 2 || $activity->status_id == 17) {
+					if ($activity->status_id == 2 || $activity->status_id == 4 || $activity->status_id == 17) {
 						$url = '';
 						//CASE WITH EXTENSION
 						if (!empty($activity->caseSubmissionClosingDate) && Carbon::parse($activity->caseSubmissionClosingDate)->format('Y-m-d H:i:s') >= $today) {
@@ -7103,7 +7103,7 @@ class ActivityController extends Controller {
 				// RM || ZM
 				if (Entrust::can('own-rm-asp-activity-search') || Entrust::can('own-zm-asp-activity-search')) {
 					//ASP Rejected CC Details - Waiting for ASP Data Entry || On Hold
-					if ($activity->status_id == 2 || $activity->status_id == 17) {
+					if ($activity->status_id == 2 || $activity->status_id == 4 || $activity->status_id == 17) {
 						$url = '';
 						//CASE WITH EXTENSION - DISABLED FOR NOW SAID BY HYDER 04 APRIL 2023
 						// if (!empty($activity->caseSubmissionClosingDate) && Carbon::parse($activity->caseSubmissionClosingDate)->format('Y-m-d H:i:s') >= $today) {

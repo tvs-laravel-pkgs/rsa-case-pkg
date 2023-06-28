@@ -729,12 +729,30 @@ class Activity extends Model {
 					// dd($record);
 					$save_eligible = true;
 
+					$errorMessages = [
+						'case_description.regex' => "Special characters are not allowed as the first character for case description!",
+						'bd_location.regex' => "Special characters are not allowed as the first character for BD location!",
+						'asp_rejected_cc_details_reason.regex' => "Special characters are not allowed as the first character for ASP rejected cc details reason!",
+						'asp_activity_rejected_reason.regex' => "Special characters are not allowed as the first character for ASP activity rejected reason!",
+						'activity_description.regex' => "Special characters are not allowed as the first character for activity description!",
+						'activity_remarks.regex' => "Special characters are not allowed as the first character for activity remarks!",
+						'asp_start_location.regex' => "Special characters are not allowed as the first character for ASP start location!",
+						'asp_end_location.regex' => "Special characters are not allowed as the first character for ASP end location!",
+						'drop_location.regex' => "Special characters are not allowed as the first character for drop location!",
+						'manual_uploading_remarks.regex' => "Special characters are not allowed as the first character for manual uploading remarks!",
+					];
+
 					$validator = Validator::make($record, [
 						//CASE
 						'case_number' => 'required|string|max:32',
 						'case_date' => 'required',
 						'case_data_filled_date' => 'required',
-						'case_description' => 'nullable|string|max:255',
+						'case_description' => [
+							'nullable',
+							'string',
+							'max:255',
+							'regex:/^[a-zA-Z0-9]/',
+						],
 						'status' => [
 							'required',
 							'string',
@@ -807,9 +825,13 @@ class Activity extends Model {
 								}),
 						],
 						'km_during_breakdown' => 'nullable|numeric',
-						'bd_lat' => 'nullable',
-						'bd_long' => 'nullable',
-						'bd_location' => 'nullable|string',
+						'bd_lat' => 'nullable|numeric',
+						'bd_long' => 'nullable|numeric',
+						'bd_location' => [
+							'nullable',
+							'string',
+							'regex:/^[a-zA-Z0-9]/',
+						],
 						'bd_city' => 'nullable|string|max:255',
 						'bd_state' => 'nullable|string|max:255',
 						'bd_location_type' => [
@@ -872,7 +894,11 @@ class Activity extends Model {
 								}),
 						],
 						'asp_accepted_cc_details' => 'required|numeric',
-						'asp_rejected_cc_details_reason' => 'nullable|string',
+						'asp_rejected_cc_details_reason' => [
+							'nullable',
+							'string',
+							'regex:/^[a-zA-Z0-9]/',
+						],
 						'finance_status' => [
 							'required',
 							'string',
@@ -896,6 +922,7 @@ class Activity extends Model {
 							'nullable',
 							'string',
 							'max:191',
+							'regex:/^[a-zA-Z0-9]/',
 							// Rule::exists('asp_activity_rejected_reasons', 'name')
 							// 	->where(function ($query) {
 							// 		$query->whereNull('deleted_at');
@@ -915,11 +942,29 @@ class Activity extends Model {
 						'cc_colleced_amount' => 'nullable|numeric',
 						'cc_not_collected_amount' => 'nullable|numeric',
 						'cc_total_km' => 'nullable|numeric',
-						'activity_description' => 'nullable|string|max:191',
-						'activity_remarks' => 'nullable|string|max:255',
+						'activity_description' => [
+							'nullable',
+							'string',
+							'max:191',
+							'regex:/^[a-zA-Z0-9]/',
+						],
+						'activity_remarks' => [
+							'nullable',
+							'string',
+							'max:255',
+							'regex:/^[a-zA-Z0-9]/',
+						],
 						'asp_reached_date' => 'nullable',
-						'asp_start_location' => 'nullable|string',
-						'asp_end_location' => 'nullable|string',
+						'asp_start_location' => [
+							'nullable',
+							'string',
+							'regex:/^[a-zA-Z0-9]/',
+						],
+						'asp_end_location' => [
+							'nullable',
+							'string',
+							'regex:/^[a-zA-Z0-9]/',
+						],
 						'onward_google_km' => 'nullable|numeric',
 						'dealer_google_km' => 'nullable|numeric',
 						'return_google_km' => 'nullable|numeric',
@@ -928,7 +973,11 @@ class Activity extends Model {
 						'return_km' => 'nullable|numeric',
 						'drop_location_type' => 'nullable|string|max:24',
 						'drop_dealer' => 'nullable|string',
-						'drop_location' => 'nullable|string',
+						'drop_location' => [
+							'nullable',
+							'string',
+							'regex:/^[a-zA-Z0-9]/',
+						],
 						'drop_location_lat' => 'nullable|numeric',
 						'drop_location_long' => 'nullable|numeric',
 						'amount' => 'nullable|numeric',
@@ -943,8 +992,12 @@ class Activity extends Model {
 						'border_charges' => 'nullable|numeric',
 						// 'octroi_charges' => 'nullable|numeric',
 						'excess_charges' => 'nullable|numeric',
-						'manual_uploading_remarks' => 'required|string',
-					]);
+						'manual_uploading_remarks' => [
+							'required',
+							'string',
+							'regex:/^[a-zA-Z0-9]/',
+						],
+					], $errorMessages);
 
 					if ($validator->fails()) {
 						$status['errors'] = $validator->errors()->all();

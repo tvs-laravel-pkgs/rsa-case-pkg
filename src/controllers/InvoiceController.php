@@ -346,15 +346,30 @@ class InvoiceController extends Controller {
 	}
 
 	public function export(Request $request) {
+		// dd($request->all());
 		try {
 			ini_set('max_execution_time', 0);
 			ini_set('display_errors', 1);
-			ini_set('memory_limit', '5000M');
+			ini_set('memory_limit', '-1');
+			ob_end_clean();
+			ob_start();
 
-			if (empty($request->invoice_ids)) {
-				return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/1')->with('error', 'Please select atleast one invoice');
+			if (!isset($request->typeId) || (isset($request->typeId) && empty($request->typeId))) {
+				return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/1')->with('error', 'Type not found');
 			}
-			$invoice_ids = $request->invoice_ids;
+
+			$invoiceStatusId = NULL;
+			//PAYMENT PENDING
+			if ($request->typeId == '1') {
+				$invoiceStatusId = 1;
+			} elseif ($request->typeId == '2') {
+				// PAYMENT INPROGRESS
+				$invoiceStatusId = 3;
+			}
+
+			$periods = getStartDateAndEndDate($request->exportPeriod);
+			$startDate = $periods['start_date'];
+			$endDate = $periods['end_date'];
 
 			$activities = Activity::select(
 				'activities.*',
@@ -431,19 +446,33 @@ class InvoiceController extends Controller {
 					$join->on('bo_tax_total.activity_id', 'activities.id')
 						->where('bo_tax_total.key_id', 179); //BO TAX AMOUNT
 				})
-				->whereIn('Invoices.id', $invoice_ids)
+				->where(function ($query) use ($startDate, $endDate) {
+					if (!empty($startDate) && !empty($endDate)) {
+						$query->whereRaw('DATE(Invoices.created_at) between "' . $startDate . '" and "' . $endDate . '"');
+					}
+				})
+				->where(function ($query) use ($invoiceStatusId) {
+					if (!empty($invoiceStatusId)) {
+						$query->where('Invoices.status_id', $invoiceStatusId);
+					}
+				})
 				->orderBy('activities.asp_id')
 				->groupBy('activities.id')
 				->get();
 
+			if ($activities->isEmpty()) {
+				return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/' . $request->typeId)->with('error', 'No data not found');
+			}
+
+			$invoice_ids = $activities->pluck('invoice_id')->toArray();
 			$exportInfo = $this->getaxapta->startExportInvoice($invoice_ids, $activities);
 			$exportSheet2Info = $this->getaxapta->startSheet2ExportInvoice($invoice_ids, $activities);
 
 			if (!$exportInfo) {
-				return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/1')->with('error', 'Invoice not found');
+				return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/' . $request->typeId)->with('error', 'Invoice not found');
 			}
 			if (!$exportSheet2Info) {
-				return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/1')->with('error', 'Invoice not found');
+				return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/' . $request->typeId)->with('error', 'Invoice not found');
 			}
 
 			Excel::create('Axapta_export_' . date('Y-m-d H:i:s'), function ($axaptaInfo) use ($exportInfo, $exportSheet2Info) {
@@ -461,7 +490,7 @@ class InvoiceController extends Controller {
 				});
 			})->export('xlsx');
 		} catch (\Exception $e) {
-			return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/1')->with('error', $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile());
+			return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/' . $request->typeId)->with('error', $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile());
 		}
 	}
 

@@ -21,15 +21,34 @@ app.component('invoiceList', {
             $scope.$apply();
             return;
         }
+
+        $('input[name="exportPeriod"]').daterangepicker({
+            startDate: moment().startOf('month'),
+            endDate: moment().endOf('month'),
+            locale: {
+                cancelLabel: 'Clear',
+                format: "DD-MM-YYYY"
+            }
+        });
+
+        $('input[name="exportPeriod"]').on('apply.daterangepicker', function(ev, picker) {
+            let date_range = picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY');
+            $(this).val(date_range);
+        });
+
+        $('input[name="exportPeriod"]').on('cancel.daterangepicker', function(ev, picker) {
+            $(this).val('');
+        });
+
         self.type_id = $routeParams.type_id;
         self.export_invoices_url = export_invoices;
         self.csrf = token;
-        self.canExport = canExport;
+        self.modal_close = modal_close;
         $http.get(
             invoice_filter_url + '/' + $routeParams.type_id
         ).then(function(response) {
             self.extras = response.data.extras;
-            if (self.type_id != 3 && self.canExport) {
+            if (self.hasPermission('cancel-asp-unpaid-invoices') && self.type_id != 3) {
                 var col1 = [
                     { data: 'action', searchable: false },
                 ];
@@ -77,16 +96,11 @@ app.component('invoiceList', {
                         }
                     },
                     infoCallback: function(settings, start, end, max, total, pre) {
-                        $('.count').html(total + ' / ' + max + ' listings');
-                        if ($('#submit').length > 0) {
-                            if (!total) {
-                                $('#submit').hide();
-                            } else {
-                                $('#submit').show();
-                            }
-                        }
+                        $('.count').html(total + ' / ' + max + ' listings')
                     },
-                    initComplete: function() {},
+                    initComplete: function() {
+                        $('.dataTables_length select').select2();
+                    },
                 }));
 
             $('.dataTables_length select').select2();
@@ -131,21 +145,6 @@ app.component('invoiceList', {
                 }
             });
 
-            var form_id = '#invoice_export';
-            var v = jQuery(form_id).validate({
-                rules: {
-                    'invoice_ids[]': {
-                        required: true,
-                    },
-                },
-                errorPlacement: function(error, element) {
-                    custom_noty('error', 'Please select atleast one invoice');
-                },
-                submitHandler: function(form) {
-                    $('#invoice_export').submit();
-                }
-            });
-
             //CANCEL iNVOICE
             $scope.cancelInvoice = () => {
                 $('#cancelInvoiceBtn').button('loading');
@@ -166,8 +165,8 @@ app.component('invoiceList', {
                     .done(function(res) {
                         $('#cancelInvoiceBtn').button('reset');
                         if (!res.success) {
-                            var errors = '';
-                            for (var i in res.errors) {
+                            let errors = '';
+                            for (let i in res.errors) {
                                 errors += '<li>' + res.errors[i] + '</li>';
                             }
                             custom_noty('error', errors);

@@ -165,7 +165,7 @@
     var showTravelledKmMapView = "{{route('locatorMapMyIndia')}}";
 
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/common/controller.js?v=12')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/common/controller.js?v=13')}}"></script>
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-status/controller.js?v=9')}}"></script>
 <!-- RSA-NEW-ACTIVITY-PKG -->
 <script type="text/javascript">
@@ -173,7 +173,7 @@
     var asp_new_activity_update_details_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/update-details.html')}}";
     var get_activity_form_data_url = "{{route('activityNewGetFormData')}}";
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/controller.js?v=15')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/new-activity/controller.js?v=16')}}"></script>
 
 <!-- RSA-DASHBOARD -->
 <script type="text/javascript">
@@ -230,7 +230,7 @@
     var asp_activity_deferred_update_details_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-deferred/update-details.html')}}";
     var get_deferred_activity_form_data_url = "{{route('activityDeferredGetFormData')}}";
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-deferred/controller.js?v=13')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-deferred/controller.js?v=14')}}"></script>
 
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-search/controller.js?v=3')}}"></script>
 

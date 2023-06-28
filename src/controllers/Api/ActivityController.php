@@ -38,6 +38,16 @@ class ActivityController extends Controller {
 		DB::beginTransaction();
 		try {
 
+			$errorMessages = [
+				'reason_for_asp_rejected_cc_details.regex' => "Special characters are not allowed as the first character for reason for ASP rejected CC details!",
+				'asp_activity_rejected_reason.regex' => "Special characters are not allowed as the first character for ASP activity rejected reason!",
+				'description.regex' => "Special characters are not allowed as the first character for description!",
+				'remarks.regex' => "Special characters are not allowed as the first character for remarks!",
+				'asp_start_location.regex' => "Special characters are not allowed as the first character for ASP start location!",
+				'asp_end_location.regex' => "Special characters are not allowed as the first character for ASP end location!",
+				'drop_location.regex' => "Special characters are not allowed as the first character for drop location!",
+			];
+
 			$validator = Validator::make($request->all(), [
 				// 'crm_activity_id' => 'required|numeric|unique:activities',
 				'crm_activity_id' => 'required|numeric',
@@ -70,7 +80,11 @@ class ActivityController extends Controller {
 						}),
 				],
 				'asp_accepted_cc_details' => 'required|numeric',
-				'reason_for_asp_rejected_cc_details' => 'nullable|string',
+				'reason_for_asp_rejected_cc_details' => [
+					'nullable',
+					'string',
+					'regex:/^[a-zA-Z0-9]/',
+				],
 				'finance_status' => [
 					'required',
 					'string',
@@ -96,6 +110,7 @@ class ActivityController extends Controller {
 					'nullable',
 					'string',
 					'max:191',
+					'regex:/^[a-zA-Z0-9]/',
 					// Rule::exists('asp_activity_rejected_reasons', 'name')
 					// 	->where(function ($query) {
 					// 		$query->whereNull('deleted_at');
@@ -115,11 +130,27 @@ class ActivityController extends Controller {
 				'cc_colleced_amount' => 'nullable|numeric',
 				'cc_not_collected_amount' => 'nullable|numeric',
 				'cc_total_km' => 'nullable|numeric',
-				'description' => 'nullable|string',
-				'remarks' => 'nullable|string',
+				'description' => [
+					'nullable',
+					'string',
+					'regex:/^[a-zA-Z0-9]/',
+				],
+				'remarks' => [
+					'nullable',
+					'string',
+					'regex:/^[a-zA-Z0-9]/',
+				],
 				'asp_reached_date' => 'nullable|date_format:"Y-m-d H:i:s"',
-				'asp_start_location' => 'nullable|string',
-				'asp_end_location' => 'nullable|string',
+				'asp_start_location' => [
+					'nullable',
+					'string',
+					'regex:/^[a-zA-Z0-9]/',
+				],
+				'asp_end_location' => [
+					'nullable',
+					'string',
+					'regex:/^[a-zA-Z0-9]/',
+				],
 				'onward_google_km' => 'nullable|numeric',
 				'dealer_google_km' => 'nullable|numeric',
 				'return_google_km' => 'nullable|numeric',
@@ -128,7 +159,11 @@ class ActivityController extends Controller {
 				'return_km' => 'nullable|numeric',
 				'drop_location_type' => 'nullable|string|max:24',
 				'drop_dealer' => 'nullable|string',
-				'drop_location' => 'nullable|string',
+				'drop_location' => [
+					'nullable',
+					'string',
+					'regex:/^[a-zA-Z0-9]/',
+				],
 				'drop_location_lat' => 'nullable|numeric',
 				'drop_location_long' => 'nullable|numeric',
 				'amount' => 'nullable|numeric',
@@ -146,7 +181,7 @@ class ActivityController extends Controller {
 				'amount_collected_from_customer' => 'nullable|numeric',
 				'amount_refused_by_customer' => 'nullable|numeric',
 				'fuel_charges' => 'nullable|numeric',
-			]);
+			], $errorMessages);
 
 			if ($validator->fails()) {
 				//SAVE ACTIVITY API LOG
@@ -623,11 +658,15 @@ class ActivityController extends Controller {
 				}
 			}
 
+			$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
 
 			//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
 			if ($newActivity && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
-				$activity->sendBreakdownAlertWhatsappSms();
+				//OTHER THAN TOW SERVICES || TOW SERVICE WITH CC KM GREATER THAN 2
+				if (($service_type->service_group_id != 3 && ($disableWhatsappAutoApproval || (!$disableWhatsappAutoApproval && floatval($request->cc_total_km) > 2))) || ($service_type->service_group_id == 3 && floatval($request->cc_total_km) > 2)) {
+					$activity->sendBreakdownAlertWhatsappSms();
+				}
 			}
 
 			$breakdownAlertSent = Activity::breakdownAlertSent($activity->id);
@@ -657,8 +696,6 @@ class ActivityController extends Controller {
 				if ($breakdownAlertSent && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 					// ROS SERVICE
 					if ($service_type->service_group_id != 3) {
-
-						$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
 
 						if (!$disableWhatsappAutoApproval) {
 							$autoApprovalProcessResponse = $activity->autoApprovalProcess();
@@ -902,10 +939,17 @@ class ActivityController extends Controller {
 		$errors = [];
 		DB::beginTransaction();
 		try {
+			$errorMessages = [
+				'asp_po_rejected_reason.regex' => "Special characters are not allowed as the first character for ASP PO rejected reason!",
+			];
 			$validator = Validator::make($request->all(), [
 				'crm_activity_id' => 'required|numeric|exists:activities,crm_activity_id',
-				'asp_po_rejected_reason' => 'required|string',
-			]);
+				'asp_po_rejected_reason' => [
+					'required',
+					'string',
+					'regex:/^[a-zA-Z0-9]/',
+				],
+			], $errorMessages);
 
 			if ($validator->fails()) {
 				//SAVE REJECT ACTIVITY API LOG

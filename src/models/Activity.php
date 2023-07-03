@@ -701,12 +701,30 @@ class Activity extends Model {
 					// dd($record);
 					$save_eligible = true;
 
+					$errorMessages = [
+						'case_description.regex' => "Special characters are not allowed as the first character for case description!",
+						'bd_location.regex' => "Special characters are not allowed as the first character for BD location!",
+						'asp_rejected_cc_details_reason.regex' => "Special characters are not allowed as the first character for ASP rejected cc details reason!",
+						'asp_activity_rejected_reason.regex' => "Special characters are not allowed as the first character for ASP activity rejected reason!",
+						'activity_description.regex' => "Special characters are not allowed as the first character for activity description!",
+						'activity_remarks.regex' => "Special characters are not allowed as the first character for activity remarks!",
+						'asp_start_location.regex' => "Special characters are not allowed as the first character for ASP start location!",
+						'asp_end_location.regex' => "Special characters are not allowed as the first character for ASP end location!",
+						'drop_location.regex' => "Special characters are not allowed as the first character for drop location!",
+						'manual_uploading_remarks.regex' => "Special characters are not allowed as the first character for manual uploading remarks!",
+					];
+
 					$validator = Validator::make($record, [
 						//CASE
 						'case_number' => 'required|string|max:32',
 						'case_date' => 'required',
 						'case_data_filled_date' => 'required',
-						'case_description' => 'nullable|string|max:255',
+						'case_description' => [
+							'nullable',
+							'string',
+							'max:255',
+							'regex:/^[a-zA-Z0-9]/',
+						],
 						'status' => [
 							'required',
 							'string',
@@ -779,9 +797,13 @@ class Activity extends Model {
 								}),
 						],
 						'km_during_breakdown' => 'nullable|numeric',
-						'bd_lat' => 'nullable',
-						'bd_long' => 'nullable',
-						'bd_location' => 'nullable|string',
+						'bd_lat' => 'nullable|numeric',
+						'bd_long' => 'nullable|numeric',
+						'bd_location' => [
+							'nullable',
+							'string',
+							'regex:/^[a-zA-Z0-9]/',
+						],
 						'bd_city' => 'nullable|string|max:255',
 						'bd_state' => 'nullable|string|max:255',
 						'bd_location_type' => [
@@ -844,7 +866,11 @@ class Activity extends Model {
 								}),
 						],
 						'asp_accepted_cc_details' => 'required|numeric',
-						'asp_rejected_cc_details_reason' => 'nullable|string',
+						'asp_rejected_cc_details_reason' => [
+							'nullable',
+							'string',
+							'regex:/^[a-zA-Z0-9]/',
+						],
 						'finance_status' => [
 							'required',
 							'string',
@@ -868,6 +894,7 @@ class Activity extends Model {
 							'nullable',
 							'string',
 							'max:191',
+							'regex:/^[a-zA-Z0-9]/',
 							// Rule::exists('asp_activity_rejected_reasons', 'name')
 							// 	->where(function ($query) {
 							// 		$query->whereNull('deleted_at');
@@ -887,11 +914,29 @@ class Activity extends Model {
 						'cc_colleced_amount' => 'nullable|numeric',
 						'cc_not_collected_amount' => 'nullable|numeric',
 						'cc_total_km' => 'nullable|numeric',
-						'activity_description' => 'nullable|string|max:191',
-						'activity_remarks' => 'nullable|string|max:255',
+						'activity_description' => [
+							'nullable',
+							'string',
+							'max:191',
+							'regex:/^[a-zA-Z0-9]/',
+						],
+						'activity_remarks' => [
+							'nullable',
+							'string',
+							'max:255',
+							'regex:/^[a-zA-Z0-9]/',
+						],
 						'asp_reached_date' => 'nullable',
-						'asp_start_location' => 'nullable|string',
-						'asp_end_location' => 'nullable|string',
+						'asp_start_location' => [
+							'nullable',
+							'string',
+							'regex:/^[a-zA-Z0-9]/',
+						],
+						'asp_end_location' => [
+							'nullable',
+							'string',
+							'regex:/^[a-zA-Z0-9]/',
+						],
 						'onward_google_km' => 'nullable|numeric',
 						'dealer_google_km' => 'nullable|numeric',
 						'return_google_km' => 'nullable|numeric',
@@ -900,7 +945,11 @@ class Activity extends Model {
 						'return_km' => 'nullable|numeric',
 						'drop_location_type' => 'nullable|string|max:24',
 						'drop_dealer' => 'nullable|string',
-						'drop_location' => 'nullable|string',
+						'drop_location' => [
+							'nullable',
+							'string',
+							'regex:/^[a-zA-Z0-9]/',
+						],
 						'drop_location_lat' => 'nullable|numeric',
 						'drop_location_long' => 'nullable|numeric',
 						'amount' => 'nullable|numeric',
@@ -915,8 +964,12 @@ class Activity extends Model {
 						'border_charges' => 'nullable|numeric',
 						// 'octroi_charges' => 'nullable|numeric',
 						'excess_charges' => 'nullable|numeric',
-						'manual_uploading_remarks' => 'required|string',
-					]);
+						'manual_uploading_remarks' => [
+							'required',
+							'string',
+							'regex:/^[a-zA-Z0-9]/',
+						],
+					], $errorMessages);
 
 					if ($validator->fails()) {
 						$status['errors'] = $validator->errors()->all();
@@ -1352,12 +1405,16 @@ class Activity extends Model {
 								$activity->save();
 							}
 
+							$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
 							$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
-							$enableWhatsappFlow = false; // CURRENTLY NOT REQUIRED FOR IMPORTED TICKETS SAID BY MR.HYDER
+							$enableWhatsappFlow = config('rsa')['ENABLE_FOR_WHATSAPP_FLOW_FOR_IMPORT']; // CURRENTLY NOT REQUIRED FOR IMPORTED TICKETS SAID BY MR.HYDER
 
 							//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
 							if ($newActivity && $activity->asp && !empty($activity->asp->whatsapp_number) && $enableWhatsappFlow && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
-								$activity->sendBreakdownAlertWhatsappSms();
+								//OTHER THAN TOW SERVICES || TOW SERVICE WITH CC KM GREATER THAN 2
+								if (($service_type->service_group_id != 3 && ($disableWhatsappAutoApproval || (!$disableWhatsappAutoApproval && floatval($record['cc_total_km']) > 2))) || ($service_type->service_group_id == 3 && floatval($record['cc_total_km']) > 2)) {
+									$activity->sendBreakdownAlertWhatsappSms();
+								}
 							}
 
 							$breakdownAlertSent = self::breakdownAlertSent($activity->id);
@@ -1420,7 +1477,6 @@ class Activity extends Model {
 								}
 							}
 
-							$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
 							//RELEASE ONHOLD / ASP COMPLETED DATA ENTRY - WAITING FOR CALL CENTER DATA ENTRY ACTIVITIES WITH CLOSED OR CANCELLED CASES
 							if ($case->status_id == 4 || $case->status_id == 3) {
 								$caseActivities = $case->activities()->whereIn('status_id', [17, 26])->get();
@@ -1890,9 +1946,9 @@ class Activity extends Model {
 		$notCollectedCharges = !empty($this->detail(282)->value) ? numberFormatToDecimalConversion(floatval($this->detail(282)->value)) : 0; //CC NOT COLLECTED AMOUNT
 		$autoApprovalKm = config('rsa')['ACTIVITY_AUTO_APPROVAL_KM'];
 
-		if (empty($totalKm) || floatval($totalKm) < 1) {
+		if (empty($totalKm) || floatval($totalKm) <= 2) {
 			$response['success'] = false;
-			$response['error'] = "KM Travelled should be greater than or equal to one";
+			$response['error'] = "KM Travelled should be greater than 2";
 			return $response;
 		}
 

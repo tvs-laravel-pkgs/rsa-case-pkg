@@ -165,7 +165,7 @@
     var showTravelledKmMapView = "{{route('locatorMapMyIndia')}}";
 
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/common/controller.js?v=12')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/common/controller.js?v=13')}}"></script>
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-status/controller.js?v=9')}}"></script>
 <!-- RSA-NEW-ACTIVITY-PKG -->
 <script type="text/javascript">

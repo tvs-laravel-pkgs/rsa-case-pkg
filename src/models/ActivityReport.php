@@ -4,7 +4,7 @@ namespace Abs\RsaCasePkg;
 
 use Abs\HelperPkg\Traits\SeederTrait;
 use Abs\RsaCasePkg\Activity;
-use App\Jobs\ElkJobQueue;
+// use App\Jobs\ElkJobQueue;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Database\Eloquent\Model;
@@ -20,7 +20,7 @@ class ActivityReport extends Model {
 	];
 
 	protected $table = 'activity_reports';
-	public $timestamps = true;
+	public $timestamps = false;
 
 	// Relationships --------------------------------------------------------------
 
@@ -52,7 +52,7 @@ class ActivityReport extends Model {
 					$activityReport->created_by = $activity->createdBy ? $activity->createdBy->name : NULL;
 					$activityReport->created_by_id = $activity->createdBy ? $activity->createdBy->id : NULL;
 					$activityReport->updated_by_id = $activity->updatedBy ? $activity->updatedBy->id : NULL;
-					$activityReport->updated_at = $activity->updated_at;
+					$activityReport->updated_at = Carbon::now();
 				}
 				$activityReport->activity_id = $activity->id;
 
@@ -513,7 +513,7 @@ class ActivityReport extends Model {
 			$elkParams['id'] = $this->id;
 			$elkParams['index'] = 'activity_reports';
 			$elkParams['updatedDoc'] = $updateFields;
-			ElkJobQueue::dispatch($elkParams);
+			// ElkJobQueue::dispatch($elkParams);
 		}
 	}
 

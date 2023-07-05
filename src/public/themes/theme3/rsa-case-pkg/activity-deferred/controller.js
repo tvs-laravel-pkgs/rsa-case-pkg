@@ -380,6 +380,8 @@ app.component('deferredActivityUpdate', {
                                 self.showTowingAttachment = false;
                             }
                             self.activity = res.activity;
+                            self.range_limit = res.range_limit;
+                            self.kmTravelledHideShow();
                             $scope.$apply()
                         }
                     })
@@ -393,6 +395,20 @@ app.component('deferredActivityUpdate', {
 
         $.validator.addMethod('imageFileSize', function(value, element, param) {
             return this.optional(element) || (element.files[0].size <= param)
+        });
+
+        // Check if the first character is a special character
+        jQuery.validator.addMethod("checkFirstCharAsSpecialChar", function(value, element) {
+            const enteredText = $(element).val();
+            const regex = /^[^a-zA-Z0-9]/;
+            if (regex.test(enteredText)) {
+                return false;
+            }
+            return true;
+        }, "Special characters are not allowed as the first character!");
+
+        jQuery.validator.addClassRules("checkFirstCharAsSpecialCharClass", {
+            checkFirstCharAsSpecialChar: true
         });
 
         //Jquery Validation

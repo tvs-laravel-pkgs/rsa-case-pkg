@@ -264,6 +264,13 @@ class ActivityController extends Controller {
 				]);
 			}
 
+			// Check if the first character is a special character
+			if (isset($request->backstep_reason) && !empty($request->backstep_reason) && !preg_match('/^[a-zA-Z0-9]/', $request->backstep_reason)) {
+				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+					'error' => 'Special characters are not allowed as the first character for reason!',
+				]);
+			}
+
 			//ASP Rejected CC Details - Waiting for ASP Data Entry
 			if ($request->ticket_status_id == '1') {
 				$activity->status_id = 2;
@@ -962,7 +969,7 @@ class ActivityController extends Controller {
 				$var_key_val = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $var_key->id)->first();
 				$raw_key_name = 'raw_' . $key_name;
 				if (strpos($key_name, 'amount') || strpos($key_name, 'collected') || strcmp("amount", $key_name) == 0) {
-					$this->data['activities'][$key_name] = $var_key_val ? (!empty($var_key_val->value) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($var_key_val->value, 2))) : 0) : 0;
+					$this->data['activities'][$key_name] = $var_key_val ? (!empty($var_key_val->value)?preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($var_key_val->value, 2))) : 0): 0;
 					$this->data['activities'][$raw_key_name] = $var_key_val ? (!empty($var_key_val->value) ? $var_key_val->value : 0) : 0;
 				} else {
 					$this->data['activities'][$key_name] = $var_key_val ? (!empty($var_key_val->value) ? $var_key_val->value : 0) : 0;
@@ -1075,10 +1082,17 @@ class ActivityController extends Controller {
 				$isMobile = 1;
 			}
 
-			$asp_service_type_data = AspServiceType::where('asp_id', $activity->asp_id)
-				->where('service_type_id', $activity->service_type_id)
-				->where('is_mobile', $isMobile)
-				->first();
+			$caseDate = date('Y-m-d H:i:s', strtotime($activity->case_date));
+			$asp_service_type_data = Activity::getAspServiceRateCardByAmendment($activity->asp_id, $caseDate, $activity->service_type_id, $isMobile);
+			if (!$asp_service_type_data) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'ASP rate card not found',
+					],
+				]);
+			}
+
 			$casewiseRatecardEffectDatetime = config('rsa.CASEWISE_RATECARD_EFFECT_DATETIME');
 			//Activity creation datetime greater than effective datetime
 			if (date('Y-m-d H:i:s', strtotime($activity->activity_date)) > $casewiseRatecardEffectDatetime) {
@@ -1108,13 +1122,13 @@ class ActivityController extends Controller {
 				$detail = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $config->id)->first();
 				if (strpos($config->name, '_charges') || strpos($config->name, '_amount')) {
 
-					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '0.00') : '0.00';
+					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value)?preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '0.00'): '0.00';
 					$raw_key_name = 'raw_' . $config->name;
 					$this->data['activities'][$raw_key_name] = $detail ? (!empty($detail->value) ? $detail->value : '0.00') : '0.00';
 				} elseif (strpos($config->name, '_time')) {
 					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? $detail->value : '0.00') : '0.00';
 				} elseif (strpos($config->name, 'date')) {
-					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? date("d-m-Y H:i:s", strtotime($detail->value)) : '-') : '-';
+					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value)?date("d-m-Y H:i:s", strtotime($detail->value)) : '-'): '-';
 				} else {
 					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? $detail->value : '-') : '-';
 				}
@@ -1146,10 +1160,7 @@ class ActivityController extends Controller {
 				//KM Travelled
 				$service_type = ServiceType::where('name', $cc_service_type->value)->first();
 				if ($service_type) {
-					$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
-						->where('service_type_id', $service_type->id)
-						->where('is_mobile', $isMobile)
-						->first();
+					$aspServiceType = Activity::getAspServiceRateCardByAmendment($activity->asp_id, $caseDate, $service_type->id, $isMobile);
 					if ($aspServiceType) {
 						$range_limit = $aspServiceType->range_limit;
 					} else {
@@ -1342,14 +1353,7 @@ class ActivityController extends Controller {
 				}
 			}
 
-			$serviceTypes = AspServiceType::select([
-				'service_types.id',
-				'service_types.name',
-			])
-				->join('service_types', 'service_types.id', 'asp_service_types.service_type_id')
-				->where('asp_service_types.asp_id', $activity->asp_id)
-				->groupBy('asp_service_types.service_type_id')
-				->get();
+			$serviceTypes = Activity::getAspServiceTypesByAmendment($activity->asp_id, $caseDate, $isMobile);
 			$boServiceTypeId = '';
 			$boServiceTypeData = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', 161)->first();
 			if ($boServiceTypeData) {
@@ -1457,6 +1461,7 @@ class ActivityController extends Controller {
 		}
 	}
 
+	// ON CHANGE SERVICE TYPE RATE CARD ON APPROVAL FORM
 	public function getServiceTypeRateCardDetail(Request $request) {
 		try {
 			$validator = Validator::make($request->all(), [
@@ -1493,10 +1498,15 @@ class ActivityController extends Controller {
 				$isMobile = 1;
 			}
 
-			$asp_service_type_data = AspServiceType::where('asp_id', $request->asp_id)
-				->where('service_type_id', $request->service_type_id)
-				->where('is_mobile', $isMobile)
-				->first();
+			$asp_service_type_data = Activity::getAspServiceRateCardByAmendment($request->asp_id, $activity->case->date, $request->service_type_id, $isMobile);
+			if (!$asp_service_type_data) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'ASP rate card not found',
+					],
+				]);
+			}
 
 			return response()->json([
 				'success' => true,
@@ -1541,6 +1551,36 @@ class ActivityController extends Controller {
 					'success' => false,
 					'errors' => [
 						'Exceptional reason is required',
+					],
+				]);
+			}
+
+			// Check if the first character is a special character
+			if (isset($request->bo_comments) && !empty($request->bo_comments) && !preg_match('/^[a-zA-Z0-9]/', $request->bo_comments)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Special characters are not allowed as the first character for comments!',
+					],
+				]);
+			}
+
+			// Check if the first character is a special character
+			if (isset($request->deduction_reason) && !empty($request->deduction_reason) && !preg_match('/^[a-zA-Z0-9]/', $request->deduction_reason)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Special characters are not allowed as the first character for deduction reason!',
+					],
+				]);
+			}
+
+			// Check if the first character is a special character
+			if (isset($request->exceptional_reason) && !empty($request->exceptional_reason) && !preg_match('/^[a-zA-Z0-9]/', $request->exceptional_reason)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Special characters are not allowed as the first character for exceptional reason!',
 					],
 				]);
 			}
@@ -1681,9 +1721,9 @@ class ActivityController extends Controller {
 			$isNotCollectedChanged = false;
 			$isCollectedChanged = false;
 
-			$kmTravelled = $activity->detail(158) ? floatval($activity->detail(158)->value) : 0;
-			$notCollected = $activity->detail(160) ? floatval($activity->detail(160)->value) : 0;
-			$collected = $activity->detail(159) ? floatval($activity->detail(159)->value) : 0;
+			$kmTravelled = $activity->detail(158)?floatval($activity->detail(158)->value): 0;
+			$notCollected = $activity->detail(160)?floatval($activity->detail(160)->value): 0;
+			$collected = $activity->detail(159)?floatval($activity->detail(159)->value): 0;
 
 			if ($request->boServiceTypeId != $activity->service_type_id) {
 				$isServiceTypeChanged = true;
@@ -1702,7 +1742,7 @@ class ActivityController extends Controller {
 			foreach ($key_list as $keyw) {
 				$var_key = Config::where('id', $keyw)->first();
 				$key_name = str_replace(" ", "_", strtolower($var_key->name));
-				$value = $request->$key_name ? str_replace(",", "", $request->$key_name) : 0;
+				$value = $request->$key_name?str_replace(",", "", $request->$key_name): 0;
 				//NEW
 				$activityDetail = ActivityDetail::firstOrNew([
 					'company_id' => 1,
@@ -2174,10 +2214,10 @@ class ActivityController extends Controller {
 	}
 
 	public function isL2ApprovalRequired($activity) {
-		$ccKmTravelled = $activity->detail(280) ? floatval($activity->detail(280)->value) : 0;
+		$ccKmTravelled = $activity->detail(280)?floatval($activity->detail(280)->value): 0;
 		$ccServiceTypeVal = $activity->detail(153) ? $activity->detail(153)->value : '';
 
-		$boKmTravelled = $activity->detail(158) ? floatval($activity->detail(158)->value) : 0;
+		$boKmTravelled = $activity->detail(158)?floatval($activity->detail(158)->value): 0;
 		$boServiceTypeVal = $activity->detail(161) ? $activity->detail(161)->value : '';
 
 		$l2ApprovalRequired = false;
@@ -2203,22 +2243,19 @@ class ActivityController extends Controller {
 			$isMobile = 1;
 		}
 
-		$aspRateCard = AspServiceType::where('asp_id', $activity->asp_id)
-			->where('service_type_id', $activity->service_type_id)
-			->where('is_mobile', $isMobile)
-			->first();
+		$aspRateCard = Activity::getAspServiceRateCardByAmendment($activity->asp_id, $activity->case->date, $activity->service_type_id, $isMobile);
 		if ($aspRateCard) {
 			$rangeLimit = floatval($aspRateCard->range_limit);
 		}
 
-		$ccKmTravelled = $activity->detail(280) ? floatval($activity->detail(280)->value) : 0;
-		$ccCollected = $activity->detail(281) ? floatval($activity->detail(281)->value) : 0;
-		$ccNotCollected = $activity->detail(282) ? floatval($activity->detail(282)->value) : 0;
+		$ccKmTravelled = $activity->detail(280)?floatval($activity->detail(280)->value): 0;
+		$ccCollected = $activity->detail(281)?floatval($activity->detail(281)->value): 0;
+		$ccNotCollected = $activity->detail(282)?floatval($activity->detail(282)->value): 0;
 		$ccServiceTypeVal = $activity->detail(153) ? $activity->detail(153)->value : '';
 
-		$boKmTravelled = $activity->detail(158) ? floatval($activity->detail(158)->value) : 0;
-		$boCollected = $activity->detail(159) ? floatval($activity->detail(159)->value) : 0;
-		$boNotCollected = $activity->detail(160) ? floatval($activity->detail(160)->value) : 0;
+		$boKmTravelled = $activity->detail(158)?floatval($activity->detail(158)->value): 0;
+		$boCollected = $activity->detail(159)?floatval($activity->detail(159)->value): 0;
+		$boNotCollected = $activity->detail(160)?floatval($activity->detail(160)->value): 0;
 		$boServiceTypeVal = $activity->detail(161) ? $activity->detail(161)->value : '';
 
 		$isBulk = true;
@@ -2307,16 +2344,13 @@ class ActivityController extends Controller {
 					$isMobile = 1;
 				}
 
-				$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
-					->where('service_type_id', $activity->service_type_id)
-					->where('is_mobile', $isMobile)
-					->first();
+				$aspServiceType = Activity::getAspServiceRateCardByAmendment($activity->asp_id, $activity->case->date, $activity->service_type_id, $isMobile);
 
 				if ($aspServiceType) {
 					// $bo_km_charge = $activity->detail(172) ? $activity->detail(172)->value : 0;
-					$bo_km_travelled = $activity->detail(158) ? numberFormatToDecimalConversion(floatval($activity->detail(158)->value)) : 0;
-					$bo_km_collected = $activity->detail(159) ? numberFormatToDecimalConversion(floatval($activity->detail(159)->value)) : 0;
-					$bo_km_not_collected = $activity->detail(160) ? numberFormatToDecimalConversion(floatval($activity->detail(160)->value)) : 0;
+					$bo_km_travelled = $activity->detail(158)?numberFormatToDecimalConversion(floatval($activity->detail(158)->value)): 0;
+					$bo_km_collected = $activity->detail(159)?numberFormatToDecimalConversion(floatval($activity->detail(159)->value)): 0;
+					$bo_km_not_collected = $activity->detail(160)?numberFormatToDecimalConversion(floatval($activity->detail(160)->value)): 0;
 
 					$boWaitingTime = 0;
 					if ($activity->detail(330) && !empty($activity->detail(330)->value)) {
@@ -2332,7 +2366,7 @@ class ActivityController extends Controller {
 						]);
 					}
 
-					$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id);
+					$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id, $activity->case->date);
 
 					$price = $response['asp_service_price'];
 
@@ -2674,6 +2708,30 @@ class ActivityController extends Controller {
 					'errors' => [
 						'User is not valid for Verification',
 					],
+				]);
+			}
+
+			$errorMessages = [
+				'defer_reason.regex' => "Special characters are not allowed as the first character for defer reason!",
+			];
+
+			$validator = Validator::make($request->all(), [
+				'activity_id' => [
+					'required',
+					'integer',
+					'exists:activities,id',
+				],
+				'defer_reason' => [
+					'required',
+					'string',
+					'regex:/^[a-zA-Z0-9]/',
+				],
+			], $errorMessages);
+
+			if ($validator->fails()) {
+				return response()->json([
+					'success' => false,
+					'errors' => $validator->errors()->all(),
 				]);
 			}
 
@@ -3153,6 +3211,7 @@ class ActivityController extends Controller {
 		return response()->json($this->data);
 	}
 
+	//GET SERVICE TYPE DETAIL BASED ON SERVICE TYPE CHANGE IN ASP DATA ENTRY
 	public function activityNewGetServiceTypeDetail($id, $activityId) {
 		try {
 			$serviceType = ServiceType::select([
@@ -3181,6 +3240,18 @@ class ActivityController extends Controller {
 				]);
 			}
 
+			$isMobile = 0; //WEB
+			//MOBILE APP
+			if ($activity->data_src_id == 260 || $activity->data_src_id == 263) {
+				$isMobile = 1;
+			}
+
+			$range_limit = 0;
+			$aspServiceType = Activity::getAspServiceRateCardByAmendment($activity->asp_id, $activity->case->date, $id, $isMobile);
+			if ($aspServiceType) {
+				$range_limit = $aspServiceType->range_limit;
+			}
+
 			// UPDATE TOWING ATTACHMENT AS MANDATORY IF TOWING SERVICE AND MATURED FINANCE STATUS
 			if ($serviceType->service_group_id == 3 && $activity->financeStatus && $activity->financeStatus->po_eligibility_type_id == 340) {
 				$activity->is_towing_attachments_mandatory = 1;
@@ -3197,6 +3268,7 @@ class ActivityController extends Controller {
 
 			return response()->json([
 				'success' => true,
+				'range_limit' => $range_limit,
 				'serviceType' => $serviceType,
 				'activity' => $activity->load([
 					'case',
@@ -3234,6 +3306,34 @@ class ActivityController extends Controller {
 					'success' => false,
 					'errors' => [
 						'KM travelled should be greater than zero',
+					],
+				]);
+			}
+
+			// Check if the first character is a special character
+			if (isset($request->remarks_not_collected) && !empty($request->remarks_not_collected) && !preg_match('/^[a-zA-Z0-9]/', $request->remarks_not_collected)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Special characters are not allowed as the first character for remarks for charges not collected!',
+					],
+				]);
+			}
+
+			if (isset($request->general_remarks) && !empty($request->general_remarks) && !preg_match('/^[a-zA-Z0-9]/', $request->general_remarks)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Special characters are not allowed as the first character for general remarks!',
+					],
+				]);
+			}
+
+			if (isset($request->comments) && !empty($request->comments) && !preg_match('/^[a-zA-Z0-9]/', $request->comments)) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Special characters are not allowed as the first character for resolve comments!',
 					],
 				]);
 			}
@@ -3415,10 +3515,7 @@ class ActivityController extends Controller {
 				$isMobile = 1;
 			}
 
-			$aspServiceType = AspServiceType::where('asp_id', $activity->asp_id)
-				->where('service_type_id', $request->asp_service_type_id)
-				->where('is_mobile', $isMobile)
-				->first();
+			$aspServiceType = Activity::getAspServiceRateCardByAmendment($activity->asp_id, $activity->case->date, $request->asp_service_type_id, $isMobile);
 			if ($aspServiceType) {
 				$range_limit = $aspServiceType->range_limit;
 				$waiting_charge_per_hour = $aspServiceType->waiting_charge_per_hour;
@@ -3754,7 +3851,7 @@ class ActivityController extends Controller {
 				$var_key_val = DB::table('activity_details')->updateOrInsert(['activity_id' => $activity->id, 'key_id' => $key_id, 'company_id' => 1], ['value' => $value]);
 			}
 
-			$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id);
+			$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id, $activity->case->date);
 			if (!$response['success']) {
 				return response()->json([
 					'success' => false,
@@ -4479,6 +4576,7 @@ class ActivityController extends Controller {
 			$error_messages = [
 				'name.required' => "Please select closing date",
 				'remarks.required' => "Please Enter Remarks",
+				'remarks.regex' => "Special characters are not allowed as the first character for remarks!",
 			];
 			$validator = Validator::make($r->all(), [
 				'closing_date' => [
@@ -4486,6 +4584,7 @@ class ActivityController extends Controller {
 				],
 				'remarks' => [
 					'required:true',
+					'regex:/^[a-zA-Z0-9]/',
 				],
 			], $error_messages);
 
@@ -4534,6 +4633,9 @@ class ActivityController extends Controller {
 		// dd($request->all());
 		DB::beginTransaction();
 		try {
+			$errorMessages = [
+				'not_eligible_reason.regex' => "Special characters are not allowed as the first character for reason!",
+			];
 			$validator = Validator::make($request->all(), [
 				'activity_id' => [
 					'required',
@@ -4543,8 +4645,9 @@ class ActivityController extends Controller {
 				'not_eligible_reason' => [
 					'required',
 					'string',
+					'regex:/^[a-zA-Z0-9]/',
 				],
-			]);
+			], $errorMessages);
 
 			if ($validator->fails()) {
 				return response()->json([
@@ -5378,283 +5481,285 @@ class ActivityController extends Controller {
 			];
 			$activityReportHeaders = array_merge($activityReportHeaders, $rateCardHeaders);
 
-			$activityReports = $activityReports->groupBy('activity_reports.id')->get();
+			$activityReportAllData = [];
+			$activityReports->groupBy('activity_reports.id')->chunk(5000, function ($activityReportValues) use (&$activityReportAllData) {
+				$activityReportDetails = [];
+				foreach ($activityReportValues as $activityReportKey => $activityReportVal) {
 
-			$activityReportDetails = [];
-			foreach ($activityReports as $activityReportKey => $activityReportVal) {
-
-				if (!empty($activityReportVal->aspContactNumber)) {
-					if (Entrust::can('display-asp-number-in-activities')) {
-						$aspContactNumber = $activityReportVal->aspContactNumber;
+					if (!empty($activityReportVal->aspContactNumber)) {
+						if (Entrust::can('display-asp-number-in-activities')) {
+							$aspContactNumber = $activityReportVal->aspContactNumber;
+						} else {
+							$aspContactNumber = maskPhoneNumber($activityReportVal->aspContactNumber);
+						}
 					} else {
-						$aspContactNumber = maskPhoneNumber($activityReportVal->aspContactNumber);
+						$aspContactNumber = "--";
 					}
-				} else {
-					$aspContactNumber = "--";
+
+					if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities')) {
+						$activityReportDetails[] = [
+							$activityReportVal->activityId,
+							$activityReportVal->caseNumber,
+							$activityReportVal->caseDate,
+							$activityReportVal->crmActivityId,
+							$activityReportVal->activityNumber,
+							$activityReportVal->activityCreatedDate,
+							$activityReportVal->client,
+							$activityReportVal->aspName,
+							$activityReportVal->axaptaCode,
+							$activityReportVal->aspCode,
+							$aspContactNumber,
+							$activityReportVal->aspEmail,
+							$activityReportVal->aspHasGst,
+							$activityReportVal->workshopName,
+							$activityReportVal->rmName,
+							$activityReportVal->location,
+							$activityReportVal->district,
+							$activityReportVal->state,
+							$activityReportVal->vehicleRegistrationNumber,
+							$activityReportVal->membershipType,
+							$activityReportVal->vehicleModel,
+							$activityReportVal->vehicleMake,
+							$activityReportVal->caseStatus,
+							$activityReportVal->financeStatus,
+							$activityReportVal->finalApprovedBoServiceType,
+							$activityReportVal->portalStatus,
+							$activityReportVal->activityStatus,
+							$activityReportVal->remarks,
+							$activityReportVal->generalRemarks,
+							$activityReportVal->boComments,
+							$activityReportVal->deductionReason,
+							$activityReportVal->deferReason,
+							$activityReportVal->aspResolveComments,
+							$activityReportVal->invoiceNumber,
+							$activityReportVal->invoiceDate,
+							$activityReportVal->invoiceStatus,
+							$activityReportVal->transactionDate,
+							$activityReportVal->voucher,
+							$activityReportVal->tdsAmount,
+							$activityReportVal->paidAmount,
+							$activityReportVal->bdLat,
+							$activityReportVal->bdLong,
+							$activityReportVal->bdLocation,
+							$activityReportVal->bdCity,
+							$activityReportVal->bdState,
+							$activityReportVal->csr,
+							$activityReportVal->dropDealer,
+							$activityReportVal->dropLocation,
+							$activityReportVal->dropLocationLat,
+							$activityReportVal->dropLocationLong,
+							$activityReportVal->boKmTravelled,
+							$activityReportVal->boCollected,
+							$activityReportVal->boNotCollected,
+							$activityReportVal->boNetAmount,
+							$activityReportVal->boDeduction,
+							$activityReportVal->boAmount,
+						];
+					} else {
+						$activityReportDetails[] = [
+							$activityReportVal->activityId,
+							$activityReportVal->caseNumber,
+							$activityReportVal->caseDate,
+							$activityReportVal->caseSubmissionClosingDate,
+							$activityReportVal->caseSubmissionClosingDateRemarks,
+							$activityReportVal->crmActivityId,
+							$activityReportVal->activityNumber,
+							$activityReportVal->activityCreatedDate,
+							$activityReportVal->client,
+							$activityReportVal->customerName,
+							$activityReportVal->customerContactNumber,
+							$activityReportVal->aspName,
+							$activityReportVal->axaptaCode,
+							$activityReportVal->aspCode,
+							$aspContactNumber,
+							$activityReportVal->aspEmail,
+							$activityReportVal->aspHasGst,
+							$activityReportVal->aspType,
+							$activityReportVal->autoInvoice,
+							$activityReportVal->workshopName,
+							$activityReportVal->workshopType,
+							$activityReportVal->rmName,
+							$activityReportVal->location,
+							$activityReportVal->district,
+							$activityReportVal->state,
+							$activityReportVal->vehicleRegistrationNumber,
+							$activityReportVal->membershipType,
+							$activityReportVal->vehicleModel,
+							$activityReportVal->vehicleMake,
+							$activityReportVal->caseStatus,
+							$activityReportVal->financeStatus,
+							$activityReportVal->finalApprovedBoServiceType,
+							$activityReportVal->aspActivityRejectedReason,
+							$activityReportVal->aspPoAccepted,
+							$activityReportVal->aspPoRejectedReason,
+							$activityReportVal->portalStatus,
+							$activityReportVal->activityStatus,
+							$activityReportVal->activityDescription,
+							$activityReportVal->isTowingAttachmentMandatory,
+							$activityReportVal->towingAttachmentMandatoryBy,
+							$activityReportVal->remarks,
+							$activityReportVal->manualUploadingRemarks,
+							$activityReportVal->generalRemarks,
+							$activityReportVal->boComments,
+							$activityReportVal->deductionReason,
+							$activityReportVal->deferReason,
+							$activityReportVal->aspResolveComments,
+							$activityReportVal->isExceptional,
+							$activityReportVal->exceptionalReason,
+							$activityReportVal->invoiceNumber,
+							$activityReportVal->invoiceDate,
+							$activityReportVal->invoiceAmount,
+							$activityReportVal->invoiceStatus,
+							$activityReportVal->transactionDate,
+							$activityReportVal->voucher,
+							$activityReportVal->tdsAmount,
+							$activityReportVal->paidAmount,
+							$activityReportVal->bdLat,
+							$activityReportVal->bdLong,
+							$activityReportVal->bdLocation,
+							$activityReportVal->bdCity,
+							$activityReportVal->bdState,
+							$activityReportVal->csr,
+							$activityReportVal->locationType,
+							$activityReportVal->locationCategory,
+							$activityReportVal->slaAchievedDelayed,
+							$activityReportVal->ccWaitingTime,
+							$activityReportVal->ccTotalKm,
+							$activityReportVal->ccCollectedAmount,
+							$activityReportVal->ccNotCollectedAmount,
+							$activityReportVal->aspReachedDate,
+							$activityReportVal->aspStartLocation,
+							$activityReportVal->aspEndLocation,
+							$activityReportVal->onwardGoogleKm,
+							$activityReportVal->dealerGoogleKm,
+							$activityReportVal->returnGoogleKm,
+							$activityReportVal->onwardKm,
+							$activityReportVal->dealerKm,
+							$activityReportVal->returnKm,
+							$activityReportVal->dropLocationType,
+							$activityReportVal->dropDealer,
+							$activityReportVal->dropLocation,
+							$activityReportVal->dropLocationLat,
+							$activityReportVal->dropLocationLong,
+							$activityReportVal->amount,
+							$activityReportVal->paidTo,
+							$activityReportVal->paymentMode,
+							$activityReportVal->paymentReceiptNo,
+							$activityReportVal->ccServiceCharges,
+							$activityReportVal->ccMembershipCharges,
+							$activityReportVal->ccEatableItemsCharges,
+							$activityReportVal->ccTollCharges,
+							$activityReportVal->ccGreenTaxCharges,
+							$activityReportVal->ccBorderCharges,
+							$activityReportVal->ccOctroiCharges,
+							$activityReportVal->ccExcessCharges,
+							$activityReportVal->ccFuelCharges,
+							$activityReportVal->aspServiceCharges,
+							$activityReportVal->aspMembershipCharges,
+							$activityReportVal->aspEatableItemsCharges,
+							$activityReportVal->aspTollCharges,
+							$activityReportVal->aspGreenTaxCharges,
+							$activityReportVal->aspBorderCharges,
+							$activityReportVal->aspOctroiCharges,
+							$activityReportVal->aspExcessCharges,
+							$activityReportVal->aspFuelCharges,
+							$activityReportVal->boServiceCharges,
+							$activityReportVal->boMembershipCharges,
+							$activityReportVal->boEatableItemsCharges,
+							$activityReportVal->boTollCharges,
+							$activityReportVal->boGreenTaxCharges,
+							$activityReportVal->boBorderCharges,
+							$activityReportVal->boOctroiCharges,
+							$activityReportVal->boExcessCharges,
+							$activityReportVal->boFuelCharges,
+							$activityReportVal->aspWaitingTime,
+							$activityReportVal->boWaitingTime,
+							$activityReportVal->ccWaitingCharges,
+							$activityReportVal->aspWaitingCharges,
+							$activityReportVal->boWaitingCharges,
+							$activityReportVal->ccServiceType,
+							$activityReportVal->aspServiceType,
+							$activityReportVal->boServiceType,
+							$activityReportVal->boKmTravelled,
+							$activityReportVal->boCollected,
+							$activityReportVal->boNotCollected,
+							$activityReportVal->aspKmTravelled,
+							$activityReportVal->aspCollected,
+							$activityReportVal->aspNotCollected,
+							$activityReportVal->ccPoAmount,
+							$activityReportVal->ccNetAmount,
+							$activityReportVal->ccAmount,
+							$activityReportVal->boTaxAmount,
+							$activityReportVal->boNetAmount,
+							$activityReportVal->boPoAmount,
+							$activityReportVal->boDeduction,
+							$activityReportVal->boAmount,
+							$activityReportVal->aspPoAmount,
+							$activityReportVal->aspNetAmount,
+							$activityReportVal->aspAmount,
+						];
+					}
+
+					if (!Entrust::can('export-own-activities') && !Entrust::can('export-own-rm-asp-activities') && !Entrust::can('export-own-zm-asp-activities')) {
+
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->importedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->importedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenImportAndAspDataFilled;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->aspDataFilledDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->aspDataFilledBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAspDataFilledAndL1Deffered;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAspDataFilledAndL1Approved;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l1ApprovedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l1ApprovedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndInvoiceGenerated;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL2Deffered;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l2DefferedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l2DefferedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL2Approved;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l2ApprovedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l2ApprovedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndInvoiceGenerated;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL3Deffered;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndL3Deffered;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l3DefferedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l3DefferedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndL3Approved;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l3ApprovedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l3ApprovedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL3ApprovedAndInvoiceGenerated;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL4Deffered;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndL4Deffered;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL3ApprovedAndL4Deffered;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l4DefferedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l4DefferedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL3ApprovedAndL4Approved;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l4ApprovedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->l4ApprovedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL4ApprovedAndInvoiceGenerated;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->invoiceGeneratedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->invoiceGeneratedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenInvoiceGeneratedAndAxaptaGenerated;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->axaptaGeneratedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->axaptaGeneratedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAxaptaGeneratedAndPaymentCompleted;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->paymentCompletedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->totalNoOfDays;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->source;
+					}
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->rangeLimit;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->belowRangePrice;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->aboveRangePrice;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->waitingChargePerHour;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->emptyReturnRangePrice;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->adjustmentType;
+					$activityReportDetails[$activityReportKey][] = $activityReportVal->adjustment;
 				}
+				$activityReportAllData = array_merge($activityReportAllData, $activityReportDetails);
+			});
 
-				if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities')) {
-					$activityReportDetails[] = [
-						$activityReportVal->activityId,
-						$activityReportVal->caseNumber,
-						$activityReportVal->caseDate,
-						$activityReportVal->crmActivityId,
-						$activityReportVal->activityNumber,
-						$activityReportVal->activityCreatedDate,
-						$activityReportVal->client,
-						$activityReportVal->aspName,
-						$activityReportVal->axaptaCode,
-						$activityReportVal->aspCode,
-						$aspContactNumber,
-						$activityReportVal->aspEmail,
-						$activityReportVal->aspHasGst,
-						$activityReportVal->workshopName,
-						$activityReportVal->rmName,
-						$activityReportVal->location,
-						$activityReportVal->district,
-						$activityReportVal->state,
-						$activityReportVal->vehicleRegistrationNumber,
-						$activityReportVal->membershipType,
-						$activityReportVal->vehicleModel,
-						$activityReportVal->vehicleMake,
-						$activityReportVal->caseStatus,
-						$activityReportVal->financeStatus,
-						$activityReportVal->finalApprovedBoServiceType,
-						$activityReportVal->portalStatus,
-						$activityReportVal->activityStatus,
-						$activityReportVal->remarks,
-						$activityReportVal->generalRemarks,
-						$activityReportVal->boComments,
-						$activityReportVal->deductionReason,
-						$activityReportVal->deferReason,
-						$activityReportVal->aspResolveComments,
-						$activityReportVal->invoiceNumber,
-						$activityReportVal->invoiceDate,
-						$activityReportVal->invoiceStatus,
-						$activityReportVal->transactionDate,
-						$activityReportVal->voucher,
-						$activityReportVal->tdsAmount,
-						$activityReportVal->paidAmount,
-						$activityReportVal->bdLat,
-						$activityReportVal->bdLong,
-						$activityReportVal->bdLocation,
-						$activityReportVal->bdCity,
-						$activityReportVal->bdState,
-						$activityReportVal->csr,
-						$activityReportVal->dropDealer,
-						$activityReportVal->dropLocation,
-						$activityReportVal->dropLocationLat,
-						$activityReportVal->dropLocationLong,
-						$activityReportVal->boKmTravelled,
-						$activityReportVal->boCollected,
-						$activityReportVal->boNotCollected,
-						$activityReportVal->boNetAmount,
-						$activityReportVal->boDeduction,
-						$activityReportVal->boAmount,
-					];
-				} else {
-					$activityReportDetails[] = [
-						$activityReportVal->activityId,
-						$activityReportVal->caseNumber,
-						$activityReportVal->caseDate,
-						$activityReportVal->caseSubmissionClosingDate,
-						$activityReportVal->caseSubmissionClosingDateRemarks,
-						$activityReportVal->crmActivityId,
-						$activityReportVal->activityNumber,
-						$activityReportVal->activityCreatedDate,
-						$activityReportVal->client,
-						$activityReportVal->customerName,
-						$activityReportVal->customerContactNumber,
-						$activityReportVal->aspName,
-						$activityReportVal->axaptaCode,
-						$activityReportVal->aspCode,
-						$aspContactNumber,
-						$activityReportVal->aspEmail,
-						$activityReportVal->aspHasGst,
-						$activityReportVal->aspType,
-						$activityReportVal->autoInvoice,
-						$activityReportVal->workshopName,
-						$activityReportVal->workshopType,
-						$activityReportVal->rmName,
-						$activityReportVal->location,
-						$activityReportVal->district,
-						$activityReportVal->state,
-						$activityReportVal->vehicleRegistrationNumber,
-						$activityReportVal->membershipType,
-						$activityReportVal->vehicleModel,
-						$activityReportVal->vehicleMake,
-						$activityReportVal->caseStatus,
-						$activityReportVal->financeStatus,
-						$activityReportVal->finalApprovedBoServiceType,
-						$activityReportVal->aspActivityRejectedReason,
-						$activityReportVal->aspPoAccepted,
-						$activityReportVal->aspPoRejectedReason,
-						$activityReportVal->portalStatus,
-						$activityReportVal->activityStatus,
-						$activityReportVal->activityDescription,
-						$activityReportVal->isTowingAttachmentMandatory,
-						$activityReportVal->towingAttachmentMandatoryBy,
-						$activityReportVal->remarks,
-						$activityReportVal->manualUploadingRemarks,
-						$activityReportVal->generalRemarks,
-						$activityReportVal->boComments,
-						$activityReportVal->deductionReason,
-						$activityReportVal->deferReason,
-						$activityReportVal->aspResolveComments,
-						$activityReportVal->isExceptional,
-						$activityReportVal->exceptionalReason,
-						$activityReportVal->invoiceNumber,
-						$activityReportVal->invoiceDate,
-						$activityReportVal->invoiceAmount,
-						$activityReportVal->invoiceStatus,
-						$activityReportVal->transactionDate,
-						$activityReportVal->voucher,
-						$activityReportVal->tdsAmount,
-						$activityReportVal->paidAmount,
-						$activityReportVal->bdLat,
-						$activityReportVal->bdLong,
-						$activityReportVal->bdLocation,
-						$activityReportVal->bdCity,
-						$activityReportVal->bdState,
-						$activityReportVal->csr,
-						$activityReportVal->locationType,
-						$activityReportVal->locationCategory,
-						$activityReportVal->slaAchievedDelayed,
-						$activityReportVal->ccWaitingTime,
-						$activityReportVal->ccTotalKm,
-						$activityReportVal->ccCollectedAmount,
-						$activityReportVal->ccNotCollectedAmount,
-						$activityReportVal->aspReachedDate,
-						$activityReportVal->aspStartLocation,
-						$activityReportVal->aspEndLocation,
-						$activityReportVal->onwardGoogleKm,
-						$activityReportVal->dealerGoogleKm,
-						$activityReportVal->returnGoogleKm,
-						$activityReportVal->onwardKm,
-						$activityReportVal->dealerKm,
-						$activityReportVal->returnKm,
-						$activityReportVal->dropLocationType,
-						$activityReportVal->dropDealer,
-						$activityReportVal->dropLocation,
-						$activityReportVal->dropLocationLat,
-						$activityReportVal->dropLocationLong,
-						$activityReportVal->amount,
-						$activityReportVal->paidTo,
-						$activityReportVal->paymentMode,
-						$activityReportVal->paymentReceiptNo,
-						$activityReportVal->ccServiceCharges,
-						$activityReportVal->ccMembershipCharges,
-						$activityReportVal->ccEatableItemsCharges,
-						$activityReportVal->ccTollCharges,
-						$activityReportVal->ccGreenTaxCharges,
-						$activityReportVal->ccBorderCharges,
-						$activityReportVal->ccOctroiCharges,
-						$activityReportVal->ccExcessCharges,
-						$activityReportVal->ccFuelCharges,
-						$activityReportVal->aspServiceCharges,
-						$activityReportVal->aspMembershipCharges,
-						$activityReportVal->aspEatableItemsCharges,
-						$activityReportVal->aspTollCharges,
-						$activityReportVal->aspGreenTaxCharges,
-						$activityReportVal->aspBorderCharges,
-						$activityReportVal->aspOctroiCharges,
-						$activityReportVal->aspExcessCharges,
-						$activityReportVal->aspFuelCharges,
-						$activityReportVal->boServiceCharges,
-						$activityReportVal->boMembershipCharges,
-						$activityReportVal->boEatableItemsCharges,
-						$activityReportVal->boTollCharges,
-						$activityReportVal->boGreenTaxCharges,
-						$activityReportVal->boBorderCharges,
-						$activityReportVal->boOctroiCharges,
-						$activityReportVal->boExcessCharges,
-						$activityReportVal->boFuelCharges,
-						$activityReportVal->aspWaitingTime,
-						$activityReportVal->boWaitingTime,
-						$activityReportVal->ccWaitingCharges,
-						$activityReportVal->aspWaitingCharges,
-						$activityReportVal->boWaitingCharges,
-						$activityReportVal->ccServiceType,
-						$activityReportVal->aspServiceType,
-						$activityReportVal->boServiceType,
-						$activityReportVal->boKmTravelled,
-						$activityReportVal->boCollected,
-						$activityReportVal->boNotCollected,
-						$activityReportVal->aspKmTravelled,
-						$activityReportVal->aspCollected,
-						$activityReportVal->aspNotCollected,
-						$activityReportVal->ccPoAmount,
-						$activityReportVal->ccNetAmount,
-						$activityReportVal->ccAmount,
-						$activityReportVal->boTaxAmount,
-						$activityReportVal->boNetAmount,
-						$activityReportVal->boPoAmount,
-						$activityReportVal->boDeduction,
-						$activityReportVal->boAmount,
-						$activityReportVal->aspPoAmount,
-						$activityReportVal->aspNetAmount,
-						$activityReportVal->aspAmount,
-					];
-				}
-
-				if (!Entrust::can('export-own-activities') && !Entrust::can('export-own-rm-asp-activities') && !Entrust::can('export-own-zm-asp-activities')) {
-
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->importedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->importedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenImportAndAspDataFilled;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->aspDataFilledDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->aspDataFilledBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAspDataFilledAndL1Deffered;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAspDataFilledAndL1Approved;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l1ApprovedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l1ApprovedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndInvoiceGenerated;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL2Deffered;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l2DefferedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l2DefferedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL2Approved;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l2ApprovedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l2ApprovedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndInvoiceGenerated;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL3Deffered;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndL3Deffered;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l3DefferedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l3DefferedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndL3Approved;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l3ApprovedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l3ApprovedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL3ApprovedAndInvoiceGenerated;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL1ApprovedAndL4Deffered;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL2ApprovedAndL4Deffered;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL3ApprovedAndL4Deffered;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l4DefferedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l4DefferedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL3ApprovedAndL4Approved;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l4ApprovedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->l4ApprovedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenL4ApprovedAndInvoiceGenerated;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->invoiceGeneratedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->invoiceGeneratedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenInvoiceGeneratedAndAxaptaGenerated;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->axaptaGeneratedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->axaptaGeneratedBy;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAxaptaGeneratedAndPaymentCompleted;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->paymentCompletedDate;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->totalNoOfDays;
-					$activityReportDetails[$activityReportKey][] = $activityReportVal->source;
-				}
-				$activityReportDetails[$activityReportKey][] = $activityReportVal->rangeLimit;
-				$activityReportDetails[$activityReportKey][] = $activityReportVal->belowRangePrice;
-				$activityReportDetails[$activityReportKey][] = $activityReportVal->aboveRangePrice;
-				$activityReportDetails[$activityReportKey][] = $activityReportVal->waitingChargePerHour;
-				$activityReportDetails[$activityReportKey][] = $activityReportVal->emptyReturnRangePrice;
-				$activityReportDetails[$activityReportKey][] = $activityReportVal->adjustmentType;
-				$activityReportDetails[$activityReportKey][] = $activityReportVal->adjustment;
-			}
-
-			Excel::create('Activity Status Report', function ($excel) use ($summary, $activityReportHeaders, $activityReportDetails, $statusIds, $summaryPeriod) {
+			Excel::create('Activity Status Report', function ($excel) use ($summary, $activityReportHeaders, $activityReportAllData, $statusIds, $summaryPeriod) {
 				$excel->sheet('Summary', function ($sheet) use ($summary, $statusIds, $summaryPeriod) {
 					$sheet->fromArray($summary, NULL, 'A1');
 					$sheet->row(1, $summaryPeriod);
@@ -5679,8 +5784,8 @@ class ActivityController extends Controller {
 					});
 				});
 
-				$excel->sheet('Activity Informations', function ($sheet) use ($activityReportHeaders, $activityReportDetails) {
-					$sheet->fromArray($activityReportDetails, NULL, 'A1');
+				$excel->sheet('Activity Informations', function ($sheet) use ($activityReportHeaders, $activityReportAllData) {
+					$sheet->fromArray($activityReportAllData, NULL, 'A1');
 					$sheet->row(1, $activityReportHeaders);
 					$sheet->row(1, function ($row) {
 						$row->setBackground('#CCC9C9');
@@ -5739,7 +5844,7 @@ class ActivityController extends Controller {
 				//MECHANICAL SERVICE GROUP
 				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
 					$cc_total_km = $activity->detail(280) ? $activity->detail(280)->value : 0;
-					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->date);
 					if ($is_bulk) {
 						//ASP Completed Data Entry - Waiting for BO Bulk Verification
 						$status_id = 5;
@@ -5813,7 +5918,7 @@ class ActivityController extends Controller {
 					} else {
 						//MECHANICAL SERVICE GROUP
 						if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
-							$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+							$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->date);
 							if ($is_bulk) {
 								$statusId = 5; //ASP Completed Data Entry - Waiting for L1 Bulk Verification
 							} else {
@@ -5853,7 +5958,7 @@ class ActivityController extends Controller {
 
 				//MECHANICAL SERVICE GROUP
 				if ($activity->serviceType && $activity->serviceType->service_group_id == 2) {
-					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id);
+					$is_bulk = Activity::checkTicketIsBulk($activity->asp_id, $activity->serviceType->id, $cc_total_km, $activity->data_src_id, $activity->case->date);
 					if ($is_bulk) {
 						$statusId = 5; //ASP Completed Data Entry - Waiting for L1 Bulk Verification
 					} else {
@@ -5880,6 +5985,9 @@ class ActivityController extends Controller {
 				'onhold_released_at' => Carbon::now(),
 				'updated_by_id' => Auth::user()->id,
 			]);
+
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			ActivityReport::saveReport($activity->id);
 
 			DB::commit();
 			return response()->json([
@@ -6548,12 +6656,12 @@ class ActivityController extends Controller {
 						$activity->service_type,
 						$activity->activity_portal_status,
 						$activity->activity_status,
-						!empty($activity->remarks) ? strip_tags($activity->remarks) : '',
-						!empty($activity->general_remarks) ? strip_tags($activity->general_remarks) : '',
+						!empty($activity->remarks)?strip_tags($activity->remarks): '',
+						!empty($activity->general_remarks)?strip_tags($activity->general_remarks): '',
 						!empty($activity->bo_comments) ? $activity->bo_comments : '',
 						!empty($activity->deduction_reason) ? $activity->deduction_reason : '',
-						!empty($activity->defer_reason) ? strip_tags($activity->defer_reason) : '',
-						!empty($activity->asp_resolve_comments) ? strip_tags($activity->asp_resolve_comments) : '',
+						!empty($activity->defer_reason)?strip_tags($activity->defer_reason): '',
+						!empty($activity->asp_resolve_comments)?strip_tags($activity->asp_resolve_comments): '',
 						$activity->invoice_no,
 						$inv_created_at,
 						$activity->invoice_status,
@@ -6590,7 +6698,7 @@ class ActivityController extends Controller {
 						$activity->asp_is_self,
 						$activity->asp_is_auto_invoice,
 						$activity->asp_workshop_name,
-						!empty($activity->asp_workshop_type) ? array_flip($constants['workshop_types'])[$activity->asp_workshop_type] : '',
+						!empty($activity->asp_workshop_type)?array_flip($constants['workshop_types'])[$activity->asp_workshop_type]:'',
 						$activity->asp_rm_name,
 						$activity->asp_location_name,
 						$activity->asp_district_name,
@@ -6610,19 +6718,19 @@ class ActivityController extends Controller {
 						!empty($activity->description) ? $activity->description : '',
 						$activity->is_towing_attachments_mandatory,
 						$activity->towingAttachmentMandatoryBy ? $activity->towingAttachmentMandatoryBy->name : '',
-						!empty($activity->remarks) ? strip_tags($activity->remarks) : '',
+						!empty($activity->remarks)?strip_tags($activity->remarks): '',
 						!empty($activity->manual_uploading_remarks) ? $activity->manual_uploading_remarks : '',
-						!empty($activity->general_remarks) ? strip_tags($activity->general_remarks) : '',
+						!empty($activity->general_remarks)?strip_tags($activity->general_remarks): '',
 						!empty($activity->bo_comments) ? $activity->bo_comments : '',
 						!empty($activity->deduction_reason) ? $activity->deduction_reason : '',
-						!empty($activity->defer_reason) ? strip_tags($activity->defer_reason) : '',
-						!empty($activity->asp_resolve_comments) ? strip_tags($activity->asp_resolve_comments) : '',
+						!empty($activity->defer_reason)?strip_tags($activity->defer_reason): '',
+						!empty($activity->asp_resolve_comments)?strip_tags($activity->asp_resolve_comments): '',
 						$activity->is_exceptional_check,
-						!empty($activity->exceptional_reason) ? strip_tags($activity->exceptional_reason) : '',
+						!empty($activity->exceptional_reason)?strip_tags($activity->exceptional_reason): '',
 						// $activity->invoice ? ($activity->asp->has_gst == 1 && $activity->asp->is_auto_invoice == 0 ? ($activity->invoice->invoice_no) : ($activity->invoice->invoice_no . '-' . $activity->invoice->id)) : '',
 						$activity->invoice_no,
 						$inv_created_at,
-						!empty($activity->invoice_amount) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice_amount, 2))) : '',
+						!empty($activity->invoice_amount)?preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice_amount, 2))): '',
 						$activity->invoice_status,
 						$activity->transactionDate,
 						$activity->voucher,
@@ -6645,9 +6753,9 @@ class ActivityController extends Controller {
 					if (strcmp('amount', $config->name) == 0 || strpos($config->name, '_charges') || strpos($config->name, 'Amount') || strpos($config->name, 'Collected') || strpos($config->name, 'date')) {
 						if ($detail) {
 							if (strpos($config->name, 'date')) {
-								$activity_details_data[$activity_key][] = ($detail->value != "") ? date('d-m-Y H:i:s', strtotime($detail->value)) : '';
+								$activity_details_data[$activity_key][] = ($detail->value != "")?date('d-m-Y H:i:s', strtotime($detail->value)): '';
 							} else {
-								$activity_details_data[$activity_key][] = ($detail->value != "") ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '';
+								$activity_details_data[$activity_key][] = ($detail->value != "")?preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))): '';
 							}
 						} else {
 							$activity_details_data[$activity_key][] = '';
@@ -6661,7 +6769,7 @@ class ActivityController extends Controller {
 					$total_days = 0;
 					$activity_log = ActivityLog::where('activity_id', $activity->id)->first();
 					if ($activity_log) {
-						$activity_details_data[$activity_key][] = $activity_log->imported_at ? date('d-m-Y H:i:s', strtotime($activity_log->imported_at)) : '';
+						$activity_details_data[$activity_key][] = $activity_log->imported_at?date('d-m-Y H:i:s', strtotime($activity_log->imported_at)): '';
 						$activity_details_data[$activity_key][] = $activity_log->importedBy ? $activity_log->importedBy->username : '';
 
 						// 'Duration Between Import and ASP Data Filled'
@@ -6669,7 +6777,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->asp_data_filled_at ? date('d-m-Y H:i:s', strtotime($activity_log->asp_data_filled_at)) : '';
+						$activity_details_data[$activity_key][] = $activity_log->asp_data_filled_at?date('d-m-Y H:i:s', strtotime($activity_log->asp_data_filled_at)): '';
 						$activity_details_data[$activity_key][] = $activity_log->aspDataFilledBy ? $activity_log->aspDataFilledBy->username : '';
 
 						// 'Duration Between ASP Data Filled and L1 deffered'
@@ -6677,7 +6785,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->bo_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_deffered_at)) : '';
+						$activity_details_data[$activity_key][] = $activity_log->bo_deffered_at?date('d-m-Y H:i:s', strtotime($activity_log->bo_deffered_at)): '';
 						$activity_details_data[$activity_key][] = $activity_log->boDefferedBy ? $activity_log->boDefferedBy->username : '';
 
 						// 'Duration Between ASP Data Filled and L1 approved'
@@ -6685,7 +6793,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->bo_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_approved_at)) : '';
+						$activity_details_data[$activity_key][] = $activity_log->bo_approved_at?date('d-m-Y H:i:s', strtotime($activity_log->bo_approved_at)): '';
 						$activity_details_data[$activity_key][] = $activity_log->boApprovedBy ? $activity_log->boApprovedBy->username : '';
 
 						// 'Duration Between L1 approved and Invoice generated'
@@ -6697,7 +6805,7 @@ class ActivityController extends Controller {
 						$tot = ($activity_log->l2_deffered_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->l2_deffered_at, $activity_log->bo_approved_at) : '';
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-						$activity_details_data[$activity_key][] = $activity_log->l2_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->l2_deffered_at)) : '';
+						$activity_details_data[$activity_key][] = $activity_log->l2_deffered_at?date('d-m-Y H:i:s', strtotime($activity_log->l2_deffered_at)): '';
 						$activity_details_data[$activity_key][] = $activity_log->l2DefferedBy ? $activity_log->l2DefferedBy->username : '';
 
 						// 'Duration Between L1 approved and L2 approved'
@@ -6705,7 +6813,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->l2_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->l2_approved_at)) : '';
+						$activity_details_data[$activity_key][] = $activity_log->l2_approved_at?date('d-m-Y H:i:s', strtotime($activity_log->l2_approved_at)): '';
 						$activity_details_data[$activity_key][] = $activity_log->l2ApprovedBy ? $activity_log->l2ApprovedBy->username : '';
 
 						// 'Duration Between L2 approved and Invoice generated'
@@ -6723,7 +6831,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->l3_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->l3_deffered_at)) : '';
+						$activity_details_data[$activity_key][] = $activity_log->l3_deffered_at?date('d-m-Y H:i:s', strtotime($activity_log->l3_deffered_at)): '';
 						$activity_details_data[$activity_key][] = $activity_log->l3DefferedBy ? $activity_log->l3DefferedBy->username : '';
 
 						// 'Duration Between L2 approved and L3 approved'
@@ -6731,7 +6839,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->l3_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->l3_approved_at)) : '';
+						$activity_details_data[$activity_key][] = $activity_log->l3_approved_at?date('d-m-Y H:i:s', strtotime($activity_log->l3_approved_at)): '';
 						$activity_details_data[$activity_key][] = $activity_log->l3ApprovedBy ? $activity_log->l3ApprovedBy->username : '';
 
 						// 'Duration Between L3 approved and Invoice generated'
@@ -6754,7 +6862,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->l4_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->l4_deffered_at)) : '';
+						$activity_details_data[$activity_key][] = $activity_log->l4_deffered_at?date('d-m-Y H:i:s', strtotime($activity_log->l4_deffered_at)): '';
 						$activity_details_data[$activity_key][] = $activity_log->l4DefferedBy ? $activity_log->l4DefferedBy->username : '';
 
 						// 'Duration Between L3 approved and L4 approved'
@@ -6762,7 +6870,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->l4_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->l4_approved_at)) : '';
+						$activity_details_data[$activity_key][] = $activity_log->l4_approved_at?date('d-m-Y H:i:s', strtotime($activity_log->l4_approved_at)): '';
 						$activity_details_data[$activity_key][] = $activity_log->l4ApprovedBy ? $activity_log->l4ApprovedBy->username : '';
 
 						// 'Duration Between L4 approved and Invoice generated'
@@ -6770,7 +6878,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->invoice_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->invoice_generated_at)) : '';
+						$activity_details_data[$activity_key][] = $activity_log->invoice_generated_at?date('d-m-Y H:i:s', strtotime($activity_log->invoice_generated_at)): '';
 						$activity_details_data[$activity_key][] = $activity_log->invoiceGeneratedBy ? $activity_log->invoiceGeneratedBy->username : '';
 
 						// 'Duration Between Invoice generated and Axapta Generated'
@@ -6778,7 +6886,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->axapta_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->axapta_generated_at)) : '';
+						$activity_details_data[$activity_key][] = $activity_log->axapta_generated_at?date('d-m-Y H:i:s', strtotime($activity_log->axapta_generated_at)): '';
 						$activity_details_data[$activity_key][] = $activity_log->axaptaGeneratedBy ? $activity_log->axaptaGeneratedBy->username : '';
 
 						// 'Duration Between Axapta Generated and Payment Completed'
@@ -6786,7 +6894,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->payment_completed_at ? date('d-m-Y H:i:s', strtotime($activity_log->payment_completed_at)) : '';
+						$activity_details_data[$activity_key][] = $activity_log->payment_completed_at?date('d-m-Y H:i:s', strtotime($activity_log->payment_completed_at)): '';
 						$activity_details_data[$activity_key][] = $total_days > 1 ? ($total_days . ' Days') : ($total_days . ' Day');
 
 					} else {
@@ -6972,7 +7080,7 @@ class ActivityController extends Controller {
 				// ASP || ASP FINANCE ADMIN
 				if (Entrust::can('own-asp-activity-search')) {
 					//ASP Rejected CC Details - Waiting for ASP Data Entry || On Hold
-					if ($activity->status_id == 2 || $activity->status_id == 17) {
+					if ($activity->status_id == 2 || $activity->status_id == 4 || $activity->status_id == 17) {
 						$url = '';
 						//CASE WITH EXTENSION
 						if (!empty($activity->caseSubmissionClosingDate) && Carbon::parse($activity->caseSubmissionClosingDate)->format('Y-m-d H:i:s') >= $today) {
@@ -6995,7 +7103,7 @@ class ActivityController extends Controller {
 				// RM || ZM
 				if (Entrust::can('own-rm-asp-activity-search') || Entrust::can('own-zm-asp-activity-search')) {
 					//ASP Rejected CC Details - Waiting for ASP Data Entry || On Hold
-					if ($activity->status_id == 2 || $activity->status_id == 17) {
+					if ($activity->status_id == 2 || $activity->status_id == 4 || $activity->status_id == 17) {
 						$url = '';
 						//CASE WITH EXTENSION - DISABLED FOR NOW SAID BY HYDER 04 APRIL 2023
 						// if (!empty($activity->caseSubmissionClosingDate) && Carbon::parse($activity->caseSubmissionClosingDate)->format('Y-m-d H:i:s') >= $today) {

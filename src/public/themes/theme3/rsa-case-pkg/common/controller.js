@@ -279,6 +279,7 @@ app.component('billingDetails', {
         this.$onInit = function() {
             $scope.$watch('$ctrl.data', function(selfData) {
                 if (selfData) {
+                    console.log(selfData);
                     self.hasPermission = HelperService.hasPermission;
                     self.activity_back_asp_update_route = activity_back_asp_update;
                     self.backstepReason = '';

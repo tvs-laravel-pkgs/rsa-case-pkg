@@ -1630,7 +1630,9 @@ class Activity extends Model {
 					// if (($k + 1) % 5 == 0) {
 					$job->processed_count++;
 					$job->remaining_count--;
-					$job->save();
+					if (($k + 1) % 250 == 0) {
+						$job->save();
+					}
 					// }
 
 					DB::commit();

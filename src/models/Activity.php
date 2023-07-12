@@ -370,11 +370,29 @@ class Activity extends Model {
 			$isMobile = 1;
 		}
 
+		//GET ELIGIBLE SERVICE TYPES BASED ON AMENDMENT
+		$eligibleServiceTypes = self::getAspServiceTypesByAmendment($this->asp->id, $this->case->date, $isMobile);
+		if ($eligibleServiceTypes->isEmpty()) {
+			return [
+				'success' => false,
+				'error' => 'Service (' . $this->serviceType->name . ') is not enabled for the ASP (' . $this->asp->asp_code . ')',
+			];
+		} else {
+			//CHECK IF THE GIVEN SERVICE TYPE EXISTS ON THE ELIGIBLE SERVICE TYPES
+			$enteredServiceTypeExists = $eligibleServiceTypes->where('id', $this->serviceType->id)->first();
+			if (!$enteredServiceTypeExists) {
+				return [
+					'success' => false,
+					'error' => 'Service (' . $this->serviceType->name . ') is not enabled for the ASP (' . $this->asp->asp_code . ')',
+				];
+			}
+		}
+
 		$aspServiceTypeRateCard = self::getAspServiceRateCardByAmendment($this->asp->id, $this->case->date, $this->serviceType->id, $isMobile);
 		if (!$aspServiceTypeRateCard) {
 			return [
 				'success' => false,
-				'error' => 'Service (' . $this->serviceType->name . ') not enabled for ASP (' . $this->asp->asp_code . ')',
+				'error' => 'Service (' . $this->serviceType->name . ') is not enabled for the ASP (' . $this->asp->asp_code . ')',
 			];
 		}
 

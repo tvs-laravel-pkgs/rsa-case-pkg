@@ -2044,6 +2044,14 @@ class Activity extends Model {
 			]);
 			$boInvoiceAmount->value = $invoiceAmount;
 			$boInvoiceAmount->save();
+		} else {
+			// WITHIN PREDEFINED AUTO APPROVAL KM THEN APPROVE THE GIVEN KM (TO CHECK GIVEN SERVICE TYPE EXISTS ON ELIGIBLE SERVICE TYPES)
+			$aspServiceTypeGetResponse = getActivityKMPrices($this->serviceType, $this->asp, $this->data_src_id, $this->case->date);
+			if (!$aspServiceTypeGetResponse['success']) {
+				$response['success'] = false;
+				$response['error'] = $aspServiceTypeGetResponse['error'];
+				return $response;
+			}
 		}
 
 		// UPDATE STATUS

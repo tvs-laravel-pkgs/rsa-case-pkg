@@ -39,13 +39,13 @@ class ActivityController extends Controller {
 		try {
 
 			$errorMessages = [
-				'reason_for_asp_rejected_cc_details.regex' => "Special characters are not allowed as the first character for reason for ASP rejected CC details!",
-				'asp_activity_rejected_reason.regex' => "Special characters are not allowed as the first character for ASP activity rejected reason!",
-				'description.regex' => "Special characters are not allowed as the first character for description!",
-				'remarks.regex' => "Special characters are not allowed as the first character for remarks!",
-				'asp_start_location.regex' => "Special characters are not allowed as the first character for ASP start location!",
-				'asp_end_location.regex' => "Special characters are not allowed as the first character for ASP end location!",
-				'drop_location.regex' => "Special characters are not allowed as the first character for drop location!",
+				'reason_for_asp_rejected_cc_details.regex' => "Equal symbol (=) is not allowed as the first character for reason for ASP rejected CC details!",
+				'asp_activity_rejected_reason.regex' => "Equal symbol (=) is not allowed as the first character for ASP activity rejected reason!",
+				'description.regex' => "Equal symbol (=) is not allowed as the first character for description!",
+				'remarks.regex' => "Equal symbol (=) is not allowed as the first character for remarks!",
+				'asp_start_location.regex' => "Equal symbol (=) is not allowed as the first character for ASP start location!",
+				'asp_end_location.regex' => "Equal symbol (=) is not allowed as the first character for ASP end location!",
+				'drop_location.regex' => "Equal symbol (=) is not allowed as the first character for drop location!",
 			];
 
 			$validator = Validator::make($request->all(), [
@@ -83,7 +83,7 @@ class ActivityController extends Controller {
 				'reason_for_asp_rejected_cc_details' => [
 					'nullable',
 					'string',
-					'regex:/^[a-zA-Z0-9]/',
+					'regex:/^[^=]/',
 				],
 				'finance_status' => [
 					'required',
@@ -110,7 +110,7 @@ class ActivityController extends Controller {
 					'nullable',
 					'string',
 					'max:191',
-					'regex:/^[a-zA-Z0-9]/',
+					'regex:/^[^=]/',
 					// Rule::exists('asp_activity_rejected_reasons', 'name')
 					// 	->where(function ($query) {
 					// 		$query->whereNull('deleted_at');
@@ -133,23 +133,23 @@ class ActivityController extends Controller {
 				'description' => [
 					'nullable',
 					'string',
-					'regex:/^[a-zA-Z0-9]/',
+					'regex:/^[^=]/',
 				],
 				'remarks' => [
 					'nullable',
 					'string',
-					'regex:/^[a-zA-Z0-9]/',
+					'regex:/^[^=]/',
 				],
 				'asp_reached_date' => 'nullable|date_format:"Y-m-d H:i:s"',
 				'asp_start_location' => [
 					'nullable',
 					'string',
-					'regex:/^[a-zA-Z0-9]/',
+					'regex:/^[^=]/',
 				],
 				'asp_end_location' => [
 					'nullable',
 					'string',
-					'regex:/^[a-zA-Z0-9]/',
+					'regex:/^[^=]/',
 				],
 				'onward_google_km' => 'nullable|numeric',
 				'dealer_google_km' => 'nullable|numeric',
@@ -162,7 +162,7 @@ class ActivityController extends Controller {
 				'drop_location' => [
 					'nullable',
 					'string',
-					'regex:/^[a-zA-Z0-9]/',
+					'regex:/^[^=]/',
 				],
 				'drop_location_lat' => 'nullable|numeric',
 				'drop_location_long' => 'nullable|numeric',
@@ -940,14 +940,14 @@ class ActivityController extends Controller {
 		DB::beginTransaction();
 		try {
 			$errorMessages = [
-				'asp_po_rejected_reason.regex' => "Special characters are not allowed as the first character for ASP PO rejected reason!",
+				'asp_po_rejected_reason.regex' => "Equal symbol (=) is not allowed as the first character for ASP PO rejected reason!",
 			];
 			$validator = Validator::make($request->all(), [
 				'crm_activity_id' => 'required|numeric|exists:activities,crm_activity_id',
 				'asp_po_rejected_reason' => [
 					'required',
 					'string',
-					'regex:/^[a-zA-Z0-9]/',
+					'regex:/^[^=]/',
 				],
 			], $errorMessages);
 

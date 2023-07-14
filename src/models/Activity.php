@@ -720,16 +720,16 @@ class Activity extends Model {
 					$save_eligible = true;
 
 					$errorMessages = [
-						'case_description.regex' => "Special characters are not allowed as the first character for case description!",
-						'bd_location.regex' => "Special characters are not allowed as the first character for BD location!",
-						'asp_rejected_cc_details_reason.regex' => "Special characters are not allowed as the first character for ASP rejected cc details reason!",
-						'asp_activity_rejected_reason.regex' => "Special characters are not allowed as the first character for ASP activity rejected reason!",
-						'activity_description.regex' => "Special characters are not allowed as the first character for activity description!",
-						'activity_remarks.regex' => "Special characters are not allowed as the first character for activity remarks!",
-						'asp_start_location.regex' => "Special characters are not allowed as the first character for ASP start location!",
-						'asp_end_location.regex' => "Special characters are not allowed as the first character for ASP end location!",
-						'drop_location.regex' => "Special characters are not allowed as the first character for drop location!",
-						'manual_uploading_remarks.regex' => "Special characters are not allowed as the first character for manual uploading remarks!",
+						'case_description.regex' => "Equal symbol (=) is not allowed as the first character for case description!",
+						'bd_location.regex' => "Equal symbol (=) is not allowed as the first character for BD location!",
+						'asp_rejected_cc_details_reason.regex' => "Equal symbol (=) is not allowed as the first character for ASP rejected cc details reason!",
+						'asp_activity_rejected_reason.regex' => "Equal symbol (=) is not allowed as the first character for ASP activity rejected reason!",
+						'activity_description.regex' => "Equal symbol (=) is not allowed as the first character for activity description!",
+						'activity_remarks.regex' => "Equal symbol (=) is not allowed as the first character for activity remarks!",
+						'asp_start_location.regex' => "Equal symbol (=) is not allowed as the first character for ASP start location!",
+						'asp_end_location.regex' => "Equal symbol (=) is not allowed as the first character for ASP end location!",
+						'drop_location.regex' => "Equal symbol (=) is not allowed as the first character for drop location!",
+						'manual_uploading_remarks.regex' => "Equal symbol (=) is not allowed as the first character for manual uploading remarks!",
 					];
 
 					$validator = Validator::make($record, [
@@ -741,7 +741,7 @@ class Activity extends Model {
 							'nullable',
 							'string',
 							'max:255',
-							'regex:/^[a-zA-Z0-9]/',
+							'regex:/^[^=]/',
 						],
 						'status' => [
 							'required',
@@ -820,7 +820,7 @@ class Activity extends Model {
 						'bd_location' => [
 							'nullable',
 							'string',
-							'regex:/^[a-zA-Z0-9]/',
+							'regex:/^[^=]/',
 						],
 						'bd_city' => 'nullable|string|max:255',
 						'bd_state' => 'nullable|string|max:255',
@@ -887,7 +887,7 @@ class Activity extends Model {
 						'asp_rejected_cc_details_reason' => [
 							'nullable',
 							'string',
-							'regex:/^[a-zA-Z0-9]/',
+							'regex:/^[^=]/',
 						],
 						'finance_status' => [
 							'required',
@@ -912,7 +912,7 @@ class Activity extends Model {
 							'nullable',
 							'string',
 							'max:191',
-							'regex:/^[a-zA-Z0-9]/',
+							'regex:/^[^=]/',
 							// Rule::exists('asp_activity_rejected_reasons', 'name')
 							// 	->where(function ($query) {
 							// 		$query->whereNull('deleted_at');
@@ -936,24 +936,24 @@ class Activity extends Model {
 							'nullable',
 							'string',
 							'max:191',
-							'regex:/^[a-zA-Z0-9]/',
+							'regex:/^[^=]/',
 						],
 						'activity_remarks' => [
 							'nullable',
 							'string',
 							'max:255',
-							'regex:/^[a-zA-Z0-9]/',
+							'regex:/^[^=]/',
 						],
 						'asp_reached_date' => 'nullable',
 						'asp_start_location' => [
 							'nullable',
 							'string',
-							'regex:/^[a-zA-Z0-9]/',
+							'regex:/^[^=]/',
 						],
 						'asp_end_location' => [
 							'nullable',
 							'string',
-							'regex:/^[a-zA-Z0-9]/',
+							'regex:/^[^=]/',
 						],
 						'onward_google_km' => 'nullable|numeric',
 						'dealer_google_km' => 'nullable|numeric',
@@ -966,7 +966,7 @@ class Activity extends Model {
 						'drop_location' => [
 							'nullable',
 							'string',
-							'regex:/^[a-zA-Z0-9]/',
+							'regex:/^[^=]/',
 						],
 						'drop_location_lat' => 'nullable|numeric',
 						'drop_location_long' => 'nullable|numeric',
@@ -985,7 +985,7 @@ class Activity extends Model {
 						'manual_uploading_remarks' => [
 							'required',
 							'string',
-							'regex:/^[a-zA-Z0-9]/',
+							'regex:/^[^=]/',
 						],
 					], $errorMessages);
 

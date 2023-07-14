@@ -50,8 +50,8 @@ class CaseController extends Controller {
 			// }
 
 			$errorMessages = [
-				'description.regex' => "Special characters are not allowed as the first character for description!",
-				'bd_location.regex' => "Special characters are not allowed as the first character for BD location!",
+				'description.regex' => "Equal symbol (=) is not allowed as the first character for description!",
+				'bd_location.regex' => "Equal symbol (=) is not allowed as the first character for BD location!",
 			];
 
 			$validator = Validator::make($request->all(), [
@@ -62,7 +62,7 @@ class CaseController extends Controller {
 					'nullable',
 					'string',
 					'max:255',
-					'regex:/^[a-zA-Z0-9]/',
+					'regex:/^[^=]/',
 				],
 				'status' => [
 					'required',
@@ -143,7 +143,7 @@ class CaseController extends Controller {
 				'bd_location' => [
 					'nullable',
 					'string',
-					'regex:/^[a-zA-Z0-9]/',
+					'regex:/^[^=]/',
 				],
 				'bd_city' => 'nullable|string|max:255',
 				'bd_state' => 'nullable|string|max:255',

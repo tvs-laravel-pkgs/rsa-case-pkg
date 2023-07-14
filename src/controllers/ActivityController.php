@@ -265,9 +265,9 @@ class ActivityController extends Controller {
 			}
 
 			// Check if the first character is a special character
-			if (isset($request->backstep_reason) && !empty($request->backstep_reason) && !preg_match('/^[a-zA-Z0-9]/', $request->backstep_reason)) {
+			if (isset($request->backstep_reason) && !empty($request->backstep_reason) && !preg_match('/^[^=]/', $request->backstep_reason)) {
 				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-					'error' => 'Special characters are not allowed as the first character for reason!',
+					'error' => 'Equal symbol (=) is not allowed as the first character for reason!',
 				]);
 			}
 
@@ -1556,31 +1556,31 @@ class ActivityController extends Controller {
 			}
 
 			// Check if the first character is a special character
-			if (isset($request->bo_comments) && !empty($request->bo_comments) && !preg_match('/^[a-zA-Z0-9]/', $request->bo_comments)) {
+			if (isset($request->bo_comments) && !empty($request->bo_comments) && !preg_match('/^[^=]/', $request->bo_comments)) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
-						'Special characters are not allowed as the first character for comments!',
+						'Equal symbol (=) is not allowed as the first character for comments!',
 					],
 				]);
 			}
 
 			// Check if the first character is a special character
-			if (isset($request->deduction_reason) && !empty($request->deduction_reason) && !preg_match('/^[a-zA-Z0-9]/', $request->deduction_reason)) {
+			if (isset($request->deduction_reason) && !empty($request->deduction_reason) && !preg_match('/^[^=]/', $request->deduction_reason)) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
-						'Special characters are not allowed as the first character for deduction reason!',
+						'Equal symbol (=) is not allowed as the first character for deduction reason!',
 					],
 				]);
 			}
 
 			// Check if the first character is a special character
-			if (isset($request->exceptional_reason) && !empty($request->exceptional_reason) && !preg_match('/^[a-zA-Z0-9]/', $request->exceptional_reason)) {
+			if (isset($request->exceptional_reason) && !empty($request->exceptional_reason) && !preg_match('/^[^=]/', $request->exceptional_reason)) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
-						'Special characters are not allowed as the first character for exceptional reason!',
+						'Equal symbol (=) is not allowed as the first character for exceptional reason!',
 					],
 				]);
 			}
@@ -2718,7 +2718,7 @@ class ActivityController extends Controller {
 			}
 
 			$errorMessages = [
-				'defer_reason.regex' => "Special characters are not allowed as the first character for defer reason!",
+				'defer_reason.regex' => "Equal symbol (=) is not allowed as the first character for defer reason!",
 			];
 
 			$validator = Validator::make($request->all(), [
@@ -2730,7 +2730,7 @@ class ActivityController extends Controller {
 				'defer_reason' => [
 					'required',
 					'string',
-					'regex:/^[a-zA-Z0-9]/',
+					'regex:/^[^=]/',
 				],
 			], $errorMessages);
 
@@ -3317,29 +3317,29 @@ class ActivityController extends Controller {
 			}
 
 			// Check if the first character is a special character
-			if (isset($request->remarks_not_collected) && !empty($request->remarks_not_collected) && !preg_match('/^[a-zA-Z0-9]/', $request->remarks_not_collected)) {
+			if (isset($request->remarks_not_collected) && !empty($request->remarks_not_collected) && !preg_match('/^[^=]/', $request->remarks_not_collected)) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
-						'Special characters are not allowed as the first character for remarks for charges not collected!',
+						'Equal symbol (=) is not allowed as the first character for remarks for charges not collected!',
 					],
 				]);
 			}
 
-			if (isset($request->general_remarks) && !empty($request->general_remarks) && !preg_match('/^[a-zA-Z0-9]/', $request->general_remarks)) {
+			if (isset($request->general_remarks) && !empty($request->general_remarks) && !preg_match('/^[^=]/', $request->general_remarks)) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
-						'Special characters are not allowed as the first character for general remarks!',
+						'Equal symbol (=) is not allowed as the first character for general remarks!',
 					],
 				]);
 			}
 
-			if (isset($request->comments) && !empty($request->comments) && !preg_match('/^[a-zA-Z0-9]/', $request->comments)) {
+			if (isset($request->comments) && !empty($request->comments) && !preg_match('/^[^=]/', $request->comments)) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
-						'Special characters are not allowed as the first character for resolve comments!',
+						'Equal symbol (=) is not allowed as the first character for resolve comments!',
 					],
 				]);
 			}
@@ -4582,7 +4582,7 @@ class ActivityController extends Controller {
 			$error_messages = [
 				'name.required' => "Please select closing date",
 				'remarks.required' => "Please Enter Remarks",
-				'remarks.regex' => "Special characters are not allowed as the first character for remarks!",
+				'remarks.regex' => "Equal symbol (=) is not allowed as the first character for remarks!",
 			];
 			$validator = Validator::make($r->all(), [
 				'closing_date' => [
@@ -4590,7 +4590,7 @@ class ActivityController extends Controller {
 				],
 				'remarks' => [
 					'required:true',
-					'regex:/^[a-zA-Z0-9]/',
+					'regex:/^[^=]/',
 				],
 			], $error_messages);
 
@@ -4640,7 +4640,7 @@ class ActivityController extends Controller {
 		DB::beginTransaction();
 		try {
 			$errorMessages = [
-				'not_eligible_reason.regex' => "Special characters are not allowed as the first character for reason!",
+				'not_eligible_reason.regex' => "Equal symbol (=) is not allowed as the first character for reason!",
 			];
 			$validator = Validator::make($request->all(), [
 				'activity_id' => [
@@ -4651,7 +4651,7 @@ class ActivityController extends Controller {
 				'not_eligible_reason' => [
 					'required',
 					'string',
-					'regex:/^[a-zA-Z0-9]/',
+					'regex:/^[^=]/',
 				],
 			], $errorMessages);
 

@@ -4576,7 +4576,7 @@ class ActivityController extends Controller {
 			$error_messages = [
 				'name.required' => "Please select closing date",
 				'remarks.required' => "Please Enter Remarks",
-				'remarks.regex' => "Special characters are not allowed as the first character for remarks!",
+				'remarks.regex' => "Equal symbol (=) is not allowed as the first character for remarks!",
 			];
 			$validator = Validator::make($r->all(), [
 				'closing_date' => [
@@ -4584,7 +4584,7 @@ class ActivityController extends Controller {
 				],
 				'remarks' => [
 					'required:true',
-					'regex:/^[a-zA-Z0-9]/',
+					'regex:/^[^=]/',
 				],
 			], $error_messages);
 

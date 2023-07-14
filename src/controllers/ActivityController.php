@@ -265,9 +265,9 @@ class ActivityController extends Controller {
 			}
 
 			// Check if the first character is a special character
-			if (isset($request->backstep_reason) && !empty($request->backstep_reason) && !preg_match('/^[a-zA-Z0-9]/', $request->backstep_reason)) {
+			if (isset($request->backstep_reason) && !empty($request->backstep_reason) && !preg_match('/^[^=]/', $request->backstep_reason)) {
 				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
-					'error' => 'Special characters are not allowed as the first character for reason!',
+					'error' => 'Equal symbol (=) is not allowed as the first character for reason!',
 				]);
 			}
 

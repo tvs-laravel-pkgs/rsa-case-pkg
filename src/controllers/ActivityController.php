@@ -4634,7 +4634,7 @@ class ActivityController extends Controller {
 		DB::beginTransaction();
 		try {
 			$errorMessages = [
-				'not_eligible_reason.regex' => "Special characters are not allowed as the first character for reason!",
+				'not_eligible_reason.regex' => "Equal symbol (=) is not allowed as the first character for reason!",
 			];
 			$validator = Validator::make($request->all(), [
 				'activity_id' => [
@@ -4645,7 +4645,7 @@ class ActivityController extends Controller {
 				'not_eligible_reason' => [
 					'required',
 					'string',
-					'regex:/^[a-zA-Z0-9]/',
+					'regex:/^[^=]/',
 				],
 			], $errorMessages);
 

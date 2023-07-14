@@ -3311,29 +3311,29 @@ class ActivityController extends Controller {
 			}
 
 			// Check if the first character is a special character
-			if (isset($request->remarks_not_collected) && !empty($request->remarks_not_collected) && !preg_match('/^[a-zA-Z0-9]/', $request->remarks_not_collected)) {
+			if (isset($request->remarks_not_collected) && !empty($request->remarks_not_collected) && !preg_match('/^[^=]/', $request->remarks_not_collected)) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
-						'Special characters are not allowed as the first character for remarks for charges not collected!',
+						'Equal symbol (=) is not allowed as the first character for remarks for charges not collected!',
 					],
 				]);
 			}
 
-			if (isset($request->general_remarks) && !empty($request->general_remarks) && !preg_match('/^[a-zA-Z0-9]/', $request->general_remarks)) {
+			if (isset($request->general_remarks) && !empty($request->general_remarks) && !preg_match('/^[^=]/', $request->general_remarks)) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
-						'Special characters are not allowed as the first character for general remarks!',
+						'Equal symbol (=) is not allowed as the first character for general remarks!',
 					],
 				]);
 			}
 
-			if (isset($request->comments) && !empty($request->comments) && !preg_match('/^[a-zA-Z0-9]/', $request->comments)) {
+			if (isset($request->comments) && !empty($request->comments) && !preg_match('/^[^=]/', $request->comments)) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
-						'Special characters are not allowed as the first character for resolve comments!',
+						'Equal symbol (=) is not allowed as the first character for resolve comments!',
 					],
 				]);
 			}

@@ -400,12 +400,12 @@ app.component('deferredActivityUpdate', {
         // Check if the first character is a special character
         jQuery.validator.addMethod("checkFirstCharAsSpecialChar", function(value, element) {
             const enteredText = $(element).val();
-            const regex = /^[^a-zA-Z0-9]/;
+            const regex = /^=/;
             if (regex.test(enteredText)) {
                 return false;
             }
             return true;
-        }, "Special characters are not allowed as the first character!");
+        }, "Equal symbol (=) is not allowed as the first character!");
 
         jQuery.validator.addClassRules("checkFirstCharAsSpecialCharClass", {
             checkFirstCharAsSpecialChar: true

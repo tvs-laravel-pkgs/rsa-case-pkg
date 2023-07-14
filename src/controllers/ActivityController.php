@@ -969,7 +969,7 @@ class ActivityController extends Controller {
 				$var_key_val = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $var_key->id)->first();
 				$raw_key_name = 'raw_' . $key_name;
 				if (strpos($key_name, 'amount') || strpos($key_name, 'collected') || strcmp("amount", $key_name) == 0) {
-					$this->data['activities'][$key_name] = $var_key_val ? (!empty($var_key_val->value)?preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($var_key_val->value, 2))) : 0): 0;
+					$this->data['activities'][$key_name] = $var_key_val ? (!empty($var_key_val->value) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($var_key_val->value, 2))) : 0) : 0;
 					$this->data['activities'][$raw_key_name] = $var_key_val ? (!empty($var_key_val->value) ? $var_key_val->value : 0) : 0;
 				} else {
 					$this->data['activities'][$key_name] = $var_key_val ? (!empty($var_key_val->value) ? $var_key_val->value : 0) : 0;
@@ -1122,13 +1122,13 @@ class ActivityController extends Controller {
 				$detail = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $config->id)->first();
 				if (strpos($config->name, '_charges') || strpos($config->name, '_amount')) {
 
-					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value)?preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '0.00'): '0.00';
+					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '0.00') : '0.00';
 					$raw_key_name = 'raw_' . $config->name;
 					$this->data['activities'][$raw_key_name] = $detail ? (!empty($detail->value) ? $detail->value : '0.00') : '0.00';
 				} elseif (strpos($config->name, '_time')) {
 					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? $detail->value : '0.00') : '0.00';
 				} elseif (strpos($config->name, 'date')) {
-					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value)?date("d-m-Y H:i:s", strtotime($detail->value)) : '-'): '-';
+					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? date("d-m-Y H:i:s", strtotime($detail->value)) : '-') : '-';
 				} else {
 					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? $detail->value : '-') : '-';
 				}
@@ -1721,9 +1721,9 @@ class ActivityController extends Controller {
 			$isNotCollectedChanged = false;
 			$isCollectedChanged = false;
 
-			$kmTravelled = $activity->detail(158)?floatval($activity->detail(158)->value): 0;
-			$notCollected = $activity->detail(160)?floatval($activity->detail(160)->value): 0;
-			$collected = $activity->detail(159)?floatval($activity->detail(159)->value): 0;
+			$kmTravelled = $activity->detail(158) ? floatval($activity->detail(158)->value) : 0;
+			$notCollected = $activity->detail(160) ? floatval($activity->detail(160)->value) : 0;
+			$collected = $activity->detail(159) ? floatval($activity->detail(159)->value) : 0;
 
 			if ($request->boServiceTypeId != $activity->service_type_id) {
 				$isServiceTypeChanged = true;
@@ -1742,7 +1742,7 @@ class ActivityController extends Controller {
 			foreach ($key_list as $keyw) {
 				$var_key = Config::where('id', $keyw)->first();
 				$key_name = str_replace(" ", "_", strtolower($var_key->name));
-				$value = $request->$key_name?str_replace(",", "", $request->$key_name): 0;
+				$value = $request->$key_name ? str_replace(",", "", $request->$key_name) : 0;
 				//NEW
 				$activityDetail = ActivityDetail::firstOrNew([
 					'company_id' => 1,
@@ -2214,10 +2214,10 @@ class ActivityController extends Controller {
 	}
 
 	public function isL2ApprovalRequired($activity) {
-		$ccKmTravelled = $activity->detail(280)?floatval($activity->detail(280)->value): 0;
+		$ccKmTravelled = $activity->detail(280) ? floatval($activity->detail(280)->value) : 0;
 		$ccServiceTypeVal = $activity->detail(153) ? $activity->detail(153)->value : '';
 
-		$boKmTravelled = $activity->detail(158)?floatval($activity->detail(158)->value): 0;
+		$boKmTravelled = $activity->detail(158) ? floatval($activity->detail(158)->value) : 0;
 		$boServiceTypeVal = $activity->detail(161) ? $activity->detail(161)->value : '';
 
 		$l2ApprovalRequired = false;
@@ -2248,14 +2248,14 @@ class ActivityController extends Controller {
 			$rangeLimit = floatval($aspRateCard->range_limit);
 		}
 
-		$ccKmTravelled = $activity->detail(280)?floatval($activity->detail(280)->value): 0;
-		$ccCollected = $activity->detail(281)?floatval($activity->detail(281)->value): 0;
-		$ccNotCollected = $activity->detail(282)?floatval($activity->detail(282)->value): 0;
+		$ccKmTravelled = $activity->detail(280) ? floatval($activity->detail(280)->value) : 0;
+		$ccCollected = $activity->detail(281) ? floatval($activity->detail(281)->value) : 0;
+		$ccNotCollected = $activity->detail(282) ? floatval($activity->detail(282)->value) : 0;
 		$ccServiceTypeVal = $activity->detail(153) ? $activity->detail(153)->value : '';
 
-		$boKmTravelled = $activity->detail(158)?floatval($activity->detail(158)->value): 0;
-		$boCollected = $activity->detail(159)?floatval($activity->detail(159)->value): 0;
-		$boNotCollected = $activity->detail(160)?floatval($activity->detail(160)->value): 0;
+		$boKmTravelled = $activity->detail(158) ? floatval($activity->detail(158)->value) : 0;
+		$boCollected = $activity->detail(159) ? floatval($activity->detail(159)->value) : 0;
+		$boNotCollected = $activity->detail(160) ? floatval($activity->detail(160)->value) : 0;
 		$boServiceTypeVal = $activity->detail(161) ? $activity->detail(161)->value : '';
 
 		$isBulk = true;
@@ -2348,9 +2348,9 @@ class ActivityController extends Controller {
 
 				if ($aspServiceType) {
 					// $bo_km_charge = $activity->detail(172) ? $activity->detail(172)->value : 0;
-					$bo_km_travelled = $activity->detail(158)?numberFormatToDecimalConversion(floatval($activity->detail(158)->value)): 0;
-					$bo_km_collected = $activity->detail(159)?numberFormatToDecimalConversion(floatval($activity->detail(159)->value)): 0;
-					$bo_km_not_collected = $activity->detail(160)?numberFormatToDecimalConversion(floatval($activity->detail(160)->value)): 0;
+					$bo_km_travelled = $activity->detail(158) ? numberFormatToDecimalConversion(floatval($activity->detail(158)->value)) : 0;
+					$bo_km_collected = $activity->detail(159) ? numberFormatToDecimalConversion(floatval($activity->detail(159)->value)) : 0;
+					$bo_km_not_collected = $activity->detail(160) ? numberFormatToDecimalConversion(floatval($activity->detail(160)->value)) : 0;
 
 					$boWaitingTime = 0;
 					if ($activity->detail(330) && !empty($activity->detail(330)->value)) {
@@ -6656,12 +6656,12 @@ class ActivityController extends Controller {
 						$activity->service_type,
 						$activity->activity_portal_status,
 						$activity->activity_status,
-						!empty($activity->remarks)?strip_tags($activity->remarks): '',
-						!empty($activity->general_remarks)?strip_tags($activity->general_remarks): '',
+						!empty($activity->remarks) ? strip_tags($activity->remarks) : '',
+						!empty($activity->general_remarks) ? strip_tags($activity->general_remarks) : '',
 						!empty($activity->bo_comments) ? $activity->bo_comments : '',
 						!empty($activity->deduction_reason) ? $activity->deduction_reason : '',
-						!empty($activity->defer_reason)?strip_tags($activity->defer_reason): '',
-						!empty($activity->asp_resolve_comments)?strip_tags($activity->asp_resolve_comments): '',
+						!empty($activity->defer_reason) ? strip_tags($activity->defer_reason) : '',
+						!empty($activity->asp_resolve_comments) ? strip_tags($activity->asp_resolve_comments) : '',
 						$activity->invoice_no,
 						$inv_created_at,
 						$activity->invoice_status,
@@ -6698,7 +6698,7 @@ class ActivityController extends Controller {
 						$activity->asp_is_self,
 						$activity->asp_is_auto_invoice,
 						$activity->asp_workshop_name,
-						!empty($activity->asp_workshop_type)?array_flip($constants['workshop_types'])[$activity->asp_workshop_type]:'',
+						!empty($activity->asp_workshop_type) ? array_flip($constants['workshop_types'])[$activity->asp_workshop_type] : '',
 						$activity->asp_rm_name,
 						$activity->asp_location_name,
 						$activity->asp_district_name,
@@ -6718,19 +6718,19 @@ class ActivityController extends Controller {
 						!empty($activity->description) ? $activity->description : '',
 						$activity->is_towing_attachments_mandatory,
 						$activity->towingAttachmentMandatoryBy ? $activity->towingAttachmentMandatoryBy->name : '',
-						!empty($activity->remarks)?strip_tags($activity->remarks): '',
+						!empty($activity->remarks) ? strip_tags($activity->remarks) : '',
 						!empty($activity->manual_uploading_remarks) ? $activity->manual_uploading_remarks : '',
-						!empty($activity->general_remarks)?strip_tags($activity->general_remarks): '',
+						!empty($activity->general_remarks) ? strip_tags($activity->general_remarks) : '',
 						!empty($activity->bo_comments) ? $activity->bo_comments : '',
 						!empty($activity->deduction_reason) ? $activity->deduction_reason : '',
-						!empty($activity->defer_reason)?strip_tags($activity->defer_reason): '',
-						!empty($activity->asp_resolve_comments)?strip_tags($activity->asp_resolve_comments): '',
+						!empty($activity->defer_reason) ? strip_tags($activity->defer_reason) : '',
+						!empty($activity->asp_resolve_comments) ? strip_tags($activity->asp_resolve_comments) : '',
 						$activity->is_exceptional_check,
-						!empty($activity->exceptional_reason)?strip_tags($activity->exceptional_reason): '',
+						!empty($activity->exceptional_reason) ? strip_tags($activity->exceptional_reason) : '',
 						// $activity->invoice ? ($activity->asp->has_gst == 1 && $activity->asp->is_auto_invoice == 0 ? ($activity->invoice->invoice_no) : ($activity->invoice->invoice_no . '-' . $activity->invoice->id)) : '',
 						$activity->invoice_no,
 						$inv_created_at,
-						!empty($activity->invoice_amount)?preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice_amount, 2))): '',
+						!empty($activity->invoice_amount) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($activity->invoice_amount, 2))) : '',
 						$activity->invoice_status,
 						$activity->transactionDate,
 						$activity->voucher,
@@ -6753,9 +6753,9 @@ class ActivityController extends Controller {
 					if (strcmp('amount', $config->name) == 0 || strpos($config->name, '_charges') || strpos($config->name, 'Amount') || strpos($config->name, 'Collected') || strpos($config->name, 'date')) {
 						if ($detail) {
 							if (strpos($config->name, 'date')) {
-								$activity_details_data[$activity_key][] = ($detail->value != "")?date('d-m-Y H:i:s', strtotime($detail->value)): '';
+								$activity_details_data[$activity_key][] = ($detail->value != "") ? date('d-m-Y H:i:s', strtotime($detail->value)) : '';
 							} else {
-								$activity_details_data[$activity_key][] = ($detail->value != "")?preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))): '';
+								$activity_details_data[$activity_key][] = ($detail->value != "") ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '';
 							}
 						} else {
 							$activity_details_data[$activity_key][] = '';
@@ -6769,7 +6769,7 @@ class ActivityController extends Controller {
 					$total_days = 0;
 					$activity_log = ActivityLog::where('activity_id', $activity->id)->first();
 					if ($activity_log) {
-						$activity_details_data[$activity_key][] = $activity_log->imported_at?date('d-m-Y H:i:s', strtotime($activity_log->imported_at)): '';
+						$activity_details_data[$activity_key][] = $activity_log->imported_at ? date('d-m-Y H:i:s', strtotime($activity_log->imported_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->importedBy ? $activity_log->importedBy->username : '';
 
 						// 'Duration Between Import and ASP Data Filled'
@@ -6777,7 +6777,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->asp_data_filled_at?date('d-m-Y H:i:s', strtotime($activity_log->asp_data_filled_at)): '';
+						$activity_details_data[$activity_key][] = $activity_log->asp_data_filled_at ? date('d-m-Y H:i:s', strtotime($activity_log->asp_data_filled_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->aspDataFilledBy ? $activity_log->aspDataFilledBy->username : '';
 
 						// 'Duration Between ASP Data Filled and L1 deffered'
@@ -6785,7 +6785,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->bo_deffered_at?date('d-m-Y H:i:s', strtotime($activity_log->bo_deffered_at)): '';
+						$activity_details_data[$activity_key][] = $activity_log->bo_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_deffered_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->boDefferedBy ? $activity_log->boDefferedBy->username : '';
 
 						// 'Duration Between ASP Data Filled and L1 approved'
@@ -6793,7 +6793,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->bo_approved_at?date('d-m-Y H:i:s', strtotime($activity_log->bo_approved_at)): '';
+						$activity_details_data[$activity_key][] = $activity_log->bo_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->bo_approved_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->boApprovedBy ? $activity_log->boApprovedBy->username : '';
 
 						// 'Duration Between L1 approved and Invoice generated'
@@ -6805,7 +6805,7 @@ class ActivityController extends Controller {
 						$tot = ($activity_log->l2_deffered_at && $activity_log->bo_approved_at) ? $this->findDifference($activity_log->l2_deffered_at, $activity_log->bo_approved_at) : '';
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
-						$activity_details_data[$activity_key][] = $activity_log->l2_deffered_at?date('d-m-Y H:i:s', strtotime($activity_log->l2_deffered_at)): '';
+						$activity_details_data[$activity_key][] = $activity_log->l2_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->l2_deffered_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->l2DefferedBy ? $activity_log->l2DefferedBy->username : '';
 
 						// 'Duration Between L1 approved and L2 approved'
@@ -6813,7 +6813,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->l2_approved_at?date('d-m-Y H:i:s', strtotime($activity_log->l2_approved_at)): '';
+						$activity_details_data[$activity_key][] = $activity_log->l2_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->l2_approved_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->l2ApprovedBy ? $activity_log->l2ApprovedBy->username : '';
 
 						// 'Duration Between L2 approved and Invoice generated'
@@ -6831,7 +6831,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->l3_deffered_at?date('d-m-Y H:i:s', strtotime($activity_log->l3_deffered_at)): '';
+						$activity_details_data[$activity_key][] = $activity_log->l3_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->l3_deffered_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->l3DefferedBy ? $activity_log->l3DefferedBy->username : '';
 
 						// 'Duration Between L2 approved and L3 approved'
@@ -6839,7 +6839,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->l3_approved_at?date('d-m-Y H:i:s', strtotime($activity_log->l3_approved_at)): '';
+						$activity_details_data[$activity_key][] = $activity_log->l3_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->l3_approved_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->l3ApprovedBy ? $activity_log->l3ApprovedBy->username : '';
 
 						// 'Duration Between L3 approved and Invoice generated'
@@ -6862,7 +6862,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->l4_deffered_at?date('d-m-Y H:i:s', strtotime($activity_log->l4_deffered_at)): '';
+						$activity_details_data[$activity_key][] = $activity_log->l4_deffered_at ? date('d-m-Y H:i:s', strtotime($activity_log->l4_deffered_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->l4DefferedBy ? $activity_log->l4DefferedBy->username : '';
 
 						// 'Duration Between L3 approved and L4 approved'
@@ -6870,7 +6870,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->l4_approved_at?date('d-m-Y H:i:s', strtotime($activity_log->l4_approved_at)): '';
+						$activity_details_data[$activity_key][] = $activity_log->l4_approved_at ? date('d-m-Y H:i:s', strtotime($activity_log->l4_approved_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->l4ApprovedBy ? $activity_log->l4ApprovedBy->username : '';
 
 						// 'Duration Between L4 approved and Invoice generated'
@@ -6878,7 +6878,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->invoice_generated_at?date('d-m-Y H:i:s', strtotime($activity_log->invoice_generated_at)): '';
+						$activity_details_data[$activity_key][] = $activity_log->invoice_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->invoice_generated_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->invoiceGeneratedBy ? $activity_log->invoiceGeneratedBy->username : '';
 
 						// 'Duration Between Invoice generated and Axapta Generated'
@@ -6886,7 +6886,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->axapta_generated_at?date('d-m-Y H:i:s', strtotime($activity_log->axapta_generated_at)): '';
+						$activity_details_data[$activity_key][] = $activity_log->axapta_generated_at ? date('d-m-Y H:i:s', strtotime($activity_log->axapta_generated_at)) : '';
 						$activity_details_data[$activity_key][] = $activity_log->axaptaGeneratedBy ? $activity_log->axaptaGeneratedBy->username : '';
 
 						// 'Duration Between Axapta Generated and Payment Completed'
@@ -6894,7 +6894,7 @@ class ActivityController extends Controller {
 						$total_days = is_numeric($tot) ? ($tot + $total_days) : $total_days;
 						$activity_details_data[$activity_key][] = is_numeric($tot) ? ($tot > 1 ? ($tot . ' Days') : ($tot . ' Day')) : '';
 
-						$activity_details_data[$activity_key][] = $activity_log->payment_completed_at?date('d-m-Y H:i:s', strtotime($activity_log->payment_completed_at)): '';
+						$activity_details_data[$activity_key][] = $activity_log->payment_completed_at ? date('d-m-Y H:i:s', strtotime($activity_log->payment_completed_at)) : '';
 						$activity_details_data[$activity_key][] = $total_days > 1 ? ($total_days . ' Days') : ($total_days . ' Day');
 
 					} else {

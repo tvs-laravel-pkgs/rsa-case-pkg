@@ -2712,7 +2712,7 @@ class ActivityController extends Controller {
 			}
 
 			$errorMessages = [
-				'defer_reason.regex' => "Special characters are not allowed as the first character for defer reason!",
+				'defer_reason.regex' => "Equal symbol (=) is not allowed as the first character for defer reason!",
 			];
 
 			$validator = Validator::make($request->all(), [
@@ -2724,7 +2724,7 @@ class ActivityController extends Controller {
 				'defer_reason' => [
 					'required',
 					'string',
-					'regex:/^[a-zA-Z0-9]/',
+					'regex:/^[^=]/',
 				],
 			], $errorMessages);
 

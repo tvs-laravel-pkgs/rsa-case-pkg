@@ -1556,31 +1556,31 @@ class ActivityController extends Controller {
 			}
 
 			// Check if the first character is a special character
-			if (isset($request->bo_comments) && !empty($request->bo_comments) && !preg_match('/^[a-zA-Z0-9]/', $request->bo_comments)) {
+			if (isset($request->bo_comments) && !empty($request->bo_comments) && !preg_match('/^[^=]/', $request->bo_comments)) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
-						'Special characters are not allowed as the first character for comments!',
+						'Equal symbol (=) is not allowed as the first character for comments!',
 					],
 				]);
 			}
 
 			// Check if the first character is a special character
-			if (isset($request->deduction_reason) && !empty($request->deduction_reason) && !preg_match('/^[a-zA-Z0-9]/', $request->deduction_reason)) {
+			if (isset($request->deduction_reason) && !empty($request->deduction_reason) && !preg_match('/^[^=]/', $request->deduction_reason)) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
-						'Special characters are not allowed as the first character for deduction reason!',
+						'Equal symbol (=) is not allowed as the first character for deduction reason!',
 					],
 				]);
 			}
 
 			// Check if the first character is a special character
-			if (isset($request->exceptional_reason) && !empty($request->exceptional_reason) && !preg_match('/^[a-zA-Z0-9]/', $request->exceptional_reason)) {
+			if (isset($request->exceptional_reason) && !empty($request->exceptional_reason) && !preg_match('/^[^=]/', $request->exceptional_reason)) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
-						'Special characters are not allowed as the first character for exceptional reason!',
+						'Equal symbol (=) is not allowed as the first character for exceptional reason!',
 					],
 				]);
 			}

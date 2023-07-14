@@ -827,6 +827,80 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Unbilled Dealer Commission Invoice',
 			],
 
+			//DEALER COMMISSION CREDIT NOTE
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'dealer-commission-credit-note',
+				'display_name' => 'Dealer Commission Credit Note',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'dealer-commission-credit-note',
+				'name' => 'view-dealer-commission-credit-note',
+				'display_name' => 'View',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'dealer-commission-credit-note',
+				'name' => 'own-only-dealer-commission-credit-note',
+				'display_name' => 'Own Only',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'dealer-commission-credit-note',
+				'name' => 'own-dealer-commission-credit-note',
+				'display_name' => 'Own Dealer',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'dealer-commission-credit-note',
+				'name' => 'own-dealers-commission-credit-note',
+				'display_name' => 'Own Dealers',
+			],
+			[
+				'display_order' => 5,
+				'parent' => 'dealer-commission-credit-note',
+				'name' => 'all-dealer-commission-credit-note',
+				'display_name' => 'All',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'dealer-commission-credit-note',
+				'name' => 'finance-export-dealer-commission-credit-note',
+				'display_name' => 'Finance Export All',
+			],
+			[
+				'display_order' => 7,
+				'parent' => 'dealer-commission-credit-note',
+				'name' => 'finance-export-own-only-dealer-commission-credit-note',
+				'display_name' => 'Finance Export Own Only',
+			],
+			[
+				'display_order' => 8,
+				'parent' => 'dealer-commission-credit-note',
+				'name' => 'finance-export-own-dealer-commission-credit-note',
+				'display_name' => 'Finance Export Own Dealer',
+			],
+			[
+				'display_order' => 9,
+				'parent' => 'dealer-commission-credit-note',
+				'name' => 'finance-export-own-dealers-commission-credit-note',
+				'display_name' => 'Finance Export Own Dealers',
+			],
+			[
+				'display_order' => 10,
+				'parent' => 'dealer-commission-credit-note',
+				'name' => 'unbilled-dealer-commission-credit-note',
+				'display_name' => 'Unbilled Dealer Commission Credit Note',
+			],
+			[
+				'display_order' => 11,
+				'parent' => 'dealer-commission-credit-note',
+				'name' => 'create-dealer-commission-credit-note',
+				'display_name' => 'Create Dealer Commission Credit Note',
+			],
+
 			//TAX CODES
 			[
 				'display_order' => 99,

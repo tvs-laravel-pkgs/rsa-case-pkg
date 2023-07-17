@@ -2367,6 +2367,12 @@ class ActivityController extends Controller {
 					}
 
 					$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id, $activity->case->date);
+					if (!$response['success']) {
+						return response()->json([
+							'success' => false,
+							'error' => $response['error'] . '. Case - ' . $activity->case->number,
+						]);
+					}
 
 					$price = $response['asp_service_price'];
 

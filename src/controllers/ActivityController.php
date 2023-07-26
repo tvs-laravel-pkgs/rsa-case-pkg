@@ -4756,6 +4756,7 @@ class ActivityController extends Controller {
 	public function exportActivities(Request $request) {
 		// dd($request->all());
 		try {
+			ini_set('max_execution_time', 0);
 			ini_set('display_errors', 1);
 			ini_set('memory_limit', '-1');
 			ob_end_clean();

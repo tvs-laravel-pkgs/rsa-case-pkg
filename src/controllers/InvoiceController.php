@@ -6,6 +6,7 @@ use Abs\RsaCasePkg\ActivityReport;
 use App\Asp;
 use App\Attachment;
 use App\Http\Controllers\Admin\AxaptaExportController;
+use App\Oracle\ApInvoiceExport;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\SoapController;
 use App\Invoices;
@@ -589,4 +590,100 @@ class InvoiceController extends Controller {
 		}
 	}
 
+	public function oracleExport(Request $request) {
+		// dd($request->all());
+		try {
+			ini_set('max_execution_time', 0);
+			ini_set('display_errors', 1);
+			ini_set('memory_limit', '-1');
+			ob_end_clean();
+			ob_start();
+
+			$periods = getStartDateAndEndDate($request->oracle_invoice_period);
+			$start_date = $periods['start_date'];
+			$end_date = $periods['end_date'];
+
+			$oracleExports = ApInvoiceExport::whereIn('entity_type_id', [1321])
+				->where(function ($query) use ($start_date, $end_date) {
+					if (!empty($start_date) && !empty($end_date)) {
+						$start_date = date('Y-m-d', strtotime($start_date));
+						$end_date = date('Y-m-d', strtotime($end_date));
+						$query->whereRaw('DATE(invoice_date) between "' . $start_date . '" and "' . $end_date . '"');
+					}
+				})
+				->get();
+			if ($oracleExports->isNotEmpty()) {
+				foreach ($oracleExports as $oracle_export) {
+					$oracleExportsDetails[] = [
+						'BusinessUnit' => $oracle_export->business_unit,
+						'InvoiceSource' => $oracle_export->invoice_source,
+						'SupplierInvoiceNumber' => $oracle_export->supplier_invoice_number,
+						'InvoiceAmount' => $oracle_export->invoice_amount,
+						'InvoiceDate' => $oracle_export->invoice_date,
+						'SupplierNumber' => $oracle_export->supplier_number,
+						'SupplierSite' => $oracle_export->supplier_site,
+						'InvoiceType' => $oracle_export->invoice_type,
+						'AccountingDate' => $oracle_export->accounting_date,
+						'Description' => $oracle_export->description,
+						'RemitToSupplier' => $oracle_export->remit_to_supplier,
+						'AddressName' => $oracle_export->address_name,
+						'PaymentMethod' => $oracle_export->payment_method,
+						'BankAccount' => $oracle_export->bank_account,
+						'DMSGRNNo' => $oracle_export->dms_grn_no,
+						'Outlet' => $oracle_export->outlet,
+						'ChassisNumber' => $oracle_export->chassis_number,
+						'EngineNumber' => $oracle_export->engine_number,
+						'Model' => $oracle_export->model,
+						'ModelCode' => $oracle_export->model_code,
+						'DocumentType' => $oracle_export->document_type,
+						'PONumber' => $oracle_export->po_number,
+						'PODate' => $oracle_export->po_date,
+						'LineType' => $oracle_export->line_type,
+						'Amount' => $oracle_export->amount,
+						'LineDescription' => $oracle_export->line_description,
+						'TaxClassification' => $oracle_export->tax_classification,
+						'CGST' => $oracle_export->cgst,
+						'SGST' => $oracle_export->sgst,
+						'IGST' => $oracle_export->igst,
+						'TCS' => $oracle_export->tcs,
+						'CESS' => $oracle_export->cess,
+						'UGST' => $oracle_export->ugst,
+						'HSNCode' => $oracle_export->hsn_code,
+						'TaxAmount' => $oracle_export->tax_amount,
+						'ProductGroup' => $oracle_export->product_group,
+						'AccountingClass' => $oracle_export->accounting_class,
+						'Company' => $oracle_export->company,
+						'LOB' => $oracle_export->lob,
+						'Location' => $oracle_export->location,
+						'Department' => $oracle_export->department,
+						'NaturalAccount' => $oracle_export->natural_account,
+						'ProductSegment' => $oracle_export->product_segment,
+						'CustomerSegment' => $oracle_export->customer_segment,
+						'Intercompany' => $oracle_export->intercompany,
+						'Future1' => $oracle_export->future_1,
+						'Future2' => $oracle_export->future_2,
+					];
+				}
+			}else{
+				return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/' . $request->oracle_page_type)->with('error', 'No data found!');
+			}
+			$time_stamp = date('Y_m_d_h_i_s');
+			Excel::create('ASP Invoice Oracle Report - ' . $time_stamp, function ($excel) use ($oracleExportsDetails) {
+				$excel->sheet('Oracle Details', function ($sheet) use ($oracleExportsDetails) {
+					$sheet->fromArray($oracleExportsDetails, NULL, 'A1');
+					$sheet->row(1, function ($row) {
+						$row->setBackground('#bbc0c9');
+						$row->setAlignment('center');
+						$row->setFontSize(10);
+						$row->setFontFamily('Work Sans');
+						$row->setFontWeight('bold');
+					});
+					$sheet->setAutoSize(true);
+				});
+				$excel->setActiveSheetIndex(0);
+			})->export('csv');
+		} catch (\Exception $e) {
+			return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/' . $request->oracle_page_type)->with('error', $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile());
+		}
+	}
 }

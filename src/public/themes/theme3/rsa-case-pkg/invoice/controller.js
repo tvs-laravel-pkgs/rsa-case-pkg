@@ -4,6 +4,7 @@ app.component('invoiceList', {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
+        self.asp_invoice_oracle_export_url = laravel_routes['aspInvoiceOracleExport'];
         if (!self.hasPermission('asp-invoices')) {
             window.location = "#!/page-permission-denied";
             return false;
@@ -181,6 +182,24 @@ app.component('invoiceList', {
                     });
             }
             // END OF CANCEL INVOICE
+
+            $('input[name="oracle_invoice_period"]').daterangepicker({
+                startDate: moment().startOf('month'),
+                endDate: moment().endOf('month'),
+                locale: {
+                    cancelLabel: 'Clear',
+                    format: "DD-MM-YYYY"
+                }
+            });
+
+            $('input[name="oracle_invoice_period"]').on('apply.daterangepicker', function(ev, picker) {
+                var date_range = picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY');
+                $(this).val(date_range);
+            });
+
+            $('input[name="oracle_invoice_period"]').on('cancel.daterangepicker', function(ev, picker) {
+                $(this).val('');
+            });
 
             $rootScope.loading = false;
         });

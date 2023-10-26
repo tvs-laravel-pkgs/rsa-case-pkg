@@ -6,11 +6,11 @@ use Abs\RsaCasePkg\ActivityReport;
 use App\Asp;
 use App\Attachment;
 use App\Http\Controllers\Admin\AxaptaExportController;
-use App\Oracle\ApInvoiceExport;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\SoapController;
 use App\Invoices;
 use App\InvoiceVoucher;
+use App\Oracle\ApInvoiceExport;
 use App\StateUser;
 use Auth;
 use DB;
@@ -599,16 +599,37 @@ class InvoiceController extends Controller {
 			ob_end_clean();
 			ob_start();
 
-			$periods = getStartDateAndEndDate($request->oracle_invoice_period);
-			$start_date = $periods['start_date'];
-			$end_date = $periods['end_date'];
+			if (!isset($request->oraclePageTypeId) || (isset($request->oraclePageTypeId) && empty($request->oraclePageTypeId))) {
+				return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/1')->with('error', 'Type not found');
+			}
 
-			$oracleExports = ApInvoiceExport::whereIn('entity_type_id', [1321])
-				->where(function ($query) use ($start_date, $end_date) {
-					if (!empty($start_date) && !empty($end_date)) {
-						$start_date = date('Y-m-d', strtotime($start_date));
-						$end_date = date('Y-m-d', strtotime($end_date));
-						$query->whereRaw('DATE(invoice_date) between "' . $start_date . '" and "' . $end_date . '"');
+			$invoiceStatusId = NULL;
+			//PAYMENT PENDING
+			if ($request->oraclePageTypeId == '1') {
+				$invoiceStatusId = 1;
+			} elseif ($request->oraclePageTypeId == '2') {
+				// PAYMENT INPROGRESS
+				$invoiceStatusId = 3;
+			} elseif ($request->oraclePageTypeId == '3') {
+				// PAID
+				$invoiceStatusId = 2;
+			}
+
+			$periods = getStartDateAndEndDate($request->oracle_invoice_period);
+			$startDate = $periods['start_date'];
+			$endDate = $periods['end_date'];
+
+			$oracleExports = ApInvoiceExport::select(["oracle_ap_invoice_exports.*"])
+				->join('Invoices', 'Invoices.id', "oracle_ap_invoice_exports.entity_id")
+				->where('oracle_ap_invoice_exports.entity_type_id', 1321) //ASP INVOICE
+				->where(function ($query) use ($invoiceStatusId) {
+					if (!empty($invoiceStatusId)) {
+						$query->where('Invoices.status_id', $invoiceStatusId);
+					}
+				})
+				->where(function ($query) use ($startDate, $endDate) {
+					if (!empty($startDate) && !empty($endDate)) {
+						$query->whereRaw('DATE(oracle_ap_invoice_exports.invoice_date) between "' . $startDate . '" and "' . $endDate . '"');
 					}
 				})
 				->get();
@@ -664,26 +685,26 @@ class InvoiceController extends Controller {
 						'Future2' => $oracle_export->future_2,
 					];
 				}
-			}else{
-				return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/' . $request->oracle_page_type)->with('error', 'No data found!');
-			}
-			$time_stamp = date('Y_m_d_h_i_s');
-			Excel::create('ASP Invoice Oracle Report - ' . $time_stamp, function ($excel) use ($oracleExportsDetails) {
-				$excel->sheet('Oracle Details', function ($sheet) use ($oracleExportsDetails) {
-					$sheet->fromArray($oracleExportsDetails, NULL, 'A1');
-					$sheet->row(1, function ($row) {
-						$row->setBackground('#bbc0c9');
-						$row->setAlignment('center');
-						$row->setFontSize(10);
-						$row->setFontFamily('Work Sans');
-						$row->setFontWeight('bold');
+				$timeStamp = date('Ymdhis');
+				Excel::create('ASP_AP_INV_' . $timeStamp, function ($excel) use ($oracleExportsDetails) {
+					$excel->sheet('Sheet1', function ($sheet) use ($oracleExportsDetails) {
+						$sheet->fromArray($oracleExportsDetails, NULL, 'A1');
+						$sheet->row(1, function ($row) {
+							$row->setBackground('#bbc0c9');
+							$row->setAlignment('center');
+							$row->setFontSize(10);
+							$row->setFontFamily('Work Sans');
+							$row->setFontWeight('bold');
+						});
+						$sheet->setAutoSize(true);
 					});
-					$sheet->setAutoSize(true);
-				});
-				$excel->setActiveSheetIndex(0);
-			})->export('csv');
+					$excel->setActiveSheetIndex(0);
+				})->export('csv');
+			} else {
+				return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/' . $request->oraclePageTypeId)->with('error', 'No data found!');
+			}
 		} catch (\Exception $e) {
-			return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/' . $request->oracle_page_type)->with('error', $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile());
+			return Redirect::to(route('angular') . '/#!/rsa-case-pkg/invoice/list/' . $request->oraclePageTypeId)->with('error', $e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile());
 		}
 	}
 }

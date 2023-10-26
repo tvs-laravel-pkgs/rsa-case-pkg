@@ -41,6 +41,24 @@ app.component('invoiceList', {
             $(this).val('');
         });
 
+        $('input[name="oracle_invoice_period"]').daterangepicker({
+            startDate: moment().startOf('month'),
+            endDate: moment().endOf('month'),
+            locale: {
+                cancelLabel: 'Clear',
+                format: "DD-MM-YYYY"
+            }
+        });
+
+        $('input[name="oracle_invoice_period"]').on('apply.daterangepicker', function(ev, picker) {
+            var date_range = picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY');
+            $(this).val(date_range);
+        });
+
+        $('input[name="oracle_invoice_period"]').on('cancel.daterangepicker', function(ev, picker) {
+            $(this).val('');
+        });
+
         self.type_id = $routeParams.type_id;
         self.export_invoices_url = export_invoices;
         self.csrf = token;
@@ -182,24 +200,6 @@ app.component('invoiceList', {
                     });
             }
             // END OF CANCEL INVOICE
-
-            $('input[name="oracle_invoice_period"]').daterangepicker({
-                startDate: moment().startOf('month'),
-                endDate: moment().endOf('month'),
-                locale: {
-                    cancelLabel: 'Clear',
-                    format: "DD-MM-YYYY"
-                }
-            });
-
-            $('input[name="oracle_invoice_period"]').on('apply.daterangepicker', function(ev, picker) {
-                var date_range = picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY');
-                $(this).val(date_range);
-            });
-
-            $('input[name="oracle_invoice_period"]').on('cancel.daterangepicker', function(ev, picker) {
-                $(this).val('');
-            });
 
             $rootScope.loading = false;
         });

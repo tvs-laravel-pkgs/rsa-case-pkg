@@ -71,6 +71,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web'], 'prefix'
 		Route::get('/invoice/get/payment-info/{id}', 'InvoiceController@getPaymentInfo')->name('getPaymentInfo');
 
 		Route::get('/invoice/get-voucher-details', 'InvoiceController@getVoucherDetails')->name('getVoucherDetails');
+		Route::post('/asp-invoice/oracle-export', 'InvoiceController@oracleExport')->name('aspInvoiceOracleExport');
 
 		//BATCH GENERATION
 		Route::get('/batch-generation/get-list', 'BatchController@getList')->name('getListData');

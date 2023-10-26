@@ -424,6 +424,14 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'View Payment Info',
 			],
 
+			//ASP INVOICE ORACLE EXPORT
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'asp-invoice-oracle-export',
+				'display_name' => 'ASP Invoices Oracle Export',
+			],
+
 			//ADMIN DASHBOARD
 			[
 				'display_order' => 99,

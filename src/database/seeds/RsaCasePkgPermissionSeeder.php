@@ -1364,6 +1364,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'create-cash-sale-credit-note',
 				'display_name' => 'Create Credit Note',
 			],
+			[
+				'display_order' => 5,
+				'parent' => 'cash-sale',
+				'name' => 'cash-sale-finance-export-all',
+				'display_name' => 'Finance Export All',
+			],
 
 			//DIRECT SALE FTP
 			[

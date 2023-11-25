@@ -1316,6 +1316,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'cancel-credit-debit-note-einvoice',
 				'display_name' => 'Cancel E-Invoice',
 			],
+			[
+				'display_order' => 5,
+				'parent' => 'credit-debit-note',
+				'name' => 'credit-debit-note-finance-export-all',
+				'display_name' => 'Finance Export All',
+			],
 
 			//RELEASE ONHOLD CASES
 			[

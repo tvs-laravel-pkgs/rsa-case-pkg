@@ -50,7 +50,7 @@ class ActivityController extends Controller {
 
 			$validator = Validator::make($request->all(), [
 				// 'crm_activity_id' => 'required|numeric|unique:activities',
-				'crm_activity_id' => 'required|numeric',
+				'crm_activity_id' => 'required|string',
 				'data_src' => 'required|string',
 				'asp_code' => [
 					'required',

@@ -2877,7 +2877,7 @@ class Activity extends Model {
 
 	}
 
-	public function getEncryptionKey(Request $request) {
+	public static function getEncryptionKey(Request $request) {
 		if (empty($request->invoice_ids)) {
 			return response()->json([
 				'success' => false,
@@ -2892,7 +2892,7 @@ class Activity extends Model {
 		]);
 	}
 
-	public function getApprovedDetails($encryption_key = '') {
+	public static function getApprovedDetails($encryption_key = '') {
 		DB::beginTransaction();
 		try {
 			if (empty($encryption_key)) {
@@ -3036,24 +3036,25 @@ class Activity extends Model {
 				]);
 			}
 
-			$this->data['activities'] = $activities;
-			$this->data['invoice_amount'] = number_format($activity_detail->invoice_amount, 2);
-			$this->data['invoice_amount_in_word'] = getIndianCurrency($activity_detail->invoice_amount);
-			$this->data['asp'] = $asp;
-			$this->data['inv_no'] = generateInvoiceNumber();
-			$this->data['inv_date'] = date("d-m-Y");
-			$this->data['signature_attachment'] = Attachment::where('entity_id', $asp->id)
+			$data['activities'] = $activities;
+			$data['invoice_amount'] = number_format($activity_detail->invoice_amount, 2);
+			$data['invoice_amount_in_word'] = getIndianCurrency($activity_detail->invoice_amount);
+			$data['asp'] = $asp;
+			$data['inv_no'] = generateInvoiceNumber();
+			$data['inv_date'] = date("d-m-Y");
+			$data['signature_attachment'] = Attachment::where('entity_id', $asp->id)
 				->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))
 				->first();
-			$this->data['signature_attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
-			$this->data['bill_from_details']['company_name'] = config('rsa.SRP_COMPANY_NAME');
-			$this->data['bill_from_details']['registered_office'] = config('rsa.REGISTERED_OFFICE');
-			$this->data['bill_from_details']['gstin'] = config('rsa.GSTIN');
-			$this->data['bill_from_details']['pan'] = config('rsa.PAN');
-			$this->data['action'] = 'ASP Invoice Confirmation';
-			$this->data['success'] = true;
+			$data['signature_attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
+			$data['bill_from_details']['company_name'] = config('rsa.SRP_COMPANY_NAME');
+			$data['bill_from_details']['registered_office'] = config('rsa.REGISTERED_OFFICE');
+			$data['bill_from_details']['cin'] = config('rsa.CIN');
+			$data['bill_from_details']['gstin'] = config('rsa.GSTIN');
+			$data['bill_from_details']['pan'] = config('rsa.PAN');
+			$data['action'] = 'ASP Invoice Confirmation';
+			$data['success'] = true;
 			DB::commit();
-			return response()->json($this->data);
+			return response()->json($data);
 
 		} catch (\Exception $e) {
 			DB::rollBack();

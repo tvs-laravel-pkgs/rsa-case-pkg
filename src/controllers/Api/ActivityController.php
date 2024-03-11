@@ -882,7 +882,8 @@ class ActivityController extends Controller {
 				'bo_km_charge.value as km_charge',
 				'bo_not_collected_amount.value as cc_not_collected_amount',
 				'bo_colleced_amount.value as cc_colleced_amount',
-				'bo_po_amount.value as payout_amount'
+				'bo_po_amount.value as payout_amount',
+				'activities.id as activity_id'
 			)
 				->join('asps', 'asps.id', 'activities.asp_id')
 				->join('cases', 'cases.id', 'activities.case_id')

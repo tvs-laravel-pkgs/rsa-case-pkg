@@ -1696,7 +1696,7 @@ class ActivityController extends Controller {
 		return Activity::getEncryptionKey($request);
 	}
 
-	public function getActivityApprovedDetails($encryption_key = '') {
-		return Activity::getApprovedDetails($encryption_key);
+	public function getActivityApprovedDetails($encryption_key = '', $aspId) {
+		return Activity::getApprovedDetails($encryption_key, $aspId);
 	}
 }

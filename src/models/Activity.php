@@ -2892,7 +2892,7 @@ class Activity extends Model {
 		]);
 	}
 
-	public static function getApprovedDetails($encryption_key = '') {
+	public static function getApprovedDetails($encryption_key = '', $aspId = null) {
 		DB::beginTransaction();
 		try {
 			if (empty($encryption_key)) {
@@ -2914,7 +2914,14 @@ class Activity extends Model {
 					],
 				]);
 			}
-			$asp = Asp::with('rm')->find(Auth::user()->asp->id);
+
+			if(!empty($aspId)){
+				$aspId = $aspId;
+			}else{
+				$aspId = Auth::user()->asp->id;
+			}
+
+			$asp = Asp::with('rm')->find($aspId);
 			if (!$asp) {
 				return response()->json([
 					'success' => false,

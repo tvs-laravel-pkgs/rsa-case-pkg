@@ -14,7 +14,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg\Api', 'middleware' => ['api']], fun
 
 		Route::post('activity/encryption', 'ActivityController@activityEncryption');
 
-		Route::get('activity-approved/get-details/{encryption_key}', 'ActivityController@getActivityApprovedDetails')->name('getActivityApprovedDetails');
+		Route::get('activity-approved/get-details/{encryption_key}/{aspId}', 'ActivityController@getActivityApprovedDetails')->name('getActivityApprovedDetails');
 
 		Route::post('create-invoice', 'InvoiceController@createInvoice');
 

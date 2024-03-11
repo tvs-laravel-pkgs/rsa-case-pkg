@@ -530,4 +530,8 @@ class InvoiceController extends Controller {
 			], $this->successStatus);
 		}
 	}
+
+	public function viewInvoice($invoice_id, $type_id) {
+		return Invoices::viewData($invoice_id, $type_id);
+	}
 }

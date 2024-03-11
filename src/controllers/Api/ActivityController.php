@@ -878,6 +878,7 @@ class ActivityController extends Controller {
 				DB::raw('CAST(activities.crm_activity_id as UNSIGNED) as crm_activity_id'),
 				// 'activities.crm_activity_id',
 				'cases.vehicle_registration_number',
+				'cases.number as case_number',
 				'bo_km_charge.value as km_charge',
 				'bo_not_collected_amount.value as cc_not_collected_amount',
 				'bo_colleced_amount.value as cc_colleced_amount',
@@ -1690,4 +1691,11 @@ class ActivityController extends Controller {
 		}
 	}
 
+	public function activityEncryption(Request $request) {
+		return Activity::getEncryptionKey($request);
+	}
+
+	public function getActivityApprovedDetails($encryption_key = '') {
+		return Activity::getApprovedDetails($encryption_key);
+	}
 }

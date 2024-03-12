@@ -14,13 +14,13 @@ Route::group(['namespace' => 'Abs\RsaCasePkg\Api', 'middleware' => ['api']], fun
 
 		Route::post('activity/encryption', 'ActivityController@activityEncryption');
 
-		Route::get('activity-approved/get-details/{encryption_key}/{aspId}', 'ActivityController@getActivityApprovedDetails')->name('getActivityApprovedDetails');
+		Route::get('activity-approved/get-details/{encryption_key}/{aspId}', 'ActivityController@getActivityApprovedDetails');
 
 		Route::post('create-invoice', 'InvoiceController@createInvoice');
 
 		Route::post('get-invoice-list', 'InvoiceController@getList');
 		Route::post('get-invoice-details', 'InvoiceController@getDetails');
-		Route::get('invoice/view/{id}/{type_id}', 'InvoiceController@viewInvoice')->name('viewInvoice');
+		Route::get('invoice/view/{id}/{type_id}', 'InvoiceController@viewInvoice');
 
 		//ASP AUTO BILLING - WHATSAPP
 		Route::post('tow-images/upload', 'ActivityController@uploadTowImages');

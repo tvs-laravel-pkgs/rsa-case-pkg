@@ -906,9 +906,20 @@ class ActivityController extends Controller {
 				->whereIn('activities.status_id', [11, 1]) //Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
 				->where('cases.status_id', 4) //case closed
 				->where('activities.data_src_id', '!=', 262) //NOT BO MANUAL
-				->where('activities.asp_id', $asp->id)
-				->orderBy('activities.created_at', 'desc')
-				->get();
+				->where('activities.asp_id', $asp->id);
+
+				if (isset($request->offset)) {
+					$invoiceable_activities->offset($request->offset);
+				}
+				if (isset($request->limit)) {
+					$invoiceable_activities->limit($request->limit);
+				}
+				$invoiceable_activities = $invoiceable_activities
+					->orderBy('activities.created_at', 'desc')
+					->get();
+
+				// ->orderBy('activities.created_at', 'desc')
+				// ->get();
 
 			//SAVE INVOICEABLE ACTIVITIES API LOG
 			saveApiLog(105, NULL, $request->all(), $errors, NULL, 120);

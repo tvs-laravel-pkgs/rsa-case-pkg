@@ -25,6 +25,9 @@
                 <div class="col-xs-12 col-sm-6">
                     <div class="dataTable-top--right_wrapper">
                         <ul class="dataTable-top--right_group list-inline">
+                            <li ng-if="$ctrl.hasPermission('asp-invoice-oracle-export')">
+                                <button class="btn btn-primary yellow customForm-btn" data-target="#asp-invoice-oracle-export-modal" type="button" data-toggle="modal">ORACLE EXPORT</button>
+                            </li>
                             <li ng-if="$ctrl.hasPermission('export-asp-unpaid-invoices') && $ctrl.type_id != 3">
                                 <button class="btn btn-primary yellow customForm-btn" data-target="#asp-invoice-export-modal" type="button" data-toggle="modal">EXPORT</button>
                             </li>
@@ -98,6 +101,45 @@
                                             <div class="input-text form-group">
                                                 <label>Period</label>
                                                 <input class="form-control customForm-input" type="text" placeholder="Select Date Range" name="exportPeriod" autocomplete="off" id="exportPeriod" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="approvalModal-btns text-right">
+                                        <button type="submit" class="btn btn-primary yellow customForm-btn">Submit</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Modal -->
+<!-- Export Modal -->
+<div class="modal fade" id="asp-invoice-oracle-export-modal" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <img class="close_btn" src="{{ $ctrl.modal_close }}">
+                </a>
+                <h4 class="modal-title">Export ASP Invoice</h4>
+            </div>
+            <form method="post" action="{{$ctrl.asp_invoice_oracle_export_url}}" autocomplete="off">
+                <input name="_token" value="{{$ctrl.csrf}}" type="hidden">
+                <input name="oraclePageTypeId" value="{{$ctrl.type_id}}" type="hidden">
+                <div class="modal-body">
+                    <div class="approvalModal-wrapper">
+                        <div class="viewData-threeColumn--wrapper">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                <label>Period</label>
+                                                <input class="form-control customForm-input" type="text" placeholder="Select Date Range" name="oracle_invoice_period" autocomplete="off" id="oracle_invoice_period">
                                             </div>
                                         </div>
                                     </div>

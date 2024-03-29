@@ -424,6 +424,14 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'View Payment Info',
 			],
 
+			//ASP INVOICE ORACLE EXPORT
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'asp-invoice-oracle-export',
+				'display_name' => 'ASP Invoices Oracle Export',
+			],
+
 			//ADMIN DASHBOARD
 			[
 				'display_order' => 99,
@@ -1308,6 +1316,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'cancel-credit-debit-note-einvoice',
 				'display_name' => 'Cancel E-Invoice',
 			],
+			[
+				'display_order' => 5,
+				'parent' => 'credit-debit-note',
+				'name' => 'credit-debit-note-finance-export-all',
+				'display_name' => 'Finance Export All',
+			],
 
 			//RELEASE ONHOLD CASES
 			[
@@ -1355,6 +1369,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'parent' => 'cash-sale',
 				'name' => 'create-cash-sale-credit-note',
 				'display_name' => 'Create Credit Note',
+			],
+			[
+				'display_order' => 5,
+				'parent' => 'cash-sale',
+				'name' => 'cash-sale-finance-export-all',
+				'display_name' => 'Finance Export All',
 			],
 
 			//DIRECT SALE FTP

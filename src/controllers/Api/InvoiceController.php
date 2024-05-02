@@ -24,7 +24,7 @@ class InvoiceController extends Controller {
 		try {
 
 			$validator = Validator::make($request->all(), [
-				'activity_id.*' => 'required|numeric|exists:activities,crm_activity_id',
+				'activity_id.*' => 'required|exists:activities,crm_activity_id',
 				'asp_code' => 'required|string|exists:asps,asp_code',
 				'invoice_number' => 'nullable|string|max:20',
 				'irn' => 'nullable|string|min:64|max:64',
@@ -279,11 +279,17 @@ class InvoiceController extends Controller {
 			//STORE ATTACHMENT
 			$value = "";
 			if (!empty($request->invoice_copy)) {
-				$image = $request->invoice_copy; // base64 encoded
-				$image = str_replace('data:image/png;base64,', '', $image);
-				$image = str_replace(' ', '+', $image);
-				$f = finfo_open();
-				$mime_type = finfo_buffer($f, base64_decode($image), FILEINFO_MIME_TYPE);
+				if (isset($request->from) && $request->from == "VDM") {
+					$mime_type = $request->invoice_copy['mimetype'];
+					$image = $request->invoice_copy['base64Data'];
+				} else {
+					$image = $request->invoice_copy; // base64 encoded
+					$image = str_replace('data:image/png;base64,', '', $image);
+					$image = str_replace(' ', '+', $image);
+					$f = finfo_open();
+					$mime_type = finfo_buffer($f, base64_decode($image), FILEINFO_MIME_TYPE);
+				}
+
 				$extension = '';
 				if ($mime_type == "image/jpeg") {
 					$extension = 'jpg';

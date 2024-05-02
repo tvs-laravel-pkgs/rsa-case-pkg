@@ -50,7 +50,8 @@ class ActivityController extends Controller {
 
 			$validator = Validator::make($request->all(), [
 				// 'crm_activity_id' => 'required|numeric|unique:activities',
-				'crm_activity_id' => 'required|string',
+				// 'crm_activity_id' => 'required|string',
+				'crm_activity_id' => 'required',
 				'data_src' => 'required|string',
 				'asp_code' => [
 					'required',
@@ -908,18 +909,18 @@ class ActivityController extends Controller {
 				->where('activities.data_src_id', '!=', 262) //NOT BO MANUAL
 				->where('activities.asp_id', $asp->id);
 
-				if (isset($request->offset)) {
-					$invoiceable_activities->offset($request->offset);
-				}
-				if (isset($request->limit)) {
-					$invoiceable_activities->limit($request->limit);
-				}
-				$invoiceable_activities = $invoiceable_activities
-					->orderBy('activities.created_at', 'desc')
-					->get();
+			if (isset($request->offset)) {
+				$invoiceable_activities->offset($request->offset);
+			}
+			if (isset($request->limit)) {
+				$invoiceable_activities->limit($request->limit);
+			}
+			$invoiceable_activities = $invoiceable_activities
+				->orderBy('activities.created_at', 'desc')
+				->get();
 
-				// ->orderBy('activities.created_at', 'desc')
-				// ->get();
+			// ->orderBy('activities.created_at', 'desc')
+			// ->get();
 
 			//SAVE INVOICEABLE ACTIVITIES API LOG
 			saveApiLog(105, NULL, $request->all(), $errors, NULL, 120);

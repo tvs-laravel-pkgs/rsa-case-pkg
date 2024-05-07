@@ -50,7 +50,8 @@ class ActivityController extends Controller {
 
 			$validator = Validator::make($request->all(), [
 				// 'crm_activity_id' => 'required|numeric|unique:activities',
-				'crm_activity_id' => 'required|numeric',
+				// 'crm_activity_id' => 'required|string',
+				'crm_activity_id' => 'required',
 				'data_src' => 'required|string',
 				'asp_code' => [
 					'required',
@@ -878,10 +879,12 @@ class ActivityController extends Controller {
 				DB::raw('CAST(activities.crm_activity_id as UNSIGNED) as crm_activity_id'),
 				// 'activities.crm_activity_id',
 				'cases.vehicle_registration_number',
+				'cases.number as case_number',
 				'bo_km_charge.value as km_charge',
 				'bo_not_collected_amount.value as cc_not_collected_amount',
 				'bo_colleced_amount.value as cc_colleced_amount',
-				'bo_po_amount.value as payout_amount'
+				'bo_po_amount.value as payout_amount',
+				'activities.id as activity_id'
 			)
 				->join('asps', 'asps.id', 'activities.asp_id')
 				->join('cases', 'cases.id', 'activities.case_id')
@@ -904,9 +907,20 @@ class ActivityController extends Controller {
 				->whereIn('activities.status_id', [11, 1]) //Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
 				->where('cases.status_id', 4) //case closed
 				->where('activities.data_src_id', '!=', 262) //NOT BO MANUAL
-				->where('activities.asp_id', $asp->id)
+				->where('activities.asp_id', $asp->id);
+
+			if (isset($request->offset)) {
+				$invoiceable_activities->offset($request->offset);
+			}
+			if (isset($request->limit)) {
+				$invoiceable_activities->limit($request->limit);
+			}
+			$invoiceable_activities = $invoiceable_activities
 				->orderBy('activities.created_at', 'desc')
 				->get();
+
+			// ->orderBy('activities.created_at', 'desc')
+			// ->get();
 
 			//SAVE INVOICEABLE ACTIVITIES API LOG
 			saveApiLog(105, NULL, $request->all(), $errors, NULL, 120);
@@ -1690,4 +1704,11 @@ class ActivityController extends Controller {
 		}
 	}
 
+	public function activityEncryption(Request $request) {
+		return Activity::getEncryptionKey($request);
+	}
+
+	public function getActivityApprovedDetails($encryption_key = '', $aspId) {
+		return Activity::getApprovedDetails($encryption_key, $aspId);
+	}
 }

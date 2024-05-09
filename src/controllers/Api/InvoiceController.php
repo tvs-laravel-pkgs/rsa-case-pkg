@@ -280,7 +280,16 @@ class InvoiceController extends Controller {
 			$value = "";
 			if (!empty($request->invoice_copy)) {
 				if (isset($request->from) && $request->from == "VDM") {
-					$mime_type = $request->invoice_copy['mimetype'];
+					// $mime_type = $request->invoice_copy['mimetype'];
+					$file_original_name = $request->invoice_copy['originalname'];
+					$file_extension = strtolower(pathinfo($file_original_name, PATHINFO_EXTENSION));
+					if ($file_extension == "jpg" || $file_extension == "jpeg") {
+						$mime_type = "image/jpeg";
+					} elseif ($file_extension == "png") {
+						$mime_type = "image/png";
+					} elseif ($file_extension == "pdf") {
+						$mime_type = "application/pdf";
+					}
 					$image = $request->invoice_copy['base64Data'];
 				} else {
 					$image = $request->invoice_copy; // base64 encoded

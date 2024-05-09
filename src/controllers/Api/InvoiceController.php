@@ -278,10 +278,12 @@ class InvoiceController extends Controller {
 
 			//STORE ATTACHMENT
 			$value = "";
+			$file_name_without_extension = null;
 			if (!empty($request->invoice_copy)) {
 				if (isset($request->from) && $request->from == "VDM") {
 					// $mime_type = $request->invoice_copy['mimetype'];
 					$file_original_name = $request->invoice_copy['originalname'];
+					$file_name_without_extension = pathinfo($file_original_name, PATHINFO_FILENAME);
 					$file_extension = strtolower(pathinfo($file_original_name, PATHINFO_EXTENSION));
 					if ($file_extension == "jpg" || $file_extension == "jpeg") {
 						$mime_type = "image/jpeg";
@@ -297,6 +299,9 @@ class InvoiceController extends Controller {
 					$image = str_replace(' ', '+', $image);
 					$f = finfo_open();
 					$mime_type = finfo_buffer($f, base64_decode($image), FILEINFO_MIME_TYPE);
+					if(!empty($request->invoice_copy->getClientOriginalName())){
+						$file_name_without_extension = pathinfo($request->invoice_copy->getClientOriginalName(), PATHINFO_FILENAME);
+					}
 				}
 
 				$extension = '';
@@ -333,7 +338,7 @@ class InvoiceController extends Controller {
 				$value = $imageName;
 			}
 			//CREATE INVOICE
-			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $irn, $invoice_date, $value, false);
+			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $irn, $invoice_date, $value, false, $file_name_without_extension);
 
 			if (!$invoice_c['success']) {
 				//CREATE INVOICE API LOG

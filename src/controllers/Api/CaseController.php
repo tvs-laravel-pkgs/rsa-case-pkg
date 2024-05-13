@@ -102,13 +102,13 @@ class CaseController extends Controller {
 				],
 				// 'customer_name' => 'required|string|max:255',
 				'customer_name' => isset($request->type_id) && $request->type_id == 1461
-			        ? 'nullable|string|max:255'
-			        : 'required|string|max:255',
+				? 'nullable|string|max:255'
+				: 'required|string|max:255',
 				// 'customer_contact_number' => 'required|string|min:10|max:10',
 				// 'customer_contact_number' => 'required|string',
-			    'customer_contact_number' => isset($request->type_id) && $request->type_id == 1461
-			        ? 'nullable|string'
-			        : 'required|string',
+				'customer_contact_number' => isset($request->type_id) && $request->type_id == 1461
+				? 'nullable|string'
+				: 'required|string',
 				'contact_name' => 'nullable|string|max:255',
 				// 'contact_number' => 'nullable|string|min:10|max:10',
 				'contact_number' => 'nullable|string',
@@ -180,18 +180,18 @@ class CaseController extends Controller {
 				// 			$query->whereNull('deleted_at');
 				// 		}),
 				// ],
-				'pickup_dealer_name' => 'nullable|string|max:191',
-				'pickup_dealer_state' => 'nullable|string|max:191',
-				'pickup_dealer_city' => 'nullable|string|max:191',
-				'drop_dealer_name' => 'nullable|string|max:191',
-				'drop_dealer_state' => 'nullable|string|max:191',
-				'drop_dealer_city' => 'nullable|string|max:191',
-				'contact_name_at_pickup' => 'nullable|string|max:191',
+				'pickup_dealer_name' => 'nullable|string|max:255',
+				'pickup_dealer_state' => 'nullable|string|max:255',
+				'pickup_dealer_city' => 'nullable|string|max:255',
+				'drop_dealer_name' => 'nullable|string|max:255',
+				'drop_dealer_state' => 'nullable|string|max:255',
+				'drop_dealer_city' => 'nullable|string|max:255',
+				'contact_name_at_pickup' => 'nullable|string|max:255',
 				'contact_number_at_pickup' => 'nullable|string|max:20',
-				'contact_name_at_drop' => 'nullable|string|max:191',
+				'contact_name_at_drop' => 'nullable|string|max:255',
 				'contact_number_at_drop' => 'nullable|string|max:20',
 				'delivery_request_pickup_date' => 'nullable|date',
-				'delivery_request_pickup_date_time' => 'nullable|string|max:60',
+				'delivery_request_pickup_time' => 'nullable|string|max:60',
 			], $errorMessages);
 
 			if ($validator->fails()) {
@@ -327,8 +327,8 @@ class CaseController extends Controller {
 			]);
 
 			$check_cancelled_or_close = true;
-			if(isset($request->type_id) && $request->type_id == 1461){
-				//Vehicle Delivery
+			//Vehicle Delivery
+			if (isset($request->type_id) && $request->type_id == 1461) {
 				$check_cancelled_or_close = false;
 			}
 
@@ -414,7 +414,7 @@ class CaseController extends Controller {
 			$case->contact_name_at_drop = !empty($request->contact_name_at_drop) ? $request->contact_name_at_drop : NULL;
 			$case->contact_number_at_drop = !empty($request->contact_number_at_drop) ? $request->contact_number_at_drop : NULL;
 			$case->delivery_request_pickup_date = !empty($request->delivery_request_pickup_date) ? date('Y-m-d', strtotime($request->delivery_request_pickup_date)) : NULL;
-			$case->delivery_request_pickup_date_time = !empty($request->delivery_request_pickup_date_time) ? $request->delivery_request_pickup_date_time : NULL;
+			$case->delivery_request_pickup_time = !empty($request->delivery_request_pickup_time) ? $request->delivery_request_pickup_time : NULL;
 			$case->save();
 
 			if ($case->status_id == 3) {

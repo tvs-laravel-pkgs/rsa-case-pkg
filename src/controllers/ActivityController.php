@@ -27,7 +27,6 @@ use DB;
 use Entrust;
 use Excel;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Image;
@@ -686,6 +685,20 @@ class ActivityController extends Controller {
 					'cases.bd_city',
 					'cases.bd_state',
 					'cases.csr',
+					'cases.pickup_dealer_name',
+					'cases.pickup_dealer_location',
+					'cases.pickup_dealer_state',
+					'cases.pickup_dealer_city',
+					'cases.drop_dealer_name',
+					'cases.drop_dealer_location',
+					'cases.drop_dealer_state',
+					'cases.drop_dealer_city',
+					'cases.contact_name_at_pickup',
+					'cases.contact_number_at_pickup',
+					'cases.contact_name_at_drop',
+					'cases.contact_number_at_drop',
+					DB::raw('DATE_FORMAT(cases.delivery_request_pickup_date,"%d-%m-%Y") as delivery_request_pickup_date'),
+					'cases.delivery_request_pickup_time',
 					'activities.number as activity_number',
 					'activities.asp_po_accepted as asp_po_accepted',
 					'activities.defer_reason as defer_reason',

@@ -851,6 +851,8 @@ class ActivityController extends Controller {
 		try {
 			$validator = Validator::make($request->all(), [
 				'asp_code' => 'required|string|exists:asps,asp_code',
+				"offset" => 'nullable|numeric',
+				"limit" => 'nullable|numeric',
 			]);
 
 			if ($validator->fails()) {
@@ -918,9 +920,6 @@ class ActivityController extends Controller {
 			$invoiceable_activities = $invoiceable_activities
 				->orderBy('activities.created_at', 'desc')
 				->get();
-
-			// ->orderBy('activities.created_at', 'desc')
-			// ->get();
 
 			//SAVE INVOICEABLE ACTIVITIES API LOG
 			saveApiLog(105, NULL, $request->all(), $errors, NULL, 120);

@@ -25,6 +25,7 @@ use App\CallCenter;
 use App\Client;
 use App\Company;
 use App\Config;
+use App\Invoices;
 use App\Mail\ActivityWhatsappMailNoty;
 use App\ServiceType;
 use App\Subject;
@@ -35,13 +36,12 @@ use Carbon\Carbon;
 use DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use URL;
 use Validator;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Crypt;
-use App\Invoices;
 
 class Activity extends Model {
 	use SeederTrait;
@@ -2915,9 +2915,9 @@ class Activity extends Model {
 				]);
 			}
 
-			if(!empty($aspId)){
+			if (!empty($aspId)) {
 				$aspId = $aspId;
-			}else{
+			} else {
 				$aspId = Auth::user()->asp->id;
 			}
 
@@ -2952,7 +2952,7 @@ class Activity extends Model {
 				'total_tax_perc.value as total_tax_perc_value',
 				'total_tax_amount.value as total_tax_amount_value',
 				'data_sources.name as data_source',
-				'service_groups.name as service_group_name'
+				'service_groups.name as service_group_name',
 			])
 				->join('cases', 'cases.id', 'activities.case_id')
 				->join('call_centers', 'call_centers.id', 'cases.call_center_id')

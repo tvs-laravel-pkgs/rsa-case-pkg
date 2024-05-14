@@ -879,6 +879,7 @@ class ActivityController extends Controller {
 
 			$invoiceable_activities = Activity::select(
 				DB::raw('CAST(activities.crm_activity_id as UNSIGNED) as crm_activity_id'),
+				DB::raw('activities.crm_activity_id as crmActivityId'),
 				// 'activities.crm_activity_id',
 				'cases.vehicle_registration_number',
 				'cases.number as case_number',

@@ -299,7 +299,7 @@ class InvoiceController extends Controller {
 					$image = str_replace(' ', '+', $image);
 					$f = finfo_open();
 					$mime_type = finfo_buffer($f, base64_decode($image), FILEINFO_MIME_TYPE);
-					if(!empty($request->invoice_copy->getClientOriginalName())){
+					if (!empty($request->invoice_copy->getClientOriginalName())) {
 						$file_name_without_extension = pathinfo($request->invoice_copy->getClientOriginalName(), PATHINFO_FILENAME);
 					}
 				}

@@ -360,14 +360,22 @@ class InvoiceController extends Controller {
 			saveApiLog(106, NULL, $request->all(), $errors, NULL, 120);
 
 			DB::commit();
-			if ($invoice_c['success']) {
-				return response()->json([
-					'success' => true,
-					'message' => 'Invoice created successfully',
-					'invoice' => $invoice_c['invoice'],
-				], $this->successStatus);
+			if (isset($request->from) && $request->from == "VDM") {
+				if ($invoice_c['success']) {
+					return response()->json([
+						'success' => true,
+						'message' => 'Invoice created successfully',
+					], $this->successStatus);
+				}
+			} else {
+				if ($invoice_c['success']) {
+					return response()->json([
+						'success' => true,
+						'message' => 'Invoice created successfully',
+						'invoice' => $invoice_c['invoice'],
+					], $this->successStatus);
+				}
 			}
-
 		} catch (\Exception $e) {
 			DB::rollBack();
 			//CREATE INVOICE API LOG

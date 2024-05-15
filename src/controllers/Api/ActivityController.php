@@ -919,7 +919,7 @@ class ActivityController extends Controller {
 				$invoiceable_activities->limit($request->limit);
 			}
 			$invoiceable_activities = $invoiceable_activities
-				->orderBy('activities.created_at', 'desc')
+				->orderBy('cases.date', 'ASC')
 				->get();
 
 			//SAVE INVOICEABLE ACTIVITIES API LOG

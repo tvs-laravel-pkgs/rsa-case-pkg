@@ -182,6 +182,7 @@ class ActivityController extends Controller {
 				'amount_collected_from_customer' => 'nullable|numeric',
 				'amount_refused_by_customer' => 'nullable|numeric',
 				'fuel_charges' => 'nullable|numeric',
+				'is_asp_data_entry_done' => 'nullable|numeric',
 			], $errorMessages);
 
 			if ($validator->fails()) {

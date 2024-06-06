@@ -471,6 +471,8 @@ class ActivityController extends Controller {
 									$api_error,
 								],
 							], $this->successStatus);
+						} else {
+							$activity = $activityExist;
 						}
 					}
 				} else {

@@ -183,6 +183,7 @@ class ActivityController extends Controller {
 				'amount_refused_by_customer' => 'nullable|numeric',
 				'fuel_charges' => 'nullable|numeric',
 				'is_asp_data_entry_done' => 'nullable|numeric',
+				'isFromNewCrm' => 'nullable|boolean',
 			], $errorMessages);
 
 			if ($validator->fails()) {
@@ -449,26 +450,28 @@ class ActivityController extends Controller {
 							$activity = $activityExist;
 						}
 					} else {
+						// IN NEW CRM - WE ARE UPDATING THE ACTIVITY STATUS HENCE WE ARE ALLOWED
+						if (!isset($request->isFromNewCrm)) {
+							//IF IT IS IN NOT ELIGIBLE FOR PAYOUT STATUS
+							if ($activityExist->status_id == 15 || $activityExist->status_id == 16) {
+								$api_error = $errors[] = 'Activity update will not be allowed. Case is not eligible for payout';
+							} else {
+								$api_error = $errors[] = 'Activity update will not be allowed. Case is under payment process';
+							}
 
-						//IF IT IS IN NOT ELIGIBLE FOR PAYOUT STATUS
-						if ($activityExist->status_id == 15 || $activityExist->status_id == 16) {
-							$api_error = $errors[] = 'Activity update will not be allowed. Case is not eligible for payout';
-						} else {
-							$api_error = $errors[] = 'Activity update will not be allowed. Case is under payment process';
+							//SAVE ACTIVITY API LOG
+
+							saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+							DB::commit();
+
+							return response()->json([
+								'success' => false,
+								'error' => 'Validation Error',
+								'errors' => [
+									$api_error,
+								],
+							], $this->successStatus);
 						}
-
-						//SAVE ACTIVITY API LOG
-
-						saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
-						DB::commit();
-
-						return response()->json([
-							'success' => false,
-							'error' => 'Validation Error',
-							'errors' => [
-								$api_error,
-							],
-						], $this->successStatus);
 					}
 				} else {
 					//SAVE ACTIVITY API LOG
@@ -500,7 +503,7 @@ class ActivityController extends Controller {
 			$activity->asp_activity_status_id = $asp_activity_status_id;
 			$activity->asp_activity_rejected_reason_id = $asp_activity_rejected_reason_id;
 
-			//FOR NEW CRM PURPOSE
+			//FOR NEW CRM PURPOSE - TO MOVE ALL THE ACTIVITY TO "WAITING FOR L1 INDIVIDUAL VERIFICATION" ON CASE CLOSURE
 			if (isset($request->is_asp_data_entry_done)) {
 				$activity->is_asp_data_entry_done = $request->is_asp_data_entry_done;
 			}

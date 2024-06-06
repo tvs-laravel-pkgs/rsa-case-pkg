@@ -500,6 +500,11 @@ class ActivityController extends Controller {
 			$activity->asp_activity_status_id = $asp_activity_status_id;
 			$activity->asp_activity_rejected_reason_id = $asp_activity_rejected_reason_id;
 
+			//FOR NEW CRM PURPOSE
+			if (isset($request->is_asp_data_entry_done)) {
+				$activity->is_asp_data_entry_done = $request->is_asp_data_entry_done;
+			}
+
 			//ASP ACCEPTED CC DETAILS == 1 AND ACTIVITY STATUS SUCCESSFUL OLD
 			// if ($request->asp_accepted_cc_details && $activity_status_id == 7) {
 			//ASP ACCEPTED CC DETAILS == 1

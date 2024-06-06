@@ -500,7 +500,7 @@ class ActivityController extends Controller {
 			$activity->asp_activity_status_id = $asp_activity_status_id;
 			$activity->asp_activity_rejected_reason_id = $asp_activity_rejected_reason_id;
 
-			//FOR NEW CRM PURPOSE
+			//FOR NEW CRM PURPOSE - TO MOVE ALL THE ACTIVITY TO "WAITING FOR L1 INDIVIDUAL VERIFICATION" ON CASE CLOSURE
 			if (isset($request->is_asp_data_entry_done)) {
 				$activity->is_asp_data_entry_done = $request->is_asp_data_entry_done;
 			}

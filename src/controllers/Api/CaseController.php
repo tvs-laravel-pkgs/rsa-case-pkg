@@ -180,8 +180,8 @@ class CaseController extends Controller {
 				// 			$query->whereNull('deleted_at');
 				// 		}),
 				// ],
-				'pickup_lat' => 'nullable|string|max:191',
-				'pickup_long' => 'nullable|string|max:191',
+				'pickup_lat' => 'nullable|string|max:60',
+				'pickup_long' => 'nullable|string|max:60',
 				'pickup_dealer_name' => 'nullable|string|max:255',
 				'pickup_dealer_state' => 'nullable|string|max:255',
 				'pickup_dealer_city' => 'nullable|string|max:255',

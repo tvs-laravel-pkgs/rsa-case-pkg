@@ -653,6 +653,12 @@ class ActivityController extends Controller {
 				}
 			}
 
+			// CASE IS FROM VDM/CRM && ACTIVITY STATUS IS "ON HOLD" && ASP DATA ENTRY DONE IN MOBILE APP && THIRD PARTY ASP && ACTIVITY STATUS IS "SUCCESSFUL"
+			if (!empty($case->type_id) && $activity->status_id == 17 && $activity->is_asp_data_entry_done == 1 && $activity->asp->workshop_type != 1 && $activity->activity_status_id == 7) {
+				$activity->status_id = 26; //ASP Completed Data Entry - Waiting for Call Center Data Entry
+				$activity->save();
+			}
+
 			//MARKING AS OWN PATROL ACTIVITY
 			if ($activity->asp->workshop_type == 1) {
 				//Own Patrol Activity - Not Eligible for Payout

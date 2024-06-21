@@ -673,8 +673,8 @@ class ActivityController extends Controller {
 			$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
 
-			//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
-			if ($newActivity && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+			//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP (TYPEID CHECK - SKIP WHATSAPP PROCESS IF IT IS FROM NEW CRM)
+			if (empty($case->type_id) && $newActivity && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 				//OTHER THAN TOW SERVICES || TOW SERVICE WITH CC KM GREATER THAN 2
 				if (($service_type->service_group_id != 3 && ($disableWhatsappAutoApproval || (!$disableWhatsappAutoApproval && floatval($request->cc_total_km) > 2))) || ($service_type->service_group_id == 3 && floatval($request->cc_total_km) > 2)) {
 					$activity->sendBreakdownAlertWhatsappSms();

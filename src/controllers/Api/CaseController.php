@@ -180,6 +180,8 @@ class CaseController extends Controller {
 				// 			$query->whereNull('deleted_at');
 				// 		}),
 				// ],
+				'pickup_lat' => 'nullable|string|max:60',
+				'pickup_long' => 'nullable|string|max:60',
 				'pickup_dealer_name' => 'nullable|string|max:255',
 				'pickup_dealer_state' => 'nullable|string|max:255',
 				'pickup_dealer_city' => 'nullable|string|max:255',
@@ -401,6 +403,8 @@ class CaseController extends Controller {
 
 			//VEHICLE DELIVERY REQUEST COLUMNS
 			$case->type_id = !empty($request->type_id) ? $request->type_id : NULL;
+			$case->pickup_lat = !empty($request->pickup_lat) ? $request->pickup_lat : NULL;
+			$case->pickup_long = !empty($request->pickup_long) ? $request->pickup_long : NULL;
 			$case->pickup_dealer_name = !empty($request->pickup_dealer_name) ? $request->pickup_dealer_name : NULL;
 			$case->pickup_dealer_location = !empty($request->pickup_dealer_location) ? $request->pickup_dealer_location : NULL;
 			$case->pickup_dealer_state = !empty($request->pickup_dealer_state) ? $request->pickup_dealer_state : NULL;

@@ -4787,7 +4787,7 @@ class ActivityController extends Controller {
 				DB::raw('COALESCE(activity_reports.drop_location_type, "--") as dropLocationType'),
 				DB::raw('COALESCE(activity_reports.drop_dealer, "--") as dropDealer'),
 				DB::raw('COALESCE(activity_reports.drop_location, "--") as dropLocation'),
-				
+
 				DB::raw('COALESCE(activity_reports.drop_dealer_state, "--") as dropDealerState'),
 				DB::raw('COALESCE(activity_reports.drop_dealer_city, "--") as dropDealerCity'),
 
@@ -5145,10 +5145,8 @@ class ActivityController extends Controller {
 					'Drop Dealer',
 					'Drop Location',
 
-
 					'Drop Dealer State',
 					'Drop Dealer City',
-
 
 					'Drop Location Latitude',
 					'Drop Location Longitude',
@@ -5224,7 +5222,6 @@ class ActivityController extends Controller {
 					'BD City',
 					'BD State',
 
-
 					'Pickup Latitude',
 					'Pickup Longitude',
 					'Pickup Dealer Name',
@@ -5233,7 +5230,6 @@ class ActivityController extends Controller {
 					'Pickup Dealer City',
 					'Delivery Request Pickup Date',
 					'Delivery Request Pickup Time',
-
 
 					'CSR',
 					'Location Type',
@@ -5256,10 +5252,8 @@ class ActivityController extends Controller {
 					'Drop Dealer',
 					'Drop Location',
 
-
 					'Drop Dealer State',
 					'Drop Dealer City',
-
 
 					'Drop Location Latitude',
 					'Drop Location Longitude',
@@ -5447,7 +5441,6 @@ class ActivityController extends Controller {
 							$activityReportVal->bdCity,
 							$activityReportVal->bdState,
 
-
 							$activityReportVal->pickupLat,
 							$activityReportVal->pickupLong,
 							$activityReportVal->pickupDealerName,
@@ -5457,11 +5450,9 @@ class ActivityController extends Controller {
 							$activityReportVal->deliveryRequestPickupDate,
 							$activityReportVal->deliveryRequestPickupTime,
 
-
 							$activityReportVal->csr,
 							$activityReportVal->dropDealer,
 							$activityReportVal->dropLocation,
-
 
 							$activityReportVal->dropDealerState,
 							$activityReportVal->dropDealerCity,
@@ -5540,7 +5531,6 @@ class ActivityController extends Controller {
 							$activityReportVal->bdCity,
 							$activityReportVal->bdState,
 
-
 							$activityReportVal->pickupLat,
 							$activityReportVal->pickupLong,
 							$activityReportVal->pickupDealerName,
@@ -5549,7 +5539,6 @@ class ActivityController extends Controller {
 							$activityReportVal->pickupDealerCity,
 							$activityReportVal->deliveryRequestPickupDate,
 							$activityReportVal->deliveryRequestPickupTime,
-
 
 							$activityReportVal->csr,
 							$activityReportVal->locationType,
@@ -5574,7 +5563,6 @@ class ActivityController extends Controller {
 
 							$activityReportVal->dropDealerState,
 							$activityReportVal->dropDealerCity,
-
 
 							$activityReportVal->dropLocationLat,
 							$activityReportVal->dropLocationLong,

@@ -419,8 +419,8 @@ class CaseController extends Controller {
 			$case->contact_number_at_drop = !empty($request->contact_number_at_drop) ? $request->contact_number_at_drop : NULL;
 			$case->delivery_request_pickup_date = !empty($request->delivery_request_pickup_date) ? date('Y-m-d', strtotime($request->delivery_request_pickup_date)) : NULL;
 			$case->delivery_request_pickup_time = !empty($request->delivery_request_pickup_time) ? $request->delivery_request_pickup_time : NULL;
-			$case->save();			
-			
+			$case->save();
+
 			if ($case->status_id == 3) {
 				//CANCELLED
 				if ($case->activities->isNotEmpty()) {

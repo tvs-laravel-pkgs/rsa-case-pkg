@@ -31,8 +31,8 @@
                         <thead>
                             <tr>
                                 <th style="width:50%">Title</th>
-                                <th style="text-align:right;width:15%" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')) && $ctrl.data.view_cc_details == 1">CC Data</th>
-                                <th style="text-align:right;width:15%" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">ASP Data</th>
+                                <th style="text-align:right;width:15%" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1">CC Data</th>
+                                <th style="text-align:right;width:15%" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')">ASP Data</th>
                                 <th style="text-align:right;width:20%">BO Data</th>
                             </tr>
                         </thead>

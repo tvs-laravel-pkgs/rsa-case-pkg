@@ -343,19 +343,19 @@
                             <h4>Backstep Reason</h4>
                             <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.backstep_reason"></p>
                         </div>
-                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('own-zm-asp-activities') && $ctrl.data.general_remarks">
+                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="$ctrl.data.general_remarks">
                             <h4>ASP General Remarks</h4>
                             <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.general_remarks"></p>
                         </div>
-                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && $ctrl.data.defer_reason">
+                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('own-rm-asp-activities') && $ctrl.data.defer_reason">
                             <h4>BO Defer Reason</h4>
                             <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.defer_reason"></p>
                         </div>
-                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('own-zm-asp-activities') && $ctrl.data.asp_resolve_comments">
+                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="$ctrl.data.asp_resolve_comments">
                             <h4>ASP Resolve Comments</h4>
                             <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.asp_resolve_comments"></p>
                         </div>
-                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities') && $ctrl.data.exceptional_reason">
+                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && !$ctrl.hasPermission('own-rm-asp-activities') && $ctrl.data.exceptional_reason">
                             <h4>Exceptional Reason</h4>
                             <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.exceptional_reason"></p>
                         </div>

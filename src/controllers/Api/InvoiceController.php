@@ -24,7 +24,7 @@ class InvoiceController extends Controller {
 		try {
 
 			$validator = Validator::make($request->all(), [
-				'activity_id.*' => 'required|numeric|exists:activities,crm_activity_id',
+				'activity_id.*' => 'required|exists:activities,crm_activity_id',
 				'asp_code' => 'required|string|exists:asps,asp_code',
 				'invoice_number' => 'nullable|string|max:20',
 				'irn' => 'nullable|string|min:64|max:64',
@@ -278,12 +278,32 @@ class InvoiceController extends Controller {
 
 			//STORE ATTACHMENT
 			$value = "";
+			$file_name_without_extension = null;
 			if (!empty($request->invoice_copy)) {
-				$image = $request->invoice_copy; // base64 encoded
-				$image = str_replace('data:image/png;base64,', '', $image);
-				$image = str_replace(' ', '+', $image);
-				$f = finfo_open();
-				$mime_type = finfo_buffer($f, base64_decode($image), FILEINFO_MIME_TYPE);
+				if (isset($request->from) && $request->from == "VDM") {
+					// $mime_type = $request->invoice_copy['mimetype'];
+					$file_original_name = $request->invoice_copy['originalname'];
+					$file_name_without_extension = pathinfo($file_original_name, PATHINFO_FILENAME);
+					$file_extension = strtolower(pathinfo($file_original_name, PATHINFO_EXTENSION));
+					if ($file_extension == "jpg" || $file_extension == "jpeg") {
+						$mime_type = "image/jpeg";
+					} elseif ($file_extension == "png") {
+						$mime_type = "image/png";
+					} elseif ($file_extension == "pdf") {
+						$mime_type = "application/pdf";
+					}
+					$image = $request->invoice_copy['base64Data'];
+				} else {
+					$image = $request->invoice_copy; // base64 encoded
+					$image = str_replace('data:image/png;base64,', '', $image);
+					$image = str_replace(' ', '+', $image);
+					$f = finfo_open();
+					$mime_type = finfo_buffer($f, base64_decode($image), FILEINFO_MIME_TYPE);
+					if (!empty($request->invoice_copy->getClientOriginalName())) {
+						$file_name_without_extension = pathinfo($request->invoice_copy->getClientOriginalName(), PATHINFO_FILENAME);
+					}
+				}
+
 				$extension = '';
 				if ($mime_type == "image/jpeg") {
 					$extension = 'jpg';
@@ -318,7 +338,7 @@ class InvoiceController extends Controller {
 				$value = $imageName;
 			}
 			//CREATE INVOICE
-			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $irn, $invoice_date, $value, false);
+			$invoice_c = Invoices::createInvoice($asp, $request->activity_id, $invoice_no, $irn, $invoice_date, $value, false, $file_name_without_extension);
 
 			if (!$invoice_c['success']) {
 				//CREATE INVOICE API LOG
@@ -340,14 +360,22 @@ class InvoiceController extends Controller {
 			saveApiLog(106, NULL, $request->all(), $errors, NULL, 120);
 
 			DB::commit();
-			if ($invoice_c['success']) {
-				return response()->json([
-					'success' => true,
-					'message' => 'Invoice created successfully',
-					'invoice' => $invoice_c['invoice'],
-				], $this->successStatus);
+			if (isset($request->from) && $request->from == "VDM") {
+				if ($invoice_c['success']) {
+					return response()->json([
+						'success' => true,
+						'message' => 'Invoice created successfully',
+					], $this->successStatus);
+				}
+			} else {
+				if ($invoice_c['success']) {
+					return response()->json([
+						'success' => true,
+						'message' => 'Invoice created successfully',
+						'invoice' => $invoice_c['invoice'],
+					], $this->successStatus);
+				}
 			}
-
 		} catch (\Exception $e) {
 			DB::rollBack();
 			//CREATE INVOICE API LOG
@@ -529,5 +557,9 @@ class InvoiceController extends Controller {
 				],
 			], $this->successStatus);
 		}
+	}
+
+	public function viewInvoice($invoice_id, $type_id) {
+		return Invoices::viewData($invoice_id, $type_id);
 	}
 }

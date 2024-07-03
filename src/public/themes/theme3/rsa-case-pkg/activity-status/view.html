@@ -36,25 +36,25 @@
         <div id="bill" class="tab-pane fade in active">
             <billing-details data="$ctrl.data"></billing-details>
         </div>
-        <div id="activity" class="tab-pane fade" ng-if="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">
+        <div id="activity" class="tab-pane fade" ng-if="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')">
             <activity-details data="$ctrl.data"></activity-details>
         </div>
-        <div id="location" class="tab-pane fade" ng-if="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">
+        <div id="location" class="tab-pane fade" ng-if="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')">
             <location-details data="$ctrl.data"></location-details>
         </div>
-        <div id="km" class="tab-pane fade" ng-if="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">
+        <div id="km" class="tab-pane fade" ng-if="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')">
             <km-details data="$ctrl.data"></km-details>
         </div>
         <div id="invoice" class="tab-pane fade">
             <invoice-details data="$ctrl.data"></invoice-details>
         </div>
-        <div id="financial" class="tab-pane fade" ng-if="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">
+        <div id="financial" class="tab-pane fade" ng-if="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')">
             <financial-details data="$ctrl.data"></financial-details>
         </div>
         <div id="case" class="tab-pane fade">
             <case-details data="$ctrl.data"></case-details>
         </div>
-        <div id="history" class="tab-pane fade" ng-if="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities') && !$ctrl.hasPermission('own-zm-asp-activities')">
+        <div id="history" class="tab-pane fade" ng-if="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')">
             <activity-histories data="$ctrl.data"></activity-histories>
         </div>
     </div>

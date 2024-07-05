@@ -219,23 +219,23 @@ app.component('invoiceDetails', {
         $scope.loading = true;
         var self = this;
         this.$onInit = function() {
-            setTimeout(function() {
-                $scope.isSelf = function(asp) {
-                    if (asp.has_gst && !asp.is_auto_invoice) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                };
+            // setTimeout(function() {
+            $scope.isSelf = function(asp) {
+                if (asp.has_gst && !asp.is_auto_invoice) {
+                    return true;
+                } else {
+                    return false;
+                }
+            };
 
-                $scope.isSystem = function(asp) {
-                    if (!asp.has_gst || (asp.has_gst && asp.is_auto_invoice)) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                };
-            }, 1000);
+            $scope.isSystem = function(asp) {
+                if (!asp.has_gst || (asp.has_gst && asp.is_auto_invoice)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            };
+            // }, 1000);
         };
 
     }

@@ -50,7 +50,8 @@ class ActivityController extends Controller {
 
 			$validator = Validator::make($request->all(), [
 				// 'crm_activity_id' => 'required|numeric|unique:activities',
-				'crm_activity_id' => 'required|numeric',
+				// 'crm_activity_id' => 'required|string',
+				'crm_activity_id' => 'required',
 				'data_src' => 'required|string',
 				'asp_code' => [
 					'required',
@@ -181,6 +182,8 @@ class ActivityController extends Controller {
 				'amount_collected_from_customer' => 'nullable|numeric',
 				'amount_refused_by_customer' => 'nullable|numeric',
 				'fuel_charges' => 'nullable|numeric',
+				'is_asp_data_entry_done' => 'nullable|numeric',
+				'isFromNewCrm' => 'nullable|boolean',
 			], $errorMessages);
 
 			if ($validator->fails()) {
@@ -447,26 +450,30 @@ class ActivityController extends Controller {
 							$activity = $activityExist;
 						}
 					} else {
+						// IN NEW CRM - WE ARE UPDATING THE ACTIVITY STATUS HENCE WE ARE ALLOWED
+						if (!isset($request->isFromNewCrm)) {
+							//IF IT IS IN NOT ELIGIBLE FOR PAYOUT STATUS
+							if ($activityExist->status_id == 15 || $activityExist->status_id == 16) {
+								$api_error = $errors[] = 'Activity update will not be allowed. Case is not eligible for payout';
+							} else {
+								$api_error = $errors[] = 'Activity update will not be allowed. Case is under payment process';
+							}
 
-						//IF IT IS IN NOT ELIGIBLE FOR PAYOUT STATUS
-						if ($activityExist->status_id == 15 || $activityExist->status_id == 16) {
-							$api_error = $errors[] = 'Activity update will not be allowed. Case is not eligible for payout';
+							//SAVE ACTIVITY API LOG
+
+							saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+							DB::commit();
+
+							return response()->json([
+								'success' => false,
+								'error' => 'Validation Error',
+								'errors' => [
+									$api_error,
+								],
+							], $this->successStatus);
 						} else {
-							$api_error = $errors[] = 'Activity update will not be allowed. Case is under payment process';
+							$activity = $activityExist;
 						}
-
-						//SAVE ACTIVITY API LOG
-
-						saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
-						DB::commit();
-
-						return response()->json([
-							'success' => false,
-							'error' => 'Validation Error',
-							'errors' => [
-								$api_error,
-							],
-						], $this->successStatus);
 					}
 				} else {
 					//SAVE ACTIVITY API LOG
@@ -497,6 +504,11 @@ class ActivityController extends Controller {
 			$activity->service_type_id = $service_type->id;
 			$activity->asp_activity_status_id = $asp_activity_status_id;
 			$activity->asp_activity_rejected_reason_id = $asp_activity_rejected_reason_id;
+
+			//FOR NEW CRM PURPOSE - TO MOVE ALL THE ACTIVITY TO "WAITING FOR L1 INDIVIDUAL VERIFICATION" ON CASE CLOSURE
+			if (isset($request->is_asp_data_entry_done)) {
+				$activity->is_asp_data_entry_done = $request->is_asp_data_entry_done;
+			}
 
 			//ASP ACCEPTED CC DETAILS == 1 AND ACTIVITY STATUS SUCCESSFUL OLD
 			// if ($request->asp_accepted_cc_details && $activity_status_id == 7) {
@@ -641,6 +653,12 @@ class ActivityController extends Controller {
 				}
 			}
 
+			// CASE IS FROM VDM/CRM && ACTIVITY STATUS IS "ON HOLD" && ASP DATA ENTRY DONE IN MOBILE APP && THIRD PARTY ASP && ACTIVITY STATUS IS "SUCCESSFUL"
+			if (!empty($case->type_id) && $activity->status_id == 17 && $activity->is_asp_data_entry_done == 1 && $activity->asp->workshop_type != 1 && $activity->activity_status_id == 7) {
+				$activity->status_id = 26; //ASP Completed Data Entry - Waiting for Call Center Data Entry
+				$activity->save();
+			}
+
 			//MARKING AS OWN PATROL ACTIVITY
 			if ($activity->asp->workshop_type == 1) {
 				//Own Patrol Activity - Not Eligible for Payout
@@ -661,8 +679,8 @@ class ActivityController extends Controller {
 			$disableWhatsappAutoApproval = config('rsa')['DISABLE_WHATSAPP_AUTO_APPROVAL'];
 			$checkAspHasWhatsappFlow = config('rsa')['CHECK_ASP_HAS_WHATSAPP_FLOW'];
 
-			//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP
-			if ($newActivity && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
+			//IF ACTIVITY CREATED THEN SEND NEW BREAKDOWN ALERT WHATSAPP SMS TO ASP (TYPEID CHECK - SKIP WHATSAPP PROCESS IF IT IS FROM NEW CRM)
+			if (empty($case->type_id) && $newActivity && $activity->asp && !empty($activity->asp->whatsapp_number) && (!$checkAspHasWhatsappFlow || ($checkAspHasWhatsappFlow && $activity->asp->has_whatsapp_flow == 1))) {
 				//OTHER THAN TOW SERVICES || TOW SERVICE WITH CC KM GREATER THAN 2
 				if (($service_type->service_group_id != 3 && ($disableWhatsappAutoApproval || (!$disableWhatsappAutoApproval && floatval($request->cc_total_km) > 2))) || ($service_type->service_group_id == 3 && floatval($request->cc_total_km) > 2)) {
 					$activity->sendBreakdownAlertWhatsappSms();
@@ -850,6 +868,8 @@ class ActivityController extends Controller {
 		try {
 			$validator = Validator::make($request->all(), [
 				'asp_code' => 'required|string|exists:asps,asp_code',
+				"offset" => 'nullable|numeric',
+				"limit" => 'nullable|numeric',
 			]);
 
 			if ($validator->fails()) {
@@ -876,12 +896,15 @@ class ActivityController extends Controller {
 
 			$invoiceable_activities = Activity::select(
 				DB::raw('CAST(activities.crm_activity_id as UNSIGNED) as crm_activity_id'),
+				DB::raw('activities.crm_activity_id as crmActivityId'),
 				// 'activities.crm_activity_id',
 				'cases.vehicle_registration_number',
+				'cases.number as case_number',
 				'bo_km_charge.value as km_charge',
 				'bo_not_collected_amount.value as cc_not_collected_amount',
 				'bo_colleced_amount.value as cc_colleced_amount',
-				'bo_po_amount.value as payout_amount'
+				'bo_po_amount.value as payout_amount',
+				'activities.id as activity_id'
 			)
 				->join('asps', 'asps.id', 'activities.asp_id')
 				->join('cases', 'cases.id', 'activities.case_id')
@@ -904,8 +927,16 @@ class ActivityController extends Controller {
 				->whereIn('activities.status_id', [11, 1]) //Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
 				->where('cases.status_id', 4) //case closed
 				->where('activities.data_src_id', '!=', 262) //NOT BO MANUAL
-				->where('activities.asp_id', $asp->id)
-				->orderBy('activities.created_at', 'desc')
+				->where('activities.asp_id', $asp->id);
+
+			if (isset($request->offset)) {
+				$invoiceable_activities->offset($request->offset);
+			}
+			if (isset($request->limit)) {
+				$invoiceable_activities->limit($request->limit);
+			}
+			$invoiceable_activities = $invoiceable_activities
+				->orderBy('cases.date', 'ASC')
 				->get();
 
 			//SAVE INVOICEABLE ACTIVITIES API LOG
@@ -1690,4 +1721,11 @@ class ActivityController extends Controller {
 		}
 	}
 
+	public function activityEncryption(Request $request) {
+		return Activity::getEncryptionKey($request);
+	}
+
+	public function getActivityApprovedDetails($encryption_key = '', $aspId) {
+		return Activity::getApprovedDetails($encryption_key, $aspId);
+	}
 }

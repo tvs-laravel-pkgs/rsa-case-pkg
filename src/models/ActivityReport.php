@@ -94,6 +94,18 @@ class ActivityReport extends Model {
 					$activityReport->location_type = $activity->case->bdLocationType ? $activity->case->bdLocationType->name : NULL;
 					$activityReport->location_category = $activity->case->bdLocationCategory ? $activity->case->bdLocationCategory->name : NULL;
 					$activityReport->csr = !empty($activity->case->csr) ? $activity->case->csr : NULL;
+
+					//VDM COLUMNS
+					$activityReport->pickup_lat = !empty($activity->case->pickup_lat) ? $activity->case->pickup_lat : NULL;
+					$activityReport->pickup_long = !empty($activity->case->pickup_long) ? $activity->case->pickup_long : NULL;
+					$activityReport->pickup_dealer_name = !empty($activity->case->pickup_dealer_name) ? $activity->case->pickup_dealer_name : NULL;
+					$activityReport->pickup_dealer_location = !empty($activity->case->pickup_dealer_location) ? $activity->case->pickup_dealer_location : NULL;
+					$activityReport->pickup_dealer_state = !empty($activity->case->pickup_dealer_state) ? $activity->case->pickup_dealer_state : NULL;
+					$activityReport->pickup_dealer_city = !empty($activity->case->pickup_dealer_city) ? $activity->case->pickup_dealer_city : NULL;
+					$activityReport->delivery_request_pickup_date = !empty($activity->case->delivery_request_pickup_date) ? date('Y-m-d', strtotime($activity->case->delivery_request_pickup_date)) : NULL;
+					$activityReport->delivery_request_pickup_time = !empty($activity->case->delivery_request_pickup_time) ? $activity->case->delivery_request_pickup_time : NULL;
+					$activityReport->drop_dealer_state = !empty($activity->case->drop_dealer_state) ? $activity->case->drop_dealer_state : NULL;
+					$activityReport->drop_dealer_city = !empty($activity->case->drop_dealer_city) ? $activity->case->drop_dealer_city : NULL;
 				}
 
 				//ASP

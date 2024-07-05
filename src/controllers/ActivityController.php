@@ -27,7 +27,6 @@ use DB;
 use Entrust;
 use Excel;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Image;
@@ -686,6 +685,22 @@ class ActivityController extends Controller {
 					'cases.bd_city',
 					'cases.bd_state',
 					'cases.csr',
+					'cases.pickup_lat',
+					'cases.pickup_long',
+					'cases.pickup_dealer_name',
+					'cases.pickup_dealer_location',
+					'cases.pickup_dealer_state',
+					'cases.pickup_dealer_city',
+					'cases.drop_dealer_name',
+					'cases.drop_dealer_location',
+					'cases.drop_dealer_state',
+					'cases.drop_dealer_city',
+					'cases.contact_name_at_pickup',
+					'cases.contact_number_at_pickup',
+					'cases.contact_name_at_drop',
+					'cases.contact_number_at_drop',
+					DB::raw('DATE_FORMAT(cases.delivery_request_pickup_date,"%d-%m-%Y") as delivery_request_pickup_date'),
+					'cases.delivery_request_pickup_time',
 					'activities.number as activity_number',
 					'activities.asp_po_accepted as asp_po_accepted',
 					'activities.defer_reason as defer_reason',
@@ -1427,6 +1442,11 @@ class ActivityController extends Controller {
 				$bdLocation = $this->data['activities']->bd_location;
 			}
 
+			$pickupLocation = '';
+			if (!empty($this->data['activities']->pickup_lat) && !empty($this->data['activities']->pickup_long) && $this->data['activities']->pickup_lat != '-' && $this->data['activities']->pickup_long != '-') {
+				$pickupLocation = $this->data['activities']->pickup_lat . ',' . $this->data['activities']->pickup_long;
+			}
+
 			$dropLocation = '';
 			//ONLY TOW SERVICES
 			if ($this->data['activities']->serviceType->service_group_id == 3) {
@@ -1441,6 +1461,10 @@ class ActivityController extends Controller {
 
 			if (!empty($bdLocation)) {
 				$locationUrl .= "/" . $bdLocation;
+			}
+
+			if (!empty($pickupLocation)) {
+				$locationUrl .= "/" . $pickupLocation;
 			}
 
 			if (!empty($dropLocation)) {
@@ -4196,187 +4220,11 @@ class ActivityController extends Controller {
 	}
 
 	public function getActivityEncryptionKey(Request $request) {
-		if (empty($request->invoice_ids)) {
-			return response()->json([
-				'success' => false,
-				'error' => 'Please select atleast one activity',
-			]);
-		}
-		// $encryption_key = encryptStringInv(implode('-', $request->invoice_ids));
-		$encryption_key = Crypt::encryptString(implode('-', $request->invoice_ids));
-		return response()->json([
-			'success' => true,
-			'encryption_key' => $encryption_key,
-		]);
+		return Activity::getEncryptionKey($request);
 	}
 
 	public function getActivityApprovedDetails($encryption_key = '') {
-		DB::beginTransaction();
-		try {
-			if (empty($encryption_key)) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Activities not found',
-					],
-				]);
-			}
-			$decrypt = Crypt::decryptString($encryption_key);
-			// $decrypt = decryptStringInv($encryption_key);
-			$activity_ids = explode('-', $decrypt);
-			if (empty($activity_ids)) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Activities not found',
-					],
-				]);
-			}
-			$asp = Asp::with('rm')->find(Auth::user()->asp->id);
-			if (!$asp) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'ASP not found',
-					],
-				]);
-			}
-
-			$activityBaseQuery = Activity::select([
-				'cases.number',
-				'activities.id',
-				'activities.asp_id as asp_id',
-				'activities.crm_activity_id',
-				'activities.number as activityNumber',
-				DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y")as date'),
-				'activity_portal_statuses.name as status',
-				'call_centers.name as callcenter',
-				'cases.vehicle_registration_number',
-				'service_types.name as service_type',
-				'km_charge.value as km_charge_value',
-				'km_travelled.value as km_value',
-				'not_collected_amount.value as not_collect_value',
-				'waiting_charges.value as waiting_charges',
-				'net_amount.value as net_value',
-				'collect_amount.value as collect_value',
-				'total_amount.value as total_value',
-				'total_tax_perc.value as total_tax_perc_value',
-				'total_tax_amount.value as total_tax_amount_value',
-				'data_sources.name as data_source',
-			])
-				->join('cases', 'cases.id', 'activities.case_id')
-				->join('call_centers', 'call_centers.id', 'cases.call_center_id')
-				->join('service_types', 'service_types.id', 'activities.service_type_id')
-				->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
-				->leftJoin('activity_details as km_charge', function ($join) {
-					$join->on('km_charge.activity_id', 'activities.id')
-						->where('km_charge.key_id', 172); //BO PO AMOUNT OR KM CHARGE
-				})
-				->leftJoin('activity_details as km_travelled', function ($join) {
-					$join->on('km_travelled.activity_id', 'activities.id')
-						->where('km_travelled.key_id', 158); //BO KM TRAVELLED
-				})
-				->leftJoin('activity_details as net_amount', function ($join) {
-					$join->on('net_amount.activity_id', 'activities.id')
-						->where('net_amount.key_id', 176); //BO NET AMOUNT
-				})
-				->leftJoin('activity_details as collect_amount', function ($join) {
-					$join->on('collect_amount.activity_id', 'activities.id')
-						->where('collect_amount.key_id', 159); //BO COLLECT AMOUNT
-				})
-				->leftJoin('activity_details as not_collected_amount', function ($join) {
-					$join->on('not_collected_amount.activity_id', 'activities.id')
-						->where('not_collected_amount.key_id', 160); //BO NOT COLLECT AMOUNT
-				})
-				->leftJoin('activity_details as waiting_charges', function ($join) {
-					$join->on('waiting_charges.activity_id', 'activities.id')
-						->where('waiting_charges.key_id', 333); //BO WAITING CHARGE
-				})
-				->leftJoin('activity_details as total_tax_perc', function ($join) {
-					$join->on('total_tax_perc.activity_id', 'activities.id')
-						->where('total_tax_perc.key_id', 185); //BO TOTAL TAX PERC
-				})
-				->leftJoin('activity_details as total_tax_amount', function ($join) {
-					$join->on('total_tax_amount.activity_id', 'activities.id')
-						->where('total_tax_amount.key_id', 179); //BO TOTAL TAX AMOUNT
-				})
-				->leftJoin('activity_details as total_amount', function ($join) {
-					$join->on('total_amount.activity_id', 'activities.id')
-						->where('total_amount.key_id', 182); //BO INVOICE AMOUNT
-				})
-				->leftjoin('configs as data_sources', 'data_sources.id', 'activities.data_src_id')
-				->whereIn('activities.id', $activity_ids)
-				->whereIn('activities.status_id', [11, 1]) //Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
-				->groupBy('activities.id');
-
-			$activityCountQuery = clone $activityBaseQuery;
-			$activitiesCount = $activityCountQuery->get();
-
-			if ($activitiesCount->isEmpty()) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Activities not found',
-					],
-				]);
-			}
-
-			//CALCULATE TAX FOR INVOICE
-			Invoices::calculateTax($asp, $activity_ids);
-
-			$activities = clone $activityBaseQuery;
-			$activities = $activities->get();
-
-			foreach ($activities as $key => $activity) {
-				$taxes = DB::table('activity_tax')->leftjoin('taxes', 'activity_tax.tax_id', '=', 'taxes.id')->where('activity_id', $activity->id)->select('taxes.tax_name', 'taxes.tax_rate', 'activity_tax.*')->get();
-				$activity->taxes = $taxes;
-			}
-
-			//GET INVOICE AMOUNT FROM ACTIVITY DETAIL
-			$activity_detail = Activity::select(
-				DB::raw('SUM(bo_invoice_amount.value) as invoice_amount')
-			)
-				->leftjoin('activity_details as bo_invoice_amount', function ($join) {
-					$join->on('bo_invoice_amount.activity_id', 'activities.id')
-						->where('bo_invoice_amount.key_id', 182); //BO INVOICE AMOUNT
-				})
-				->whereIn('activities.id', $activity_ids)
-				->first();
-
-			if (!$activity_detail) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Invoice amount not found',
-					],
-				]);
-			}
-
-			$this->data['activities'] = $activities;
-			$this->data['invoice_amount'] = number_format($activity_detail->invoice_amount, 2);
-			$this->data['invoice_amount_in_word'] = getIndianCurrency($activity_detail->invoice_amount);
-			$this->data['asp'] = $asp;
-			$this->data['inv_no'] = generateInvoiceNumber();
-			$this->data['inv_date'] = date("d-m-Y");
-			$this->data['signature_attachment'] = Attachment::where('entity_id', $asp->id)
-				->where('entity_type', config('constants.entity_types.asp_attachments.digital_signature'))
-				->first();
-			$this->data['signature_attachment_path'] = url('storage/' . config('rsa.asp_attachment_path_view'));
-
-			$this->data['action'] = 'ASP Invoice Confirmation';
-			$this->data['success'] = true;
-			DB::commit();
-			return response()->json($this->data);
-
-		} catch (\Exception $e) {
-			DB::rollBack();
-			return response()->json([
-				'success' => false,
-				'errors' => [
-					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
-				],
-			]);
-		}
+		return Activity::getApprovedDetails($encryption_key);
 	}
 
 	public function generateInvoice(Request $request) {
@@ -4909,6 +4757,16 @@ class ActivityController extends Controller {
 				DB::raw('COALESCE(activity_reports.bd_location, "--") as bdLocation'),
 				DB::raw('COALESCE(activity_reports.bd_city, "--") as bdCity'),
 				DB::raw('COALESCE(activity_reports.bd_state, "--") as bdState'),
+
+				DB::raw('COALESCE(activity_reports.pickup_lat, "--") as pickupLat'),
+				DB::raw('COALESCE(activity_reports.pickup_long, "--") as pickupLong'),
+				DB::raw('COALESCE(activity_reports.pickup_dealer_name, "--") as pickupDealerName'),
+				DB::raw('COALESCE(activity_reports.pickup_dealer_location, "--") as pickupDealerLocation'),
+				DB::raw('COALESCE(activity_reports.pickup_dealer_state, "--") as pickupDealerState'),
+				DB::raw('COALESCE(activity_reports.pickup_dealer_city, "--") as pickupDealerCity'),
+				DB::raw('COALESCE(DATE_FORMAT(activity_reports.delivery_request_pickup_date,"%d-%m-%Y"), "--") as deliveryRequestPickupDate'),
+				DB::raw('COALESCE(activity_reports.delivery_request_pickup_time, "--") as deliveryRequestPickupTime'),
+
 				DB::raw('COALESCE(activity_reports.csr, "--") as csr'),
 				DB::raw('COALESCE(activity_reports.location_type, "--") as locationType'),
 				DB::raw('COALESCE(activity_reports.location_category, "--") as locationCategory'),
@@ -4929,6 +4787,10 @@ class ActivityController extends Controller {
 				DB::raw('COALESCE(activity_reports.drop_location_type, "--") as dropLocationType'),
 				DB::raw('COALESCE(activity_reports.drop_dealer, "--") as dropDealer'),
 				DB::raw('COALESCE(activity_reports.drop_location, "--") as dropLocation'),
+
+				DB::raw('COALESCE(activity_reports.drop_dealer_state, "--") as dropDealerState'),
+				DB::raw('COALESCE(activity_reports.drop_dealer_city, "--") as dropDealerCity'),
+
 				DB::raw('COALESCE(activity_reports.drop_location_lat, "--") as dropLocationLat'),
 				DB::raw('COALESCE(activity_reports.drop_location_long, "--") as dropLocationLong'),
 				DB::raw('COALESCE(FORMAT(activity_reports.amount, 2), "--") as amount'),
@@ -5269,9 +5131,23 @@ class ActivityController extends Controller {
 					'BD Location',
 					'BD City',
 					'BD State',
+
+					'Pickup Latitude',
+					'Pickup Longitude',
+					'Pickup Dealer Name',
+					'Pickup Dealer Location',
+					'Pickup Dealer State',
+					'Pickup Dealer City',
+					'Delivery Request Pickup Date',
+					'Delivery Request Pickup Time',
+
 					'CSR',
 					'Drop Dealer',
 					'Drop Location',
+
+					'Drop Dealer State',
+					'Drop Dealer City',
+
 					'Drop Location Latitude',
 					'Drop Location Longitude',
 					'BO KM Travelled',
@@ -5345,6 +5221,16 @@ class ActivityController extends Controller {
 					'BD Location',
 					'BD City',
 					'BD State',
+
+					'Pickup Latitude',
+					'Pickup Longitude',
+					'Pickup Dealer Name',
+					'Pickup Dealer Location',
+					'Pickup Dealer State',
+					'Pickup Dealer City',
+					'Delivery Request Pickup Date',
+					'Delivery Request Pickup Time',
+
 					'CSR',
 					'Location Type',
 					'Location Category',
@@ -5365,6 +5251,10 @@ class ActivityController extends Controller {
 					'Drop Location Type',
 					'Drop Dealer',
 					'Drop Location',
+
+					'Drop Dealer State',
+					'Drop Dealer City',
+
 					'Drop Location Latitude',
 					'Drop Location Longitude',
 					'Amount',
@@ -5550,9 +5440,23 @@ class ActivityController extends Controller {
 							$activityReportVal->bdLocation,
 							$activityReportVal->bdCity,
 							$activityReportVal->bdState,
+
+							$activityReportVal->pickupLat,
+							$activityReportVal->pickupLong,
+							$activityReportVal->pickupDealerName,
+							$activityReportVal->pickupDealerLocation,
+							$activityReportVal->pickupDealerState,
+							$activityReportVal->pickupDealerCity,
+							$activityReportVal->deliveryRequestPickupDate,
+							$activityReportVal->deliveryRequestPickupTime,
+
 							$activityReportVal->csr,
 							$activityReportVal->dropDealer,
 							$activityReportVal->dropLocation,
+
+							$activityReportVal->dropDealerState,
+							$activityReportVal->dropDealerCity,
+
 							$activityReportVal->dropLocationLat,
 							$activityReportVal->dropLocationLong,
 							$activityReportVal->boKmTravelled,
@@ -5626,6 +5530,16 @@ class ActivityController extends Controller {
 							$activityReportVal->bdLocation,
 							$activityReportVal->bdCity,
 							$activityReportVal->bdState,
+
+							$activityReportVal->pickupLat,
+							$activityReportVal->pickupLong,
+							$activityReportVal->pickupDealerName,
+							$activityReportVal->pickupDealerLocation,
+							$activityReportVal->pickupDealerState,
+							$activityReportVal->pickupDealerCity,
+							$activityReportVal->deliveryRequestPickupDate,
+							$activityReportVal->deliveryRequestPickupTime,
+
 							$activityReportVal->csr,
 							$activityReportVal->locationType,
 							$activityReportVal->locationCategory,
@@ -5646,6 +5560,10 @@ class ActivityController extends Controller {
 							$activityReportVal->dropLocationType,
 							$activityReportVal->dropDealer,
 							$activityReportVal->dropLocation,
+
+							$activityReportVal->dropDealerState,
+							$activityReportVal->dropDealerCity,
+
 							$activityReportVal->dropLocationLat,
 							$activityReportVal->dropLocationLong,
 							$activityReportVal->amount,

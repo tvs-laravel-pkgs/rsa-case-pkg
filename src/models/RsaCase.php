@@ -14,6 +14,7 @@ class RsaCase extends Model {
 	protected $table = 'cases';
 	protected $fillable = [
 		'company_id',
+		'type_id',
 		'number',
 		'date',
 		'data_filled_date',
@@ -43,6 +44,20 @@ class RsaCase extends Model {
 		'submission_closing_date',
 		'submission_closing_date_remarks',
 		'csr',
+		'pickup_dealer_name',
+		'pickup_dealer_location',
+		'pickup_dealer_state',
+		'pickup_dealer_city',
+		'drop_dealer_name',
+		'drop_dealer_location',
+		'drop_dealer_state',
+		'drop_dealer_city',
+		'contact_name_at_pickup',
+		'contact_number_at_pickup',
+		'contact_name_at_drop',
+		'contact_number_at_drop',
+		'delivery_request_pickup_date',
+		'delivery_request_pickup_time',
 	];
 
 	// Attributes --------------------------------------------------------------

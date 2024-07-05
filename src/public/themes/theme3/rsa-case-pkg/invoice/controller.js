@@ -307,11 +307,12 @@ app.component('invoiceView', {
                 }
             }, 1500);
 
-            if (self.hasPermission('view-invoice-payment-info')) {
-                setTimeout(function() {
-                    $scope.getPaymenyInfo();
-                }, 2000);
-            }
+            // DISABLED SINCE AXAPTA HAS BEEN DISABLED
+            // if (self.hasPermission('view-invoice-payment-info')) {
+            //     setTimeout(function() {
+            //         $scope.getPaymenyInfo();
+            //     }, 2000);
+            // }
 
             $('.viewData-toggle--inner.noToggle .viewData-threeColumn--wrapper').slideDown();
             $('.viewData-toggle--btn').click(function() {

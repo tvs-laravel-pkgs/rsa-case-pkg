@@ -100,9 +100,15 @@ class CaseController extends Controller {
 							$query->whereNull('deleted_at');
 						}),
 				],
-				'customer_name' => 'required|string|max:255',
+				// 'customer_name' => 'required|string|max:255',
+				'customer_name' => isset($request->type_id) && $request->type_id == 1461
+				? 'nullable|string|max:255'
+				: 'required|string|max:255',
 				// 'customer_contact_number' => 'required|string|min:10|max:10',
-				'customer_contact_number' => 'required|string',
+				// 'customer_contact_number' => 'required|string',
+				'customer_contact_number' => isset($request->type_id) && $request->type_id == 1461
+				? 'nullable|string'
+				: 'required|string',
 				'contact_name' => 'nullable|string|max:255',
 				// 'contact_number' => 'nullable|string|min:10|max:10',
 				'contact_number' => 'nullable|string',
@@ -174,6 +180,20 @@ class CaseController extends Controller {
 				// 			$query->whereNull('deleted_at');
 				// 		}),
 				// ],
+				'pickup_lat' => 'nullable|string|max:60',
+				'pickup_long' => 'nullable|string|max:60',
+				'pickup_dealer_name' => 'nullable|string|max:255',
+				'pickup_dealer_state' => 'nullable|string|max:255',
+				'pickup_dealer_city' => 'nullable|string|max:255',
+				'drop_dealer_name' => 'nullable|string|max:255',
+				'drop_dealer_state' => 'nullable|string|max:255',
+				'drop_dealer_city' => 'nullable|string|max:255',
+				'contact_name_at_pickup' => 'nullable|string|max:255',
+				'contact_number_at_pickup' => 'nullable|string|max:20',
+				'contact_name_at_drop' => 'nullable|string|max:255',
+				'contact_number_at_drop' => 'nullable|string|max:20',
+				'delivery_request_pickup_date' => 'nullable|date',
+				'delivery_request_pickup_time' => 'nullable|string|max:60',
 			], $errorMessages);
 
 			if ($validator->fails()) {
@@ -308,10 +328,16 @@ class CaseController extends Controller {
 				'number' => $request->number,
 			]);
 
+			$check_cancelled_or_close = true;
+			//Vehicle Delivery
+			if (isset($request->type_id) && $request->type_id == 1461) {
+				$check_cancelled_or_close = false;
+			}
+
 			//CASE NEW
 			if (!$case->exists) {
 				//WITH CANCELLED OR CLOSED STATUS
-				if ($status->id == 3 || $status->id == 4) {
+				if (($status->id == 3 || $status->id == 4) && $check_cancelled_or_close == true) {
 					//SAVE CASE API LOG
 					$errors[] = 'Case should not start with cancelled or closed status';
 					saveApiLog(102, $request->number, $request->all(), $errors, NULL, 121);
@@ -374,6 +400,25 @@ class CaseController extends Controller {
 			$case->bd_location_category_id = $bd_location_category_id;
 			$case->membership_type = !empty($request->membership_type) ? $request->membership_type : NULL;
 			$case->csr = !empty($request->csr) ? $request->csr : NULL;
+
+			//VEHICLE DELIVERY REQUEST COLUMNS
+			$case->type_id = !empty($request->type_id) ? $request->type_id : NULL;
+			$case->pickup_lat = !empty($request->pickup_lat) ? $request->pickup_lat : NULL;
+			$case->pickup_long = !empty($request->pickup_long) ? $request->pickup_long : NULL;
+			$case->pickup_dealer_name = !empty($request->pickup_dealer_name) ? $request->pickup_dealer_name : NULL;
+			$case->pickup_dealer_location = !empty($request->pickup_dealer_location) ? $request->pickup_dealer_location : NULL;
+			$case->pickup_dealer_state = !empty($request->pickup_dealer_state) ? $request->pickup_dealer_state : NULL;
+			$case->pickup_dealer_city = !empty($request->pickup_dealer_city) ? $request->pickup_dealer_city : NULL;
+			$case->drop_dealer_name = !empty($request->drop_dealer_name) ? $request->drop_dealer_name : NULL;
+			$case->drop_dealer_location = !empty($request->drop_dealer_location) ? $request->drop_dealer_location : NULL;
+			$case->drop_dealer_state = !empty($request->drop_dealer_state) ? $request->drop_dealer_state : NULL;
+			$case->drop_dealer_city = !empty($request->drop_dealer_city) ? $request->drop_dealer_city : NULL;
+			$case->contact_name_at_pickup = !empty($request->contact_name_at_pickup) ? $request->contact_name_at_pickup : NULL;
+			$case->contact_number_at_pickup = !empty($request->contact_number_at_pickup) ? $request->contact_number_at_pickup : NULL;
+			$case->contact_name_at_drop = !empty($request->contact_name_at_drop) ? $request->contact_name_at_drop : NULL;
+			$case->contact_number_at_drop = !empty($request->contact_number_at_drop) ? $request->contact_number_at_drop : NULL;
+			$case->delivery_request_pickup_date = !empty($request->delivery_request_pickup_date) ? date('Y-m-d', strtotime($request->delivery_request_pickup_date)) : NULL;
+			$case->delivery_request_pickup_time = !empty($request->delivery_request_pickup_time) ? $request->delivery_request_pickup_time : NULL;
 			$case->save();
 
 			if ($case->status_id == 3) {

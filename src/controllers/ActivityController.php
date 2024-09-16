@@ -4463,6 +4463,15 @@ class ActivityController extends Controller {
 				'submission_closing_date_remarks' => $r->remarks,
 			]);
 
+
+			//IF ACTIVITY PORTAL STATUS IS LAPSED THEN CHANGE STATUS
+			if($activity->status_id == 27){
+				//LAPSED
+				$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+				$activity->save();
+			}
+
+
 			//SAVE ACTIVITY REPORT FOR DASHBOARD
 			ActivityReport::saveReport($activity->id);
 

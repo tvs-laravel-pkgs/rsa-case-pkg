@@ -102,6 +102,12 @@
 	    when('/rsa-case-pkg/batch-generation/list', {
 	        template: '<batch-generation-list></batch-generation-list>',
 	        title: 'Invoices',
+	    }).
+
+	    //UNCLIAM TICKETS
+	    when('/rsa-case-pkg/unclaim-ticket/list', {
+	        template: '<unclaim-ticket-list></unclaim-ticket-list>',
+	        title: 'Unclaim Tickets',
 	    })
 	    ;
 	}]);
@@ -163,6 +169,11 @@
 
     var getServiceTypeRateCardDetail = "{{route('getActivityServiceTypeRateCardDetail')}}";
     var showTravelledKmMapView = "{{route('locatorMapMyIndia')}}";
+
+    //UNCLAIM TICKETS
+    var unclaim_ticket_list_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/unclaim-ticket/list.html')}}";
+    var unclaim_ticket_filter_url = "{{url('rsa-case-pkg/unclaim-ticket/get-filter-data')}}";
+    var unclaim_ticket_get_list_url = "{{url('rsa-case-pkg/unclaim-ticket/get-list/')}}";
 
 </script>
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/common/controller.js?v=14')}}"></script>
@@ -245,3 +256,6 @@
 </script>
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-approved/controller.js?v=6')}}"></script>
 
+
+<!-- UNCLAIM TICKETS -->
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/unclaim-ticket/controller.js?v=9')}}"></script>

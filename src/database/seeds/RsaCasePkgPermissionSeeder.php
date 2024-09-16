@@ -1857,6 +1857,13 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'export-qms',
 				'display_name' => 'Export',
 			],
+
+			[
+				'display_order' => 999,
+				'parent' => null,
+				'name' => 'unclaim-tickets',
+				'display_name' => 'Unclaim Tickets',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

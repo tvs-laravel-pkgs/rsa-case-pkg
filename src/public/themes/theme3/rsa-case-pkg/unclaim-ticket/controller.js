@@ -4,11 +4,10 @@ app.component('unclaimTicketList', {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
-        //need to enable
-        // if (!self.hasPermission('activity-status')) {
-        //     window.location = "#!/page-permission-denied";
-        //     return false;
-        // }
+        if (!self.hasPermission('unclaim-tickets')) {
+            window.location = "#!/page-permission-denied";
+            return false;
+        }
 
         self.filter_img_url = filter_img_url;
         self.csrf = token;

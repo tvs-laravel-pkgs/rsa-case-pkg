@@ -7202,12 +7202,10 @@ class ActivityController extends Controller {
 				$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
 				$aspIds[] = Auth::user()->asp->id;
 				$activities
-					->whereIn('asps.id', $aspIds)
-					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
+					->whereIn('asps.id', $aspIds);
 			} else {
 				$activities
-					->where('users.id', Auth::id())
-					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
+					->where('users.id', Auth::id());
 			}
 		}
 

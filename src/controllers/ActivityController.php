@@ -7216,58 +7216,13 @@ class ActivityController extends Controller {
 				$sql = "CONCAT(asps.asp_code,' / ',asps.workshop_name)  like ?";
 				$query->whereRaw($sql, ["%{$keyword}%"]);
 			})
-
 			->addColumn('action', function ($activity) {
-				$status_id = 1;
-				$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24, 25, 26];
-
+				$url = '#!/rsa-case-pkg/new-activity/update-details/' . $activity->id;
 				$action = '<div class="dataTable-actions" style="min-width: 125px;">
-				<a href="#!/rsa-case-pkg/activity-status/' . $status_id . '/view/' . $activity->id . '">
-					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
-					            </a>';
-				if (($activity->status_id == 2 || $activity->status_id == 4 || $activity->status_id == 15 || $activity->status_id == 16 || $activity->status_id == 17) && Entrust::can('delete-activities')) {
-					$action .= '<a onclick="angular.element(this).scope().deleteConfirm(' . $activity->id . ')" href="javascript:void(0)">
-						                <i class="fa fa-trash dataTable-icon--trash cl-delete" data-cl-id =' . $activity->id . ' aria-hidden="true"></i>
-						            </a>';
-				}
-
-				if (Entrust::can('backstep-activity') && in_array($activity->status_id, $return_status_ids)) {
-					$activityDetail = new Activity;
-					$activityDetail->id = $activity->id;
-					$activityDetail->status_id = $activity->status_id;
-					$activityDetail->activity_number = $activity->activity_number;
-
-					$action .= "<a href='javascript:void(0)' onclick='angular.element(this).scope().backConfirm(" . $activityDetail . ")' class='ticket_back_button'><i class='fa fa-arrow-left dataTable-icon--edit-1' data-cl-id =" . $activity->id . " aria-hidden='true'></i></a>";
-				}
-
-				//IF ASP DATA ENTRY OR REENTRY & TOWING SERVICE GROUP
-				if (($activity->status_id == 2 || $activity->status_id == 7) && $activity->service_group_id == 3 && Entrust::can('towing-images-required-for-activities')) {
-					$action .= '<a onclick="angular.element(this).scope().towingImageRequiredBtn(' . $activity->id . ',' . $activity->is_towing_attachments_mandatory . ')" href="javascript:void(0)">
-										<i class="dataTable-icon--edit-1" data-cl-id =' . $activity->id . ' aria-hidden="true"><img class="" src="resources/assets/images/edit-note.svg"></i>
-						            </a>';
-				}
-
-				//MOVE CASE TO NOT ELIGIBLE FOR PAYOUT
-				if (Entrust::can('move-activity-to-not-eligible-payout')) {
-					$notEligibleIcon = asset('public/img/content/table/noteligible.svg');
-					if ($activity->status_id != 15 && $activity->status_id != 16 && $activity->status_id != 12 && $activity->status_id != 13 && $activity->status_id != 14) {
-						$action .= '<a href="javascript:;" onclick="angular.element(this).scope().moveToNotEligibleForPayout(' . $activity->id . ')" title="Move To Not Eligible">
-                						<img src="' . $notEligibleIcon . '" alt="Move To Not Eligible" class="img-responsive">
-                					</a>';
-					}
-				}
-
-				//RELEASE ON HOLD / ASP COMPLETED DATA ENTRY - WAITING FOR CALL CENTER DATA ENTRY CASES
-				if (Entrust::can('release-onhold-case')) {
-					$onholdCaseReleaseIcon = asset('public/img/content/table/release.svg');
-					if ($activity->status_id == 17 || $activity->status_id == 26) {
-						$action .= '<a href="javascript:;" onclick="angular.element(this).scope().releaseOnHoldCase(' . $activity->id . ')" title="Release On Hold Case">
-                						<img src="' . $onholdCaseReleaseIcon . '" alt="Release On Hold Case" class="img-responsive">
-                					</a>';
-					}
-				}
-
-				$action .= '</div>';
+					<a href="' . $url . '" target="_blank">
+	                	<i class="fa fa-external-link-square" aria-hidden="true"></i>
+	            	</a>
+        		</div>';
 				return $action;
 			})
 			->make(true);

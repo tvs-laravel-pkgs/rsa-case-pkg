@@ -1857,6 +1857,50 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'export-qms',
 				'display_name' => 'Export',
 			],
+
+			//SERVICE DASHBOARD PERMISSION
+			[
+				'display_order' => 1,
+				'parent' => 'dashboard',
+				'name' => 'view-all',
+				'display_name' => 'View All',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'dashboard',
+				'name' => 'own-only',
+				'display_name' => 'Own Only',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'dashboard',
+				'name' => 'own-client',
+				'display_name' => 'Own Client',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'dashboard',
+				'name' => 'own-rm-asp',
+				'display_name' => 'Own RM ASP',
+			],
+			[
+				'display_order' => 5,
+				'parent' => 'dashboard',
+				'name' => 'own-zm-asp',
+				'display_name' => 'Own ZM ASP',
+			],
+			[
+				'display_order' => 6,
+				'parent' => 'dashboard',
+				'name' => 'own-nm-asp',
+				'display_name' => 'Own NM ASP',
+			],
+			[
+				'display_order' => 7,
+				'parent' => 'dashboard',
+				'name' => 'only-mapped-states',
+				'display_name' => 'Only Mapped States',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

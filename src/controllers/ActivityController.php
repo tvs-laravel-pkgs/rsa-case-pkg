@@ -7127,6 +7127,12 @@ class ActivityController extends Controller {
 	}
 
 	public function getUnclaimTicketList(Request $request) {
+
+		if (Auth::user()->asp && !Auth::user()->asp->enable_unclaim_tickets) {
+			return Datatables::of([])->make(true);
+		}
+
+
 		$periods = getStartDateAndEndDate($request->date_range_period);
 		$from_date = $periods['start_date'];
 		$end_date = $periods['end_date'];

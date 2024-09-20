@@ -341,6 +341,50 @@ class ActivityController extends Controller {
 						'error' => 'Activity status not moved to ASP Data Re-Entry',
 					]);
 				}
+			} elseif ($request->ticket_status_id == '3') {
+				$activity->status_id = 6; //ASP Completed Data Entry - Waiting for L1 Individual Verification
+				$activity->is_asp_data_entry_done = 1;
+				$activity->backstep_reason = makeUrltoLinkInString($request->backstep_reason);
+				$activity->backstepped_at = Carbon::now();
+				$activity->backstep_by_id = Auth::user()->id;
+				$activity->updated_at = Carbon::now();
+				$activity->updated_by_id = Auth::user()->id;
+				$activity->save();
+
+				//SAVE ACTIVITY REPORT FOR DASHBOARD
+				ActivityReport::saveReport($activity->id);
+
+				if ($activity) {
+					//log message
+					$log_status = config('rsa.LOG_STATUES_TEMPLATES.ASP_DATA_ENTRY_DONE');
+					$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ASP_DATA_ENTRY_DONE');
+					logActivity3(config('constants.entity_types.ticket'), $activity->id, [
+						'Status' => $log_status,
+						'Waiting for' => $log_waiting,
+					], 361);
+
+					$noty_message_template = 'ASP_DATA_ENTRY_DONE_DEFFERED';
+					$ticket_number = [$activity->case->number];
+					$state_id = $activity->asp->state_id;
+					$bo_users = DB::table('state_user')
+						->join('users', 'users.id', 'state_user.user_id')
+						->where('state_user.state_id', $state_id)
+						->where('users.role_id', 6) //BO
+						->where('users.activity_approval_level_id', 1) //L1
+						->pluck('state_user.user_id');
+					if (!empty($bo_users)) {
+						foreach ($bo_users as $bo_user_id) {
+							notify2($noty_message_template, $bo_user_id, config('constants.alert_type.blue'), $ticket_number);
+						}
+					}
+					return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+						'success' => 'Activity status moved to L1 individual verification',
+					]);
+				} else {
+					return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
+						'error' => 'Activity status not moved to L1 individual verification',
+					]);
+				}
 			}
 		} catch (\Exception $e) {
 			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([

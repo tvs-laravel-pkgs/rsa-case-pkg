@@ -323,20 +323,9 @@ app.component('billingDetails', {
                         self.data.deduction_reason = "";
                     }
 
-                    $scope.asp_data_entry_submit = function() {
-                        $('#ticket_status_id').val(1);
-                        if (self.backstepReason == "") {
-                            custom_noty('error', 'Reason is required');
-                        } else {
-                            setTimeout(function() {
-                                $('#tickect-back-asp-form').submit();
-                            }, 1000);
-                        }
-                    };
-
-                    $scope.asp_bo_deffered_submit = function() {
-                        $('#ticket_status_id').val(2);
-                        if (self.backstepReason == "") {
+                    $scope.backstepSubmit = (statusId) => {
+                        $('#ticket_status_id').val(statusId);
+                        if (!self.backstepReason) {
                             custom_noty('error', 'Reason is required');
                         } else {
                             setTimeout(function() {

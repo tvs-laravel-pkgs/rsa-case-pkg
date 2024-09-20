@@ -491,9 +491,9 @@ app.component('activityStatusList', {
             }
         });
 
-        $scope.asp_data_entry_submit = function() {
-            var ticket_status_id = $('#ticket_status_id').val(1);
-            if (self.backstepReason == "") {
+        $scope.backstepSubmit = (statusId) => {
+            $('#ticket_status_id').val(statusId);
+            if (!self.backstepReason) {
                 custom_noty('error', 'Reason is required');
             } else {
                 setTimeout(function() {
@@ -501,18 +501,6 @@ app.component('activityStatusList', {
                 }, 1000);
             }
         };
-
-        $scope.asp_bo_deffered_submit = function() {
-            var ticket_status_id = $('#ticket_status_id').val(2);
-            if (self.backstepReason == "") {
-                custom_noty('error', 'Reason is required');
-            } else {
-                setTimeout(function() {
-                    $('#tickect-back-asp-form').submit();
-                }, 1000);
-            }
-        };
-
     }
 });
 //------------------------------------------------------------------------------------------------------------------------

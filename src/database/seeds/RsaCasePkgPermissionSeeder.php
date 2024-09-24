@@ -766,6 +766,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'export-mytvs-policy',
 				'display_name' => 'Export MyTVS Policy',
 			],
+			[
+				'display_order' => 32,
+				'parent' => 'membership',
+				'name' => 'import-mytvs-policy',
+				'display_name' => 'Import MyTVS Policy',
+			],
 
 			//Dealer Invoice Menu
 			[

@@ -102,10 +102,12 @@ class ActivityReport extends Model {
 					$activityReport->pickup_dealer_location = !empty($activity->case->pickup_dealer_location) ? $activity->case->pickup_dealer_location : NULL;
 					$activityReport->pickup_dealer_state = !empty($activity->case->pickup_dealer_state) ? $activity->case->pickup_dealer_state : NULL;
 					$activityReport->pickup_dealer_city = !empty($activity->case->pickup_dealer_city) ? $activity->case->pickup_dealer_city : NULL;
+					$activityReport->pickup_location_pincode = !empty($activity->case->pickup_location_pincode) ? $activity->case->pickup_location_pincode : NULL;
 					$activityReport->delivery_request_pickup_date = !empty($activity->case->delivery_request_pickup_date) ? date('Y-m-d', strtotime($activity->case->delivery_request_pickup_date)) : NULL;
 					$activityReport->delivery_request_pickup_time = !empty($activity->case->delivery_request_pickup_time) ? $activity->case->delivery_request_pickup_time : NULL;
 					$activityReport->drop_dealer_state = !empty($activity->case->drop_dealer_state) ? $activity->case->drop_dealer_state : NULL;
 					$activityReport->drop_dealer_city = !empty($activity->case->drop_dealer_city) ? $activity->case->drop_dealer_city : NULL;
+					$activityReport->drop_location_pincode = !empty($activity->case->drop_location_pincode) ? $activity->case->drop_location_pincode : NULL;
 				}
 
 				//ASP

@@ -735,10 +735,12 @@ class ActivityController extends Controller {
 					'cases.pickup_dealer_location',
 					'cases.pickup_dealer_state',
 					'cases.pickup_dealer_city',
+					'cases.pickup_location_pincode',
 					'cases.drop_dealer_name',
 					'cases.drop_dealer_location',
 					'cases.drop_dealer_state',
 					'cases.drop_dealer_city',
+					'cases.drop_location_pincode',
 					'cases.contact_name_at_pickup',
 					'cases.contact_number_at_pickup',
 					'cases.contact_name_at_drop',
@@ -4808,6 +4810,7 @@ class ActivityController extends Controller {
 				DB::raw('COALESCE(activity_reports.pickup_dealer_location, "--") as pickupDealerLocation'),
 				DB::raw('COALESCE(activity_reports.pickup_dealer_state, "--") as pickupDealerState'),
 				DB::raw('COALESCE(activity_reports.pickup_dealer_city, "--") as pickupDealerCity'),
+				DB::raw('COALESCE(activity_reports.pickup_location_pincode, "--") as pickupLocationPincode'),
 				DB::raw('COALESCE(DATE_FORMAT(activity_reports.delivery_request_pickup_date,"%d-%m-%Y"), "--") as deliveryRequestPickupDate'),
 				DB::raw('COALESCE(activity_reports.delivery_request_pickup_time, "--") as deliveryRequestPickupTime'),
 
@@ -4834,6 +4837,7 @@ class ActivityController extends Controller {
 
 				DB::raw('COALESCE(activity_reports.drop_dealer_state, "--") as dropDealerState'),
 				DB::raw('COALESCE(activity_reports.drop_dealer_city, "--") as dropDealerCity'),
+				DB::raw('COALESCE(activity_reports.drop_location_pincode, "--") as dropLocationPincode'),
 
 				DB::raw('COALESCE(activity_reports.drop_location_lat, "--") as dropLocationLat'),
 				DB::raw('COALESCE(activity_reports.drop_location_long, "--") as dropLocationLong'),
@@ -5182,6 +5186,7 @@ class ActivityController extends Controller {
 					'Pickup Dealer Location',
 					'Pickup Dealer State',
 					'Pickup Dealer City',
+					'Pickup Location Pincode',
 					'Delivery Request Pickup Date',
 					'Delivery Request Pickup Time',
 
@@ -5191,6 +5196,7 @@ class ActivityController extends Controller {
 
 					'Drop Dealer State',
 					'Drop Dealer City',
+					'Drop Location Pincode',
 
 					'Drop Location Latitude',
 					'Drop Location Longitude',
@@ -5272,6 +5278,7 @@ class ActivityController extends Controller {
 					'Pickup Dealer Location',
 					'Pickup Dealer State',
 					'Pickup Dealer City',
+					'Pickup Location Pincode',
 					'Delivery Request Pickup Date',
 					'Delivery Request Pickup Time',
 
@@ -5298,6 +5305,7 @@ class ActivityController extends Controller {
 
 					'Drop Dealer State',
 					'Drop Dealer City',
+					'Drop Location Pincode',
 
 					'Drop Location Latitude',
 					'Drop Location Longitude',
@@ -5491,6 +5499,7 @@ class ActivityController extends Controller {
 							$activityReportVal->pickupDealerLocation,
 							$activityReportVal->pickupDealerState,
 							$activityReportVal->pickupDealerCity,
+							$activityReportVal->pickupLocationPincode,
 							$activityReportVal->deliveryRequestPickupDate,
 							$activityReportVal->deliveryRequestPickupTime,
 
@@ -5500,6 +5509,7 @@ class ActivityController extends Controller {
 
 							$activityReportVal->dropDealerState,
 							$activityReportVal->dropDealerCity,
+							$activityReportVal->dropLocationPincode,
 
 							$activityReportVal->dropLocationLat,
 							$activityReportVal->dropLocationLong,
@@ -5581,6 +5591,7 @@ class ActivityController extends Controller {
 							$activityReportVal->pickupDealerLocation,
 							$activityReportVal->pickupDealerState,
 							$activityReportVal->pickupDealerCity,
+							$activityReportVal->pickupLocationPincode,
 							$activityReportVal->deliveryRequestPickupDate,
 							$activityReportVal->deliveryRequestPickupTime,
 
@@ -5607,6 +5618,7 @@ class ActivityController extends Controller {
 
 							$activityReportVal->dropDealerState,
 							$activityReportVal->dropDealerCity,
+							$activityReportVal->dropLocationPincode,
 
 							$activityReportVal->dropLocationLat,
 							$activityReportVal->dropLocationLong,

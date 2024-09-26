@@ -89,16 +89,14 @@
                     </li>
                 </ul>
             </div>
-
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
                     <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
                         <p>Pickup Location Pincode</p>
-                        <h3>{{$ctrl.data.pickup_location_pincode}}</h3>
+                        <h3>{{$ctrl.data.pickup_location_pincode ? $ctrl.data.pickup_location_pincode : "-"}}</h3>
                     </li>
                 </ul>
             </div>
-
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
                     <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
@@ -111,7 +109,6 @@
     </div>
     <div class="viewData-threeColumn--wrapper">
         <div class="row">
-
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
                     <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
@@ -120,7 +117,6 @@
                     </li>
                 </ul>
             </div>
-
             <div class="col-xs-12 col-sm-3 col-md-3">
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
                     <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
@@ -145,7 +141,6 @@
                     </li>
                 </ul>
             </div>
-            
         </div>
     </div>
     <div class="viewData-threeColumn--wrapper">
@@ -154,7 +149,7 @@
                 <ul class="viewData-threeColumn--group m-t-50 m-b-20">
                     <li class="activity-status-list-item"><img class="activity-status-list-item-img" src="{{$ctrl.data.style_dot_image_url}}">
                         <p>Drop Location Pincode</p>
-                        <h3>{{$ctrl.data.drop_location_pincode}}</h3>
+                        <h3>{{$ctrl.data.drop_location_pincode ? $ctrl.data.drop_location_pincode : "-"}}</h3>
                     </li>
                 </ul>
             </div>

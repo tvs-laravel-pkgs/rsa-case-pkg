@@ -1859,10 +1859,10 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 			],
 
 			[
-				'display_order' => 999,
+				'display_order' => 99,
 				'parent' => null,
-				'name' => 'unclaim-tickets',
-				'display_name' => 'Unclaim Tickets',
+				'name' => 'asp-unclaimed-tickets',
+				'display_name' => 'ASP Unclaimed Tickets',
 			],
 		];
 		Permission::createFromArrays($permissions);

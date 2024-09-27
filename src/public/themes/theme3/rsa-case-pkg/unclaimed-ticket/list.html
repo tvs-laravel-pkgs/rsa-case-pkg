@@ -2,8 +2,8 @@
     <div class="mobile-breadcrumbs-wrapper">
         <ul class="mobile-breadcrumbs-group list-inline">
             <li><a href="#!<% $ctrl.laravel_routes['/'] %>">Home</a></li>
-            <li><a href="#">Unclaim Ticket</a></li>
-            <li><a href="#!/rsa-case-pkg/unclaim-ticket/list">Status</a></li>
+            <li><a href="#">Activities</a></li>
+            <li><a href="#!/rsa-case-pkg/unclaimed-ticket/list">Unclaimed</a></li>
         </ul>
     </div>
 </div>
@@ -14,7 +14,7 @@
                 <div class="col-xs-12 col-sm-4">
                     <div class="dataTable--left_wrapper">
                         <h2 class="dataTable-title">
-                            Status
+                            Unclaimed
                             <a href="javascript:void(0)" class="btn-refresh" ng-click="refresh()" data-toggle="tooltip" title="Refresh">
                                 <img class="img-refresh" src="./resources/assets/images/refresh-arrow.svg" alt="Refresh" />
                             </a>
@@ -111,7 +111,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="unclaim_ticket_table" class="display table dataTable">
+                <table id="unclaimed_ticket_table" class="display table dataTable">
                     <thead>
                         <tr>
                             <th>Actions</th>
@@ -121,11 +121,8 @@
                             <th>ASP Code</th>
                             <th>CRM Activity ID</th>
                             <th>Source</th>
-                            <!-- <th>Activity Number</th> -->
                             <th>Service</th>
-                            <!-- <th>ASP Status</th> -->
                             <th>Finance Status</th>
-                            <th>Status</th>
                             <th>Activity Status</th>
                             <th>Client</th>
                             <th>Call Center</th>

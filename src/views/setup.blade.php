@@ -105,9 +105,9 @@
 	    }).
 
 	    //UNCLIAM TICKETS
-	    when('/rsa-case-pkg/unclaim-ticket/list', {
-	        template: '<unclaim-ticket-list></unclaim-ticket-list>',
-	        title: 'Unclaim Tickets',
+	    when('/rsa-case-pkg/unclaimed-ticket/list', {
+	        template: '<unclaimed-ticket-list></unclaimed-ticket-list>',
+	        title: 'Unclaimed Tickets',
 	    })
 	    ;
 	}]);
@@ -170,10 +170,10 @@
     var getServiceTypeRateCardDetail = "{{route('getActivityServiceTypeRateCardDetail')}}";
     var showTravelledKmMapView = "{{route('locatorMapMyIndia')}}";
 
-    //UNCLAIM TICKETS
-    var unclaim_ticket_list_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/unclaim-ticket/list.html')}}";
-    var unclaim_ticket_filter_url = "{{url('rsa-case-pkg/unclaim-ticket/get-filter-data')}}";
-    var unclaim_ticket_get_list_url = "{{url('rsa-case-pkg/unclaim-ticket/get-list/')}}";
+    //UNCLAIMED TICKETS
+    var unclaimed_ticket_list_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/unclaimed-ticket/list.html')}}";
+    var unclaimed_ticket_filter_url = "{{url('rsa-case-pkg/unclaimed-ticket/get-filter-data')}}";
+    var unclaimed_ticket_get_list_url = "{{url('rsa-case-pkg/unclaimed-ticket/get-list/')}}";
 
 </script>
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/common/controller.js?v=15')}}"></script>
@@ -257,5 +257,5 @@
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-approved/controller.js?v=6')}}"></script>
 
 
-<!-- UNCLAIM TICKETS -->
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/unclaim-ticket/controller.js?v=9')}}"></script>
+<!-- UNCLAIMED TICKETS -->
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/unclaimed-ticket/controller.js?v=1')}}"></script>

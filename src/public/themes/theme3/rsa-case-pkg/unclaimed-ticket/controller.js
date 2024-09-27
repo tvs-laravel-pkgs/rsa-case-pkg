@@ -1,45 +1,37 @@
-app.component('unclaimTicketList', {
-    templateUrl: unclaim_ticket_list_template_url,
+app.component('unclaimedTicketList', {
+    templateUrl: unclaimed_ticket_list_template_url,
     controller: function($http, $window, HelperService, $scope, $rootScope, $mdSelect) {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
-        if (!self.hasPermission('unclaim-tickets')) {
+        if (!self.hasPermission('asp-unclaimed-tickets')) {
             window.location = "#!/page-permission-denied";
             return false;
         }
 
         self.filter_img_url = filter_img_url;
         self.csrf = token;
-        
+
         $http.get(
-            unclaim_ticket_filter_url
+            unclaimed_ticket_filter_url
         ).then(function(response) {
             self.extras = response.data.extras;
-            self.auth_user_details = response.data.auth_user_details;
-            self.status_list = response.data.extras.portal_status_list;
-            self.client_list = response.data.extras.export_client_list;
-            self.asp_list = response.data.extras.asp_list;
             self.modal_close = modal_close;
-            var cols = [
+            const cols = [
                 { data: 'action', searchable: false },
                 { data: 'case_date', searchable: false },
                 { data: 'number', name: 'cases.number', searchable: true },
                 { data: 'vehicle_registration_number', name: 'cases.vehicle_registration_number', searchable: true },
                 { data: 'asp', name: 'asp', searchable: true },
-                // { data: 'asp_code', name: 'asps.asp_code', searchable: true },
-                { data: 'crm_activity_id', searchable: false },
+                { data: 'crm_activity_id', name: 'activities.crm_activity_id', searchable: true },
                 { data: 'source', name: 'configs.name', searchable: true },
-                // { data: 'activity_number', name: 'activities.number', searchable: true },
                 { data: 'sub_service', name: 'service_types.name', searchable: true },
                 { data: 'finance_status', name: 'activity_finance_statuses.name', searchable: true },
-                // { data: 'asp_status', name: 'activity_asp_statuses.name', searchable: true },
-                { data: 'status', name: 'activity_portal_statuses.name', searchable: true },
                 { data: 'activity_status', name: 'activity_statuses.name', searchable: true },
                 { data: 'client', name: 'clients.name', searchable: true },
                 { data: 'call_center', name: 'call_centers.name', searchable: true },
             ];
-            
+
             $('input[name="date_range_period"]').daterangepicker({
                 autoUpdateInput: false,
                 locale: {
@@ -48,9 +40,9 @@ app.component('unclaimTicketList', {
                 }
             });
 
-            var unclaim_ticket_dt_config = JSON.parse(JSON.stringify(dt_config));
-            $('#unclaim_ticket_table').DataTable(
-                $.extend(unclaim_ticket_dt_config, {
+            var unclaimed_ticket_dt_config = JSON.parse(JSON.stringify(dt_config));
+            $('#unclaimed_ticket_table').DataTable(
+                $.extend(unclaimed_ticket_dt_config, {
                     columns: cols,
                     ordering: false,
                     processing: true,
@@ -61,14 +53,14 @@ app.component('unclaimTicketList', {
                         localStorage.setItem('SIDataTables_' + settings.sInstance, JSON.stringify(data));
                     },
                     stateLoadCallback: function(settings) {
-                        var state_save_val = JSON.parse(localStorage.getItem('SIDataTables_' + settings.sInstance));
+                        let state_save_val = JSON.parse(localStorage.getItem('SIDataTables_' + settings.sInstance));
                         if (state_save_val) {
                             $('.filterTable').val(state_save_val.search.search);
                         }
                         return JSON.parse(localStorage.getItem('SIDataTables_' + settings.sInstance));
                     },
                     ajax: {
-                        url: unclaim_ticket_get_list_url,
+                        url: unclaimed_ticket_get_list_url,
                         data: function(d) {
                             d.date_range_period = $('#date_range_period').val();
                             d.call_center_id = $('#call_center_id').val();
@@ -87,7 +79,7 @@ app.component('unclaimTicketList', {
                 }));
             $('.dataTables_length select').select2();
 
-            var dataTable = $('#unclaim_ticket_table').dataTable();
+            var dataTable = $('#unclaimed_ticket_table').dataTable();
 
             $('.daterange').on('apply.daterangepicker', function(ev, picker) {
                 $(this).val(picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY'));
@@ -125,12 +117,12 @@ app.component('unclaimTicketList', {
 
                 setTimeout(function() {
                     dataTable.fnFilter();
-                    $('#unclaim_ticket_table').DataTable().ajax.reload();
+                    $('#unclaimed_ticket_table').DataTable().ajax.reload();
                 }, 1000);
             };
 
             $scope.refresh = function() {
-                $('#unclaim_ticket_table').DataTable().ajax.reload();
+                $('#unclaimed_ticket_table').DataTable().ajax.reload();
             };
 
             $('.filterToggle').click(function() {
@@ -141,7 +133,7 @@ app.component('unclaimTicketList', {
                 $(this).parents('.filter-wrapper').removeClass('open');
             });
 
-        
+
             $rootScope.loading = false;
             window.mdSelectOnKeyDownOverride = function(event) {
                 event.stopPropagation();

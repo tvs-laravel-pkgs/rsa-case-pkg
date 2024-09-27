@@ -4507,14 +4507,12 @@ class ActivityController extends Controller {
 				'submission_closing_date_remarks' => $r->remarks,
 			]);
 
-
 			//IF ACTIVITY PORTAL STATUS IS LAPSED THEN CHANGE STATUS
-			if($activity->status_id == 27){
+			if ($activity->status_id == 27) {
 				//LAPSED
 				$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
 				$activity->save();
 			}
-
 
 			//SAVE ACTIVITY REPORT FOR DASHBOARD
 			ActivityReport::saveReport($activity->id);
@@ -7154,7 +7152,7 @@ class ActivityController extends Controller {
 		}
 	}
 
-	public function getUnclaimTicketFilterData() {
+	public function getUnclaimedTicketFilterData() {
 		$this->data['extras'] = [
 			'call_center_list' => collect(CallCenter::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Call Center']),
 			'service_type_list' => collect(ServiceType::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Sub Service']),
@@ -7166,20 +7164,18 @@ class ActivityController extends Controller {
 			'export_client_list' => collect(Client::select('name', 'id')->get()),
 			'asp_list' => collect(Asp::select('name', 'asp_code', 'id')->get()),
 		];
-		$this->data['auth_user_details'] = Auth::user();
 		return response()->json($this->data);
 	}
 
-	public function getUnclaimTicketList(Request $request) {
+	public function getUnclaimedTicketList(Request $request) {
 
-		if (Auth::user()->asp && !Auth::user()->asp->enable_unclaim_tickets) {
+		if (Auth::user()->asp && !Auth::user()->asp->enable_unclaimed_tickets) {
 			return Datatables::of([])->make(true);
 		}
 
-
 		$periods = getStartDateAndEndDate($request->date_range_period);
-		$from_date = $periods['start_date'];
-		$end_date = $periods['end_date'];
+		$startDate = $periods['start_date'];
+		$endDate = $periods['end_date'];
 
 		$today = date('Y-m-d H:i:s');
 		$threeMonthsBefore = date('Y-m-d H:i:s', strtotime("-3 months", strtotime($today)));
@@ -7203,22 +7199,22 @@ class ActivityController extends Controller {
 			'configs.name as source',
 			'call_centers.name as call_center',
 		])
-			->where('activity_portal_statuses.id', 2) //ASP Rejected CC Details - Waiting for ASP Data Entry
-			->where(function ($query) use ($from_date, $end_date) {
-				if (!empty($from_date) && !empty($end_date)) {
-					$query->whereRaw('DATE(cases.date) between "' . $from_date . '" and "' . $end_date . '"');
+			->where('activities.status_id', 2) //ASP Rejected CC Details - Waiting for ASP Data Entry
+			->where(function ($query) use ($startDate, $endDate) {
+				if (!empty($startDate) && !empty($endDate)) {
+					$query->whereRaw('DATE(cases.date) between "' . $startDate . '" and "' . $endDate . '"');
 				}
 			})
-		    ->where(function ($query) use ($threeMonthsBefore) {
-		        $query->where(function ($q) {
-		            $q->whereNotNull('cases.submission_closing_date')
-		              ->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
-		        })
-		        ->orWhere(function ($q) use ($threeMonthsBefore) {
-		            $q->whereNull('cases.submission_closing_date')
-		              ->where('cases.created_at', '>=', $threeMonthsBefore);
-		        });
-		    })
+			->where(function ($query) use ($threeMonthsBefore) {
+				$query->where(function ($q) {
+					$q->whereNotNull('cases.submission_closing_date')
+						->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
+				})
+					->orWhere(function ($q) use ($threeMonthsBefore) {
+						$q->whereNull('cases.submission_closing_date')
+							->where('cases.created_at', '>=', $threeMonthsBefore);
+					});
+			})
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('users', 'users.id', 'asps.user_id')
 			->leftjoin('cases', 'cases.id', 'activities.case_id')
@@ -7231,7 +7227,7 @@ class ActivityController extends Controller {
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 			->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
-			;
+		;
 
 		if ($request->get('call_center_id')) {
 			$activities->where('cases.call_center_id', $request->get('call_center_id'));
@@ -7255,17 +7251,13 @@ class ActivityController extends Controller {
 			$activities->where('cases.client_id', $request->get('client_id'));
 		}
 
-		if (Entrust::can('unclaim-tickets')) {
-			// ASP FINANCE ADMIN
-			if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
-				$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
-				$aspIds[] = Auth::user()->asp->id;
-				$activities
-					->whereIn('asps.id', $aspIds);
-			} else {
-				$activities
-					->where('users.id', Auth::id());
-			}
+		// ASP FINANCE ADMIN
+		if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
+			$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+			$aspIds[] = Auth::user()->asp->id;
+			$activities->whereIn('asps.id', $aspIds);
+		} else {
+			$activities->where('users.id', Auth::id());
 		}
 
 		return Datatables::of($activities)

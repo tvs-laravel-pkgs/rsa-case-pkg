@@ -211,6 +211,7 @@ class ActivityReport extends Model {
 				$activityReport->onward_google_km = $activity->detail(286) ? checkValueHasValid($activity->detail(286)->value) : NULL;
 				$activityReport->dealer_google_km = $activity->detail(287) ? checkValueHasValid($activity->detail(287)->value) : NULL;
 				$activityReport->return_google_km = $activity->detail(288) ? checkValueHasValid($activity->detail(288)->value) : NULL;
+				$activityReport->route_deviation_km = $activity->detail(277) ? checkValueHasValid($activity->detail(277)->value) : NULL;
 				$activityReport->onward_km = $activity->detail(289) ? checkValueHasValid($activity->detail(289)->value) : NULL;
 				$activityReport->dealer_km = $activity->detail(290) ? checkValueHasValid($activity->detail(290)->value) : NULL;
 				$activityReport->return_km = $activity->detail(291) ? checkValueHasValid($activity->detail(291)->value) : NULL;

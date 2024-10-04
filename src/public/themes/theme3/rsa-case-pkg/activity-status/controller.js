@@ -295,7 +295,6 @@ app.component('activityStatusList', {
                 }
             });
             $scope.changeStatus = function(ids) {
-                console.log(ids);
                 if (ids) {
                     $size_rids = ids.length;
                     if ($size_rids > 0) {
@@ -321,13 +320,38 @@ app.component('activityStatusList', {
                 self.status_ids = r_list;
             }
 
+            self.pc_client_all = false;
+            $scope.selectClientAll = function(val) {
+                self.pc_client_all = (!self.pc_client_all);
+                if (!val) {
+                    r_list = [];
+                    angular.forEach(self.extras.client_list, function(value, key) {
+                        r_list.push(value.id);
+                    });
+
+                    $('#pc_client_all').addClass('pc_sel_all');
+                } else {
+                    r_list = [];
+                    $('#pc_client_all').removeClass('pc_sel_all');
+                }
+                self.client_ids = r_list;
+            }
+
+            $scope.changeClient = function(clientIds) {
+                if (clientIds && clientIds.length > 0) {
+                    $('#pc_client_all').addClass('pc_sel_all');
+                } else {
+                    $('#pc_client_all').removeClass('pc_sel_all');
+                }
+            }
+
             $("form[name='export_excel_form']").validate({
                 ignore: '',
                 rules: {
-                    status_ids: {
+                    period: {
                         required: true,
                     },
-                    period: {
+                    status_ids: {
                         required: true,
                     },
                     filter_by: {
@@ -335,11 +359,10 @@ app.component('activityStatusList', {
                     }
                 },
                 messages: {
-                    period: "Please Select Period",
-                    status_ids: "Please Select Activity Status",
-                    filter_by: "Please Select Filter By",
+                    period: "Period is required",
+                    status_ids: "Activity Status is required",
+                    filter_by: "Filter By is required",
                 },
-
                 submitHandler: function(form) {
                     form.submit();
                 }

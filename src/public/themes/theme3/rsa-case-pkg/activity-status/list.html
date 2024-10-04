@@ -415,17 +415,16 @@
                                         <div class="col-sm-6">
                                             <div class="input-text form-group">
                                                 <label>Client</label>
-                                                <md-autocomplete class="type-sm" md-items="option in $ctrl.searchClients($ctrl.clientSearchText)" md-input-id="autoFocusId" md-selected-item="$ctrl.client" md-search-text="$ctrl.clientSearchText" md-item-text="option.name" md-min-length="3" placeholder="Search Client" md-clear-button="true" md-no-cache="true">
-                                                    <md-item-template>
-                                                        <span>
-                                                            {{option.name}}
-                                                        </span>
-                                                    </md-item-template>
-                                                    <md-not-found>
-                                                        No matching "{{$ctrl.clientSearchText}}" were found.
-                                                    </md-not-found>
-                                                </md-autocomplete>
-                                                <input type="hidden" name="client_id" value="{{$ctrl.client.id}}" />
+                                                <md-select ng-model="$ctrl.client_ids" md-on-close="clearSearchTerm()" name="client_ids" data-md-container-class="selectdemoSelectHeader" multiple md-no-asterisk class="error_messages" placeholder="Select Client" ng-change="changeClient($ctrl.client_ids)">
+                                                    <md-select-header class="demo-select-header mdselect-header">
+                                                        <input ng-model="searchClient" type="search" placeholder="Search for a Client" class="demo-header-searchbox md-text" onkeydown="mdSelectOnKeyDownOverride(event)">
+                                                    </md-select-header>
+                                                    <md-optgroup label="client">
+                                                        <md-button class="select-all-button" layout-fill ng-value="$ctrl.pc_client_all" ng-click="selectClientAll($ctrl.pc_client_all)" id="pc_client_all">All</md-button>
+                                                        <md-option ng-value="client.id" ng-repeat="client in $ctrl.extras.export_client_list |filter:searchClient">{{client.name}}</md-option>
+                                                    </md-optgroup>
+                                                </md-select>
+                                                <input type="hidden" name="client_ids" value="{{$ctrl.client_ids}}" />
                                             </div>
                                         </div>
                                         <div class="col-sm-6" ng-if="!$ctrl.hasPermission('export-own-activities')">

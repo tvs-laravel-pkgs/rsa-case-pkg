@@ -4681,8 +4681,10 @@ class ActivityController extends Controller {
 
 			$activityReports = ActivityReport::join('activities', 'activities.id', 'activity_reports.activity_id')
 				->join('cases', 'cases.id', 'activities.case_id')
-				->join('asps', 'asps.id', 'activities.asp_id')
-				->whereIn('activities.status_id', $statusIds);
+				->join('asps', 'asps.id', 'activities.asp_id');
+			if (!empty($statusIds)) {
+				$activityReports->whereIn('activities.status_id', $statusIds);
+			}
 
 			if ($request->filter_by == 'general') {
 				$activityReports->where(function ($q) use ($range1, $range2) {

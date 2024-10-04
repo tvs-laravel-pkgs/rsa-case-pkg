@@ -4672,9 +4672,9 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$date = explode("-", $request->period);
-			$range1 = date("Y-m-d", strtotime($date[0]));
-			$range2 = date("Y-m-d", strtotime($date[1]));
+			$periods = getStartDateAndEndDate($request->period);
+			$range1 = $periods['start_date'];
+			$range2 = $periods['end_date'];
 
 			$statusIds = !empty($request->status_ids) ? explode(',', $request->status_ids) : null;
 			$clientIds = !empty($request->client_ids) ? explode(',', $request->client_ids) : null;

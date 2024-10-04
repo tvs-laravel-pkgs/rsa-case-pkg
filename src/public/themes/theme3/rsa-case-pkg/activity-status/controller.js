@@ -246,6 +246,10 @@ app.component('activityStatusList', {
             $('input[name="period"]').daterangepicker({
                 startDate: moment().startOf('month'),
                 endDate: moment().endOf('month'),
+                locale: {
+                    cancelLabel: 'Clear',
+                    format: "DD-MM-YYYY"
+                }
             });
 
             self.searchAsps = function(query) {

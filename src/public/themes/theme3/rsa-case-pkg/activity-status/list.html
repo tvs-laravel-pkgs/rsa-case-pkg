@@ -443,7 +443,7 @@
                                                     </md-select-header>
                                                     <md-optgroup label="client">
                                                         <md-button class="select-all-button" layout-fill ng-value="$ctrl.pc_client_all" ng-click="selectClientAll($ctrl.pc_client_all)" id="pc_client_all">All</md-button>
-                                                        <md-option ng-value="client.id" ng-repeat="client in $ctrl.extras.export_client_list |filter:searchClient">{{client.name}}</md-option>
+                                                        <md-option ng-value="client.id" ng-repeat="client in $ctrl.extras.export_client_list |filter:searchClient">{{client.name}} ({{client.status}})</md-option>
                                                     </md-optgroup>
                                                 </md-select>
                                                 <input type="hidden" name="client_ids" value="{{$ctrl.client_ids}}" />

@@ -44,7 +44,12 @@ class ActivityController extends Controller {
 			'status_list' => collect(ActivityPortalStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Portal Status']),
 			'activity_status_list' => collect(ActivityStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Activity Status']),
 			'client_list' => collect(Client::withTrashed()->select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Client']),
-			'export_client_list' => collect(Client::withTrashed()->select('name', 'id')->get()),
+			'export_client_list' => collect(Client::withTrashed()->select([
+				'id',
+				'name',
+				DB::raw('IF(deleted_at IS NULL,"Active","Inactive") as status'),
+			])
+					->get()),
 			'asp_list' => collect(Asp::select('name', 'asp_code', 'id')->get()),
 			'exportFilterByList' => [
 				['id' => '', 'name' => 'Select Filter By'],

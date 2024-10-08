@@ -5808,7 +5808,7 @@ class ActivityController extends Controller {
 					});
 					$sheet->setAutoSize(true);
 				});
-			})->export('xls');
+			})->export('xlsx');
 
 			return redirect()->back()->with(['success' => 'exported!']);
 		} catch (\Exception $e) {

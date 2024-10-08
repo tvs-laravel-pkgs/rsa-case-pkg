@@ -357,9 +357,6 @@
             <form id="export_excel_form" name="export_excel_form" action="{{$ctrl.export_activities}}" method="post">
                 <input type="hidden" name="_token" value="{{$ctrl.csrf}}" />
                 <div ng-if="$ctrl.hasPermission('export-own-activities')">
-                    <input type="hidden" name="asp_id" value="{{$ctrl.auth_user_details.entity_id}}" />
-                </div>
-                <div ng-if="$ctrl.hasPermission('export-own-activities')">
                     <input type="hidden" name="filter_by" value="general" />
                 </div>
                 <div class="modal-body">
@@ -396,7 +393,7 @@
                                                 <input type="text" value="" name="ticket" id="ticket_export" class="form-control valid" placeholder="Enter Ticket Number" autocomplete="off">
                                             </div>
                                         </div>
-                                        <div class="col-sm-6" ng-if="!$ctrl.hasPermission('export-own-activities')">
+                                        <!-- <div class="col-sm-6" ng-if="!$ctrl.hasPermission('export-own-activities')">
                                             <div class="input-text form-group">
                                                 <label>ASP</label>
                                                 <md-autocomplete class="type-sm" md-items="option in $ctrl.searchAsps($ctrl.aspSearchText)" md-input-id="autoFocusId" md-selected-item="$ctrl.asp" md-search-text="$ctrl.aspSearchText" md-item-text="option.workshop" md-min-length="3" placeholder="Search ASP Code" md-clear-button="true" md-no-cache="true">
@@ -410,6 +407,31 @@
                                                     </md-not-found>
                                                 </md-autocomplete>
                                                 <input type="hidden" name="asp_id" value="{{$ctrl.asp.id}}" />
+                                            </div>
+                                        </div> -->
+                                        <div class="col-sm-6" ng-if="!$ctrl.hasPermission('export-own-activities')">
+                                            <div class="input-text form-group">
+                                                <label>ASP</label>
+                                                <md-content class="md-chips-border" layout="column">
+                                                    <md-chips ng-model="$ctrl.selectedAsps" md-autocomplete-snap md-require-match="true" md-on-add="onAspSelect($ctrl.asp.name)" md-on-remove="onAspRemove($chip.name)">
+                                                        <md-autocomplete md-selected-item="$ctrl.asp" md-input-id="autoFocusId" md-search-text="$ctrl.aspSearchText" md-items="item in $ctrl.searchAsps($ctrl.aspSearchText)" md-item-text="item.name" placeholder="Search for a ASP Axapta Code" md-clear-button="true" md-no-cache="true" md-min-length="3">
+                                                            <md-item-template>
+                                                                <span>
+                                                                    {{item.name}}
+                                                                </span>
+                                                            </md-item-template>
+                                                            <md-not-found>
+                                                                No matching "{{$ctrl.aspSearchText}}" were found.
+                                                            </md-not-found>
+                                                        </md-autocomplete>
+                                                        <md-chip-template>
+                                                            <span>
+                                                                <strong>{{$chip.name}}</strong>
+                                                            </span>
+                                                        </md-chip-template>
+                                                    </md-chips>
+                                                </md-content>
+                                                <input type="hidden" name="aspAxaptaCodes" id="aspAxaptaCodes" value="">
                                             </div>
                                         </div>
                                         <div class="col-sm-6">

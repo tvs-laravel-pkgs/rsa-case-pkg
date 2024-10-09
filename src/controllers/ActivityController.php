@@ -5008,17 +5008,17 @@ class ActivityController extends Controller {
 					$activityReports = $activityReports->whereIn('asps.state_id', $states);
 				}
 				if (Entrust::can('export-own-activities')) {
-					$activityReports = $activityReports->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
+					$activityReports = $activityReports->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25, 27]);
 				}
 				if (Entrust::can('export-own-rm-asp-activities')) {
 					$aspIds = Asp::where('regional_manager_id', Auth::user()->id)->pluck('id')->toArray();
 					$activityReports = $activityReports->whereIn('asps.id', $aspIds)
-						->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
+						->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25, 27]);
 				}
 				if (Entrust::can('export-own-zm-asp-activities')) {
 					$aspIds = Asp::where('zm_id', Auth::user()->id)->pluck('id')->toArray();
 					$activityReports = $activityReports->whereIn('asps.id', $aspIds)
-						->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
+						->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25, 27]);
 				}
 				if (Entrust::can('export-own-nm-asp-activities')) {
 					$aspIds = Asp::where('nm_id', Auth::user()->id)->pluck('id')->toArray();

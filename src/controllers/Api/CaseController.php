@@ -185,9 +185,11 @@ class CaseController extends Controller {
 				'pickup_dealer_name' => 'nullable|string|max:255',
 				'pickup_dealer_state' => 'nullable|string|max:255',
 				'pickup_dealer_city' => 'nullable|string|max:255',
+				'pickup_location_pincode' => 'nullable|string|max:10',
 				'drop_dealer_name' => 'nullable|string|max:255',
 				'drop_dealer_state' => 'nullable|string|max:255',
 				'drop_dealer_city' => 'nullable|string|max:255',
+				'drop_location_pincode' => 'nullable|string|max:10',
 				'contact_name_at_pickup' => 'nullable|string|max:255',
 				'contact_number_at_pickup' => 'nullable|string|max:20',
 				'contact_name_at_drop' => 'nullable|string|max:255',
@@ -409,10 +411,12 @@ class CaseController extends Controller {
 			$case->pickup_dealer_location = !empty($request->pickup_dealer_location) ? $request->pickup_dealer_location : NULL;
 			$case->pickup_dealer_state = !empty($request->pickup_dealer_state) ? $request->pickup_dealer_state : NULL;
 			$case->pickup_dealer_city = !empty($request->pickup_dealer_city) ? $request->pickup_dealer_city : NULL;
+			$case->pickup_location_pincode = !empty($request->pickup_location_pincode) ? $request->pickup_location_pincode : NULL;
 			$case->drop_dealer_name = !empty($request->drop_dealer_name) ? $request->drop_dealer_name : NULL;
 			$case->drop_dealer_location = !empty($request->drop_dealer_location) ? $request->drop_dealer_location : NULL;
 			$case->drop_dealer_state = !empty($request->drop_dealer_state) ? $request->drop_dealer_state : NULL;
 			$case->drop_dealer_city = !empty($request->drop_dealer_city) ? $request->drop_dealer_city : NULL;
+			$case->drop_location_pincode = !empty($request->drop_location_pincode) ? $request->drop_location_pincode : NULL;
 			$case->contact_name_at_pickup = !empty($request->contact_name_at_pickup) ? $request->contact_name_at_pickup : NULL;
 			$case->contact_number_at_pickup = !empty($request->contact_number_at_pickup) ? $request->contact_number_at_pickup : NULL;
 			$case->contact_name_at_drop = !empty($request->contact_name_at_drop) ? $request->contact_name_at_drop : NULL;

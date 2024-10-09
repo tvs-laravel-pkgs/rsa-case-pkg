@@ -44,7 +44,12 @@ class ActivityController extends Controller {
 			'status_list' => collect(ActivityPortalStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Portal Status']),
 			'activity_status_list' => collect(ActivityStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Activity Status']),
 			'client_list' => collect(Client::withTrashed()->select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Client']),
-			'export_client_list' => collect(Client::withTrashed()->select('name', 'id')->get()),
+			'export_client_list' => collect(Client::withTrashed()->select([
+				'id',
+				'name',
+				DB::raw('IF(deleted_at IS NULL,"Active","Inactive") as status'),
+			])
+					->get()),
 			'asp_list' => collect(Asp::select('name', 'asp_code', 'id')->get()),
 			'exportFilterByList' => [
 				['id' => '', 'name' => 'Select Filter By'],
@@ -4684,6 +4689,7 @@ class ActivityController extends Controller {
 			$range2 = $periods['end_date'];
 
 			$statusIds = !empty($request->status_ids) ? explode(',', $request->status_ids) : null;
+			$aspAxaptaCodes = !empty($request->aspAxaptaCodes) ? json_decode($request->aspAxaptaCodes) : [];
 			$clientIds = !empty($request->client_ids) ? explode(',', $request->client_ids) : null;
 
 			$activityReports = ActivityReport::join('activities', 'activities.id', 'activity_reports.activity_id')
@@ -4960,20 +4966,35 @@ class ActivityController extends Controller {
 				DB::raw('COALESCE(activity_reports.adjustment, "--") as adjustment'),
 			]);
 
-			if (!empty($request->get('asp_id'))) {
-				if (Entrust::can('export-own-activities')) {
-					// ASP FINANCE ADMIN
-					if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
-						$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
-						$aspIds[] = Auth::user()->asp->id;
-						$activityReports = $activityReports->whereIn('activities.asp_id', $aspIds);
-					} else {
-						$activityReports = $activityReports->where('activities.asp_id', $request->get('asp_id'));
-					}
+			// if (!empty($request->get('asp_id'))) {
+			// 	if (Entrust::can('export-own-activities')) {
+			// 		// ASP FINANCE ADMIN
+			// 		if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
+			// 			$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+			// 			$aspIds[] = Auth::user()->asp->id;
+			// 			$activityReports = $activityReports->whereIn('activities.asp_id', $aspIds);
+			// 		} else {
+			// 			$activityReports = $activityReports->where('activities.asp_id', $request->get('asp_id'));
+			// 		}
+			// 	} else {
+			// 		$activityReports = $activityReports->where('activities.asp_id', $request->get('asp_id'));
+			// 	}
+			// }
+
+			if (Entrust::can('export-own-activities') && Auth::user()->asp) {
+				// ASP FINANCE ADMIN
+				if (Auth::user()->asp->is_finance_admin == 1) {
+					$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+					$aspIds[] = Auth::user()->asp->id;
+					$activityReports = $activityReports->whereIn('activities.asp_id', $aspIds);
 				} else {
-					$activityReports = $activityReports->where('activities.asp_id', $request->get('asp_id'));
+					$activityReports = $activityReports->where('activities.asp_id', Auth::user()->asp->id);
 				}
+			} else if (!empty($aspAxaptaCodes)) {
+				$aspIds = Asp::whereIn('axpta_code', $aspAxaptaCodes)->pluck('id')->toArray();
+				$activityReports = $activityReports->whereIn('activities.asp_id', $aspIds);
 			}
+
 			if (!empty($clientIds)) {
 				$activityReports = $activityReports->whereIn('cases.client_id', $clientIds);
 			}
@@ -5087,20 +5108,35 @@ class ActivityController extends Controller {
 							$activitiesSummaryCountQuery->whereRaw('DATE(activity_reports.transaction_date) between "' . $range1 . '" and "' . $range2 . '"');
 						}
 
-						if (!empty($request->get('asp_id'))) {
-							if (Entrust::can('export-own-activities')) {
-								// ASP FINANCE ADMIN
-								if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
-									$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
-									$aspIds[] = Auth::user()->asp->id;
-									$activitiesSummaryCountQuery->whereIn('activities.asp_id', $aspIds);
-								} else {
-									$activitiesSummaryCountQuery->where('activities.asp_id', $request->get('asp_id'));
-								}
+						// if (!empty($request->get('asp_id'))) {
+						// 	if (Entrust::can('export-own-activities')) {
+						// 		// ASP FINANCE ADMIN
+						// 		if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
+						// 			$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+						// 			$aspIds[] = Auth::user()->asp->id;
+						// 			$activitiesSummaryCountQuery->whereIn('activities.asp_id', $aspIds);
+						// 		} else {
+						// 			$activitiesSummaryCountQuery->where('activities.asp_id', $request->get('asp_id'));
+						// 		}
+						// 	} else {
+						// 		$activitiesSummaryCountQuery->where('activities.asp_id', $request->get('asp_id'));
+						// 	}
+						// }
+
+						if (Entrust::can('export-own-activities') && Auth::user()->asp) {
+							// ASP FINANCE ADMIN
+							if (Auth::user()->asp->is_finance_admin == 1) {
+								$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+								$aspIds[] = Auth::user()->asp->id;
+								$activitiesSummaryCountQuery->whereIn('activities.asp_id', $aspIds);
 							} else {
-								$activitiesSummaryCountQuery->where('activities.asp_id', $request->get('asp_id'));
+								$activitiesSummaryCountQuery->where('activities.asp_id', Auth::user()->asp->id);
 							}
+						} else if (!empty($aspAxaptaCodes)) {
+							$aspIds = Asp::whereIn('axpta_code', $aspAxaptaCodes)->pluck('id')->toArray();
+							$activitiesSummaryCountQuery->whereIn('activities.asp_id', $aspIds);
 						}
+
 						if (!empty($clientIds)) {
 							$activitiesSummaryCountQuery->whereIn('cases.client_id', $clientIds);
 						}
@@ -6006,6 +6042,10 @@ class ActivityController extends Controller {
 
 	public function searchAsps(Request $request) {
 		return Asp::searchAllAsps($request);
+	}
+
+	public function searchAllAspsByAxaptaCode(Request $request) {
+		return Asp::searchAllAspsByAxaptaCode($request);
 	}
 
 	public function searchClients(Request $request) {

@@ -21,6 +21,7 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web'], 'prefix'
 		Route::post('activity-status/export', 'ActivityController@exportActivities')->name('exportActivities');
 		Route::post('activity-status/activity-status-change', 'ActivityController@activityBackAsp')->name('activityBackAspUpdate');
 		Route::post('activity-status/search-asps', 'ActivityController@searchAsps')->name('activityStatusSearchAsps');
+		Route::post('activity-status/search-asps-by-axapta-code', 'ActivityController@searchAllAspsByAxaptaCode')->name('activityStatusSearchAllAspsByAxaptaCode');
 		Route::post('activity-status/search-clients', 'ActivityController@searchClients')->name('activityStatusSearchClients');
 		Route::post('activity/onhold/release', 'ActivityController@releaseOnHold')->name('releaseOnHold');
 		Route::get('/onhold-activity/release/{id}', 'ActivityController@releaseOnHoldActivity')->name('releaseOnHoldActivity');

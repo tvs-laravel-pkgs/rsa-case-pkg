@@ -17,6 +17,7 @@ app.component('activityStatusList', {
         self.activity_towing_images_required_url = activity_towing_images_required_url;
         self.csrf = token;
         self.backstepReason = '';
+        self.selectedAsps = [];
         $http.get(
             activity_status_filter_url
         ).then(function(response) {
@@ -257,7 +258,7 @@ app.component('activityStatusList', {
                     return new Promise(function(resolve, reject) {
                         $http
                             .post(
-                                laravel_routes['activityStatusSearchAsps'], {
+                                laravel_routes['activityStatusSearchAllAspsByAxaptaCode'], {
                                     key: query,
                                 }
                             )
@@ -287,6 +288,23 @@ app.component('activityStatusList', {
                     return [];
                 }
             }
+
+            let aspSelectedAxaptaCodes = [];
+            $scope.onAspSelect = (aspAxaptaCode) => {
+                if (aspAxaptaCode) {
+                    aspSelectedAxaptaCodes.push(aspAxaptaCode);
+                    $('#aspAxaptaCodes').val(JSON.stringify(aspSelectedAxaptaCodes));
+                }
+            }
+
+            $scope.onAspRemove = (aspAxaptaCode) => {
+                if (aspAxaptaCode) {
+                    aspSelectedAxaptaCodes = aspSelectedAxaptaCodes.filter((aspSelectedAxaptaCode) => aspSelectedAxaptaCode != aspAxaptaCode);
+                    $('#aspAxaptaCodes').val(JSON.stringify(aspSelectedAxaptaCodes));
+                }
+            }
+
+
 
             self.pc_all = false;
             $rootScope.loading = false;

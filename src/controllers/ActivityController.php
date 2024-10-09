@@ -36,7 +36,7 @@ use Yajra\Datatables\Datatables;
 class ActivityController extends Controller {
 
 	public function getFilterData() {
-		if (Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities')) {
+		if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities')) {
 			$activityPortalStatusList = ActivityPortalStatus::select('name', 'id')->whereNotIn('id', [2, 4, 15, 16, 17, 25, 27])->get();
 		} else {
 			$activityPortalStatusList = ActivityPortalStatus::select('name', 'id')->get();

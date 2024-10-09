@@ -77,6 +77,9 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web'], 'prefix'
 		Route::get('/batch-generation/get-list', 'BatchController@getList')->name('getListData');
 		Route::post('/batch-generation/generate-batch', 'BatchController@generateBatch')->name('generateBatch');
 
+		//UNCLAIMED TICKETS
+		Route::get('/unclaimed-ticket/get-filter-data', 'ActivityController@getUnclaimedTicketFilterData')->name('getUnclaimedTicketFilterData');
+		Route::get('/unclaimed-ticket/get-list', 'ActivityController@getUnclaimedTicketList')->name('getUnclaimedTicketList');
 	});
 
 });

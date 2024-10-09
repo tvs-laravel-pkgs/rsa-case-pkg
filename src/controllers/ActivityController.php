@@ -152,20 +152,20 @@ class ActivityController extends Controller {
 				if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
 					$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
 					$aspIds[] = Auth::user()->asp->id;
-					$activities->whereIn('asps.id', $aspIds)->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
+					$activities->whereIn('asps.id', $aspIds)->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25, 27]);
 				} else {
-					$activities->where('users.id', Auth::id())->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
+					$activities->where('users.id', Auth::id())->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25, 27]);
 				}
 			}
 			if (Entrust::can('own-rm-asp-activities')) {
 				$aspIds = Asp::where('regional_manager_id', Auth::user()->id)->pluck('id')->toArray();
 				$activities->whereIn('asps.id', $aspIds)
-					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
+					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25, 27]);
 			}
 			if (Entrust::can('own-zm-asp-activities')) {
 				$aspIds = Asp::where('zm_id', Auth::user()->id)->pluck('id')->toArray();
 				$activities->whereIn('asps.id', $aspIds)
-					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
+					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25, 27]);
 			}
 			if (Entrust::can('own-nm-asp-activities')) {
 				$aspIds = Asp::where('nm_id', Auth::user()->id)->pluck('id')->toArray();
@@ -6128,8 +6128,8 @@ class ActivityController extends Controller {
 					} elseif ($activity->status_id == 11) {
 						//Waiting for Invoice Generation by ASP
 						$url = '#!/rsa-case-pkg/approved-activity/list';
-					} elseif ($activity->status_id == 15 || $activity->status_id == 16) {
-						//Not Eligible for Payout || Own Patrol Activity - Not Eligible for Payout
+					} elseif ($activity->status_id == 15 || $activity->status_id == 16 || $activity->status_id == 27) {
+						//Not Eligible for Payout || Own Patrol Activity - Not Eligible for Payout || LAPSED
 						$url = '';
 					}
 				}
@@ -6145,8 +6145,8 @@ class ActivityController extends Controller {
 						// } else if (Carbon::parse($activity->caseCreatedAt)->format('Y-m-d H:i:s') >= $threeMonthsBefore) {
 						// 	$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
 						// }
-					} elseif ($activity->status_id == 15 || $activity->status_id == 16) {
-						//Not Eligible for Payout || Own Patrol Activity - Not Eligible for Payout
+					} elseif ($activity->status_id == 15 || $activity->status_id == 16 || $activity->status_id == 27) {
+						//Not Eligible for Payout || Own Patrol Activity - Not Eligible for Payout || LAPSED
 						$url = '';
 					}
 				}

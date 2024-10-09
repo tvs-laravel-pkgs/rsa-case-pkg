@@ -157,20 +157,20 @@ class ActivityController extends Controller {
 				if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
 					$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
 					$aspIds[] = Auth::user()->asp->id;
-					$activities->whereIn('asps.id', $aspIds)->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
+					$activities->whereIn('asps.id', $aspIds)->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25, 27]);
 				} else {
-					$activities->where('users.id', Auth::id())->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
+					$activities->where('users.id', Auth::id())->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25, 27]);
 				}
 			}
 			if (Entrust::can('own-rm-asp-activities')) {
 				$aspIds = Asp::where('regional_manager_id', Auth::user()->id)->pluck('id')->toArray();
 				$activities->whereIn('asps.id', $aspIds)
-					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
+					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25, 27]);
 			}
 			if (Entrust::can('own-zm-asp-activities')) {
 				$aspIds = Asp::where('zm_id', Auth::user()->id)->pluck('id')->toArray();
 				$activities->whereIn('asps.id', $aspIds)
-					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
+					->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25, 27]);
 			}
 			if (Entrust::can('own-nm-asp-activities')) {
 				$aspIds = Asp::where('nm_id', Auth::user()->id)->pluck('id')->toArray();
@@ -4514,6 +4514,13 @@ class ActivityController extends Controller {
 				'submission_closing_date_remarks' => $r->remarks,
 			]);
 
+			//IF ACTIVITY PORTAL STATUS IS LAPSED THEN CHANGE STATUS
+			if ($activity->status_id == 27) {
+				//LAPSED
+				$activity->status_id = 2; //ASP Rejected CC Details - Waiting for ASP Data Entry
+				$activity->save();
+			}
+
 			//SAVE ACTIVITY REPORT FOR DASHBOARD
 			ActivityReport::saveReport($activity->id);
 
@@ -5001,17 +5008,17 @@ class ActivityController extends Controller {
 					$activityReports = $activityReports->whereIn('asps.state_id', $states);
 				}
 				if (Entrust::can('export-own-activities')) {
-					$activityReports = $activityReports->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
+					$activityReports = $activityReports->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25, 27]);
 				}
 				if (Entrust::can('export-own-rm-asp-activities')) {
 					$aspIds = Asp::where('regional_manager_id', Auth::user()->id)->pluck('id')->toArray();
 					$activityReports = $activityReports->whereIn('asps.id', $aspIds)
-						->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
+						->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25, 27]);
 				}
 				if (Entrust::can('export-own-zm-asp-activities')) {
 					$aspIds = Asp::where('zm_id', Auth::user()->id)->pluck('id')->toArray();
 					$activityReports = $activityReports->whereIn('asps.id', $aspIds)
-						->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25]);
+						->whereNotIn('activities.status_id', [2, 4, 15, 16, 17, 25, 27]);
 				}
 				if (Entrust::can('export-own-nm-asp-activities')) {
 					$aspIds = Asp::where('nm_id', Auth::user()->id)->pluck('id')->toArray();
@@ -6161,8 +6168,8 @@ class ActivityController extends Controller {
 					} elseif ($activity->status_id == 11) {
 						//Waiting for Invoice Generation by ASP
 						$url = '#!/rsa-case-pkg/approved-activity/list';
-					} elseif ($activity->status_id == 15 || $activity->status_id == 16) {
-						//Not Eligible for Payout || Own Patrol Activity - Not Eligible for Payout
+					} elseif ($activity->status_id == 15 || $activity->status_id == 16 || $activity->status_id == 27) {
+						//Not Eligible for Payout || Own Patrol Activity - Not Eligible for Payout || LAPSED
 						$url = '';
 					}
 				}
@@ -6178,8 +6185,8 @@ class ActivityController extends Controller {
 						// } else if (Carbon::parse($activity->caseCreatedAt)->format('Y-m-d H:i:s') >= $threeMonthsBefore) {
 						// 	$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
 						// }
-					} elseif ($activity->status_id == 15 || $activity->status_id == 16) {
-						//Not Eligible for Payout || Own Patrol Activity - Not Eligible for Payout
+					} elseif ($activity->status_id == 15 || $activity->status_id == 16 || $activity->status_id == 27) {
+						//Not Eligible for Payout || Own Patrol Activity - Not Eligible for Payout || LAPSED
 						$url = '';
 					}
 				}
@@ -6242,4 +6249,130 @@ class ActivityController extends Controller {
 			return $get_eloc;
 		}
 	}
+
+	public function getUnclaimedTicketFilterData() {
+		$this->data['extras'] = [
+			'call_center_list' => collect(CallCenter::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Call Center']),
+			'service_type_list' => collect(ServiceType::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Sub Service']),
+			'finance_status_list' => collect(ActivityFinanceStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Finance Status']),
+			'portal_status_list' => collect(ActivityPortalStatus::select('name', 'id')->where('company_id', 1)->get()),
+			'status_list' => collect(ActivityPortalStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Portal Status']),
+			'activity_status_list' => collect(ActivityStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Activity Status']),
+			'client_list' => collect(Client::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Client']),
+			'export_client_list' => collect(Client::select('name', 'id')->get()),
+			'asp_list' => collect(Asp::select('name', 'asp_code', 'id')->get()),
+		];
+		return response()->json($this->data);
+	}
+
+	public function getUnclaimedTicketList(Request $request) {
+
+		if (Auth::user()->asp && !Auth::user()->asp->enable_unclaimed_tickets) {
+			return Datatables::of([])->make(true);
+		}
+
+		$periods = getStartDateAndEndDate($request->date_range_period);
+		$startDate = $periods['start_date'];
+		$endDate = $periods['end_date'];
+
+		$today = date('Y-m-d H:i:s');
+		$threeMonthsBefore = date('Y-m-d H:i:s', strtotime("-3 months", strtotime($today)));
+
+		$activities = Activity::select([
+			'activities.id',
+			'activities.crm_activity_id',
+			'activities.is_towing_attachments_mandatory',
+			'activities.status_id as status_id',
+			'activities.number as activity_number',
+			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			'cases.number',
+			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
+			DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
+			'service_types.name as sub_service',
+			'service_types.service_group_id',
+			'activity_finance_statuses.name as finance_status',
+			'activity_portal_statuses.name as status',
+			'activity_statuses.name as activity_status',
+			'clients.name as client',
+			'configs.name as source',
+			'call_centers.name as call_center',
+		])
+			->where('activities.status_id', 2) //ASP Rejected CC Details - Waiting for ASP Data Entry
+			->where(function ($query) use ($startDate, $endDate) {
+				if (!empty($startDate) && !empty($endDate)) {
+					$query->whereRaw('DATE(cases.date) between "' . $startDate . '" and "' . $endDate . '"');
+				}
+			})
+			->where(function ($query) use ($threeMonthsBefore) {
+				$query->where(function ($q) {
+					$q->whereNotNull('cases.submission_closing_date')
+						->where('cases.submission_closing_date', '>=', date('Y-m-d H:i:s'));
+				})
+					->orWhere(function ($q) use ($threeMonthsBefore) {
+						$q->whereNull('cases.submission_closing_date')
+							->where('cases.created_at', '>=', $threeMonthsBefore);
+					});
+			})
+			->leftjoin('asps', 'asps.id', 'activities.asp_id')
+			->leftjoin('users', 'users.id', 'asps.user_id')
+			->leftjoin('cases', 'cases.id', 'activities.case_id')
+			->leftjoin('clients', 'clients.id', 'cases.client_id')
+			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
+			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
+			->leftjoin('configs', 'configs.id', 'activities.data_src_id')
+			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
+			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
+			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
+			->orderBy('cases.date', 'DESC')
+			->groupBy('activities.id')
+		;
+
+		if ($request->get('call_center_id')) {
+			$activities->where('cases.call_center_id', $request->get('call_center_id'));
+		}
+		if ($request->get('case_number')) {
+			$activities->where('cases.number', 'LIKE', '%' . $request->get('case_number') . '%');
+		}
+		if ($request->get('asp_code')) {
+			$activities->where('asps.asp_code', 'LIKE', '%' . $request->get('asp_code') . '%');
+		}
+		if ($request->get('service_type_id')) {
+			$activities->where('activities.service_type_id', $request->get('service_type_id'));
+		}
+		if ($request->get('finance_status_id')) {
+			$activities->where('activities.finance_status_id', $request->get('finance_status_id'));
+		}
+		if ($request->get('activity_status_id')) {
+			$activities->where('activities.activity_status_id', $request->get('activity_status_id'));
+		}
+		if ($request->get('client_id')) {
+			$activities->where('cases.client_id', $request->get('client_id'));
+		}
+
+		// ASP FINANCE ADMIN
+		if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
+			$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+			$aspIds[] = Auth::user()->asp->id;
+			$activities->whereIn('asps.id', $aspIds);
+		} else {
+			$activities->where('users.id', Auth::id());
+		}
+
+		return Datatables::of($activities)
+			->filterColumn('asp', function ($query, $keyword) {
+				$sql = "CONCAT(asps.asp_code,' / ',asps.workshop_name)  like ?";
+				$query->whereRaw($sql, ["%{$keyword}%"]);
+			})
+			->addColumn('action', function ($activity) {
+				$url = '#!/rsa-case-pkg/new-activity/update-details/' . $activity->id;
+				$action = '<div class="dataTable-actions" style="min-width: 125px;">
+					<a href="' . $url . '" target="_blank">
+	                	<i class="fa fa-external-link-square" aria-hidden="true"></i>
+	            	</a>
+        		</div>';
+				return $action;
+			})
+			->make(true);
+	}
+
 }

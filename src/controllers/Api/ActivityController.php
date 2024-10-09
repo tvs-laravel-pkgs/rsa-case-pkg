@@ -155,6 +155,7 @@ class ActivityController extends Controller {
 				'onward_google_km' => 'nullable|numeric',
 				'dealer_google_km' => 'nullable|numeric',
 				'return_google_km' => 'nullable|numeric',
+				'route_deviation_km' => 'nullable|numeric',
 				'onward_km' => 'nullable|numeric',
 				'dealer_km' => 'nullable|numeric',
 				'return_km' => 'nullable|numeric',

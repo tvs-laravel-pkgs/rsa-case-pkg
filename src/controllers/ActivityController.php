@@ -36,12 +36,18 @@ use Yajra\Datatables\Datatables;
 class ActivityController extends Controller {
 
 	public function getFilterData() {
+		if (Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities')) {
+			$activityPortalStatusList = ActivityPortalStatus::select('name', 'id')->whereNotIn('id', [2, 4, 15, 16, 17, 25, 27])->get();
+		} else {
+			$activityPortalStatusList = ActivityPortalStatus::select('name', 'id')->get();
+		}
+
 		$this->data['extras'] = [
 			'call_center_list' => collect(CallCenter::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Call Center']),
 			'service_type_list' => collect(ServiceType::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Sub Service']),
 			'finance_status_list' => collect(ActivityFinanceStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Finance Status']),
-			'portal_status_list' => collect(ActivityPortalStatus::select('name', 'id')->where('company_id', 1)->get()),
-			'status_list' => collect(ActivityPortalStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Portal Status']),
+			'portal_status_list' => collect($activityPortalStatusList),
+			'status_list' => collect($activityPortalStatusList)->prepend(['id' => '', 'name' => 'Select Portal Status']),
 			'activity_status_list' => collect(ActivityStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Activity Status']),
 			'client_list' => collect(Client::withTrashed()->select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Client']),
 			'export_client_list' => collect(Client::withTrashed()->select([

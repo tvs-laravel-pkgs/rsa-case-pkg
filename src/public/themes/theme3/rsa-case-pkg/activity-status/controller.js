@@ -24,11 +24,9 @@ app.component('activityStatusList', {
             self.extras = response.data.extras;
             self.isAspRole = response.data.isAspRole;
             self.auth_user_details = response.data.auth_user_details;
-            // response.data.extras.status_list.splice(0, 1);
             self.status_list = response.data.extras.portal_status_list;
             self.client_list = response.data.extras.export_client_list;
             self.asp_list = response.data.extras.asp_list;
-            // self.status_list.splice(0, 1);
             self.modal_close = modal_close;
             var cols = [
                 { data: 'action', searchable: false },

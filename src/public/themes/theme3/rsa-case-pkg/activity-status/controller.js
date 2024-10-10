@@ -17,17 +17,16 @@ app.component('activityStatusList', {
         self.activity_towing_images_required_url = activity_towing_images_required_url;
         self.csrf = token;
         self.backstepReason = '';
+        self.selectedAsps = [];
         $http.get(
             activity_status_filter_url
         ).then(function(response) {
             self.extras = response.data.extras;
             self.isAspRole = response.data.isAspRole;
             self.auth_user_details = response.data.auth_user_details;
-            // response.data.extras.status_list.splice(0, 1);
             self.status_list = response.data.extras.portal_status_list;
             self.client_list = response.data.extras.export_client_list;
             self.asp_list = response.data.extras.asp_list;
-            // self.status_list.splice(0, 1);
             self.modal_close = modal_close;
             var cols = [
                 { data: 'action', searchable: false },
@@ -246,6 +245,10 @@ app.component('activityStatusList', {
             $('input[name="period"]').daterangepicker({
                 startDate: moment().startOf('month'),
                 endDate: moment().endOf('month'),
+                locale: {
+                    cancelLabel: 'Clear',
+                    format: "DD-MM-YYYY"
+                }
             });
 
             self.searchAsps = function(query) {
@@ -253,7 +256,7 @@ app.component('activityStatusList', {
                     return new Promise(function(resolve, reject) {
                         $http
                             .post(
-                                laravel_routes['activityStatusSearchAsps'], {
+                                laravel_routes['activityStatusSearchAllAspsByAxaptaCode'], {
                                     key: query,
                                 }
                             )
@@ -284,6 +287,23 @@ app.component('activityStatusList', {
                 }
             }
 
+            let aspSelectedAxaptaCodes = [];
+            $scope.onAspSelect = (aspAxaptaCode) => {
+                if (aspAxaptaCode) {
+                    aspSelectedAxaptaCodes.push(aspAxaptaCode);
+                    $('#aspAxaptaCodes').val(JSON.stringify(aspSelectedAxaptaCodes));
+                }
+            }
+
+            $scope.onAspRemove = (aspAxaptaCode) => {
+                if (aspAxaptaCode) {
+                    aspSelectedAxaptaCodes = aspSelectedAxaptaCodes.filter((aspSelectedAxaptaCode) => aspSelectedAxaptaCode != aspAxaptaCode);
+                    $('#aspAxaptaCodes').val(JSON.stringify(aspSelectedAxaptaCodes));
+                }
+            }
+
+
+
             self.pc_all = false;
             $rootScope.loading = false;
             window.mdSelectOnKeyDownOverride = function(event) {
@@ -295,7 +315,6 @@ app.component('activityStatusList', {
                 }
             });
             $scope.changeStatus = function(ids) {
-                console.log(ids);
                 if (ids) {
                     $size_rids = ids.length;
                     if ($size_rids > 0) {
@@ -321,13 +340,38 @@ app.component('activityStatusList', {
                 self.status_ids = r_list;
             }
 
+            self.pc_client_all = false;
+            $scope.selectClientAll = function(val) {
+                self.pc_client_all = (!self.pc_client_all);
+                if (!val) {
+                    r_list = [];
+                    angular.forEach(self.extras.client_list, function(value, key) {
+                        r_list.push(value.id);
+                    });
+
+                    $('#pc_client_all').addClass('pc_sel_all');
+                } else {
+                    r_list = [];
+                    $('#pc_client_all').removeClass('pc_sel_all');
+                }
+                self.client_ids = r_list;
+            }
+
+            $scope.changeClient = function(clientIds) {
+                if (clientIds && clientIds.length > 0) {
+                    $('#pc_client_all').addClass('pc_sel_all');
+                } else {
+                    $('#pc_client_all').removeClass('pc_sel_all');
+                }
+            }
+
             $("form[name='export_excel_form']").validate({
                 ignore: '',
                 rules: {
-                    status_ids: {
+                    period: {
                         required: true,
                     },
-                    period: {
+                    status_ids: {
                         required: true,
                     },
                     filter_by: {
@@ -335,11 +379,10 @@ app.component('activityStatusList', {
                     }
                 },
                 messages: {
-                    period: "Please Select Period",
-                    status_ids: "Please Select Activity Status",
-                    filter_by: "Please Select Filter By",
+                    period: "Period is required",
+                    status_ids: "Activity Status is required",
+                    filter_by: "Filter By is required",
                 },
-
                 submitHandler: function(form) {
                     form.submit();
                 }

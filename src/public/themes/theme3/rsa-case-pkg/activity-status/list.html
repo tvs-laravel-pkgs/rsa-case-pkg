@@ -357,9 +357,6 @@
             <form id="export_excel_form" name="export_excel_form" action="{{$ctrl.export_activities}}" method="post">
                 <input type="hidden" name="_token" value="{{$ctrl.csrf}}" />
                 <div ng-if="$ctrl.hasPermission('export-own-activities')">
-                    <input type="hidden" name="asp_id" value="{{$ctrl.auth_user_details.entity_id}}" />
-                </div>
-                <div ng-if="$ctrl.hasPermission('export-own-activities')">
                     <input type="hidden" name="filter_by" value="general" />
                 </div>
                 <div class="modal-body">
@@ -374,7 +371,7 @@
                                                 <input class="form-control customForm-input" autocomplete="off" name="period" type="text" value='' ng-model="$ctrl.period" ng-required="true">
                                             </div><!-- Field -->
                                         </div><!-- Column -->
-                                        <div class="col-sm-6" ng-if="!$ctrl.hasPermission('export-own-activities') && !$ctrl.hasPermission('export-own-rm-asp-activities') && !$ctrl.hasPermission('export-own-zm-asp-activities')">
+                                        <div class="col-sm-6" ng-if="!$ctrl.hasPermission('export-own-activities')">
                                             <div class="input-text form-group">
                                                 <label>Activity Status<sup class="req" style="color:red">*</sup></label>
                                                 <md-select ng-model="$ctrl.status_ids" md-on-close="clearSearchTerm()" name="status_ids" data-md-container-class="selectdemoSelectHeader" multiple md-no-asterisk class="error_messages required" ng-required="true" placeholder="Select Activity Status" ng-change="changeStatus($ctrl.status_ids)">
@@ -389,14 +386,14 @@
                                                 <input type="hidden" name="status_ids" value="{{$ctrl.status_ids}}" />
                                             </div>
                                         </div>
-                                        <input type="hidden" ng-if="$ctrl.hasPermission('export-own-activities') || $ctrl.hasPermission('export-own-rm-asp-activities') || $ctrl.hasPermission('export-own-zm-asp-activities')" name="status_ids" value="1,5,6,7,8,9,10,11,12,13,14,18,19,20,21,22,23,24,26">
+                                        <input type="hidden" ng-if="$ctrl.hasPermission('export-own-activities')" name="status_ids" value="1,5,6,7,8,9,10,11,12,13,14,18,19,20,21,22,23,24,26">
                                         <div class="col-sm-6">
                                             <div class="input-text form-group">
                                                 <label>Ticket Number</label>
-                                                <input type="text" value="" name="ticket" id="ticket_export" class="form-control valid" placeholder="Enter Ticket Number" autocomplete="off">
+                                                <input type="text" value="" name="ticket" id="ticket_export" class="form-control customForm-input valid" placeholder="Enter Ticket Number" autocomplete="off">
                                             </div>
                                         </div>
-                                        <div class="col-sm-6" ng-if="!$ctrl.hasPermission('export-own-activities')">
+                                        <!-- <div class="col-sm-6" ng-if="!$ctrl.hasPermission('export-own-activities')">
                                             <div class="input-text form-group">
                                                 <label>ASP</label>
                                                 <md-autocomplete class="type-sm" md-items="option in $ctrl.searchAsps($ctrl.aspSearchText)" md-input-id="autoFocusId" md-selected-item="$ctrl.asp" md-search-text="$ctrl.aspSearchText" md-item-text="option.workshop" md-min-length="3" placeholder="Search ASP Code" md-clear-button="true" md-no-cache="true">
@@ -411,21 +408,45 @@
                                                 </md-autocomplete>
                                                 <input type="hidden" name="asp_id" value="{{$ctrl.asp.id}}" />
                                             </div>
+                                        </div> -->
+                                        <div class="col-sm-6" ng-if="!$ctrl.hasPermission('export-own-activities')">
+                                            <div class="input-text form-group">
+                                                <label>ASP</label>
+                                                <md-content class="md-chips-border" layout="column">
+                                                    <md-chips ng-model="$ctrl.selectedAsps" md-autocomplete-snap md-require-match="true" md-on-add="onAspSelect($ctrl.asp.name)" md-on-remove="onAspRemove($chip.name)">
+                                                        <md-autocomplete md-selected-item="$ctrl.asp" md-input-id="autoFocusId" md-search-text="$ctrl.aspSearchText" md-items="item in $ctrl.searchAsps($ctrl.aspSearchText)" md-item-text="item.name" placeholder="Search for a ASP Axapta Code" md-clear-button="true" md-no-cache="true" md-min-length="3">
+                                                            <md-item-template>
+                                                                <span>
+                                                                    {{item.name}}
+                                                                </span>
+                                                            </md-item-template>
+                                                            <md-not-found>
+                                                                No matching "{{$ctrl.aspSearchText}}" were found.
+                                                            </md-not-found>
+                                                        </md-autocomplete>
+                                                        <md-chip-template>
+                                                            <span>
+                                                                <strong>{{$chip.name}}</strong>
+                                                            </span>
+                                                        </md-chip-template>
+                                                    </md-chips>
+                                                </md-content>
+                                                <input type="hidden" name="aspAxaptaCodes" id="aspAxaptaCodes" value="">
+                                            </div>
                                         </div>
                                         <div class="col-sm-6">
                                             <div class="input-text form-group">
                                                 <label>Client</label>
-                                                <md-autocomplete class="type-sm" md-items="option in $ctrl.searchClients($ctrl.clientSearchText)" md-input-id="autoFocusId" md-selected-item="$ctrl.client" md-search-text="$ctrl.clientSearchText" md-item-text="option.name" md-min-length="3" placeholder="Search Client" md-clear-button="true" md-no-cache="true">
-                                                    <md-item-template>
-                                                        <span>
-                                                            {{option.name}}
-                                                        </span>
-                                                    </md-item-template>
-                                                    <md-not-found>
-                                                        No matching "{{$ctrl.clientSearchText}}" were found.
-                                                    </md-not-found>
-                                                </md-autocomplete>
-                                                <input type="hidden" name="client_id" value="{{$ctrl.client.id}}" />
+                                                <md-select ng-model="$ctrl.client_ids" md-on-close="clearSearchTerm()" name="client_ids" data-md-container-class="selectdemoSelectHeader" multiple md-no-asterisk class="error_messages" placeholder="Select Client" ng-change="changeClient($ctrl.client_ids)">
+                                                    <md-select-header class="demo-select-header mdselect-header">
+                                                        <input ng-model="searchClient" type="search" placeholder="Search for a Client" class="demo-header-searchbox md-text" onkeydown="mdSelectOnKeyDownOverride(event)">
+                                                    </md-select-header>
+                                                    <md-optgroup label="client">
+                                                        <md-button class="select-all-button" layout-fill ng-value="$ctrl.pc_client_all" ng-click="selectClientAll($ctrl.pc_client_all)" id="pc_client_all">All</md-button>
+                                                        <md-option ng-value="client.id" ng-repeat="client in $ctrl.extras.export_client_list |filter:searchClient">{{client.name}} ({{client.status}})</md-option>
+                                                    </md-optgroup>
+                                                </md-select>
+                                                <input type="hidden" name="client_ids" value="{{$ctrl.client_ids}}" />
                                             </div>
                                         </div>
                                         <div class="col-sm-6" ng-if="!$ctrl.hasPermission('export-own-activities')">

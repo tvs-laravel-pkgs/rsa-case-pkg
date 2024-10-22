@@ -1866,6 +1866,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 
 			//SERVICE DASHBOARD PERMISSION
 			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'service-dashboard',
+				'display_name' => 'Service Dashboard',
+			],
+			[
 				'display_order' => 1,
 				'parent' => 'service-dashboard',
 				'name' => 'view-all-service-dashboard',

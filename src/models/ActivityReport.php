@@ -102,10 +102,12 @@ class ActivityReport extends Model {
 					$activityReport->pickup_dealer_location = !empty($activity->case->pickup_dealer_location) ? $activity->case->pickup_dealer_location : NULL;
 					$activityReport->pickup_dealer_state = !empty($activity->case->pickup_dealer_state) ? $activity->case->pickup_dealer_state : NULL;
 					$activityReport->pickup_dealer_city = !empty($activity->case->pickup_dealer_city) ? $activity->case->pickup_dealer_city : NULL;
+					$activityReport->pickup_location_pincode = !empty($activity->case->pickup_location_pincode) ? $activity->case->pickup_location_pincode : NULL;
 					$activityReport->delivery_request_pickup_date = !empty($activity->case->delivery_request_pickup_date) ? date('Y-m-d', strtotime($activity->case->delivery_request_pickup_date)) : NULL;
 					$activityReport->delivery_request_pickup_time = !empty($activity->case->delivery_request_pickup_time) ? $activity->case->delivery_request_pickup_time : NULL;
 					$activityReport->drop_dealer_state = !empty($activity->case->drop_dealer_state) ? $activity->case->drop_dealer_state : NULL;
 					$activityReport->drop_dealer_city = !empty($activity->case->drop_dealer_city) ? $activity->case->drop_dealer_city : NULL;
+					$activityReport->drop_location_pincode = !empty($activity->case->drop_location_pincode) ? $activity->case->drop_location_pincode : NULL;
 				}
 
 				//ASP
@@ -209,6 +211,7 @@ class ActivityReport extends Model {
 				$activityReport->onward_google_km = $activity->detail(286) ? checkValueHasValid($activity->detail(286)->value) : NULL;
 				$activityReport->dealer_google_km = $activity->detail(287) ? checkValueHasValid($activity->detail(287)->value) : NULL;
 				$activityReport->return_google_km = $activity->detail(288) ? checkValueHasValid($activity->detail(288)->value) : NULL;
+				$activityReport->route_deviation_km = $activity->detail(277) ? checkValueHasValid($activity->detail(277)->value) : NULL;
 				$activityReport->onward_km = $activity->detail(289) ? checkValueHasValid($activity->detail(289)->value) : NULL;
 				$activityReport->dealer_km = $activity->detail(290) ? checkValueHasValid($activity->detail(290)->value) : NULL;
 				$activityReport->return_km = $activity->detail(291) ? checkValueHasValid($activity->detail(291)->value) : NULL;

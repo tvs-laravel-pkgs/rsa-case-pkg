@@ -1907,6 +1907,13 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'only-mapped-states-service-dashboard',
 				'display_name' => 'Only Mapped States',
 			],
+
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'asp-unclaimed-tickets',
+				'display_name' => 'ASP Unclaimed Tickets',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

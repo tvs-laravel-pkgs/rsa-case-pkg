@@ -230,20 +230,20 @@ class CaseController extends Controller {
 			}
 
 			//August month 2020 cases should not be allowed due to cases were already closed - temporarily
-			if ($case_date >= "2020-08-01" && $case_date <= "2020-08-31") {
-				//SAVE CASE API LOG
-				$errors[] = "Rejected as August month case closed";
-				saveApiLog(102, $request->number, $request->all(), $errors, NULL, 121);
-				DB::commit();
+			// if ($case_date >= "2020-08-01" && $case_date <= "2020-08-31") {
+			// 	//SAVE CASE API LOG
+			// 	$errors[] = "Rejected as August month case closed";
+			// 	saveApiLog(102, $request->number, $request->all(), $errors, NULL, 121);
+			// 	DB::commit();
 
-				return response()->json([
-					'success' => false,
-					'error' => 'Validation Error',
-					'errors' => [
-						"Rejected as August month case closed",
-					],
-				], $this->successStatus);
-			}
+			// 	return response()->json([
+			// 		'success' => false,
+			// 		'error' => 'Validation Error',
+			// 		'errors' => [
+			// 			"Rejected as August month case closed",
+			// 		],
+			// 	], $this->successStatus);
+			// }
 
 			//ALLOW ONLY LETTERS AND NUMBERS
 			if (!preg_match("/^[a-zA-Z0-9]+$/", $request->number)) {
@@ -357,20 +357,20 @@ class CaseController extends Controller {
 				//EXISTS
 				$caseDate = date('Y-m-d', strtotime($case->date));
 				//August month 2020 cases should not be allowed due to cases were already closed - temporarily
-				if ($caseDate >= "2020-08-01" && $caseDate <= "2020-08-31") {
-					//SAVE CASE API LOG
-					$errors[] = "Rejected as August month case closed";
-					saveApiLog(102, $request->number, $request->all(), $errors, NULL, 121);
-					DB::commit();
+				// if ($caseDate >= "2020-08-01" && $caseDate <= "2020-08-31") {
+				// 	//SAVE CASE API LOG
+				// 	$errors[] = "Rejected as August month case closed";
+				// 	saveApiLog(102, $request->number, $request->all(), $errors, NULL, 121);
+				// 	DB::commit();
 
-					return response()->json([
-						'success' => false,
-						'error' => 'Validation Error',
-						'errors' => [
-							"Rejected as August month case closed",
-						],
-					], $this->successStatus);
-				}
+				// 	return response()->json([
+				// 		'success' => false,
+				// 		'error' => 'Validation Error',
+				// 		'errors' => [
+				// 			"Rejected as August month case closed",
+				// 		],
+				// 	], $this->successStatus);
+				// }
 			}
 
 			$bd_location_type = Config::where('name', $request->bd_location_type)

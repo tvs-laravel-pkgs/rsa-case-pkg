@@ -374,20 +374,20 @@ class ActivityController extends Controller {
 
 			$case_date = date('Y-m-d', strtotime($case->date));
 			//August month 2020 cases should not be allowed due to cases were already closed - temporarily
-			if ($case_date >= "2020-08-01" && $case_date <= "2020-08-31") {
-				//SAVE CASE API LOG
-				$errors[] = "Rejected as August month case closed";
-				saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
-				DB::commit();
+			// if ($case_date >= "2020-08-01" && $case_date <= "2020-08-31") {
+			// 	//SAVE CASE API LOG
+			// 	$errors[] = "Rejected as August month case closed";
+			// 	saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+			// 	DB::commit();
 
-				return response()->json([
-					'success' => false,
-					'error' => 'Validation Error',
-					'errors' => [
-						"Rejected as August month case closed",
-					],
-				], $this->successStatus);
-			}
+			// 	return response()->json([
+			// 		'success' => false,
+			// 		'error' => 'Validation Error',
+			// 		'errors' => [
+			// 			"Rejected as August month case closed",
+			// 		],
+			// 	], $this->successStatus);
+			// }
 
 			//CHECK CASE IS CLOSED
 			// if ($case->status_id == 4) {
@@ -409,73 +409,99 @@ class ActivityController extends Controller {
 				->first();
 			if (!$activityExist) {
 				//ALLOW ACTIVITY CREATION ONLY BEFORE 90 DAYS OF THE CASE DATE
-				if (date('Y-m-d') > $caseDateAfter90Days) {
-					//SAVE ACTIVITY API LOG
-					$errors[] = 'Activity create will not be allowed after 90 days of the case date';
-					saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
-					DB::commit();
+				// if (date('Y-m-d') > $caseDateAfter90Days) {
+				// 	//SAVE ACTIVITY API LOG
+				// 	$errors[] = 'Activity create will not be allowed after 90 days of the case date';
+				// 	saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+				// 	DB::commit();
 
-					return response()->json([
-						'success' => false,
-						'error' => 'Validation Error',
-						'errors' => [
-							'Activity create will not be allowed after 90 days of the case date',
-						],
-					], $this->successStatus);
-				} else {
-					$activity = new Activity([
-						'crm_activity_id' => $request->crm_activity_id,
-					]);
-					$newActivity = true;
-				}
+				// 	return response()->json([
+				// 		'success' => false,
+				// 		'error' => 'Validation Error',
+				// 		'errors' => [
+				// 			'Activity create will not be allowed after 90 days of the case date',
+				// 		],
+				// 	], $this->successStatus);
+				// } else {
+				// 	$activity = new Activity([
+				// 		'crm_activity_id' => $request->crm_activity_id,
+				// 	]);
+				// 	$newActivity = true;
+				// }
+
+				$activity = new Activity([
+					'crm_activity_id' => $request->crm_activity_id,
+				]);
+				$newActivity = true;
 			} else {
 				//ACTIVITY BELONGS TO SAME CASE
 				if ($activityExist->case_id === $case->id) {
 					//Allow case with intial staus and not payment processed statuses
-					if ($activityExist->status_id == 2 || $activityExist->status_id == 4 || $activityExist->status_id == 17) {
-						//ALLOW ACTIVITY UPDATION ONLY BEFORE 90 DAYS OF THE CASE DATE
-						if (date('Y-m-d') > $caseDateAfter90Days) {
-							//SAVE ACTIVITY API LOG
-							$errors[] = 'Activity update will not be allowed after 90 days of the case date';
-							saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
-							DB::commit();
+					// if ($activityExist->status_id == 2 || $activityExist->status_id == 4 || $activityExist->status_id == 17) {
+					// 	//ALLOW ACTIVITY UPDATION ONLY BEFORE 90 DAYS OF THE CASE DATE
+					// 	if (date('Y-m-d') > $caseDateAfter90Days) {
+					// 		//SAVE ACTIVITY API LOG
+					// 		$errors[] = 'Activity update will not be allowed after 90 days of the case date';
+					// 		saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+					// 		DB::commit();
 
-							return response()->json([
-								'success' => false,
-								'error' => 'Validation Error',
-								'errors' => [
-									'Activity update will not be allowed after 90 days of the case date',
-								],
-							], $this->successStatus);
-						} else {
-							$activity = $activityExist;
-						}
-					} else {
-						// IN NEW CRM - WE ARE UPDATING THE ACTIVITY STATUS HENCE WE ARE ALLOWED
-						if (!isset($request->isFromNewCrm)) {
-							//IF IT IS IN NOT ELIGIBLE FOR PAYOUT STATUS
-							if ($activityExist->status_id == 15 || $activityExist->status_id == 16) {
-								$api_error = $errors[] = 'Activity update will not be allowed. Case is not eligible for payout';
-							} else {
-								$api_error = $errors[] = 'Activity update will not be allowed. Case is under payment process';
-							}
+					// 		return response()->json([
+					// 			'success' => false,
+					// 			'error' => 'Validation Error',
+					// 			'errors' => [
+					// 				'Activity update will not be allowed after 90 days of the case date',
+					// 			],
+					// 		], $this->successStatus);
+					// 	} else {
+					// 		$activity = $activityExist;
+					// 	}
 
-							//SAVE ACTIVITY API LOG
+					// 	$activity = $activityExist;
+					// } else {
+					// 	// IN NEW CRM - WE ARE UPDATING THE ACTIVITY STATUS HENCE WE ARE ALLOWED
+					// 	if (!isset($request->isFromNewCrm)) {
+					// 		//IF IT IS IN NOT ELIGIBLE FOR PAYOUT STATUS
+					// 		if ($activityExist->status_id == 15 || $activityExist->status_id == 16) {
+					// 			$api_error = $errors[] = 'Activity update will not be allowed. Case is not eligible for payout';
+					// 		} else {
+					// 			$api_error = $errors[] = 'Activity update will not be allowed. Case is under payment process';
+					// 		}
 
-							saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
-							DB::commit();
+					// 		//SAVE ACTIVITY API LOG
 
-							return response()->json([
-								'success' => false,
-								'error' => 'Validation Error',
-								'errors' => [
-									$api_error,
-								],
-							], $this->successStatus);
-						} else {
-							$activity = $activityExist;
-						}
+					// 		saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+					// 		DB::commit();
+
+					// 		return response()->json([
+					// 			'success' => false,
+					// 			'error' => 'Validation Error',
+					// 			'errors' => [
+					// 				$api_error,
+					// 			],
+					// 		], $this->successStatus);
+					// 	} else {
+					// 		$activity = $activityExist;
+					// 	}
+					// }
+
+					
+					if (!isset($request->isFromNewCrm) && !in_array($activityExist->status_id, [2, 4, 15, 16, 17])) {
+					    $api_error = $errors[] = 'Activity update will not be allowed. Case is under payment process';
+
+					    //SAVE ACTIVITY API LOG
+						saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+						DB::commit();
+
+						return response()->json([
+							'success' => false,
+							'error' => 'Validation Error',
+							'errors' => [
+								$api_error,
+							],
+						], $this->successStatus);
 					}
+
+					$activity = $activityExist;
 				} else {
 					//SAVE ACTIVITY API LOG
 					$errors[] = 'The crm activity id has already been taken for another case';

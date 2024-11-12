@@ -812,10 +812,10 @@ class Activity extends Model {
 							'required',
 							'string',
 							'max:191',
-							Rule::exists('subjects', 'name')
-								->where(function ($query) {
-									$query->whereNull('deleted_at');
-								}),
+							// Rule::exists('subjects', 'name')
+							// 	->where(function ($query) {
+							// 		$query->whereNull('deleted_at');
+							// 	}),
 						],
 						'km_during_breakdown' => 'nullable|numeric',
 						'bd_lat' => 'nullable|numeric',
@@ -1079,9 +1079,9 @@ class Activity extends Model {
 					}
 
 					$subject = Subject::where('name', $record['subject'])->first();
-					if (!$subject) {
-						$save_eligible = false;
-					}
+					// if (!$subject) {
+					// 	$save_eligible = false;
+					// }
 					$cancel_reason = CaseCancelledReason::where('name', $record['cancel_reason'])->where('company_id', 1)->first();
 					if (!$cancel_reason) {
 						$cancel_reason_id = NULL;
@@ -1231,7 +1231,8 @@ class Activity extends Model {
 						$case->call_center_id = $call_center->id;
 						$case->client_id = $client->id;
 						$case->vehicle_model_id = $vehicle_model_by_make->id;
-						$case->subject_id = $subject->id;
+						// $case->subject_id = $subject->id;
+						$case->subject_id = !empty($subject) ? $subject->id : null;
 						$case->bd_location_type_id = $bd_location_type_id;
 						$case->bd_location_category_id = $bd_location_category_id;
 						$case->membership_type = !empty($record['membership_type']) ? $record['membership_type'] : NULL;
@@ -1259,8 +1260,8 @@ class Activity extends Model {
 									$activity = Activity::withTrashed()->where('crm_activity_id', $crm_activity_id)->first();
 									$count_variable = 'updated_count';
 								} elseif ($activity_belongsto_case->status_id == 15 || $activity_belongsto_case->status_id == 16) {
-									$status['errors'][] = 'Unable to update data. Case is not eligible for payout';
-									$activity_save_eligible = false;
+									// $status['errors'][] = 'Unable to update data. Case is not eligible for payout';
+									// $activity_save_eligible = false;
 								} else {
 									$status['errors'][] = 'Unable to update data. Case is under payment process';
 									$activity_save_eligible = false;

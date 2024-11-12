@@ -1038,6 +1038,9 @@ class Activity extends Model {
 						$save_eligible = false;
 					}
 
+					if($record['status'] == "On Hold"){
+						$record['status'] = "In Progress";
+					}
 					$case_status = CaseStatus::where('name', $record['status'])->where('company_id', 1)->first();
 					if (!$case_status) {
 						$save_eligible = false;

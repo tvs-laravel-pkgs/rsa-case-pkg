@@ -409,47 +409,53 @@ class ActivityController extends Controller {
 				->first();
 			if (!$activityExist) {
 				//ALLOW ACTIVITY CREATION ONLY BEFORE 90 DAYS OF THE CASE DATE
-				if (date('Y-m-d') > $caseDateAfter90Days) {
-					//SAVE ACTIVITY API LOG
-					$errors[] = 'Activity create will not be allowed after 90 days of the case date';
-					saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
-					DB::commit();
+				// if (date('Y-m-d') > $caseDateAfter90Days) {
+				// 	//SAVE ACTIVITY API LOG
+				// 	$errors[] = 'Activity create will not be allowed after 90 days of the case date';
+				// 	saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+				// 	DB::commit();
 
-					return response()->json([
-						'success' => false,
-						'error' => 'Validation Error',
-						'errors' => [
-							'Activity create will not be allowed after 90 days of the case date',
-						],
-					], $this->successStatus);
-				} else {
-					$activity = new Activity([
-						'crm_activity_id' => $request->crm_activity_id,
-					]);
-					$newActivity = true;
-				}
+				// 	return response()->json([
+				// 		'success' => false,
+				// 		'error' => 'Validation Error',
+				// 		'errors' => [
+				// 			'Activity create will not be allowed after 90 days of the case date',
+				// 		],
+				// 	], $this->successStatus);
+				// } else {
+				// 	$activity = new Activity([
+				// 		'crm_activity_id' => $request->crm_activity_id,
+				// 	]);
+				// 	$newActivity = true;
+				// }
+
+				$activity = new Activity([
+					'crm_activity_id' => $request->crm_activity_id,
+				]);
+				$newActivity = true;
 			} else {
 				//ACTIVITY BELONGS TO SAME CASE
 				if ($activityExist->case_id === $case->id) {
 					//Allow case with intial staus and not payment processed statuses
 					if ($activityExist->status_id == 2 || $activityExist->status_id == 4 || $activityExist->status_id == 17) {
 						//ALLOW ACTIVITY UPDATION ONLY BEFORE 90 DAYS OF THE CASE DATE
-						if (date('Y-m-d') > $caseDateAfter90Days) {
-							//SAVE ACTIVITY API LOG
-							$errors[] = 'Activity update will not be allowed after 90 days of the case date';
-							saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
-							DB::commit();
+						// if (date('Y-m-d') > $caseDateAfter90Days) {
+						// 	//SAVE ACTIVITY API LOG
+						// 	$errors[] = 'Activity update will not be allowed after 90 days of the case date';
+						// 	saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+						// 	DB::commit();
 
-							return response()->json([
-								'success' => false,
-								'error' => 'Validation Error',
-								'errors' => [
-									'Activity update will not be allowed after 90 days of the case date',
-								],
-							], $this->successStatus);
-						} else {
-							$activity = $activityExist;
-						}
+						// 	return response()->json([
+						// 		'success' => false,
+						// 		'error' => 'Validation Error',
+						// 		'errors' => [
+						// 			'Activity update will not be allowed after 90 days of the case date',
+						// 		],
+						// 	], $this->successStatus);
+						// } else {
+						// 	$activity = $activityExist;
+						// }
+						$activity = $activityExist;
 					} else {
 						// IN NEW CRM - WE ARE UPDATING THE ACTIVITY STATUS HENCE WE ARE ALLOWED
 						if (!isset($request->isFromNewCrm)) {

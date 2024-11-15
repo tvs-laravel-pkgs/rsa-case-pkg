@@ -28,10 +28,6 @@ class CaseStatusTableSeeder extends Seeder {
 				'name' => 'Closed',
 				'company_id' => 1,
 			],
-			5 => [
-				'name' => 'On Hold',
-				'company_id' => 1,
-			],
 		];
 
 		foreach ($case_statuses as $key => $case_status_val) {

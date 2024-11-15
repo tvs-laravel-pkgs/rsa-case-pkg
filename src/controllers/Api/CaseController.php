@@ -68,10 +68,10 @@ class CaseController extends Controller {
 					'required',
 					'string',
 					'max:191',
-					Rule::exists('case_statuses', 'name')
-						->where(function ($query) {
-							$query->whereNull('deleted_at');
-						}),
+					// Rule::exists('case_statuses', 'name')
+					// 	->where(function ($query) {
+					// 		$query->whereNull('deleted_at');
+					// 	}),
 				],
 				'cancel_reason' => [
 					'nullable',
@@ -266,6 +266,22 @@ class CaseController extends Controller {
 			}
 
 			$status = CaseStatus::where('name', $request->status)->where('company_id', 1)->first();
+			if (!$status) {
+				//SAVE CASE API LOG
+				$errorMsg = "Case Status is invalid";
+				$errors[] = $errorMsg;
+				saveApiLog(102, $request->number, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						$errorMsg,
+					],
+				], $this->successStatus);
+			}
+
 			$call_center = CallCenter::where('name', $request->call_center)->first();
 			$client = Client::where('name', $request->client)->first();
 			$vehicle_make = VehicleMake::where('name', $request->vehicle_make)->first();

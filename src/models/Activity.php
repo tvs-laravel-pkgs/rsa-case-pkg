@@ -750,10 +750,10 @@ class Activity extends Model {
 							'required',
 							'string',
 							'max:191',
-							Rule::exists('case_statuses', 'name')
-								->where(function ($query) {
-									$query->whereNull('deleted_at');
-								}),
+							// Rule::exists('case_statuses', 'name')
+							// 	->where(function ($query) {
+							// 		$query->whereNull('deleted_at');
+							// 	}),
 						],
 						'cancel_reason' => [
 							'nullable',
@@ -1038,8 +1038,12 @@ class Activity extends Model {
 						$save_eligible = false;
 					}
 
+					if (strtolower($record['status']) == "on hold") {
+						$record['status'] = "In Progress";
+					}
 					$case_status = CaseStatus::where('name', $record['status'])->where('company_id', 1)->first();
 					if (!$case_status) {
+						$status['errors'][] = 'Case status is invalid';
 						$save_eligible = false;
 					}
 					$call_center = CallCenter::where('name', $record['call_center'])->first();

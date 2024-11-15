@@ -261,10 +261,10 @@ class CaseController extends Controller {
 				], $this->successStatus);
 			}
 
-			if($request->status == "On Hold"){
+			if (strtolower($request->status) == "on hold") {
 				$request->status = "In Progress";
 			}
-			
+
 			$status = CaseStatus::where('name', $request->status)->where('company_id', 1)->first();
 			$call_center = CallCenter::where('name', $request->call_center)->first();
 			$client = Client::where('name', $request->client)->first();

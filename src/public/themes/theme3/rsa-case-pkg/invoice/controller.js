@@ -280,6 +280,7 @@ app.component('invoiceView', {
             self.auto_assist_company_address = response.data.auto_assist_company_address;
             self.automobile_company_address = response.data.automobile_company_address;
             self.ki_company_address = response.data.ki_company_address;
+            self.company_invoice_address = response.data.company_invoice_address;
 
             if (self.asp.tax_calculation_method == '1') {
                 self.asp.tax_calculation_method = true;

@@ -222,7 +222,7 @@
     var get_invoice_payment_info_url = "{{url('/rsa-case-pkg/invoice/get/payment-info/')}}";
 
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/invoice/controller.js?v=7')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/invoice/controller.js?v=8')}}"></script>
 
 <!-- RSA-BATCH GENEATION -->
 <script type="text/javascript">
@@ -254,7 +254,7 @@
     var activity_approved_invoice_preview_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-approved/invoice-preview.html')}}";
     var activity_approved_invoice_preview_data_url = "{{url('rsa-case-pkg/activity-approved/get-details/')}}";
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-approved/controller.js?v=6')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-approved/controller.js?v=7')}}"></script>
 
 
 <!-- UNCLAIMED TICKETS -->

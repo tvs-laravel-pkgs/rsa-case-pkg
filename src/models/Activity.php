@@ -3064,6 +3064,7 @@ class Activity extends Model {
 			$data['bill_from_details']['pan'] = config('rsa.PAN');
 			$data['action'] = 'ASP Invoice Confirmation';
 			$data['success'] = true;
+			$data['new_company_invoice_address'] = config('rsa.NEW_INVOICE_ADDRESS');
 			DB::commit();
 			return response()->json($data);
 

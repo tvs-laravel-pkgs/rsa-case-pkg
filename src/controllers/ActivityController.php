@@ -1129,6 +1129,9 @@ class ActivityController extends Controller {
 					$this->data['activities']['ki_company_address'] = true;
 				}
 
+				$companyDetailBasedOnInvoiceResponse = getCompanyDetailsBasedOnInvoice($inv_created);
+				$this->data['activities']['company_invoice_address'] = $companyDetailBasedOnInvoiceResponse['invoiceAddress'];
+
 				$this->data['activities']['invoice_amount_in_word'] = getIndianCurrency($activity->inv_amount);
 				if (count($invoice_activities) > 0) {
 					foreach ($invoice_activities as $key => $invoice_activity) {

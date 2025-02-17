@@ -6073,46 +6073,101 @@ class ActivityController extends Controller {
 			$search_type = 'normal';
 		}
 
-		$activities = Activity::select([
-			'activities.id',
-			'Invoices.id as invoiceId',
-			'activities.crm_activity_id as crm_activity_id',
-			'activities.status_id as status_id',
-			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
-			'cases.number as case_number',
-			DB::raw('COALESCE(cases.csr, "--") as csr'),
-			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
-			DB::raw('COALESCE(cases.vin_no, "--") as vin'),
-			DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
-			DB::raw('COALESCE(service_types.name, "--") as sub_service'),
-			DB::raw('COALESCE(activity_finance_statuses.name, "--") as finance_status'),
-			DB::raw('COALESCE(activity_portal_statuses.name, "--") as status'),
-			DB::raw('COALESCE(activity_statuses.name, "--") as activity_status'),
-			DB::raw('COALESCE(clients.name, "--") as client'),
-			DB::raw('COALESCE(call_centers.name, "--") as call_center'),
-			'cases.created_at as caseCreatedAt',
-			'cases.submission_closing_date as caseSubmissionClosingDate',
+		$activities = Activity::with([
+			'invoice' => function ($query) {
+				$query->select('id');
+			},
+			'case' => function ($query) {
+				$query->select([
+					'id',
+					'client_id',
+					'call_center_id',
+					DB::raw('DATE_FORMAT(date,"%d-%m-%Y %H:%i:%s") as case_date'),
+					'number as case_number',
+					DB::raw('COALESCE(csr, "--") as csr'),
+					DB::raw('COALESCE(vehicle_registration_number, "--") as vehicle_registration_number'),
+					DB::raw('COALESCE(vin_no, "--") as vin'),
+					'customer_contact_number',
+					'csr',
+					'created_at',
+					'submission_closing_date',
+					'date as caseDate',
+				]);
+			},
+			'case.client' => function ($query) {
+				$query->select([
+					'id',
+					DB::raw('COALESCE(name, "--") as name'),
+				]);
+			},
+			'case.callcenter' => function ($query) {
+				$query->select([
+					'id',
+					DB::raw('COALESCE(name, "--") as name'),
+				]);
+			},
+			'asp' => function ($query) {
+				$query->select([
+					'id',
+					DB::raw('CONCAT(asp_code," / ",workshop_name) as name'),
+				]);
+			},
+			'asp.user' => function ($query) {
+				$query->select([
+					'id',
+				]);
+			},
+			'serviceType' => function ($query) {
+				$query->select([
+					'id',
+					DB::raw('COALESCE(name, "--") as name'),
+				]);
+			},
+			'financeStatus' => function ($query) {
+				$query->select([
+					'id',
+					DB::raw('COALESCE(name, "--") as name'),
+				]);
+			},
+			'status' => function ($query) {
+				$query->select([
+					'id',
+					DB::raw('COALESCE(name, "--") as name'),
+				]);
+			},
+			'activityStatus' => function ($query) {
+				$query->select([
+					'id',
+					DB::raw('COALESCE(name, "--") as name'),
+				]);
+			},
 		])
-			->leftjoin('asps', 'asps.id', 'activities.asp_id')
-			->leftjoin('users', 'users.id', 'asps.user_id')
-			->leftjoin('cases', 'cases.id', 'activities.case_id')
-			->leftjoin('clients', 'clients.id', 'cases.client_id')
-			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
-			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
-			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
-			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
-			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
-			->leftjoin('Invoices', 'Invoices.id', 'activities.invoice_id');
+			->select([
+				'id',
+				'invoice_id as invoiceId',
+				'crm_activity_id',
+				'case_id',
+				'status_id',
+				'asp_id',
+				'service_type_id',
+				'finance_status_id',
+				'activity_status_id',
+				'created_at',
+			])
+		;
+
 		if (!empty($search_type) && $search_type == 'mobile_number') {
-			$activities->where('cases.customer_contact_number', $request->searchQuery);
-		} else {
-			$activities->where(function ($q) use ($request) {
-				$q->where('cases.number', $request->searchQuery)
-					->orWhere('cases.vehicle_registration_number', $request->searchQuery)
-					->orWhere('cases.vin_no', $request->searchQuery)
-					->orWhere('activities.crm_activity_id', $request->searchQuery)
-					->orWhere('cases.csr', $request->searchQuery);
+			$activities->whereHas('case', function ($query) use ($request) {
+				$query->where('customer_contact_number', 'LIKE', "%$request->searchQuery%");
 			});
+		} else {
+			$activities->whereHas('case', function ($query) use ($request) {
+				$query->where('number', 'LIKE', "%$request->searchQuery%")
+					->orWhere('vehicle_registration_number', 'LIKE', "%$request->searchQuery%")
+					->orWhere('vin_no', 'LIKE', "%$request->searchQuery%")
+					->orWhere('csr', 'LIKE', "%$request->searchQuery%");
+			})
+				->orWhere('crm_activity_id', 'LIKE', "%$request->searchQuery%");
 		}
 
 		if (!Entrust::can('all-asp-activity-search')) {
@@ -6120,39 +6175,49 @@ class ActivityController extends Controller {
 			//BACK OFFICE
 			if (Entrust::can('mapped-state-asp-activity-search')) {
 				$stateIds = StateUser::where('user_id', '=', Auth::user()->id)->pluck('state_id')->toArray();
-				$activities->whereIn('asps.state_id', $stateIds);
+				$activities->whereHas('asp', function ($query) use ($stateIds) {
+					$query->whereIn('state_id', $stateIds);
+				});
 			} elseif (Entrust::can('own-asp-activity-search')) {
 				// ASP || ASP FINANCE ADMIN
 				if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
 					$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
 					$aspIds[] = Auth::user()->asp->id;
-					$activities->whereIn('asps.id', $aspIds);
+					$activities->whereHas('asp', function ($query) use ($aspIds) {
+						$query->whereIn('id', $aspIds);
+					});
 				} else {
-					$activities->where('users.id', Auth::user()->id); // OWN ASP USER ID
+					$authUserId = Auth::user()->id;
+					$activities->whereHas('asp.user', function ($query) use ($authUserId) {
+						$query->whereIn('id', $authUserId); // OWN ASP USER ID
+					});
 				}
 			} elseif (Entrust::can('own-rm-asp-activity-search')) {
 				// REGIONAL MANAGER
 				$aspIds = Asp::where('regional_manager_id', Auth::user()->id)->pluck('id')->toArray();
-				$activities->whereIn('asps.id', $aspIds);
+				$activities->whereHas('asp', function ($query) use ($aspIds) {
+					$query->whereIn('id', $aspIds);
+				});
 			} elseif (Entrust::can('own-zm-asp-activity-search')) {
 				// ZONAL MANAGER
 				$aspIds = Asp::where('zm_id', Auth::user()->id)->pluck('id')->toArray();
-				$activities->whereIn('asps.id', $aspIds);
+				$activities->whereHas('asp', function ($query) use ($aspIds) {
+					$query->whereIn('id', $aspIds);
+				});
 			} elseif (Entrust::can('own-nm-asp-activity-search')) {
 				// NATIONAL MANAGER
 				$aspIds = Asp::where('nm_id', Auth::user()->id)->pluck('id')->toArray();
-				$activities->whereIn('asps.id', $aspIds);
+				$activities->whereHas('asp', function ($query) use ($aspIds) {
+					$query->whereIn('id', $aspIds);
+				});
 			} else {
 				$activities->whereNull('activities.asp_id');
 			}
 		}
 
-		$activities->orderBy('cases.date', 'DESC')->groupBy('activities.id');
+		$activities->orderBy('created_at', 'DESC');
+
 		return Datatables::of($activities)
-			->filterColumn('asp', function ($query, $keyword) {
-				$sql = "CONCAT(asps.asp_code,' / ',asps.workshop_name)  like ?";
-				$query->whereRaw($sql, ["%{$keyword}%"]);
-			})
 			->addColumn('action', function ($activity) {
 				// VIEW PAGE FOR OTHER STATUSES
 				$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
@@ -6166,9 +6231,9 @@ class ActivityController extends Controller {
 					if ($activity->status_id == 2 || $activity->status_id == 4 || $activity->status_id == 17) {
 						$url = '';
 						//CASE WITH EXTENSION
-						if (!empty($activity->caseSubmissionClosingDate) && Carbon::parse($activity->caseSubmissionClosingDate)->format('Y-m-d H:i:s') >= $today) {
+						if (!empty($activity->case->submission_closing_date) && Carbon::parse($activity->case->submission_closing_date)->format('Y-m-d H:i:s') >= $today) {
 							$url = '#!/rsa-case-pkg/new-activity/update-details/' . $activity->id;
-						} else if (Carbon::parse($activity->caseCreatedAt)->format('Y-m-d H:i:s') >= $threeMonthsBefore) {
+						} else if (Carbon::parse($activity->case->created_at)->format('Y-m-d H:i:s') >= $threeMonthsBefore) {
 							$url = '#!/rsa-case-pkg/new-activity/update-details/' . $activity->id;
 						}
 					} elseif ($activity->status_id == 7) {
@@ -6233,10 +6298,10 @@ class ActivityController extends Controller {
 				$action = '';
 				if (!empty($url)) {
 					$action = '<div class="dataTable-actions" style="min-width: 125px;">
-									<a href="' . $url . '" target="_blank">
-					                	<i class="fa fa-external-link-square" aria-hidden="true"></i>
-					            	</a>
-			            		</div>';
+								<a href="' . $url . '" target="_blank">
+				                	<i class="fa fa-external-link-square" aria-hidden="true"></i>
+				            	</a>
+		            		</div>';
 				}
 				return $action;
 			})

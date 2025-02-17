@@ -20,6 +20,23 @@ app.component('activitySearchForm', {
                 $('#activityTable').dataTable().fnDestroy();
             }
 
+            const colsBk = [
+                { data: 'action', searchable: false },
+                { data: 'case_date', searchable: false },
+                { data: 'case_number', name: 'cases.number', searchable: true },
+                { data: 'vehicle_registration_number', name: 'cases.vehicle_registration_number', searchable: true },
+                { data: 'vin', name: 'cases.vin_no', searchable: true },
+                { data: 'asp', name: 'asp', searchable: true },
+                { data: 'crm_activity_id', name: 'activities.crm_activity_id', searchable: true },
+                { data: 'csr', name: 'cases.csr', searchable: true },
+                { data: 'sub_service', name: 'service_types.name', searchable: true },
+                { data: 'finance_status', name: 'activity_finance_statuses.name', searchable: true },
+                { data: 'status', name: 'activity_portal_statuses.name', searchable: true },
+                { data: 'activity_status', name: 'activity_statuses.name', searchable: true },
+                { data: 'client', name: 'clients.name', searchable: true },
+                { data: 'call_center', name: 'call_centers.name', searchable: true },
+            ];
+
             const activitySearchDtConfig = JSON.parse(JSON.stringify(dt_config));
             $('#activityTable').DataTable(
                 $.extend(activitySearchDtConfig, {
@@ -43,6 +60,7 @@ app.component('activitySearchForm', {
                     ordering: false,
                     processing: true,
                     serverSide: false,
+                    // serverSide: true,
                     ajax: {
                         url: laravel_routes['getActivitySearchList'],
                         type: "POST",

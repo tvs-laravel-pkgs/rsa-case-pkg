@@ -374,18 +374,21 @@ class ActivityController extends Controller {
 						'Waiting for' => $log_waiting,
 					], 361);
 
-					$noty_message_template = 'ASP_DATA_ENTRY_DONE_DEFFERED';
-					$ticket_number = [$activity->case->number];
-					$state_id = $activity->asp->state_id;
-					$bo_users = DB::table('state_user')
-						->join('users', 'users.id', 'state_user.user_id')
-						->where('state_user.state_id', $state_id)
-						->where('users.role_id', 6) //BO
-						->where('users.activity_approval_level_id', 1) //L1
-						->pluck('state_user.user_id');
-					if (!empty($bo_users)) {
-						foreach ($bo_users as $bo_user_id) {
-							notify2($noty_message_template, $bo_user_id, config('constants.alert_type.blue'), $ticket_number);
+					$sendApprovalNotification = config('rsa.SEND_APPROVAL_NOTIFICATION');
+					if ($sendApprovalNotification) {
+						$noty_message_template = 'ASP_DATA_ENTRY_DONE_DEFFERED';
+						$ticket_number = [$activity->case->number];
+						$state_id = $activity->asp->state_id;
+						$bo_users = DB::table('state_user')
+							->join('users', 'users.id', 'state_user.user_id')
+							->where('state_user.state_id', $state_id)
+							->where('users.role_id', 6) //BO
+							->where('users.activity_approval_level_id', 1) //L1
+							->pluck('state_user.user_id');
+						if (!empty($bo_users)) {
+							foreach ($bo_users as $bo_user_id) {
+								notify2($noty_message_template, $bo_user_id, config('constants.alert_type.blue'), $ticket_number);
+							}
 						}
 					}
 					return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
@@ -2290,7 +2293,8 @@ class ActivityController extends Controller {
 	}
 
 	public function sendApprovalNoty($approvers, $caseNumber, $notyMessageTemplate) {
-		if (!empty($approvers)) {
+		$sendApprovalNotification = config('rsa.SEND_APPROVAL_NOTIFICATION');
+		if (!empty($approvers) && $sendApprovalNotification) {
 			foreach ($approvers as $approverId) {
 				notify2($notyMessageTemplate, $approverId, config('constants.alert_type.blue'), $caseNumber);
 			}
@@ -4044,7 +4048,8 @@ class ActivityController extends Controller {
 			//SAVE ACTIVITY REPORT FOR DASHBOARD
 			ActivityReport::saveReport($activity->id);
 
-			if ($sendNoty) {
+			$sendApprovalNotification = config('rsa.SEND_APPROVAL_NOTIFICATION');
+			if ($sendNoty && $sendApprovalNotification) {
 				//sending confirmation SMS to ASP
 				$mobile_number = $activity->asp->contact_number1;
 				$sms_message = 'Tkt uptd successfully';

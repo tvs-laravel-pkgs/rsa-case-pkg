@@ -6256,9 +6256,6 @@ class ActivityController extends Controller {
 		}
 
 		$activities = Activity::with([
-			'invoice' => function ($query) {
-				$query->select('id');
-			},
 			'case' => function ($query) {
 				$query->select([
 					'id',
@@ -6269,11 +6266,8 @@ class ActivityController extends Controller {
 					DB::raw('COALESCE(csr, "--") as csr'),
 					DB::raw('COALESCE(vehicle_registration_number, "--") as vehicle_registration_number'),
 					DB::raw('COALESCE(vin_no, "--") as vin'),
-					'customer_contact_number',
-					'csr',
 					'created_at',
 					'submission_closing_date',
-					'date as caseDate',
 				]);
 			},
 			'case.client' => function ($query) {
@@ -6292,6 +6286,7 @@ class ActivityController extends Controller {
 				$query->select([
 					'id',
 					DB::raw('CONCAT(asp_code," / ",workshop_name) as name'),
+					'user_id',
 				]);
 			},
 			'asp.user' => function ($query) {
@@ -6371,7 +6366,7 @@ class ActivityController extends Controller {
 				} else {
 					$authUserId = Auth::user()->id;
 					$activities->whereHas('asp.user', function ($query) use ($authUserId) {
-						$query->whereIn('id', $authUserId); // OWN ASP USER ID
+						$query->where('id', $authUserId); // OWN ASP USER ID
 					});
 				}
 			} elseif (Entrust::can('own-rm-asp-activity-search')) {
@@ -6393,7 +6388,7 @@ class ActivityController extends Controller {
 					$query->whereIn('id', $aspIds);
 				});
 			} else {
-				$activities->whereNull('activities.asp_id');
+				$activities->whereNull('asp_id');
 			}
 		}
 

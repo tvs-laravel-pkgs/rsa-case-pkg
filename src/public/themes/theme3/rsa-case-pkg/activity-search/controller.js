@@ -20,6 +20,7 @@ app.component('activitySearchForm', {
                 $('#activityTable').dataTable().fnDestroy();
             }
 
+            //BACKUP - PREVIOUS CODE (NOT USED)
             const colsBk = [
                 { data: 'action', searchable: false },
                 { data: 'case_date', searchable: false },

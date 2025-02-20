@@ -5,13 +5,36 @@ app.component('activitySearchForm', {
         var self = this;
         self.hasPermission = HelperService.hasPermission;
 
+        self.caseNumber = null;
+        self.vehicleRegistrationNumber = null;
+        self.vin = null;
+        self.mobileNumber = null;
+        self.crmActivityId = null;
+        self.csr = null;
+
         if (!self.hasPermission('asp-activity-search')) {
             window.location = "#!/page-permission-denied";
             return false;
         }
 
-        $scope.searchActivity = function(searchQuery) {
-            if (!searchQuery) {
+        self.isDisabled = (field) => {
+            const fields = [
+                "caseNumber",
+                "vehicleRegistrationNumber",
+                "vin",
+                "mobileNumber",
+                "crmActivityId",
+                "csr"
+            ];
+            // Check if any other field has a value
+            return fields.some(function(f) {
+                return f !== field && self[f] && self[f].length > 0;
+            });
+        };
+
+        $scope.searchActivity = () => {
+
+            if (!self.caseNumber && !self.vehicleRegistrationNumber && !self.vin && !self.mobileNumber && !self.crmActivityId && !self.csr) {
                 custom_noty('error', 'Enter Case Number / Vehicle Registration Number / VIN / Mobile Number / CRM Activity ID / CSR');
                 return;
             }
@@ -67,7 +90,12 @@ app.component('activitySearchForm', {
                         type: "POST",
                         dataType: "json",
                         data: function(d) {
-                            d.searchQuery = searchQuery;
+                            d.caseNumber = self.caseNumber;
+                            d.vehicleRegistrationNumber = self.vehicleRegistrationNumber;
+                            d.vin = self.vin;
+                            d.mobileNumber = self.mobileNumber;
+                            d.crmActivityId = self.crmActivityId;
+                            d.csr = self.csr;
                         }
                     },
                     infoCallback: function(settings, start, end, max, total, pre) {

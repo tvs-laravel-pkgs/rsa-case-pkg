@@ -22,12 +22,52 @@
                 <div class="viewData-toggle--wrapper">
                     <div class="noToggle--inner">
                         <div class="row">
-                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
-                                <label>Case Number / Vehicle Registration Number / VIN / Mobile Number / CRM Activity ID / CSR <sup class="req">*</sup></label>
-                                <div class="input-group" style="display: flex;">
-                                    <input type="text" ng-model="$ctrl.searchQuery" class="form-control" name="searchQuery" placeholder="Enter Case Number / Vehicle Registration Number / VIN / Mobile Number / CRM Activity ID / CSR" autocomplete="off">
-                                    <div class="input-group-append">
-                                        <button class="btn btn-primary" type="button" id="vin-search" ng-click="searchActivity($ctrl.searchQuery)">Search</button>
+                            <div class="col-xs-12 col-sm-12">
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-6 col-md-3">
+                                        <label>Case Number</label>
+                                        <div class="input-text form-group">
+                                            <input type="text" ng-model="$ctrl.caseNumber" class="form-control customForm-input" name="caseNumber" placeholder="Enter Case Number" autocomplete="off" maxlength="32" onkeyup="this.value = this.value.toLocaleUpperCase()" ng-disabled="$ctrl.isDisabled('caseNumber')">
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-3">
+                                        <label>Vehicle Registration Number</label>
+                                        <div class="input-text form-group">
+                                            <input type="text" ng-model="$ctrl.vehicleRegistrationNumber" class="form-control customForm-input" name="vehicleRegistrationNumber" placeholder="Enter Vehicle Registration Number" autocomplete="off" maxlength="12" onkeyup="this.value = this.value.toLocaleUpperCase()" ng-disabled="$ctrl.isDisabled('vehicleRegistrationNumber')">
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-3">
+                                        <label>VIN</label>
+                                        <div class="input-text form-group">
+                                            <input type="text" ng-model="$ctrl.vin" class="form-control customForm-input" name="vin" placeholder="Enter VIN" autocomplete="off" maxlength="17" onkeyup="this.value = this.value.toLocaleUpperCase()" ng-disabled="$ctrl.isDisabled('vin')">
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-3">
+                                        <label>Mobile Number</label>
+                                        <div class="input-text form-group">
+                                            <input type="text" ng-model="$ctrl.mobileNumber" class="form-control customForm-input" name="mobileNumber" placeholder="Enter Mobile Number" autocomplete="off" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');" ng-disabled="$ctrl.isDisabled('mobileNumber')">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-6 col-md-3">
+                                        <label>CRM Activity ID</label>
+                                        <div class="input-text form-group">
+                                            <input type="text" ng-model="$ctrl.crmActivityId" class="form-control customForm-input" name="crmActivityId" placeholder="Enter CRM Activity ID" autocomplete="off" maxlength="255" onkeyup="this.value = this.value.toLocaleUpperCase()" ng-disabled="$ctrl.isDisabled('crmActivityId')">
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-3">
+                                        <label>CSR</label>
+                                        <div class="input-text form-group">
+                                            <input type="text" ng-model="$ctrl.csr" class="form-control customForm-input" name="csr" placeholder="Enter CSR" autocomplete="off" maxlength="191" onkeyup="this.value = this.value.toLocaleUpperCase()" ng-disabled="$ctrl.isDisabled('csr')">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <button class="btn btn-primary" type="button" id="search-activity" ng-click="searchActivity()">Search</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -6250,14 +6250,8 @@ class ActivityController extends Controller {
 
 	public function getSearchList(Request $request) {
 
-		if (empty($request->searchQuery)) {
+		if (empty($request->caseNumber) && empty($request->vehicleRegistrationNumber) && empty($request->vin) && empty($request->mobileNumber) && empty($request->crmActivityId) && empty($request->csr)) {
 			return Datatables::of([])->make(true);
-		}
-
-		if (preg_match("/^[0-9]{10}+$/", $request->searchQuery)) {
-			$search_type = 'mobile_number';
-		} else {
-			$search_type = 'normal';
 		}
 
 		$activities = Activity::with([
@@ -6338,18 +6332,28 @@ class ActivityController extends Controller {
 			])
 		;
 
-		if (!empty($search_type) && $search_type == 'mobile_number') {
+		if (!empty($request->mobileNumber)) {
 			$activities->whereHas('case', function ($query) use ($request) {
-				$query->where('customer_contact_number', 'LIKE', "%$request->searchQuery%");
+				$query->where('customer_contact_number', $request->mobileNumber);
 			});
-		} else {
+		} else if (!empty($request->caseNumber)) {
 			$activities->whereHas('case', function ($query) use ($request) {
-				$query->where('number', 'LIKE', "%$request->searchQuery%")
-					->orWhere('vehicle_registration_number', 'LIKE', "%$request->searchQuery%")
-					->orWhere('vin_no', 'LIKE', "%$request->searchQuery%")
-					->orWhere('csr', 'LIKE', "%$request->searchQuery%");
-			})
-				->orWhere('crm_activity_id', 'LIKE', "%$request->searchQuery%");
+				$query->where('number', $request->caseNumber);
+			});
+		} else if (!empty($request->vehicleRegistrationNumber)) {
+			$activities->whereHas('case', function ($query) use ($request) {
+				$query->where('vehicle_registration_number', $request->vehicleRegistrationNumber);
+			});
+		} else if (!empty($request->vin)) {
+			$activities->whereHas('case', function ($query) use ($request) {
+				$query->where('vin_no', $request->vin);
+			});
+		} else if (!empty($request->csr)) {
+			$activities->whereHas('case', function ($query) use ($request) {
+				$query->where('csr', $request->csr);
+			});
+		} else if (!empty($request->crmActivityId)) {
+			$activities->where('crm_activity_id', $request->crmActivityId);
 		}
 
 		if (!Entrust::can('all-asp-activity-search')) {

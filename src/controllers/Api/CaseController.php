@@ -265,6 +265,10 @@ class CaseController extends Controller {
 				$request->status = "In Progress";
 			}
 
+			if (strtolower($request->status) == "pre-close") {
+				$request->status = "Closed";
+			}
+
 			$status = CaseStatus::where('name', $request->status)->where('company_id', 1)->first();
 			if (!$status) {
 				//SAVE CASE API LOG

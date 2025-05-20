@@ -1610,6 +1610,14 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Unbilled Auto Invoice Cron Log',
 			],
 
+			//ORACLE SYNC LOG
+			[
+				'display_order' => 999,
+				'parent' => null,
+				'name' => 'oracle-sync-log',
+				'display_name' => 'Oracle Sync Log',
+			],
+
 			//DISCOUNT REASONS
 			[
 				'display_order' => 999,

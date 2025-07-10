@@ -69,9 +69,9 @@ class ActivityReport extends Model {
 					$activityReport->case_submission_closing_date_remarks = $activity->case->submission_closing_date_remarks;
 
 					//CLIENT
-					if ($activity->case->client) {
-						$activityReport->client = $activity->case->client->name;
-						$activityReport->client_user_id = $activity->case->client->user ? $activity->case->client->user->id : NULL;
+					if ($activity->case->clientWithTrashed) {
+						$activityReport->client = $activity->case->clientWithTrashed->name;
+						$activityReport->client_user_id = $activity->case->clientWithTrashed->user ? $activity->case->clientWithTrashed->user->id : NULL;
 					}
 
 					$activityReport->customer_name = $activity->case->customer_name;

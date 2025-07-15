@@ -6269,7 +6269,7 @@ class ActivityController extends Controller {
 					'submission_closing_date',
 				]);
 			},
-			'case.client' => function ($query) {
+			'case.clientWithTrashed' => function ($query) {
 				$query->select([
 					'id',
 					DB::raw('COALESCE(name, "--") as name'),

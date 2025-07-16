@@ -439,9 +439,14 @@ app.component('billingDetails', {
                             });
                         }
                     }
-                    $scope.differ = function() {
+
+                    $scope.differ = (activityStatusId) => {
+                        if (!self.defer_reason) {
+                            custom_noty('error', 'Differ reason is required');
+                            return;
+                        }
                         if ($scope.differForm.$valid) {
-                            $('.differ_btn').button('loading');
+                            // $('.differ_btn').button('loading');
                             if ($(".loader-type-2").hasClass("loader-hide")) {
                                 $(".loader-type-2").removeClass("loader-hide");
                             }
@@ -452,6 +457,7 @@ app.component('billingDetails', {
                                     bo_comments: self.data.bo_comments,
                                     deduction_reason: self.data.deduction_reason,
                                     case_number: self.data.number,
+                                    activityStatusId: activityStatusId,
                                     /*bo_km_travelled : self.data.bo_km_travelled,
                                     raw_asp_collected : self.data.raw_asp_collected,
                                     raw_asp_not_collected : self.data.raw_asp_not_collected,
@@ -462,7 +468,7 @@ app.component('billingDetails', {
                                 }
                             ).then(function(response) {
                                 $(".loader-type-2").addClass("loader-hide");
-                                $('.differ_btn').button('reset');
+                                // $('.differ_btn').button('reset');
                                 if (!response.data.success) {
                                     var errors = '';
                                     for (var i in response.data.errors) {

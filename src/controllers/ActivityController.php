@@ -2784,9 +2784,9 @@ class ActivityController extends Controller {
 	}
 
 	public function saveActivityDiffer(Request $request) {
-		DB::beginTransaction();
+		// dd($request->all());
+		// VALIDATION WITHOUT TRANSACTION
 		try {
-
 			if (Auth::check()) {
 				if (empty(Auth::user()->activity_approval_level_id)) {
 					return response()->json([
@@ -2820,6 +2820,11 @@ class ActivityController extends Controller {
 					'string',
 					'regex:/^[^=]/',
 				],
+				'activityStatusId' => [
+					'required',
+					'integer',
+					'exists:activity_portal_statuses,id',
+				],
 			], $errorMessages);
 
 			if ($validator->fails()) {
@@ -2841,13 +2846,26 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
+		} catch (\Exception $e) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
+		}
 
+		// MAIN FUNCTION WITH TRANSACTION
+		DB::beginTransaction();
+		try {
 			$eligleForAspReEntry = false;
 			$deferReason = $activity->defer_reason;
 			//L1
 			if (Auth::user()->activity_approval_level_id == 1) {
-				$activityStatusId = 7; //BO Rejected - Waiting for ASP Data Re-Entry
-				$eligleForAspReEntry = true;
+				// IF STATUS IS BO Rejected - Waiting for ASP Data Re-Entry
+				if ($request->activityStatusId == 7) {
+					$eligleForAspReEntry = true;
+				}
 				if (!empty($deferReason)) {
 					$deferReason .= nl2br("<hr> L1 Approver : " . makeUrltoLinkInString($request->defer_reason));
 				} else {
@@ -2862,7 +2880,6 @@ class ActivityController extends Controller {
 				$activity->collected_amount_changed_on_level = NULL;
 			} elseif (Auth::user()->activity_approval_level_id == 2) {
 				// L2
-				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
 				if (!empty($deferReason)) {
 					$deferReason .= nl2br("<hr> L2 Approver : " . makeUrltoLinkInString($request->defer_reason));
 				} else {
@@ -2871,7 +2888,6 @@ class ActivityController extends Controller {
 				$activity->l2_changed_service_type_id = NULL;
 			} elseif (Auth::user()->activity_approval_level_id == 3) {
 				// L3
-				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
 				if (!empty($deferReason)) {
 					$deferReason .= nl2br("<hr> L3 Approver : " . makeUrltoLinkInString($request->defer_reason));
 				} else {
@@ -2880,7 +2896,6 @@ class ActivityController extends Controller {
 				$activity->l3_changed_service_type_id = NULL;
 			} elseif (Auth::user()->activity_approval_level_id == 4) {
 				// L4
-				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
 				if (!empty($deferReason)) {
 					$deferReason .= nl2br("<hr> L4 Approver : " . makeUrltoLinkInString($request->defer_reason));
 				} else {
@@ -2889,11 +2904,13 @@ class ActivityController extends Controller {
 			}
 
 			$activity->defer_reason = $deferReason;
-			$activity->bo_comments = isset($request->bo_comments) ? $request->bo_comments : NULL;
-			$activity->deduction_reason = isset($request->deduction_reason) ? $request->deduction_reason : NULL;
-			if (isset($activityStatusId)) {
-				$activity->status_id = $activityStatusId;
+			if (isset($request->bo_comments) && !empty($request->bo_comments)) {
+				$activity->bo_comments = $request->bo_comments;
 			}
+			if (isset($request->deduction_reason) && !empty($request->deduction_reason)) {
+				$activity->deduction_reason = $request->deduction_reason;
+			}
+			$activity->status_id = $request->activityStatusId;
 			$activity->updated_at = Carbon::now();
 			$activity->updated_by_id = Auth::user()->id;
 			$activity->save();
@@ -2925,6 +2942,8 @@ class ActivityController extends Controller {
 			//SAVE ACTIVITY REPORT FOR DASHBOARD
 			ActivityReport::saveReport($activity->id);
 
+			DB::commit();
+
 			//Saving log record
 			if ($eligleForAspReEntry) {
 				$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_DEFERED_DONE');
@@ -2940,19 +2959,16 @@ class ActivityController extends Controller {
 				$array = [$request->case_number];
 				sendSMS2($sms_message, $mobile_number, $array, NULL);
 
-				//sending notification to all BO users
+				//SEND NOTIFICATION TO ASP USER
 				$asp_user = $activity->asp->user_id;
 				$noty_message_template = 'BO_DEFERRED';
 				$number = [$request->case_number];
 				notify2($noty_message_template, $asp_user, config('constants.alert_type.red'), $number);
 			}
-
-			DB::commit();
 			return response()->json([
 				'success' => true,
 				'message' => 'Activity deferred successfully.',
 			]);
-
 		} catch (\Exception $e) {
 			DB::rollBack();
 			return response()->json([

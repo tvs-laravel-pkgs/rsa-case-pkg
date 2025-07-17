@@ -18,6 +18,7 @@ use App\Config;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\MapMyIndiaController;
 use App\Invoices;
+use App\Mail\NotificationEmail;
 use App\ServiceType;
 use App\StateUser;
 use App\User;
@@ -27,6 +28,7 @@ use DB;
 use Entrust;
 use Excel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Image;
@@ -2965,6 +2967,32 @@ class ActivityController extends Controller {
 				$number = [$request->case_number];
 				notify2($noty_message_template, $asp_user, config('constants.alert_type.red'), $number);
 			}
+
+			// L1 APPROVAL AND STATUS IS BO Rejected - Waiting for Call Center Data Entry
+			if (Auth::user()->activity_approval_level_id == 1 && $request->activityStatusId == 28 && $activity->case && $activity->case->callcenter) {
+				//SENT EMAIL NOTIFICATION TO CALL CENTER L1 USER
+				if (!empty($activity->case->callcenter->l1_user_email)) {
+					$arr['subject'] = "Waiting For Call Center Data Entry";
+					$arr['title'] = "Call Center Data Entry Notification";
+					$arr['name'] = "User";
+					$arr['content'] = 'The ticket is waiting for call center data entry. Kindly check and update the details. Ticket No: ' . $request->case_number;
+					$arr['to_mail_id'] = $activity->case->callcenter->l1_user_email;
+					$arr['company_header'] = view('partials/email-noty-company-header')->render();
+					$arr['view_path'] = 'emails.notification-email';
+					$MailInstance = new NotificationEmail($arr);
+					try {
+						$Mail = Mail::send($MailInstance);
+					} catch (\Exception $e) {
+
+					}
+				}
+
+				//SEND NOTIFICATION TO CALL CENTER USER
+				if (!empty($activity->case->callcenter->user_id)) {
+					notify2("WAITING_FOR_CALL_CENTER_DATA_ENTRY", $activity->case->callcenter->user_id, config('constants.alert_type.red'), [$request->case_number]);
+				}
+			}
+
 			return response()->json([
 				'success' => true,
 				'message' => 'Activity deferred successfully.',

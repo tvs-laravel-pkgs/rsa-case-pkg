@@ -2972,10 +2972,10 @@ class ActivityController extends Controller {
 			if (Auth::user()->activity_approval_level_id == 1 && $request->activityStatusId == 28 && $activity->case && $activity->case->callcenter) {
 				//SENT EMAIL NOTIFICATION TO CALL CENTER L1 USER
 				if (!empty($activity->case->callcenter->l1_user_email)) {
-					$arr['subject'] = "Waiting For Call Center Data Entry";
+					$arr['subject'] = "Re: Waiting For Call Center Data Entry - Ticket No: " . $request->case_number;
 					$arr['title'] = "Call Center Data Entry Notification";
 					$arr['name'] = "User";
-					$arr['content'] = 'The ticket is waiting for call center data entry. Kindly check and update the details. Ticket No: ' . $request->case_number;
+					$arr['content'] = 'The ticket is waiting for call center data entry. Kindly check and update the details.';
 					$arr['to_mail_id'] = $activity->case->callcenter->l1_user_email;
 					$arr['company_header'] = view('partials/email-noty-company-header')->render();
 					$arr['view_path'] = 'emails.notification-email';

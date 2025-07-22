@@ -3,7 +3,7 @@ app.component('deferredActivityList', {
     controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope, $mdSelect) {
         var self = this;
         self.hasPermission = HelperService.hasPermission;
-        if (!self.hasPermission('asp-deferred-activities')) {
+        if (!self.hasPermission('asp-deferred-activities') && !self.hasPermission('cc-deferred-activities')) {
             window.location = "#!/page-permission-denied";
             return false;
         }
@@ -89,6 +89,24 @@ app.component('deferredActivityList', {
             $scope.changeCommonFilter = function(val, id) {
                 $('#' + id).val(val);
                 dataTable.fnFilter();
+            };
+
+            $scope.resetFilter = function() {
+                self.ticket_filter = [];
+                $('#ticket_date').val('');
+                $('#call_center_id').val('');
+                $('#case_number').val('');
+                // $('#asp_code').val('');
+                $('#service_type_id').val('');
+                $('#finance_status_id').val('');
+                $('#status_id').val('');
+                $('#activity_status_id').val('');
+                $('#client_id').val('');
+
+                setTimeout(function() {
+                    dataTable.fnFilter();
+                    $('#activities_deferred_table').DataTable().ajax.reload();
+                }, 1000);
             };
 
             $scope.refresh = function() {

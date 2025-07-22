@@ -4163,17 +4163,6 @@ class ActivityController extends Controller {
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
-			->where(function ($q) {
-				// FINANCE ADMIN
-				if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
-					$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
-					$aspIds[] = Auth::user()->asp->id;
-					$q->whereIn('asps.id', $aspIds);
-				} else {
-					$q->where('users.id', Auth::id());
-				}
-			})
-			->where('activities.status_id', 7) //BO Rejected - Waiting for ASP Data Re-Entry
 			->groupBy('activities.id')
 			->orderBy('cases.date', 'DESC')
 		;
@@ -4204,6 +4193,28 @@ class ActivityController extends Controller {
 		}
 		if ($request->get('client_id')) {
 			$activities->where('cases.client_id', $request->get('client_id'));
+		}
+
+		if (Entrust::can('asp-deferred-activities')) {
+			// ASP FINANCE ADMIN
+			if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
+				$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+				$aspIds[] = Auth::user()->asp->id;
+				$activities->whereIn('asps.id', $aspIds)
+					->where('activities.status_id', 7); //BO Rejected - Waiting for ASP Data Re-Entry
+			} else {
+				$activities->where('users.id', Auth::id())
+					->where('activities.status_id', 7); //BO Rejected - Waiting for ASP Data Re-Entry
+			}
+		} else if (Entrust::can('cc-deferred-activities')) {
+			if (Auth::user()->cc) {
+				$activities->where('cases.call_center_id', Auth::user()->cc->id)
+					->where('activities.status_id', 28); //BO Rejected - Waiting for Call Center Data Entry
+			} else {
+				return Datatables::of([])->make(true);
+			}
+		} else {
+			return Datatables::of([])->make(true);
 		}
 
 		return Datatables::of($activities)

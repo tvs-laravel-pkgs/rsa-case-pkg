@@ -1774,7 +1774,7 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24, 5, 8, 18, 20, 23])
+			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24, 5, 8, 18, 20, 23, 29])
 				->where('id', $request->activity_id)
 				->first();
 			if (!$activity) {
@@ -3046,7 +3046,13 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$activity = Activity::where('id', $request->activity_id)
+			$activity = Activity::select([
+				'id',
+				'cc_clarification',
+				'asp_id',
+				'case_id',
+			])
+				->where('id', $request->activity_id)
 				->where('status_id', 28) //BO Rejected - Waiting for Call Center Clarification
 				->first();
 
@@ -3059,7 +3065,11 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$activityLog = ActivityLog::where('activity_id', $activity->id)->first();
+			$activityLog = ActivityLog::select([
+				'id',
+			])
+				->where('activity_id', $activity->id)
+				->first();
 			if (!$activityLog) {
 				return response()->json([
 					'success' => false,
@@ -3097,6 +3107,14 @@ class ActivityController extends Controller {
 			$activityLog->updated_by_id = Auth::id();
 			$activityLog->updated_at = Carbon::now();
 			$activityLog->save();
+
+			ActivityReport::where('activity_id', $activity->id)->update([
+				"portal_status" => "Call Center Clarification Completed - Waiting for L1 Individual Verification",
+				"elk_synched_at" => NULL,
+				"elk_sync_flag" => NULL,
+				"updated_by_id" => Auth::id(),
+				"updated_at" => Carbon::now(),
+			]);
 
 			DB::commit();
 

@@ -4146,7 +4146,6 @@ class ActivityController extends Controller {
 			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
 			'asps.asp_code',
 			'service_types.name as sub_service',
-			// 'activity_asp_statuses.name as asp_status',
 			'activity_finance_statuses.name as finance_status',
 			'activity_portal_statuses.name as status',
 			'activity_statuses.name as activity_status',
@@ -4159,7 +4158,6 @@ class ActivityController extends Controller {
 			->leftjoin('clients', 'clients.id', 'cases.client_id')
 			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
-		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
@@ -4179,14 +4177,8 @@ class ActivityController extends Controller {
 		if ($request->get('service_type_id')) {
 			$activities->where('activities.service_type_id', $request->get('service_type_id'));
 		}
-		// if ($request->get('asp_status_id')) {
-		// 	$activities->where('activities.status_id', $request->get('asp_status_id'));
-		// }
 		if ($request->get('finance_status_id')) {
 			$activities->where('activities.finance_status_id', $request->get('finance_status_id'));
-		}
-		if ($request->get('status_id')) {
-			$activities->where('activities.status_id', $request->get('status_id'));
 		}
 		if ($request->get('activity_status_id')) {
 			$activities->where('activities.activity_status_id', $request->get('activity_status_id'));

@@ -60,7 +60,6 @@ app.component('deferredActivityList', {
                             // d.asp_code = $('#asp_code').val();
                             d.service_type_id = $('#service_type_id').val();
                             d.finance_status_id = $('#finance_status_id').val();
-                            d.status_id = $('#status_id').val();
                             d.activity_status_id = $('#activity_status_id').val();
                             d.client_id = $('#client_id').val();
                         }
@@ -99,7 +98,6 @@ app.component('deferredActivityList', {
                 // $('#asp_code').val('');
                 $('#service_type_id').val('');
                 $('#finance_status_id').val('');
-                $('#status_id').val('');
                 $('#activity_status_id').val('');
                 $('#client_id').val('');
 
@@ -127,7 +125,6 @@ app.component('deferredActivityList', {
             });
 
             $('.filter-content').bind('click', function(event) {
-
                 if ($('.md-select-menu-container').hasClass('md-active')) {
                     $mdSelect.hide();
                 }

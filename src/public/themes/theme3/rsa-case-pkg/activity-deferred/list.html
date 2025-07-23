@@ -70,14 +70,6 @@
                                                         <input type="hidden" name="finance_status_id" value="" id="finance_status_id">
                                                     </div>
                                                 </div>
-                                                <div class="col-sm-6" ng-if="$ctrl.hasPermission('asp-deferred-activities')">
-                                                    <div class="form-group">
-                                                        <md-select ng-model="$ctrl.ticket_filter.status_id" ng-change="changeCommonFilter($ctrl.ticket_filter.status_id,'status_id')" placeholder="Select Status">
-                                                            <md-option ng-repeat="val in $ctrl.extras.status_list" value="{{val.id}}">{{val.name}}</md-option>
-                                                        </md-select>
-                                                        <input type="hidden" name="status_id" value="" id="status_id">
-                                                    </div>
-                                                </div>
                                                 <div class="col-sm-6">
                                                     <div class="form-group">
                                                         <md-select ng-model="$ctrl.ticket_filter.activity_status_id" ng-change="changeCommonFilter($ctrl.ticket_filter.activity_status_id,'activity_status_id')" placeholder="Select Activity Status">

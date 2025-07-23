@@ -486,16 +486,16 @@ app.component('billingDetails', {
                         }
                     }
 
-                    $scope.updateCcDeferredClarification = function() {
+                    $scope.updateCcClarification = function() {
                         if ($scope.ccClarificationForm.$valid) {
                             $('.update_clarification_btn').button('loading');
                             if ($(".loader-type-2").hasClass("loader-hide")) {
                                 $(".loader-type-2").removeClass("loader-hide");
                             }
                             $http.post(
-                                laravel_routes['updateActivityDeferredCcClarification'], {
+                                laravel_routes['updateCcClarificationForDeferredActivity'], {
                                     activity_id: self.data.id,
-                                    cc_deferred_clarification: self.cc_deferred_clarification,
+                                    cc_clarification: self.cc_clarification,
                                 }
                             ).then(function(response) {
                                 $(".loader-type-2").addClass("loader-hide");
@@ -509,10 +509,10 @@ app.component('billingDetails', {
                                     custom_noty('error', errors);
                                     return;
                                 } else {
-                                    $("#update-cc-deferred-clarification-modal").modal("hide");
+                                    $("#update-cc-clarification-modal").modal("hide");
                                     custom_noty('success', response.data.message);
                                     setTimeout(function() {
-                                        $location.path('/rsa-case-pkg/deferred-activity//list');
+                                        $location.path('/rsa-case-pkg/deferred-activity/list');
                                         $scope.$apply();
                                     }, 1000);
                                 }

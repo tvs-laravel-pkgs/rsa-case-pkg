@@ -768,6 +768,7 @@ class ActivityController extends Controller {
 					'activities.defer_reason as defer_reason',
 					'activities.general_remarks',
 					'activities.asp_resolve_comments',
+					'activities.cc_clarification',
 					'activities.is_exceptional_check as is_exceptional_check',
 					'activities.service_type_changed_on_level',
 					'activities.km_changed_on_level',
@@ -2968,14 +2969,14 @@ class ActivityController extends Controller {
 				notify2($noty_message_template, $asp_user, config('constants.alert_type.red'), $number);
 			}
 
-			// L1 APPROVAL AND STATUS IS BO Rejected - Waiting for Call Center Data Entry
+			// L1 APPROVAL AND STATUS IS BO Rejected - Waiting for Call Center Clarification
 			if (Auth::user()->activity_approval_level_id == 1 && $request->activityStatusId == 28 && $activity->case && $activity->case->callcenter) {
 				//SENT EMAIL NOTIFICATION TO CALL CENTER L1 USER
 				if (!empty($activity->case->callcenter->l1_user_email)) {
-					$arr['subject'] = "Re: Waiting For Call Center Data Entry - Ticket No: " . $request->case_number;
-					$arr['title'] = "Call Center Data Entry Notification";
+					$arr['subject'] = "Re: Waiting For Call Center Clarification - Ticket No: " . $request->case_number;
+					$arr['title'] = "Call Center Clarification Notification";
 					$arr['name'] = "User";
-					$arr['content'] = 'The ticket is waiting for call center data entry. Kindly check and update the details.';
+					$arr['content'] = 'The ticket is waiting for call center clarification. Kindly check and provide clarity.';
 					$arr['to_mail_id'] = $activity->case->callcenter->l1_user_email;
 					$arr['company_header'] = view('partials/email-noty-company-header')->render();
 					$arr['view_path'] = 'emails.notification-email';
@@ -2987,15 +2988,137 @@ class ActivityController extends Controller {
 					}
 				}
 
+				$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_DEFERED_DONE');
+				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.CC_CLARIFICATION_WAIT');
+				logActivity3(config('constants.entity_types.ticket'), $activity->id, [
+					'Status' => $log_status,
+					'Waiting for' => $log_waiting,
+				], 361);
+
 				//SEND NOTIFICATION TO CALL CENTER USER
 				if (!empty($activity->case->callcenter->user_id)) {
-					notify2("WAITING_FOR_CALL_CENTER_DATA_ENTRY", $activity->case->callcenter->user_id, config('constants.alert_type.red'), [$request->case_number]);
+					notify2("WAITING_FOR_CALL_CENTER_CLARIFICATION", $activity->case->callcenter->user_id, config('constants.alert_type.red'), [$request->case_number]);
 				}
 			}
 
 			return response()->json([
 				'success' => true,
 				'message' => 'Activity deferred successfully.',
+			]);
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
+		}
+	}
+
+	public function updateCcClarification(Request $request) {
+		// dd($request->all());
+		// VALIDATION WITHOUT TRANSACTION
+		try {
+
+			$errorMessages = [
+				'cc_clarification.regex' => "Equal symbol (=) is not allowed as the first character for defer reason!",
+			];
+
+			$validator = Validator::make($request->all(), [
+				'activity_id' => [
+					'required',
+					'integer',
+					'exists:activities,id',
+				],
+				'cc_clarification' => [
+					'required',
+					'string',
+					'regex:/^[^=]/',
+				],
+			], $errorMessages);
+
+			if ($validator->fails()) {
+				return response()->json([
+					'success' => false,
+					'errors' => $validator->errors()->all(),
+				]);
+			}
+
+			$activity = Activity::where('id', $request->activity_id)
+				->where('status_id', 28) //BO Rejected - Waiting for Call Center Clarification
+				->first();
+
+			if (!$activity) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Activity not found',
+					],
+				]);
+			}
+
+			$activityLog = ActivityLog::where('activity_id', $activity->id)->first();
+			if (!$activityLog) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Activity log not found',
+					],
+				]);
+			}
+		} catch (\Exception $e) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
+		}
+
+		// MAIN FUNCTION WITH TRANSACTION
+		DB::beginTransaction();
+		try {
+			$activity->cc_clarification = makeUrltoLinkInString($request->cc_clarification);
+			$activity->status_id = 29; //Call Center Clarification Completed - Waiting for L1 Individual Verification
+			$activity->updated_at = Carbon::now();
+			$activity->updated_by_id = Auth::user()->id;
+			$activity->save();
+
+			$activityLog->cc_clarified_at = date('Y-m-d H:i:s');
+			$activityLog->cc_clarified_by_id = Auth::id();
+			$activityLog->updated_by_id = Auth::id();
+			$activityLog->updated_at = Carbon::now();
+			$activityLog->save();
+
+			DB::commit();
+
+			$log_status = config('rsa.LOG_STATUES_TEMPLATES.CC_CLARIFICATION_DONE');
+			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.CC_CLARIFICATION_DONE');
+			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
+				'Status' => $log_status,
+				'Waiting for' => $log_waiting,
+			], 361);
+
+			//SEND NOTIFICATION TO ASP USER
+			$state_id = $activity->asp->state_id;
+			$bo_users = DB::table('state_user')
+				->join('users', 'users.id', 'state_user.user_id')
+				->where('state_user.state_id', $state_id)
+				->where('users.role_id', 6) //BO
+				->where('users.activity_approval_level_id', 1) //L1
+				->pluck('state_user.user_id');
+			$noty_message_template = 'CALL_CENTER_CLARIFICATION_DONE';
+			$ticket_number = [$activity->case->number];
+			if (!empty($bo_users)) {
+				foreach ($bo_users as $bo_user_id) {
+					notify2($noty_message_template, $bo_user_id, config('constants.alert_type.blue'), $ticket_number);
+				}
+			}
+
+			return response()->json([
+				'success' => true,
+				'message' => 'Clarification updated successfully.',
 			]);
 		} catch (\Exception $e) {
 			DB::rollBack();
@@ -4201,7 +4324,7 @@ class ActivityController extends Controller {
 		} else if (Entrust::can('cc-deferred-activities')) {
 			if (Auth::user()->cc) {
 				$activities->where('cases.call_center_id', Auth::user()->cc->id)
-					->where('activities.status_id', 28); //BO Rejected - Waiting for Call Center Data Entry
+					->where('activities.status_id', 28); //BO Rejected - Waiting for Call Center Clarification
 			} else {
 				return Datatables::of([])->make(true);
 			}

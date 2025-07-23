@@ -355,6 +355,10 @@
                             <h4>ASP Resolve Comments</h4>
                             <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.asp_resolve_comments"></p>
                         </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="$ctrl.data.cc_clarification">
+                            <h4>CC Clarifications</h4>
+                            <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.cc_clarification"></p>
+                        </div>
                         <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && !$ctrl.hasPermission('own-rm-asp-activities') && $ctrl.data.exceptional_reason">
                             <h4>Exceptional Reason</h4>
                             <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.exceptional_reason"></p>
@@ -505,7 +509,7 @@
                         <div class="col-md-offset-6 col-md-6 text-right">
                             <ul class="inline-btns">
                                 <li>
-                                    <a class="btn btn-primary" data-toggle="modal" data-target="#update-cc-deferred-clarification-modal">
+                                    <a class="btn btn-primary" data-toggle="modal" data-target="#update-cc-clarification-modal">
                                         Update
                                     </a>
                                 </li>
@@ -638,7 +642,7 @@
                                         <div class="col-sm-6">
                                             <div class="input-text form-group">
                                                 Click Here
-                                                <button type="button" class="blue approve-btn differ_btn" ng-click="differ(28)">BO Rejected - Waiting for Call Center Data Entry</button>
+                                                <button type="button" class="blue approve-btn differ_btn" ng-click="differ(28)">BO Rejected - Waiting for Call Center Clarification</button>
                                             </div><!-- Field -->
                                         </div><!-- Column -->
                                     </div>
@@ -696,7 +700,7 @@
     </div>
 </div><!-- Modal -->
 <!-- Modal -->
-<div class="modal fade uploadMsg" id="update-cc-deferred-clarification-modal" role="dialog">
+<div class="modal fade uploadMsg" id="update-cc-clarification-modal" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content txt-center">
             <div class="modal-header">
@@ -710,13 +714,13 @@
                     <h2 class="uploadMsg-title">
                         Update Clarification
                     </h2>
-                    <textarea name="cc_deferred_clarification" ng-model="$ctrl.cc_deferred_clarification" value="{{$ctrl.cc_deferred_clarification}}" rows="5" class="form-control" autocomplete="off" placeholder="Enter Clarification" id='cc_deferred_clarification' required></textarea>
-                    <div ng-show="ccClarificationForm.$submitted || ccClarificationForm.cc_deferred_clarification.$touched">
-                        <span style="color:red" ng-show="ccClarificationForm.cc_deferred_clarification.$error.required">Clarification is required.</span>
+                    <textarea name="cc_clarification" ng-model="$ctrl.cc_clarification" value="{{$ctrl.cc_clarification}}" rows="5" class="form-control" autocomplete="off" placeholder="Enter Clarification" id='cc_clarification' required></textarea>
+                    <div ng-show="ccClarificationForm.$submitted || ccClarificationForm.cc_clarification.$touched">
+                        <span style="color:red" ng-show="ccClarificationForm.cc_clarification.$error.required">Clarification is required.</span>
                     </div>
                     <div class="clearfix"></div>
                     <div class="custom-row">
-                        <button class="btn btn-primary yellow update_clarification_btn mt-20" type="btn" ng-click="updateCcDeferredClarification()">Submit</button>
+                        <button class="btn btn-primary yellow update_clarification_btn mt-20" type="btn" ng-click="updateCcClarification()">Submit</button>
                     </div>
                 </div>
             </form>

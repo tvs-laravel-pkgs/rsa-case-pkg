@@ -118,11 +118,11 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 				'company_id' => 1,
 			],
 			28 => [
-				'name' => 'BO Rejected - Waiting for Call Center Data Entry',
+				'name' => 'BO Rejected - Waiting for Call Center Clarification',
 				'company_id' => 1,
 			],
 			29 => [
-				'name' => 'Call Center Data Entry Completed - Waiting for L1 Individual Verification',
+				'name' => 'Call Center Clarification Completed - Waiting for L1 Individual Verification',
 				'company_id' => 1,
 			],
 		];

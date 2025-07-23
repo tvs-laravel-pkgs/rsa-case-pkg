@@ -31,7 +31,7 @@
                         <thead>
                             <tr>
                                 <th style="width:50%">Title</th>
-                                <th style="text-align:right;width:15%" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1">CC Data</th>
+                                <th style="text-align:right;width:15%" ng-show="$ctrl.hasPermission('cc-deferred-activities') || ((!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1)">CC Data</th>
                                 <th style="text-align:right;width:15%" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')">ASP Data</th>
                                 <th style="text-align:right;width:20%">BO Data</th>
                             </tr>
@@ -39,7 +39,7 @@
                         <tbody>
                             <tr>
                                 <th scope="row">Service</th>
-                                <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                <td style="text-align:right" ng-show="$ctrl.hasPermission('cc-deferred-activities') || ((!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1)">
                                     {{$ctrl.data.cc_service_type}}
                                 </td>
                                 <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')" ng-class="{'alert-danger': $ctrl.data.verification == 1 && !$ctrl.data.is_service_type_eligible }">
@@ -66,7 +66,7 @@
                                         </a>
                                     </div>
                                 </th>
-                                <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                <td style="text-align:right" ng-show="$ctrl.hasPermission('cc-deferred-activities') || ((!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1)">
                                     {{$ctrl.data.cc_total_km}}
                                 </td>
                                 <td style="text-align:right" class="asp_value" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')" ng-class="{'alert-danger': $ctrl.data.verification == 1 && !$ctrl.data.is_km_travelled_eligible }">
@@ -93,7 +93,7 @@
                                     <a class="btn btn-default btn-xs btn-info-icon accordion-toggle" aria-haspopup="true" aria-expanded="false" data-toggle="collapse" data-target="#other_charges_split_panel" ng-show="$ctrl.data.eligibleForOthersplitupCharges"> <i class="fa fa-plus-circle"></i></a>
                                     Charges Not Collected From Customer
                                 </th>
-                                <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                <td style="text-align:right" ng-show="$ctrl.hasPermission('cc-deferred-activities') || ((!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1)">
                                     {{$ctrl.data.cc_not_collected_amount}}
                                 </td>
                                 <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')" ng-class="{'alert-danger': $ctrl.data.verification == 1 && !$ctrl.data.is_not_collected_eligible }">
@@ -129,7 +129,7 @@
                                                 <tr>
                                                     <th scope="row">Border Charges</th>
                                                     <td style="text-align:right">
-                                                        <span ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                                        <span ng-show="$ctrl.hasPermission('cc-deferred-activities') || ((!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1)">
                                                             {{$ctrl.data.border_charges}}
                                                         </span>
                                                     </td>
@@ -152,7 +152,7 @@
                                                 <tr>
                                                     <th scope="row">Green Tax Charges</th>
                                                     <td style="text-align:right">
-                                                        <span ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                                        <span ng-show="$ctrl.hasPermission('cc-deferred-activities') || ((!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1)">
                                                             {{$ctrl.data.green_tax_charges}}
                                                         </span>
                                                     </td>
@@ -175,7 +175,7 @@
                                                 <tr>
                                                     <th scope="row">Toll Charges</th>
                                                     <td style="text-align:right">
-                                                        <span ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                                        <span ng-show="$ctrl.hasPermission('cc-deferred-activities') || ((!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1)">
                                                             {{$ctrl.data.toll_charges}}
                                                         </span>
                                                     </td>
@@ -198,7 +198,7 @@
                                                 <tr>
                                                     <th scope="row">Eatable Item Charges</th>
                                                     <td style="text-align:right">
-                                                        <span ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                                        <span ng-show="$ctrl.hasPermission('cc-deferred-activities') || ((!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1)">
                                                             {{$ctrl.data.eatable_items_charges}}
                                                         </span>
                                                     </td>
@@ -221,7 +221,7 @@
                                                 <tr>
                                                     <th scope="row">Fuel Charges</th>
                                                     <td style="text-align:right">
-                                                        <span ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                                        <span ng-show="$ctrl.hasPermission('cc-deferred-activities') || ((!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1)">
                                                             {{$ctrl.data.fuel_charges}}
                                                         </span>
                                                     </td>
@@ -248,7 +248,7 @@
                             </tr>
                             <tr>
                                 <th scope="row">Charges Collected From Customer </th>
-                                <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                <td style="text-align:right" ng-show="$ctrl.hasPermission('cc-deferred-activities') || ((!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1)">
                                     {{$ctrl.data.cc_colleced_amount}}
                                 </td>
                                 <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')" ng-class="{'alert-danger': $ctrl.data.verification == 1 && !$ctrl.data.is_collected_eligible }">
@@ -267,7 +267,7 @@
                             </tr>
                             <tr>
                                 <th scope="row">Waiting Time</th>
-                                <td style="text-align:right" ng-show="(!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1">
+                                <td style="text-align:right" ng-show="$ctrl.hasPermission('cc-deferred-activities') || ((!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')) && $ctrl.data.view_cc_details == 1)">
                                     {{$ctrl.data.waiting_time | customTimeFilter}}
                                 </td>
                                 <td style="text-align:right" ng-show="!$ctrl.data.has_view_own_activities && !$ctrl.hasPermission('own-rm-asp-activities')">{{$ctrl.data.asp_waiting_time | customTimeFilter}}
@@ -500,6 +500,19 @@
                         </div>
                     </div>
                 </div>
+                <div class="table-data-footer" ng-show="$ctrl.hasPermission('cc-deferred-activities')">
+                    <div class="row">
+                        <div class="col-md-offset-6 col-md-6 text-right">
+                            <ul class="inline-btns">
+                                <li>
+                                    <a class="btn btn-primary" data-toggle="modal" data-target="#update-cc-deferred-clarification-modal">
+                                        Update
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div><!-- tab-content -->
         </div>
     </form>
@@ -676,6 +689,34 @@
                     <div class="clearfix"></div>
                     <div class="custom-row">
                         <button class="btn btn-primary yellow approve_btn mt-20" type="btn" ng-click="saveApproval()">Confirm</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div><!-- Modal -->
+<!-- Modal -->
+<div class="modal fade uploadMsg" id="update-cc-deferred-clarification-modal" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content txt-center">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><img src="{{$ctrl.data.style_modal_close_image_url}}"></button>
+            </div>
+            <form novalidate id="cc-clarification-form" method="post" name="ccClarificationForm">
+                <input type="hidden" name="_token" value="{{ $ctrl.csrf }}" />
+                <input type="hidden" name="activity_id" ng-model="$ctrl.data.id" value="{{$ctrl.data.id}}">
+                <div class="modal-body">
+                    <img class="uploadMsg-img" src="{{$ctrl.data.style_checked_image_url}}">
+                    <h2 class="uploadMsg-title">
+                        Update Clarification
+                    </h2>
+                    <textarea name="cc_deferred_clarification" ng-model="$ctrl.cc_deferred_clarification" value="{{$ctrl.cc_deferred_clarification}}" rows="5" class="form-control" autocomplete="off" placeholder="Enter Clarification" id='cc_deferred_clarification' required></textarea>
+                    <div ng-show="ccClarificationForm.$submitted || ccClarificationForm.cc_deferred_clarification.$touched">
+                        <span style="color:red" ng-show="ccClarificationForm.cc_deferred_clarification.$error.required">Clarification is required.</span>
+                    </div>
+                    <div class="clearfix"></div>
+                    <div class="custom-row">
+                        <button class="btn btn-primary yellow update_clarification_btn mt-20" type="btn" ng-click="updateCcDeferredClarification()">Submit</button>
                     </div>
                 </div>
             </form>

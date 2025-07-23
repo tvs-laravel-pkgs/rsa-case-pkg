@@ -486,6 +486,40 @@ app.component('billingDetails', {
                         }
                     }
 
+                    $scope.updateCcDeferredClarification = function() {
+                        if ($scope.ccClarificationForm.$valid) {
+                            $('.update_clarification_btn').button('loading');
+                            if ($(".loader-type-2").hasClass("loader-hide")) {
+                                $(".loader-type-2").removeClass("loader-hide");
+                            }
+                            $http.post(
+                                laravel_routes['updateActivityDeferredCcClarification'], {
+                                    activity_id: self.data.id,
+                                    cc_deferred_clarification: self.cc_deferred_clarification,
+                                }
+                            ).then(function(response) {
+                                $(".loader-type-2").addClass("loader-hide");
+                                $('.update_clarification_btn').button('reset');
+
+                                if (!response.data.success) {
+                                    let errors = '';
+                                    for (var i in response.data.errors) {
+                                        errors += '<li>' + response.data.errors[i] + '</li>';
+                                    }
+                                    custom_noty('error', errors);
+                                    return;
+                                } else {
+                                    $("#update-cc-deferred-clarification-modal").modal("hide");
+                                    custom_noty('success', response.data.message);
+                                    setTimeout(function() {
+                                        $location.path('/rsa-case-pkg/deferred-activity//list');
+                                        $scope.$apply();
+                                    }, 1000);
+                                }
+                            });
+                        }
+                    }
+
                     $scope.getServiceTypeRateCardDetail = () => {
                         if (self.data.boServiceTypeId && self.data.asp_id) {
                             $.ajax({

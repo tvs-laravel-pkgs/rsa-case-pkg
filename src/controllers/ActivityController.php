@@ -4211,10 +4211,17 @@ class ActivityController extends Controller {
 
 		return Datatables::of($activities)
 			->addColumn('action', function ($activity) {
+				$url = '';
+				if (Entrust::can('asp-deferred-activities')) {
+					$url = "#!/rsa-case-pkg/deferred-activity/update/" . $activity->id;
+				} else if (Entrust::can('cc-deferred-activities')) {
+					$url = "#!/rsa-case-pkg/activity-status/1/view/" . $activity->id;
+				}
 				$action = '<div class="dataTable-actions ">
-				<a href="#!/rsa-case-pkg/deferred-activity/update/' . $activity->id . '">
+								<a href=' . $url . '>
 					                <i class="fa fa-pencil dataTable-icon--edit" aria-hidden="true"></i>
-					            </a></div>';
+					            </a>
+				            </div>';
 				return $action;
 			})
 			->make(true);

@@ -121,6 +121,10 @@ class ActivityPortalStatusTableSeeder extends Seeder {
 				'name' => 'BO Rejected - Waiting for Call Center Data Entry',
 				'company_id' => 1,
 			],
+			29 => [
+				'name' => 'Call Center Data Entry Completed - Waiting for L1 Individual Verification',
+				'company_id' => 1,
+			],
 		];
 
 		foreach ($activity_portal_statuses as $id => $activity_portal_status_val) {

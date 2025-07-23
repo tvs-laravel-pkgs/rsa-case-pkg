@@ -631,7 +631,7 @@ class ActivityController extends Controller {
 			if (!empty(Auth::user()->activity_approval_level_id)) {
 				//L1
 				if (Auth::user()->activity_approval_level_id == 1) {
-					$activities->whereIn('activities.status_id', [6, 9, 22]); //ASP Completed Data Entry - Waiting for L1 Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Individual Verification AND BO Rejected - Waiting for L1 Individual Verification
+					$activities->whereIn('activities.status_id', [6, 9, 22, 29]); //ASP Completed Data Entry - Waiting for L1 Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Individual Verification AND Rejected - Waiting for L1 Individual Verification AND Call Center Clarification Completed - Waiting for L1 Individual Verification
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
 					$activities->where('activities.status_id', 19); //Waiting for L2 Individual Verification
@@ -669,7 +669,7 @@ class ActivityController extends Controller {
 			$activityApprovalLevel = '';
 			$activity_data = Activity::findOrFail($activity_status_id);
 			if ($view_type_id == 2) {
-				if (!$activity_data || ($activity_data && $activity_data->status_id != 5 && $activity_data->status_id != 6 && $activity_data->status_id != 8 && $activity_data->status_id != 9 && $activity_data->status_id != 18 && $activity_data->status_id != 19 && $activity_data->status_id != 20 && $activity_data->status_id != 21 && $activity_data->status_id != 22 && $activity_data->status_id != 23 && $activity_data->status_id != 24)) {
+				if (!$activity_data || ($activity_data && $activity_data->status_id != 5 && $activity_data->status_id != 6 && $activity_data->status_id != 8 && $activity_data->status_id != 9 && $activity_data->status_id != 18 && $activity_data->status_id != 19 && $activity_data->status_id != 20 && $activity_data->status_id != 21 && $activity_data->status_id != 22 && $activity_data->status_id != 23 && $activity_data->status_id != 24 && $activity_data->status_id != 29)) {
 					return response()->json([
 						'success' => false,
 						'errors' => [

@@ -2837,7 +2837,7 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24, 5, 8, 18, 20, 23])
+			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24, 5, 8, 18, 20, 23, 29])
 				->where('id', $request->activity_id)
 				->first();
 
@@ -2925,6 +2925,7 @@ class ActivityController extends Controller {
 			if (Auth::user()->activity_approval_level_id == 1) {
 				$activityLog->bo_deffered_at = date('Y-m-d H:i:s');
 				$activityLog->bo_deffered_by_id = Auth::id();
+				$activityLog->bo_deffered_cc_l2_user_escalated_at = null;
 			} elseif (Auth::user()->activity_approval_level_id == 2) {
 				// L2
 				$activityLog->l2_deffered_at = date('Y-m-d H:i:s');
@@ -3079,7 +3080,13 @@ class ActivityController extends Controller {
 		// MAIN FUNCTION WITH TRANSACTION
 		DB::beginTransaction();
 		try {
-			$activity->cc_clarification = makeUrltoLinkInString($request->cc_clarification);
+			$cc_clarification = $activity->cc_clarification;
+			if (!empty($cc_clarification)) {
+				$cc_clarification .= nl2br("<hr>" . makeUrltoLinkInString($request->cc_clarification));
+			} else {
+				$cc_clarification = makeUrltoLinkInString($request->cc_clarification);
+			}
+			$activity->cc_clarification = $cc_clarification;
 			$activity->status_id = 29; //Call Center Clarification Completed - Waiting for L1 Individual Verification
 			$activity->updated_at = Carbon::now();
 			$activity->updated_by_id = Auth::user()->id;

@@ -1336,6 +1336,8 @@ class ActivityController extends Controller {
 			$aspDataFilledBy = "";
 			$boDefferedAt = "";
 			$boDefferedBy = "";
+			$ccClarifiedAt = "";
+			$ccClarifiedBy = "";
 			$boApprovedAt = "";
 			$boApprovedBy = "";
 			$l2DefferedAt = "";
@@ -1374,6 +1376,12 @@ class ActivityController extends Controller {
 				}
 				if (!empty($activity_data->log->bo_deffered_by_id)) {
 					$boDefferedBy = $activity_data->log->boDefferedBy ? ($activity_data->log->boDefferedBy->name . ' - ' . $activity_data->log->boDefferedBy->username) : '';
+				}
+				if (!empty($activity_data->log->cc_clarified_at)) {
+					$ccClarifiedAt = $activity_data->log->cc_clarified_at;
+				}
+				if (!empty($activity_data->log->cc_clarified_by_id)) {
+					$ccClarifiedBy = $activity_data->log->ccClarifiedBy ? ($activity_data->log->ccClarifiedBy->name . ' - ' . $activity_data->log->ccClarifiedBy->username) : '';
 				}
 				if (!empty($activity_data->log->bo_approved_at)) {
 					$boApprovedAt = $activity_data->log->bo_approved_at;
@@ -1465,6 +1473,8 @@ class ActivityController extends Controller {
 			$this->data['activities']['aspDataFilledBy'] = $aspDataFilledBy;
 			$this->data['activities']['boDefferedAt'] = $boDefferedAt;
 			$this->data['activities']['boDefferedBy'] = $boDefferedBy;
+			$this->data['activities']['ccClarifiedAt'] = $ccClarifiedAt;
+			$this->data['activities']['ccClarifiedBy'] = $ccClarifiedBy;
 			$this->data['activities']['boApprovedAt'] = $boApprovedAt;
 			$this->data['activities']['boApprovedBy'] = $boApprovedBy;
 			$this->data['activities']['l2DefferedAt'] = $l2DefferedAt;

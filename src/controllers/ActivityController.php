@@ -4572,6 +4572,7 @@ class ActivityController extends Controller {
 						$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
 						$aspIds[] = Auth::user()->asp->id;
 						if (!in_array($activity->asp_id, $aspIds)) {
+							DB::rollBack();
 							return response()->json([
 								'success' => false,
 								'error' => 'ASP not matched for activity ID ' . $activity->crm_activity_id,
@@ -4580,6 +4581,7 @@ class ActivityController extends Controller {
 					} else {
 						//CHECK ASP MATCHES WITH ACTIVITY ASP
 						if ($activity->asp_id != $asp->id) {
+							DB::rollBack();
 							return response()->json([
 								'success' => false,
 								'error' => 'ASP not matched for activity ID ' . $activity->crm_activity_id,
@@ -4588,6 +4590,7 @@ class ActivityController extends Controller {
 					}
 					//CHECK IF INVOICE ALREADY CREATED FOR ACTIVITY
 					if (!empty($activity->invoice_id)) {
+						DB::rollBack();
 						return response()->json([
 							'success' => false,
 							'error' => 'Invoice already created for activity ' . $activity->crm_activity_id,
@@ -4596,6 +4599,7 @@ class ActivityController extends Controller {
 
 					//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND Waiting for Invoice Generation by ASP)
 					if ($activity->status_id != 1 && $activity->status_id != 11) {
+						DB::rollBack();
 						return response()->json([
 							'success' => false,
 							'error' => 'ASP not accepted / case not closed for activity ID ' . $activity->crm_activity_id,
@@ -4616,12 +4620,14 @@ class ActivityController extends Controller {
 					}
 				}
 			} else {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'error' => 'Activity not found',
 				]);
 			}
 			if ($aug21ToNov21caseExist && $afterDec21caseExist) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'error' => "August'21 to November'21 cases should be separately invoiced. Cases done from 1st December 2021 should be invoiced separately for INP Payment",
@@ -4631,12 +4637,14 @@ class ActivityController extends Controller {
 			//SELF INVOICE
 			if ($asp->has_gst && !$asp->is_auto_invoice) {
 				if (!$request->invoice_no) {
+					DB::rollBack();
 					return response()->json([
 						'success' => false,
 						'error' => 'Invoice number is required',
 					]);
 				}
 				if (!$request->inv_date) {
+					DB::rollBack();
 					return response()->json([
 						'success' => false,
 						'error' => 'Invoice date is required',
@@ -4644,6 +4652,7 @@ class ActivityController extends Controller {
 				}
 
 				if (Str::length($request->invoice_no) > 20) {
+					DB::rollBack();
 					return response()->json([
 						'success' => false,
 						'error' => 'The invoice number may not be greater than 20 characters',
@@ -4654,6 +4663,7 @@ class ActivityController extends Controller {
 				$invoiceNumberfirstLetter = substr(trim($request->invoice_no), 0, 1);
 				if (is_numeric($invoiceNumberfirstLetter)) {
 					if ($invoiceNumberfirstLetter == 0) {
+						DB::rollBack();
 						return response()->json([
 							'success' => false,
 							'error' => 'Invoice number should not start with zero',
@@ -4663,6 +4673,7 @@ class ActivityController extends Controller {
 
 				//SPECIAL CHARACTERS NOT ALLOWED AT PREFIX
 				if (!preg_match("/^[A-Za-z0-9]{1}/", $request->invoice_no)) {
+					DB::rollBack();
 					return response()->json([
 						'success' => false,
 						'error' => 'Special characters are not allowed at the beginning of the invoice number',
@@ -4671,6 +4682,7 @@ class ActivityController extends Controller {
 
 				//SPECIAL CHARACTERS NOT ALLOWED AT SUFFIX
 				if (!preg_match("/[A-Za-z0-9]{1}$/", $request->invoice_no)) {
+					DB::rollBack();
 					return response()->json([
 						'success' => false,
 						'error' => 'Special characters are not allowed at the end of the invoice number',
@@ -4678,6 +4690,7 @@ class ActivityController extends Controller {
 				}
 
 				if (isset($request->irn) && !empty($request->irn) && strlen($request->irn) != '64') {
+					DB::rollBack();
 					return response()->json([
 						'success' => false,
 						'error' => 'Please enter at least 64 characters for IRN',
@@ -4697,6 +4710,7 @@ class ActivityController extends Controller {
 
 			$invoice_c = Invoices::createInvoice($asp, $request->crm_activity_ids, $invoice_no, $irn, $invoice_date, $value, false);
 			if (!$invoice_c['success']) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'error' => $invoice_c['message'],

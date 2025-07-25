@@ -1627,18 +1627,8 @@ class ActivityController extends Controller {
 
 	public function approveActivity(Request $request) {
 		// dd($request->all());
-		DB::beginTransaction();
-		try {
-			if (Auth::check()) {
-				if (empty(Auth::user()->activity_approval_level_id)) {
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							'User is not valid for Verification',
-						],
-					]);
-				}
-			} else {
+		if (Auth::check()) {
+			if (empty(Auth::user()->activity_approval_level_id)) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -1646,176 +1636,187 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
+		} else {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'User is not valid for Verification',
+				],
+			]);
+		}
 
-			if (empty($request->exceptional_reason)) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Exceptional reason is required',
-					],
-				]);
-			}
+		if (empty($request->exceptional_reason)) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Exceptional reason is required',
+				],
+			]);
+		}
 
-			// Check if the first character is a special character
-			if (isset($request->bo_comments) && !empty($request->bo_comments) && !preg_match('/^[^=]/', $request->bo_comments)) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Equal symbol (=) is not allowed as the first character for comments!',
-					],
-				]);
-			}
+		// Check if the first character is a special character
+		if (isset($request->bo_comments) && !empty($request->bo_comments) && !preg_match('/^[^=]/', $request->bo_comments)) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Equal symbol (=) is not allowed as the first character for comments!',
+				],
+			]);
+		}
 
-			// Check if the first character is a special character
-			if (isset($request->deduction_reason) && !empty($request->deduction_reason) && !preg_match('/^[^=]/', $request->deduction_reason)) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Equal symbol (=) is not allowed as the first character for deduction reason!',
-					],
-				]);
-			}
+		// Check if the first character is a special character
+		if (isset($request->deduction_reason) && !empty($request->deduction_reason) && !preg_match('/^[^=]/', $request->deduction_reason)) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Equal symbol (=) is not allowed as the first character for deduction reason!',
+				],
+			]);
+		}
 
-			// Check if the first character is a special character
-			if (isset($request->exceptional_reason) && !empty($request->exceptional_reason) && !preg_match('/^[^=]/', $request->exceptional_reason)) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Equal symbol (=) is not allowed as the first character for exceptional reason!',
-					],
-				]);
-			}
+		// Check if the first character is a special character
+		if (isset($request->exceptional_reason) && !empty($request->exceptional_reason) && !preg_match('/^[^=]/', $request->exceptional_reason)) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Equal symbol (=) is not allowed as the first character for exceptional reason!',
+				],
+			]);
+		}
 
-			if ($request->boServiceTypeId == '') {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Service is required',
-					],
-				]);
-			}
+		if ($request->boServiceTypeId == '') {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Service is required',
+				],
+			]);
+		}
 
-			if ($request->bo_km_travelled !== '' && $request->bo_km_travelled <= 0) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'KM Travelled should be greater than zero',
-					],
-				]);
-			}
+		if ($request->bo_km_travelled !== '' && $request->bo_km_travelled <= 0) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'KM Travelled should be greater than zero',
+				],
+			]);
+		}
 
-			if ($request->bo_km_travelled !== 0 && $request->bo_km_travelled === '') {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'KM Travelled is required',
-					],
-				]);
-			}
+		if ($request->bo_km_travelled !== 0 && $request->bo_km_travelled === '') {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'KM Travelled is required',
+				],
+			]);
+		}
 
-			if ($request->bo_not_collected !== 0 && $request->bo_not_collected === '') {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Charges not collected is required',
-					],
-				]);
-			}
+		if ($request->bo_not_collected !== 0 && $request->bo_not_collected === '') {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Charges not collected is required',
+				],
+			]);
+		}
 
-			if ($request->bo_border_charges !== 0 && $request->bo_border_charges === '') {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Border Charges is required',
-					],
-				]);
-			}
+		if ($request->bo_border_charges !== 0 && $request->bo_border_charges === '') {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Border Charges is required',
+				],
+			]);
+		}
 
-			if ($request->bo_green_tax_charges !== 0 && $request->bo_green_tax_charges === '') {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Green Tax Charges is required',
-					],
-				]);
-			}
+		if ($request->bo_green_tax_charges !== 0 && $request->bo_green_tax_charges === '') {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Green Tax Charges is required',
+				],
+			]);
+		}
 
-			if ($request->bo_toll_charges !== 0 && $request->bo_toll_charges === '') {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Toll Charges is required',
-					],
-				]);
-			}
+		if ($request->bo_toll_charges !== 0 && $request->bo_toll_charges === '') {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Toll Charges is required',
+				],
+			]);
+		}
 
-			if ($request->bo_eatable_items_charges !== 0 && $request->bo_eatable_items_charges === '') {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Eatable Items Charges is required',
-					],
-				]);
-			}
+		if ($request->bo_eatable_items_charges !== 0 && $request->bo_eatable_items_charges === '') {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Eatable Items Charges is required',
+				],
+			]);
+		}
 
-			if ($request->bo_fuel_charges !== 0 && $request->bo_fuel_charges === '') {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Fuel Charges is required',
-					],
-				]);
-			}
+		if ($request->bo_fuel_charges !== 0 && $request->bo_fuel_charges === '') {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Fuel Charges is required',
+				],
+			]);
+		}
 
-			if ($request->bo_collected !== 0 && $request->bo_collected === '') {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Charges collected is required',
-					],
-				]);
-			}
+		if ($request->bo_collected !== 0 && $request->bo_collected === '') {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Charges collected is required',
+				],
+			]);
+		}
 
-			if ($request->bo_net_amount <= 0) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Payout amount should be greater than zero',
-					],
-				]);
-			}
+		if ($request->bo_net_amount <= 0) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Payout amount should be greater than zero',
+				],
+			]);
+		}
 
-			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24, 5, 8, 18, 20, 23, 29])
-				->where('id', $request->activity_id)
-				->first();
-			if (!$activity) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Activity not found',
-					],
-				]);
-			}
+		$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24, 5, 8, 18, 20, 23, 29])
+			->where('id', $request->activity_id)
+			->first();
+		if (!$activity) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Activity not found',
+				],
+			]);
+		}
 
-			$asp_km_travelled = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 154]])->first();
-			if (!$asp_km_travelled) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Activity ASP KM not found',
-					],
-				]);
-			}
+		$asp_km_travelled = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 154]])->first();
+		if (!$asp_km_travelled) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Activity ASP KM not found',
+				],
+			]);
+		}
 
-			//CHECK BO KM > ASP KM
-			if ($request->bo_km_travelled > $asp_km_travelled->value) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Final KM should be less than or equal to ASP KM',
-					],
-				]);
-			}
+		//CHECK BO KM > ASP KM
+		if ($request->bo_km_travelled > $asp_km_travelled->value) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Final KM should be less than or equal to ASP KM',
+				],
+			]);
+		}
+
+		DB::beginTransaction();
+		try {
 
 			$isServiceTypeChanged = false;
 			$isKmTravelledChanged = false;
@@ -2287,7 +2288,10 @@ class ActivityController extends Controller {
 			$activityLog->save();
 
 			//SAVE ACTIVITY REPORT FOR DASHBOARD
-			ActivityReport::saveReport($activity->id);
+			$activityReportSync = new ActivityReportSync();
+			$activityReportSync->activity_id = $activity->id;
+			$activityReportSync->sync_status = 0; // NOT SYNCED
+			$activityReportSync->save();
 
 			DB::commit();
 			return response()->json([
@@ -2747,7 +2751,10 @@ class ActivityController extends Controller {
 					$activityLog->save();
 
 					//SAVE ACTIVITY REPORT FOR DASHBOARD
-					ActivityReport::saveReport($activity->id);
+					$activityReportSync = new ActivityReportSync();
+					$activityReportSync->activity_id = $activity->id;
+					$activityReportSync->sync_status = 0; // NOT SYNCED
+					$activityReportSync->save();
 
 				} else {
 					return response()->json([

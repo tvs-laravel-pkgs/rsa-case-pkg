@@ -3593,223 +3593,224 @@ class ActivityController extends Controller {
 
 	public function updateActivity(Request $request) {
 		// dd($request->all());
+		$activity = Activity::whereIn('status_id', [2, 4, 7, 17])
+			->where('id', $request->activity_id)
+			->first();
+		if (!$activity) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Activity not found',
+				],
+			]);
+		}
+
+		if (floatval($request->km_travelled) <= 0) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'KM travelled should be greater than zero',
+				],
+			]);
+		}
+
+		// Check if the first character is a special character
+		if (isset($request->remarks_not_collected) && !empty($request->remarks_not_collected) && !preg_match('/^[^=]/', $request->remarks_not_collected)) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Equal symbol (=) is not allowed as the first character for remarks for charges not collected!',
+				],
+			]);
+		}
+
+		if (isset($request->general_remarks) && !empty($request->general_remarks) && !preg_match('/^[^=]/', $request->general_remarks)) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Equal symbol (=) is not allowed as the first character for general remarks!',
+				],
+			]);
+		}
+
+		if (isset($request->comments) && !empty($request->comments) && !preg_match('/^[^=]/', $request->comments)) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Equal symbol (=) is not allowed as the first character for resolve comments!',
+				],
+			]);
+		}
+
+		$enteredServiceType = ServiceType::select([
+			'id',
+			'service_group_id',
+		])
+			->where('id', $request->asp_service_type_id)
+			->first();
+		if (!$enteredServiceType) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Service not found',
+				],
+			]);
+		}
+		$checkTowingAttachmentMandatory = false;
+		//TOWING GROUP
+		if ($enteredServiceType->service_group_id == 3 && $activity->is_towing_attachments_mandatory == 1 && $activity->financeStatus && $activity->financeStatus->po_eligibility_type_id == 340) {
+			$towingImagesMandatoryEffectiveDate = config('rsa.TOWING_IMAGES_MANDATORY_EFFECTIVE_DATE');
+			if (date('Y-m-d', strtotime($activity->case->date)) >= $towingImagesMandatoryEffectiveDate) {
+				$checkTowingAttachmentMandatory = true;
+			}
+		}
+		if ($checkTowingAttachmentMandatory) {
+			// Vehicle Pickup image
+			if (!isset($request->vehiclePickupAttachExist) && (!isset($request->vehicle_pickup_attachment) || (isset($request->vehicle_pickup_attachment) && empty($request->vehicle_pickup_attachment)))) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Please Upload Vehicle Pickup image',
+					],
+				]);
+			}
+			// Vehicle Pickup image
+			if (!isset($request->vehicleDropAttachExist) && (!isset($request->vehicle_drop_attachment) || (isset($request->vehicle_drop_attachment) && empty($request->vehicle_drop_attachment)))) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Please Upload Vehicle Drop image',
+					],
+				]);
+			}
+			// Vehicle Pickup image
+			if (!isset($request->inventoryJobSheetAttachExist) && (!isset($request->inventory_job_sheet_attachment) || (isset($request->inventory_job_sheet_attachment) && empty($request->inventory_job_sheet_attachment)))) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Please Upload Inventory Job Sheet image',
+					],
+				]);
+			}
+		}
+
+		if (isset($request->vehicle_pickup_attachment) && !empty($request->vehicle_pickup_attachment)) {
+			$extension = $request->file("vehicle_pickup_attachment")->getClientOriginalExtension();
+			if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Please Upload Vehicle Pickup image in jpeg, png, jpg formats',
+					],
+				]);
+			}
+		}
+
+		if (isset($request->vehicle_drop_attachment) && !empty($request->vehicle_drop_attachment)) {
+			$extension = $request->file("vehicle_drop_attachment")->getClientOriginalExtension();
+			if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Please Upload Vehicle Drop image in jpeg, png, jpg formats',
+					],
+				]);
+			}
+		}
+
+		if (isset($request->inventory_job_sheet_attachment) && !empty($request->inventory_job_sheet_attachment)) {
+			$extension = $request->file("inventory_job_sheet_attachment")->getClientOriginalExtension();
+			if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Please Upload Inventory Job Sheet image in jpeg, png, jpg formats',
+					],
+				]);
+			}
+		}
+
+		$range_limit = $waiting_charge_per_hour = 0;
+		$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
+		Storage::makeDirectory($destination, 0777);
+
+		//MAP ATTACHMENTS REMOVAL
+		if (isset($request->update_attach_km_map_id) && !empty($request->update_attach_km_map_id)) {
+			$update_attach_km_map_ids = json_decode($request->update_attach_km_map_id, true);
+			$removeMapAttachments = Attachment::whereIn('id', $update_attach_km_map_ids)
+				->get();
+			if ($removeMapAttachments->isNotEmpty()) {
+				foreach ($removeMapAttachments as $removeMapAttachmentKey => $removeMapAttachment) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeMapAttachment->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $removeMapAttachment->attachment_file_name));
+					}
+					$removeMapAttachment->delete();
+				}
+			}
+		}
+
+		//OTHER ATTACHMENTS REMOVAL
+		if (isset($request->update_attach_other_id) && !empty($request->update_attach_other_id)) {
+			$update_attach_other_ids = json_decode($request->update_attach_other_id, true);
+			$removeOtherAttachments = Attachment::whereIn('id', $update_attach_other_ids)
+				->get();
+			if ($removeOtherAttachments->isNotEmpty()) {
+				foreach ($removeOtherAttachments as $removeOtherAttachmentKey => $removeOtherAttachment) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeOtherAttachment->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $removeOtherAttachment->attachment_file_name));
+					}
+					$removeOtherAttachment->delete();
+				}
+			}
+		}
+
+		//VEHICLE PICKUP ATTACHMENTS REMOVAL
+		if (isset($request->vehiclePickupAttachRemovelIds) && !empty($request->vehiclePickupAttachRemovelIds)) {
+			$vehiclePickupAttachRemovelIds = json_decode($request->vehiclePickupAttachRemovelIds, true);
+			$removeVehiclePickupAttachments = Attachment::whereIn('id', $vehiclePickupAttachRemovelIds)
+				->get();
+			if ($removeVehiclePickupAttachments->isNotEmpty()) {
+				foreach ($removeVehiclePickupAttachments as $removeVehiclePickupAttachmentKey => $removeVehiclePickupAttachment) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeVehiclePickupAttachment->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $removeVehiclePickupAttachment->attachment_file_name));
+					}
+					$removeVehiclePickupAttachment->delete();
+				}
+			}
+		}
+
+		//VEHICLE DROP ATTACHMENTS REMOVAL
+		if (isset($request->vehicleDropAttachRemovelIds) && !empty($request->vehicleDropAttachRemovelIds)) {
+			$vehicleDropAttachRemovelIds = json_decode($request->vehicleDropAttachRemovelIds, true);
+			$removeVehicleDropAttachments = Attachment::whereIn('id', $vehicleDropAttachRemovelIds)
+				->get();
+			if ($removeVehicleDropAttachments->isNotEmpty()) {
+				foreach ($removeVehicleDropAttachments as $removeVehicleDropAttachmentKey => $removeVehicleDropAttachment) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeVehicleDropAttachment->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $removeVehicleDropAttachment->attachment_file_name));
+					}
+					$removeVehicleDropAttachment->delete();
+				}
+			}
+		}
+
+		//INVENTORY JOB SHEET ATTACHMENTS REMOVAL
+		if (isset($request->inventoryJobSheetAttachRemovelIds) && !empty($request->inventoryJobSheetAttachRemovelIds)) {
+			$inventoryJobSheetAttachRemovelIds = json_decode($request->inventoryJobSheetAttachRemovelIds, true);
+			$removeInventoryJobSheetAttachments = Attachment::whereIn('id', $inventoryJobSheetAttachRemovelIds)
+				->get();
+			if ($removeInventoryJobSheetAttachments->isNotEmpty()) {
+				foreach ($removeInventoryJobSheetAttachments as $removeInventoryJobSheetAttachmentKey => $removeInventoryJobSheetAttachment) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeInventoryJobSheetAttachment->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $removeInventoryJobSheetAttachment->attachment_file_name));
+					}
+					$removeInventoryJobSheetAttachment->delete();
+				}
+			}
+		}
+
 		DB::beginTransaction();
 		try {
-			$activity = Activity::whereIn('status_id', [2, 4, 7, 17])
-				->where('id', $request->activity_id)
-				->first();
-			if (!$activity) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Activity not found',
-					],
-				]);
-			}
-
-			if (floatval($request->km_travelled) <= 0) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'KM travelled should be greater than zero',
-					],
-				]);
-			}
-
-			// Check if the first character is a special character
-			if (isset($request->remarks_not_collected) && !empty($request->remarks_not_collected) && !preg_match('/^[^=]/', $request->remarks_not_collected)) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Equal symbol (=) is not allowed as the first character for remarks for charges not collected!',
-					],
-				]);
-			}
-
-			if (isset($request->general_remarks) && !empty($request->general_remarks) && !preg_match('/^[^=]/', $request->general_remarks)) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Equal symbol (=) is not allowed as the first character for general remarks!',
-					],
-				]);
-			}
-
-			if (isset($request->comments) && !empty($request->comments) && !preg_match('/^[^=]/', $request->comments)) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Equal symbol (=) is not allowed as the first character for resolve comments!',
-					],
-				]);
-			}
-
-			$enteredServiceType = ServiceType::select([
-				'id',
-				'service_group_id',
-			])
-				->where('id', $request->asp_service_type_id)
-				->first();
-			if (!$enteredServiceType) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Service not found',
-					],
-				]);
-			}
-			$checkTowingAttachmentMandatory = false;
-			//TOWING GROUP
-			if ($enteredServiceType->service_group_id == 3 && $activity->is_towing_attachments_mandatory == 1 && $activity->financeStatus && $activity->financeStatus->po_eligibility_type_id == 340) {
-				$towingImagesMandatoryEffectiveDate = config('rsa.TOWING_IMAGES_MANDATORY_EFFECTIVE_DATE');
-				if (date('Y-m-d', strtotime($activity->case->date)) >= $towingImagesMandatoryEffectiveDate) {
-					$checkTowingAttachmentMandatory = true;
-				}
-			}
-			if ($checkTowingAttachmentMandatory) {
-				// Vehicle Pickup image
-				if (!isset($request->vehiclePickupAttachExist) && (!isset($request->vehicle_pickup_attachment) || (isset($request->vehicle_pickup_attachment) && empty($request->vehicle_pickup_attachment)))) {
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							'Please Upload Vehicle Pickup image',
-						],
-					]);
-				}
-				// Vehicle Pickup image
-				if (!isset($request->vehicleDropAttachExist) && (!isset($request->vehicle_drop_attachment) || (isset($request->vehicle_drop_attachment) && empty($request->vehicle_drop_attachment)))) {
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							'Please Upload Vehicle Drop image',
-						],
-					]);
-				}
-				// Vehicle Pickup image
-				if (!isset($request->inventoryJobSheetAttachExist) && (!isset($request->inventory_job_sheet_attachment) || (isset($request->inventory_job_sheet_attachment) && empty($request->inventory_job_sheet_attachment)))) {
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							'Please Upload Inventory Job Sheet image',
-						],
-					]);
-				}
-			}
-
-			if (isset($request->vehicle_pickup_attachment) && !empty($request->vehicle_pickup_attachment)) {
-				$extension = $request->file("vehicle_pickup_attachment")->getClientOriginalExtension();
-				if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							'Please Upload Vehicle Pickup image in jpeg, png, jpg formats',
-						],
-					]);
-				}
-			}
-
-			if (isset($request->vehicle_drop_attachment) && !empty($request->vehicle_drop_attachment)) {
-				$extension = $request->file("vehicle_drop_attachment")->getClientOriginalExtension();
-				if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							'Please Upload Vehicle Drop image in jpeg, png, jpg formats',
-						],
-					]);
-				}
-			}
-
-			if (isset($request->inventory_job_sheet_attachment) && !empty($request->inventory_job_sheet_attachment)) {
-				$extension = $request->file("inventory_job_sheet_attachment")->getClientOriginalExtension();
-				if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							'Please Upload Inventory Job Sheet image in jpeg, png, jpg formats',
-						],
-					]);
-				}
-			}
-
-			$range_limit = $waiting_charge_per_hour = 0;
-			$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
-			Storage::makeDirectory($destination, 0777);
-
-			//MAP ATTACHMENTS REMOVAL
-			if (isset($request->update_attach_km_map_id) && !empty($request->update_attach_km_map_id)) {
-				$update_attach_km_map_ids = json_decode($request->update_attach_km_map_id, true);
-				$removeMapAttachments = Attachment::whereIn('id', $update_attach_km_map_ids)
-					->get();
-				if ($removeMapAttachments->isNotEmpty()) {
-					foreach ($removeMapAttachments as $removeMapAttachmentKey => $removeMapAttachment) {
-						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeMapAttachment->attachment_file_name)) {
-							unlink(storage_path('app/' . $destination . '/' . $removeMapAttachment->attachment_file_name));
-						}
-						$removeMapAttachment->delete();
-					}
-				}
-			}
-
-			//OTHER ATTACHMENTS REMOVAL
-			if (isset($request->update_attach_other_id) && !empty($request->update_attach_other_id)) {
-				$update_attach_other_ids = json_decode($request->update_attach_other_id, true);
-				$removeOtherAttachments = Attachment::whereIn('id', $update_attach_other_ids)
-					->get();
-				if ($removeOtherAttachments->isNotEmpty()) {
-					foreach ($removeOtherAttachments as $removeOtherAttachmentKey => $removeOtherAttachment) {
-						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeOtherAttachment->attachment_file_name)) {
-							unlink(storage_path('app/' . $destination . '/' . $removeOtherAttachment->attachment_file_name));
-						}
-						$removeOtherAttachment->delete();
-					}
-				}
-			}
-
-			//VEHICLE PICKUP ATTACHMENTS REMOVAL
-			if (isset($request->vehiclePickupAttachRemovelIds) && !empty($request->vehiclePickupAttachRemovelIds)) {
-				$vehiclePickupAttachRemovelIds = json_decode($request->vehiclePickupAttachRemovelIds, true);
-				$removeVehiclePickupAttachments = Attachment::whereIn('id', $vehiclePickupAttachRemovelIds)
-					->get();
-				if ($removeVehiclePickupAttachments->isNotEmpty()) {
-					foreach ($removeVehiclePickupAttachments as $removeVehiclePickupAttachmentKey => $removeVehiclePickupAttachment) {
-						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeVehiclePickupAttachment->attachment_file_name)) {
-							unlink(storage_path('app/' . $destination . '/' . $removeVehiclePickupAttachment->attachment_file_name));
-						}
-						$removeVehiclePickupAttachment->delete();
-					}
-				}
-			}
-
-			//VEHICLE DROP ATTACHMENTS REMOVAL
-			if (isset($request->vehicleDropAttachRemovelIds) && !empty($request->vehicleDropAttachRemovelIds)) {
-				$vehicleDropAttachRemovelIds = json_decode($request->vehicleDropAttachRemovelIds, true);
-				$removeVehicleDropAttachments = Attachment::whereIn('id', $vehicleDropAttachRemovelIds)
-					->get();
-				if ($removeVehicleDropAttachments->isNotEmpty()) {
-					foreach ($removeVehicleDropAttachments as $removeVehicleDropAttachmentKey => $removeVehicleDropAttachment) {
-						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeVehicleDropAttachment->attachment_file_name)) {
-							unlink(storage_path('app/' . $destination . '/' . $removeVehicleDropAttachment->attachment_file_name));
-						}
-						$removeVehicleDropAttachment->delete();
-					}
-				}
-			}
-
-			//INVENTORY JOB SHEET ATTACHMENTS REMOVAL
-			if (isset($request->inventoryJobSheetAttachRemovelIds) && !empty($request->inventoryJobSheetAttachRemovelIds)) {
-				$inventoryJobSheetAttachRemovelIds = json_decode($request->inventoryJobSheetAttachRemovelIds, true);
-				$removeInventoryJobSheetAttachments = Attachment::whereIn('id', $inventoryJobSheetAttachRemovelIds)
-					->get();
-				if ($removeInventoryJobSheetAttachments->isNotEmpty()) {
-					foreach ($removeInventoryJobSheetAttachments as $removeInventoryJobSheetAttachmentKey => $removeInventoryJobSheetAttachment) {
-						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeInventoryJobSheetAttachment->attachment_file_name)) {
-							unlink(storage_path('app/' . $destination . '/' . $removeInventoryJobSheetAttachment->attachment_file_name));
-						}
-						$removeInventoryJobSheetAttachment->delete();
-					}
-				}
-			}
 			$cc_service_type_exist = ActivityDetail::where('activity_id', $activity->id)
 				->where('key_id', 153)
 				->first();
@@ -3937,6 +3938,7 @@ class ActivityController extends Controller {
 					$km_difference = $asp_km - $mis_km;
 					if ($km_difference > $five_percentage_difference) {
 						if (!isset($request->km_attachment_exist) && empty($request->map_attachment)) {
+							DB::rollBack();
 							return response()->json([
 								'success' => false,
 								'errors' => [
@@ -3982,6 +3984,7 @@ class ActivityController extends Controller {
 			//LOGIC SAID BY CLIENT
 			if (floatval($asp_other) >= 31) {
 				if (!isset($request->other_attachment_exist) && empty($request->other_attachment)) {
+					DB::rollBack();
 					return response()->json([
 						'success' => false,
 						'errors' => [
@@ -3990,6 +3993,7 @@ class ActivityController extends Controller {
 					]);
 				}
 				if (empty($request->remarks_not_collected)) {
+					DB::rollBack();
 					return response()->json([
 						'success' => false,
 						'errors' => [
@@ -4094,6 +4098,7 @@ class ActivityController extends Controller {
 
 			$saveActivityRatecardResponse = $activity->saveActivityRatecard();
 			if (!$saveActivityRatecardResponse['success']) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -4159,6 +4164,7 @@ class ActivityController extends Controller {
 
 			$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id, $activity->case->date);
 			if (!$response['success']) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -4241,14 +4247,6 @@ class ActivityController extends Controller {
 			$bo_invoice_amount->value = $invoice_amount;
 			$bo_invoice_amount->save();
 
-			//log message
-			$log_status = config('rsa.LOG_STATUES_TEMPLATES.ASP_DATA_ENTRY_DONE');
-			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ASP_DATA_ENTRY_DONE');
-			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
-				'Status' => $log_status,
-				'Waiting for' => $log_waiting,
-			], 361);
-
 			$activity_log = ActivityLog::firstOrNew([
 				'activity_id' => $activity->id,
 			]);
@@ -4258,7 +4256,20 @@ class ActivityController extends Controller {
 			$activity_log->save();
 
 			//SAVE ACTIVITY REPORT FOR DASHBOARD
-			ActivityReport::saveReport($activity->id);
+			$activityReportSync = new ActivityReportSync();
+			$activityReportSync->activity_id = $activity->id;
+			$activityReportSync->sync_status = 0; // NOT SYNCED
+			$activityReportSync->save();
+
+			DB::commit();
+
+			//log message
+			$log_status = config('rsa.LOG_STATUES_TEMPLATES.ASP_DATA_ENTRY_DONE');
+			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ASP_DATA_ENTRY_DONE');
+			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
+				'Status' => $log_status,
+				'Waiting for' => $log_waiting,
+			], 361);
 
 			$sendApprovalNotification = config('rsa.SEND_APPROVAL_NOTIFICATION');
 			if ($sendNoty && $sendApprovalNotification) {
@@ -4291,7 +4302,6 @@ class ActivityController extends Controller {
 					}
 				}
 			}
-			DB::commit();
 			return response()->json(['success' => true]);
 		} catch (\Exception $e) {
 			DB::rollBack();

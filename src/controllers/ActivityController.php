@@ -1900,6 +1900,7 @@ class ActivityController extends Controller {
 
 			$saveActivityRatecardResponse = $activity->saveActivityRatecard();
 			if (!$saveActivityRatecardResponse['success']) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'errors' => [

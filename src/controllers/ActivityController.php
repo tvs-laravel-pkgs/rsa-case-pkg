@@ -296,7 +296,10 @@ class ActivityController extends Controller {
 				$activity->save();
 
 				//SAVE ACTIVITY REPORT FOR DASHBOARD
-				ActivityReport::saveReport($activity->id);
+				$activityReportSync = new ActivityReportSync();
+				$activityReportSync->activity_id = $activity->id;
+				$activityReportSync->sync_status = 0; // NOT SYNCED
+				$activityReportSync->save();
 
 				if ($activity) {
 					//log message
@@ -331,7 +334,10 @@ class ActivityController extends Controller {
 				$activity->save();
 
 				//SAVE ACTIVITY REPORT FOR DASHBOARD
-				ActivityReport::saveReport($activity->id);
+				$activityReportSync = new ActivityReportSync();
+				$activityReportSync->activity_id = $activity->id;
+				$activityReportSync->sync_status = 0; // NOT SYNCED
+				$activityReportSync->save();
 
 				if ($activity) {
 					//log message
@@ -366,7 +372,10 @@ class ActivityController extends Controller {
 				$activity->save();
 
 				//SAVE ACTIVITY REPORT FOR DASHBOARD
-				ActivityReport::saveReport($activity->id);
+				$activityReportSync = new ActivityReportSync();
+				$activityReportSync->activity_id = $activity->id;
+				$activityReportSync->sync_status = 0; // NOT SYNCED
+				$activityReportSync->save();
 
 				if ($activity) {
 					//log message

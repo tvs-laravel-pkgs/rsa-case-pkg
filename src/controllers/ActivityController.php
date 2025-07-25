@@ -4763,6 +4763,7 @@ class ActivityController extends Controller {
 			], $error_messages);
 
 			if ($validator->fails()) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'errors' => $validator->errors()->all(),
@@ -4771,6 +4772,7 @@ class ActivityController extends Controller {
 
 			$activity = Activity::find($r->activity_id);
 			if (!$activity) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -4791,7 +4793,10 @@ class ActivityController extends Controller {
 			}
 
 			//SAVE ACTIVITY REPORT FOR DASHBOARD
-			ActivityReport::saveReport($activity->id);
+			$activityReportSync = new ActivityReportSync();
+			$activityReportSync->activity_id = $activity->id;
+			$activityReportSync->sync_status = 0; // NOT SYNCED
+			$activityReportSync->save();
 
 			DB::commit();
 			return response()->json([

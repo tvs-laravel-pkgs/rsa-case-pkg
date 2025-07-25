@@ -3,7 +3,7 @@ app.component('deferredActivityList', {
     controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope, $mdSelect) {
         var self = this;
         self.hasPermission = HelperService.hasPermission;
-        if (!self.hasPermission('asp-deferred-activities')) {
+        if (!self.hasPermission('asp-deferred-activities') && !self.hasPermission('cc-deferred-activities')) {
             window.location = "#!/page-permission-denied";
             return false;
         }
@@ -14,12 +14,14 @@ app.component('deferredActivityList', {
         ).then(function(response) {
             self.extras = response.data.extras;
 
-            var cols = [
+            const cols = [
                 { data: 'action', searchable: false },
                 { data: 'case_date', searchable: false },
                 { data: 'number', name: 'cases.number', searchable: true },
                 { data: 'vehicle_registration_number', name: 'cases.vehicle_registration_number', searchable: true },
-                // { data: 'asp_code', name: 'asps.asp_code', searchable: true },
+                ...(self.hasPermission('cc-deferred-activities') ? [
+                    { data: 'asp_code', name: 'asps.asp_code', searchable: true },
+                ] : []),
                 { data: 'crm_activity_id', searchable: false },
                 // { data: 'activity_number', name: 'activities.number', searchable: true },
                 { data: 'sub_service', name: 'service_types.name', searchable: true },
@@ -28,11 +30,12 @@ app.component('deferredActivityList', {
                 { data: 'status', name: 'activity_portal_statuses.name', searchable: true },
                 { data: 'activity_status', name: 'activity_statuses.name', searchable: true },
                 { data: 'client', name: 'clients.name', searchable: true },
-                { data: 'call_center', name: 'call_centers.name', searchable: true },
+                ...(self.hasPermission('asp-deferred-activities') ? [
+                    { data: 'call_center', name: 'call_centers.name', searchable: true },
+                ] : []),
             ];
 
-            var activities_deferred_dt_config = JSON.parse(JSON.stringify(dt_config));
-
+            const activities_deferred_dt_config = JSON.parse(JSON.stringify(dt_config));
             $('#activities_deferred_table').DataTable(
                 $.extend(activities_deferred_dt_config, {
                     columns: cols,
@@ -57,10 +60,8 @@ app.component('deferredActivityList', {
                             d.ticket_date = $('#ticket_date').val();
                             d.call_center_id = $('#call_center_id').val();
                             d.case_number = $('#case_number').val();
-                            // d.asp_code = $('#asp_code').val();
                             d.service_type_id = $('#service_type_id').val();
                             d.finance_status_id = $('#finance_status_id').val();
-                            d.status_id = $('#status_id').val();
                             d.activity_status_id = $('#activity_status_id').val();
                             d.client_id = $('#client_id').val();
                         }
@@ -82,13 +83,29 @@ app.component('deferredActivityList', {
                 dataTable.fnFilter();
             });
 
-            $('#case_number,#asp_code').on('keyup', function() {
+            $('#case_number').on('keyup', function() {
                 dataTable.fnFilter();
             });
 
             $scope.changeCommonFilter = function(val, id) {
                 $('#' + id).val(val);
                 dataTable.fnFilter();
+            };
+
+            $scope.resetFilter = function() {
+                self.ticket_filter = [];
+                $('#ticket_date').val('');
+                $('#call_center_id').val('');
+                $('#case_number').val('');
+                $('#service_type_id').val('');
+                $('#finance_status_id').val('');
+                $('#activity_status_id').val('');
+                $('#client_id').val('');
+
+                setTimeout(function() {
+                    dataTable.fnFilter();
+                    $('#activities_deferred_table').DataTable().ajax.reload();
+                }, 1000);
             };
 
             $scope.refresh = function() {
@@ -106,10 +123,10 @@ app.component('deferredActivityList', {
             $('.date-picker').datepicker({
                 format: 'dd-mm-yyyy',
                 autoclose: true,
+                endDate: '+0d',
             });
 
             $('.filter-content').bind('click', function(event) {
-
                 if ($('.md-select-menu-container').hasClass('md-active')) {
                     $mdSelect.hide();
                 }

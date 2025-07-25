@@ -176,7 +176,7 @@
     var unclaimed_ticket_get_list_url = "{{url('rsa-case-pkg/unclaimed-ticket/get-list/')}}";
 
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/common/controller.js?v=15')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/common/controller.js?v=16')}}"></script>
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-status/controller.js?v=10')}}"></script>
 <!-- RSA-NEW-ACTIVITY-PKG -->
 <script type="text/javascript">
@@ -241,7 +241,7 @@
     var asp_activity_deferred_update_details_template_url = "{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-deferred/update-details.html')}}";
     var get_deferred_activity_form_data_url = "{{route('activityDeferredGetFormData')}}";
 </script>
-<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-deferred/controller.js?v=15')}}"></script>
+<script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-deferred/controller.js?v=16')}}"></script>
 
 <script type="text/javascript" src="{{URL::asset($rsa_case_pkg_path.'/public/themes/'.$theme.'/rsa-case-pkg/activity-search/controller.js?v=6')}}"></script>
 

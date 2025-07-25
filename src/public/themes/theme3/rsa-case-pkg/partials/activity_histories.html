@@ -42,6 +42,18 @@
                                 </div>
                             </div>
                         </li>
+                        <li ng-if="$ctrl.data.ccClarifiedAt != ''">
+                            <div class="customStatus-list-item">
+                                <div class="customStatus-list-child left">
+                                    <p class="date"><span>{{ formatDate($ctrl.data.ccClarifiedAt) | date: 'd-M' }} <br>{{ formatDate($ctrl.data.ccClarifiedAt) | date: 'y' }}</span></p>
+                                </div>
+                                <div class="customStatus-list-child">
+                                    <h3 class="title">CC Clarified</h3>
+                                    <p ng-if="$ctrl.data.ccClarifiedBy != ''">By : {{ $ctrl.data.ccClarifiedBy }}</p>
+                                    <span>{{ formatDate($ctrl.data.ccClarifiedAt) | date: 'h:mm a' }}</span>
+                                </div>
+                            </div>
+                        </li>
                         <li ng-if="$ctrl.data.boApprovedAt != ''">
                             <div class="customStatus-list-item">
                                 <div class="customStatus-list-child left">

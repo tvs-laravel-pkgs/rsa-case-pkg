@@ -67,6 +67,7 @@ class Activity extends Model {
 		'remarks',
 		'manual_uploading_remarks',
 		'asp_resolve_comments',
+		'cc_clarification',
 		'deduction_reason',
 		'bo_comments',
 		'defer_reason',

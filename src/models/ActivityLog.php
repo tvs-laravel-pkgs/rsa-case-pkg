@@ -33,6 +33,10 @@ class ActivityLog extends Model {
 		return $this->belongsTo('App\User', 'bo_deffered_by_id');
 	}
 
+	public function ccClarifiedBy() {
+		return $this->belongsTo('App\User', 'cc_clarified_by_id');
+	}
+
 	public function boApprovedBy() {
 		return $this->belongsTo('App\User', 'bo_approved_by_id');
 	}

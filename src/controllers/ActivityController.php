@@ -6207,6 +6207,7 @@ class ActivityController extends Controller {
 			$activity = Activity::withTrashed()->whereIn('status_id', [17, 26]) // ONHOLD / ASP COMPLETED DATA ENTRY - WAITING FOR CALL CENTER DATA ENTRY
 				->find($activityId);
 			if (!$activity) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -6310,7 +6311,10 @@ class ActivityController extends Controller {
 			]);
 
 			//SAVE ACTIVITY REPORT FOR DASHBOARD
-			ActivityReport::saveReport($activity->id);
+			$activityReportSync = new ActivityReportSync();
+			$activityReportSync->activity_id = $activity->id;
+			$activityReportSync->sync_status = 0; // NOT SYNCED
+			$activityReportSync->save();
 
 			DB::commit();
 			return response()->json([

@@ -4903,6 +4903,7 @@ class ActivityController extends Controller {
 			]);
 
 			if ($validator->fails()) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'errors' => $validator->errors()->all(),
@@ -4915,7 +4916,10 @@ class ActivityController extends Controller {
 			$activity->save();
 
 			//SAVE ACTIVITY REPORT FOR DASHBOARD
-			ActivityReport::saveReport($activity->id);
+			$activityReportSync = new ActivityReportSync();
+			$activityReportSync->activity_id = $activity->id;
+			$activityReportSync->sync_status = 0; // NOT SYNCED
+			$activityReportSync->save();
 
 			DB::commit();
 			return response()->json([

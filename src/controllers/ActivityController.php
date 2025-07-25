@@ -8,6 +8,7 @@ use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityPortalStatus;
 use Abs\RsaCasePkg\ActivityRatecard;
 use Abs\RsaCasePkg\ActivityReport;
+use Abs\RsaCasePkg\ActivityReportSync;
 use Abs\RsaCasePkg\ActivityStatus;
 use App\Asp;
 use App\AspServiceType;
@@ -2954,7 +2955,10 @@ class ActivityController extends Controller {
 			$activityLog->save();
 
 			//SAVE ACTIVITY REPORT FOR DASHBOARD
-			ActivityReport::saveReport($activity->id);
+			$activityReportSync = new ActivityReportSync();
+			$activityReportSync->activity_id = $activity->id;
+			$activityReportSync->sync_status = 0; // NOT SYNCED
+			$activityReportSync->save();
 
 			DB::commit();
 
@@ -3118,13 +3122,11 @@ class ActivityController extends Controller {
 			$activityLog->updated_at = Carbon::now();
 			$activityLog->save();
 
-			ActivityReport::where('activity_id', $activity->id)->update([
-				"portal_status" => "Call Center Clarification Completed - Waiting for L1 Individual Verification",
-				"elk_synched_at" => NULL,
-				"elk_sync_flag" => NULL,
-				"updated_by_id" => Auth::id(),
-				"updated_at" => Carbon::now(),
-			]);
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			$activityReportSync = new ActivityReportSync();
+			$activityReportSync->activity_id = $activity->id;
+			$activityReportSync->sync_status = 0; // NOT SYNCED
+			$activityReportSync->save();
 
 			DB::commit();
 
@@ -4920,7 +4922,10 @@ class ActivityController extends Controller {
 
 			$activityReports = ActivityReport::join('activities', 'activities.id', 'activity_reports.activity_id')
 				->join('cases', 'cases.id', 'activities.case_id')
-				->join('asps', 'asps.id', 'activities.asp_id');
+				->join('asps', 'asps.id', 'activities.asp_id')
+				->leftjoin('activity_logs', 'activity_logs.activity_id', 'activities.id')
+				->leftjoin('users as ccClarifiedUser', 'ccClarifiedUser.id', 'activity_logs.cc_clarified_by_id')
+			;
 			if (!empty($statusIds)) {
 				$activityReports->whereIn('activities.status_id', $statusIds);
 			}
@@ -5029,6 +5034,7 @@ class ActivityController extends Controller {
 				DB::raw('COALESCE(activity_reports.deduction_reason, "--") as deductionReason'),
 				DB::raw('COALESCE(activity_reports.defer_reason, "--") as deferReason'),
 				DB::raw('COALESCE(activity_reports.asp_resolve_comments, "--") as aspResolveComments'),
+				DB::raw('COALESCE(activities.cc_clarification, "--") as ccClarification'),
 				DB::raw('COALESCE(activity_reports.is_exceptional, "--") as isExceptional'),
 				DB::raw('COALESCE(activity_reports.exceptional_reason, "--") as exceptionalReason'),
 				DB::raw('COALESCE(activity_reports.invoice_number, "--") as invoiceNumber'),
@@ -5144,6 +5150,11 @@ class ActivityController extends Controller {
 				DB::raw('DATE_FORMAT(activity_reports.asp_data_filled_date, "%d-%m-%Y %H:%i:%s") as aspDataFilledDate'),
 				DB::raw('COALESCE(activity_reports.asp_data_filled_by, "--") as aspDataFilledBy'),
 				DB::raw('COALESCE(activity_reports.duration_between_asp_data_filled_and_l1_deffered, "--") as durationBetweenAspDataFilledAndL1Deffered'),
+
+				DB::raw('DATE_FORMAT(activity_logs.cc_clarified_at, "%d-%m-%Y %H:%i:%s") as ccClarifiedDate'),
+				DB::raw('COALESCE(ccClarifiedUser.username, "--") as ccClarifiedBy'),
+				DB::raw('COALESCE(activity_logs.duration_between_cc_clarified_and_l1_deffered, "--") as durationBetweenCcClarifiedAndL1Deffered'),
+
 				DB::raw('DATE_FORMAT(activity_reports.l1_deffered_date, "%d-%m-%Y %H:%i:%s") as l1DefferedDate'),
 				DB::raw('COALESCE(activity_reports.l1_deffered_by, "--") as l1DefferedBy'),
 				DB::raw('COALESCE(activity_reports.duration_between_asp_data_filled_and_l1_approved, "--") as durationBetweenAspDataFilledAndL1Approved'),
@@ -5438,6 +5449,7 @@ class ActivityController extends Controller {
 					'Deduction Reason',
 					'Deferred Reason',
 					'ASP Resolve Comments',
+					'CC Clarification',
 					'Invoice Number',
 					'Invoice Date',
 					'Invoice Status',
@@ -5527,6 +5539,7 @@ class ActivityController extends Controller {
 					'Deduction Reason',
 					'Deferred Reason',
 					'ASP Resolve Comments',
+					'CC Clarification',
 					'Is Exceptional',
 					'Exceptional Reason',
 					'Invoice Number',
@@ -5646,31 +5659,36 @@ class ActivityController extends Controller {
 					'Duration Between Import and ASP Data Filled',
 					'ASP Data Filled',
 					'ASP Data Filled By',
-					'Duration Between ASP Data Filled and L1 deffered',
+					'Duration Between ASP Data Filled and L1 deferred',
+
+					'CC Clarified',
+					'CC Clarified By',
+					'Duration Between CC Clarified and L1 deferred',
+
 					'L1 Deferred',
 					'L1 Deferred By',
 					'Duration Between ASP Data Filled and L1 approved',
 					'L1 Approved',
 					'L1 Approved By',
 					'Duration Between L1 approved and Invoice generated',
-					'Duration Between L1 approved and L2 deffered',
+					'Duration Between L1 approved and L2 deferred',
 					'L2 Deferred',
 					'L2 Deferred By',
 					'Duration Between L1 approved and L2 approved',
 					'L2 Approved',
 					'L2 Approved By',
 					'Duration Between L2 approved and Invoice generated',
-					'Duration Between L1 approved and L3 deffered',
-					'Duration Between L2 approved and L3 deffered',
+					'Duration Between L1 approved and L3 deferred',
+					'Duration Between L2 approved and L3 deferred',
 					'L3 Deferred',
 					'L3 Deferred By',
 					'Duration Between L2 approved and L3 approved',
 					'L3 Approved',
 					'L3 Approved By',
 					'Duration Between L3 approved and Invoice generated',
-					'Duration Between L1 approved and L4 deffered',
-					'Duration Between L2 approved and L4 deffered',
-					'Duration Between L3 approved and L4 deffered',
+					'Duration Between L1 approved and L4 deferred',
+					'Duration Between L2 approved and L4 deferred',
+					'Duration Between L3 approved and L4 deferred',
 					'L4 Deferred',
 					'L4 Deferred By',
 					'Duration Between L3 approved and L4 approved',
@@ -5751,6 +5769,7 @@ class ActivityController extends Controller {
 							$activityReportVal->deductionReason,
 							$activityReportVal->deferReason,
 							$activityReportVal->aspResolveComments,
+							$activityReportVal->ccClarification,
 							$activityReportVal->invoiceNumber,
 							$activityReportVal->invoiceDate,
 							$activityReportVal->invoiceStatus,
@@ -5840,6 +5859,7 @@ class ActivityController extends Controller {
 							$activityReportVal->deductionReason,
 							$activityReportVal->deferReason,
 							$activityReportVal->aspResolveComments,
+							$activityReportVal->ccClarification,
 							$activityReportVal->isExceptional,
 							$activityReportVal->exceptionalReason,
 							$activityReportVal->invoiceNumber,
@@ -5960,6 +5980,11 @@ class ActivityController extends Controller {
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->aspDataFilledDate;
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->aspDataFilledBy;
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAspDataFilledAndL1Deffered;
+
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->ccClarifiedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->ccClarifiedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenCcClarifiedAndL1Deffered;
+
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedDate;
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedBy;
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAspDataFilledAndL1Approved;

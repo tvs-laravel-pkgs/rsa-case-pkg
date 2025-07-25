@@ -313,6 +313,14 @@ class ActivityReport extends Model {
 						$activityReport->duration_between_asp_data_filled_and_l1_deffered = ($daysBtwDataEntryAndL1Deffered > 1) ? ($daysBtwDataEntryAndL1Deffered . ' Days') : ($daysBtwDataEntryAndL1Deffered . ' Day');
 					}
 
+					// DURATION BETWEEN CC CLARIFIED AND L1 DEFFERED
+					if (!empty(checkDateTimeAndReturnValidDateTimeVal($activity->log->cc_clarified_at)) && !empty(checkDateTimeAndReturnValidDateTimeVal($activity->log->bo_deffered_at))) {
+						$daysBtwCcClarifiedAndL1Deffered = daysBetweenTwoDates($activity->log->cc_clarified_at, $activity->log->bo_deffered_at);
+						$totalDays += $daysBtwCcClarifiedAndL1Deffered;
+						$activity->log->duration_between_cc_clarified_and_l1_deffered = ($daysBtwCcClarifiedAndL1Deffered > 1) ? ($daysBtwCcClarifiedAndL1Deffered . ' Days') : ($daysBtwCcClarifiedAndL1Deffered . ' Day');
+						$activity->log->save();
+					}
+
 					//L1 DEFFERED AT & BY
 					$activityReport->l1_deffered_date = checkDateTimeAndReturnValidDateTimeVal($activity->log->bo_deffered_at);
 					$activityReport->l1_deffered_by = $activity->log->boDefferedBy ? $activity->log->boDefferedBy->username : NULL;
@@ -485,12 +493,14 @@ class ActivityReport extends Model {
 
 				$activityReport->created_year = date('Y', strtotime($activity->created_at));
 				$activityReport->created_date = date('Y-m-d', strtotime($activity->created_at));
+				$activityReport->elk_synched_at = NULL; // FOR ELK SYNC PURPOSE
+				$activityReport->elk_sync_flag = NULL; // FOR ELK SYNC PURPOSE
 				$activityReport->deleted_by_id = $activity->deleted_by_id;
 				$activityReport->deleted_at = $activity->deleted_at;
 				$activityReport->save();
 
-				//UPDATE DATA TO ELK
-				$activityReport->elkPush();
+				//UPDATE DATA TO ELK (NOT USED)
+				// $activityReport->elkPush();
 			}
 		}
 	}

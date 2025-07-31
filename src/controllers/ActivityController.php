@@ -2877,6 +2877,16 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
+
+			// STATUS IS BO Rejected - Waiting for Call Center Clarification AND CALL CENTER IS INACTIVE
+			if ($request->activityStatusId == 28 && $activity->case && !$activity->case->callcenter) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Call center is inactive',
+					],
+				]);
+			}
 		} catch (\Exception $e) {
 			return response()->json([
 				'success' => false,

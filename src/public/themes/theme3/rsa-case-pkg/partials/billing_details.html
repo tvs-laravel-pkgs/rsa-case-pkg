@@ -364,12 +364,12 @@
                             <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.exceptional_reason"></p>
                         </div>
                     </div>
-                    <h3 class="mt-30 mb-20">Rate Card Info</h3>
-                    <ul class="rate-card-info-list">
+                    <h3 class="mt-30 mb-20" ng-hide="$ctrl.hasPermission('cc-deferred-activities')">Rate Card Info</h3>
+                    <ul class="rate-card-info-list" ng-hide="$ctrl.hasPermission('cc-deferred-activities')">
                         <li class="rate-card-info-list-item">Paid To : <span class="orange-txt"> {{$ctrl.data.paid_to}}</span></li>
                         <li class="rate-card-info-list-item">Payment Mode: <span class="orange-txt">{{$ctrl.data.payment_mode}}</span></li>
                     </ul>
-                    <div class="table-responsive">
+                    <div class="table-responsive" ng-hide="$ctrl.hasPermission('cc-deferred-activities')">
                         <table class="table table-bordered table-wide style-normal">
                             <thead>
                                 <tr class="warning">
@@ -409,7 +409,7 @@
                         </table>
                     </div>
                     <!-- @if(!empty($approved_view)) -->
-                    <div class="table-responsive">
+                    <div class="table-responsive" ng-hide="$ctrl.hasPermission('cc-deferred-activities')">
                         <table class="table table-bordered table-wide style-normal">
                             <thead>
                                 <tr>
@@ -462,15 +462,15 @@
                                     </td>
                                 </tr>
                                 <!-- <tr ng-if="$ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 1 || $ctrl.data.activityApprovalLevel == 3)">
-    <td colspan="2">
-        <textarea name="bo_comments" ng-model="$ctrl.data.bo_comments" class="form-control" value="" placeholder="Enter Comments" rows="3"></textarea>
-    </td>
-</tr>
-<tr ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))">
-    <td colspan="2" class="text-left">
-        Comments : {{$ctrl.data.bo_comments ? $ctrl.data.bo_comments : 'N/A'}}
-    </td>
-</tr> -->
+                                    <td colspan="2">
+                                        <textarea name="bo_comments" ng-model="$ctrl.data.bo_comments" class="form-control" value="" placeholder="Enter Comments" rows="3"></textarea>
+                                    </td>
+                                </tr>
+                                <tr ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))">
+                                    <td colspan="2" class="text-left">
+                                        Comments : {{$ctrl.data.bo_comments ? $ctrl.data.bo_comments : 'N/A'}}
+                                    </td>
+                                </tr> -->
                                 <tr class="warning">
                                     <td>Payout Amount</td>
                                     <td>
@@ -497,20 +497,20 @@
                             <ul class="inline-btns">
                                 <li>
                                     <a class="btn btn-primary" data-toggle="modal" data-target="#backstep-case">
-                                        Backstep
+                                        BACKSTEP
                                     </a>
                                 </li>
                             </ul>
                         </div>
                     </div>
                 </div>
-                <div class="table-data-footer" ng-show="$ctrl.hasPermission('cc-deferred-activities')">
+                <div class="table-data-footer" ng-show="$ctrl.hasPermission('cc-deferred-activities')" style="margin-top: 20px;">
                     <div class="row">
                         <div class="col-md-offset-6 col-md-6 text-right">
                             <ul class="inline-btns">
                                 <li>
                                     <a class="btn btn-primary" data-toggle="modal" data-target="#update-cc-clarification-modal">
-                                        Update
+                                        UPDATE
                                     </a>
                                 </li>
                             </ul>

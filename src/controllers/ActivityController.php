@@ -195,10 +195,15 @@ class ActivityController extends Controller {
 				$status_id = 1;
 				$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24, 25, 26];
 
-				$action = '<div class="dataTable-actions" style="min-width: 125px;">
+				// IF IT IS ASP AND STATUS IS BO Rejected - Waiting for Call Center Clarification THEN DO NOT PROVIDE VIEW OPTION
+				if (Entrust::can('view-own-activities') && $activity->status_id == 28) {
+					$action = "";
+				} else {
+					$action = '<div class="dataTable-actions" style="min-width: 125px;">
 				<a href="#!/rsa-case-pkg/activity-status/' . $status_id . '/view/' . $activity->id . '">
 					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
 					            </a>';
+				}
 				if (($activity->status_id == 2 || $activity->status_id == 4 || $activity->status_id == 15 || $activity->status_id == 16 || $activity->status_id == 17) && Entrust::can('delete-activities')) {
 					$action .= '<a onclick="angular.element(this).scope().deleteConfirm(' . $activity->id . ')" href="javascript:void(0)">
 						                <i class="fa fa-trash dataTable-icon--trash cl-delete" data-cl-id =' . $activity->id . ' aria-hidden="true"></i>

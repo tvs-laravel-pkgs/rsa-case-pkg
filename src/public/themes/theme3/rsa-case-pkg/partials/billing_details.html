@@ -332,6 +332,15 @@
                                     <a target="_blank" href="{{$ctrl.data.otherAttachmentTwoUrl}}">{{$ctrl.data.otherAttachmentTwo.attachment_file_name}}</a>
                                 </td>
                             </tr>
+                            <tr ng-show="$ctrl.data.cc_clarification_attachment_url.length > 0">
+                                <th scope="row">CC Clarification Attachments</th>
+                                <td colspan="{{$ctrl.data.span_value}}">
+                                    <div ng-repeat="(index,cc_clarification_attachment) in $ctrl.data.cc_clarification_attachments">
+                                        <a target="_blank" href="{{$ctrl.data.cc_clarification_attachment_url[index]}}">{{cc_clarification_attachment.attachment_file_name}}</a>,
+                                        <img height="80px" weight="80px" src="{{$ctrl.data.cc_clarification_attachment_url[index]}}">
+                                    </div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                     <div class="row" style="border: 1px solid #e1e1e1;padding: 10px 15px;margin: 0 auto;">
@@ -706,7 +715,7 @@
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><img src="{{$ctrl.data.style_modal_close_image_url}}"></button>
             </div>
-            <form novalidate id="cc-clarification-form" method="post" name="ccClarificationForm">
+            <form id="cc-clarification-form" enctype="multipart-formdata">
                 <input type="hidden" name="_token" value="{{ $ctrl.csrf }}" />
                 <input type="hidden" name="activity_id" ng-model="$ctrl.data.id" value="{{$ctrl.data.id}}">
                 <div class="modal-body">
@@ -714,13 +723,22 @@
                     <h2 class="uploadMsg-title">
                         Update Clarification
                     </h2>
-                    <textarea name="cc_clarification" ng-model="$ctrl.cc_clarification" value="{{$ctrl.cc_clarification}}" rows="5" class="form-control" autocomplete="off" placeholder="Enter Clarification" id='cc_clarification' required></textarea>
-                    <div ng-show="ccClarificationForm.$submitted || ccClarificationForm.cc_clarification.$touched">
-                        <span style="color:red" ng-show="ccClarificationForm.cc_clarification.$error.required">Clarification is required.</span>
-                    </div>
+                    <textarea name="cc_clarification" ng-model="$ctrl.cc_clarification" rows="5" class="form-control" autocomplete="off" placeholder="Enter Clarification"></textarea>
+                    <div class="input-text" style="margin-top: 20px;">
+                        <div class="input-group">
+                            <input type="text" class="form-control" readonly placeholder="Select File">
+                            <span class="input-group-btn">
+                                <span class="btn btn-file">
+                                    Browse
+                                    <input name="cc_clarification_attachments[]" type="file" multiple="multiple" class="form-control" autocomplete='off' ng-model="$ctrl.cc_clarification_attachments" />
+                                </span>
+                            </span>
+                        </div>
+                        <div class="cc_clarification_attachment_error"></div>
+                    </div><!-- Field -->
                     <div class="clearfix"></div>
                     <div class="custom-row">
-                        <button class="btn btn-primary yellow update_clarification_btn mt-20" type="btn" ng-click="updateCcClarification()">Submit</button>
+                        <button class="btn btn-primary yellow update_clarification_btn mt-20" type="submit">Submit</button>
                     </div>
                 </div>
             </form>

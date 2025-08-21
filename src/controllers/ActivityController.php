@@ -195,7 +195,7 @@ class ActivityController extends Controller {
 				$status_id = 1;
 				$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24, 25, 26];
 
-				// IF IT IS ASP AND STATUS IS BO Rejected - Waiting for Call Center Clarification THEN DO NOT PROVIDE VIEW OPTION
+				// IF IT IS ASP AND STATUS IS Rejected - Waiting for Call Center Clarification THEN DO NOT PROVIDE VIEW OPTION
 				if (Entrust::can('view-own-activities') && $activity->status_id == 28) {
 					$action = "";
 				} else {
@@ -2899,7 +2899,7 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			// STATUS IS BO Rejected - Waiting for Call Center Clarification AND CALL CENTER IS INACTIVE
+			// STATUS IS Rejected - Waiting for Call Center Clarification AND CALL CENTER IS INACTIVE
 			if ($request->activityStatusId == 28 && $activity->case && !$activity->case->callcenter) {
 				return response()->json([
 					'success' => false,
@@ -2933,13 +2933,16 @@ class ActivityController extends Controller {
 				} else {
 					$deferReason = "L1 Approver : " . makeUrltoLinkInString($request->defer_reason);
 				}
-				$activity->service_type_changed_on_level = NULL;
-				$activity->l1_changed_service_type_id = NULL;
-				$activity->l2_changed_service_type_id = NULL;
-				$activity->l3_changed_service_type_id = NULL;
-				$activity->km_changed_on_level = NULL;
-				$activity->not_collected_amount_changed_on_level = NULL;
-				$activity->collected_amount_changed_on_level = NULL;
+				// IF THE STATUS IS NOT REJECTED - WAITING FOR CALL CENTER CLARIFICATION
+				if ($request->activityStatusId != 28) {
+					$activity->service_type_changed_on_level = NULL;
+					$activity->l1_changed_service_type_id = NULL;
+					$activity->l2_changed_service_type_id = NULL;
+					$activity->l3_changed_service_type_id = NULL;
+					$activity->km_changed_on_level = NULL;
+					$activity->not_collected_amount_changed_on_level = NULL;
+					$activity->collected_amount_changed_on_level = NULL;
+				}
 			} elseif (Auth::user()->activity_approval_level_id == 2) {
 				// L2
 				if (!empty($deferReason)) {
@@ -2947,7 +2950,10 @@ class ActivityController extends Controller {
 				} else {
 					$deferReason = "L2 Approver : " . makeUrltoLinkInString($request->defer_reason);
 				}
-				$activity->l2_changed_service_type_id = NULL;
+				// IF THE STATUS IS NOT REJECTED - WAITING FOR CALL CENTER CLARIFICATION
+				if ($request->activityStatusId != 28) {
+					$activity->l2_changed_service_type_id = NULL;
+				}
 			} elseif (Auth::user()->activity_approval_level_id == 3) {
 				// L3
 				if (!empty($deferReason)) {
@@ -2955,7 +2961,10 @@ class ActivityController extends Controller {
 				} else {
 					$deferReason = "L3 Approver : " . makeUrltoLinkInString($request->defer_reason);
 				}
-				$activity->l3_changed_service_type_id = NULL;
+				// IF THE STATUS IS NOT REJECTED - WAITING FOR CALL CENTER CLARIFICATION
+				if ($request->activityStatusId != 28) {
+					$activity->l3_changed_service_type_id = NULL;
+				}
 			} elseif (Auth::user()->activity_approval_level_id == 4) {
 				// L4
 				if (!empty($deferReason)) {
@@ -2980,23 +2989,30 @@ class ActivityController extends Controller {
 			$activityLog = ActivityLog::firstOrNew([
 				'activity_id' => $activity->id,
 			]);
-			//L1
-			if (Auth::user()->activity_approval_level_id == 1) {
-				$activityLog->bo_deffered_at = date('Y-m-d H:i:s');
-				$activityLog->bo_deffered_by_id = Auth::id();
-				$activityLog->bo_deffered_cc_l2_user_escalated_at = null;
-			} elseif (Auth::user()->activity_approval_level_id == 2) {
-				// L2
-				$activityLog->l2_deffered_at = date('Y-m-d H:i:s');
-				$activityLog->l2_deffered_by_id = Auth::id();
-			} elseif (Auth::user()->activity_approval_level_id == 3) {
-				// L3
-				$activityLog->l3_deffered_at = date('Y-m-d H:i:s');
-				$activityLog->l3_deffered_by_id = Auth::id();
-			} elseif (Auth::user()->activity_approval_level_id == 4) {
-				// L4
-				$activityLog->l4_deffered_at = date('Y-m-d H:i:s');
-				$activityLog->l4_deffered_by_id = Auth::id();
+
+			// IF THE STATUS IS REJECTED - WAITING FOR CALL CENTER CLARIFICATION
+			if ($request->activityStatusId == 28) {
+				$activityLog->deferred_to_cc_at = date('Y-m-d H:i:s');
+				$activityLog->deferred_to_cc_by_id = Auth::id();
+				$activityLog->deferred_to_cc_l2_user_escalated_at = null;
+			} else {
+				//L1
+				if (Auth::user()->activity_approval_level_id == 1) {
+					$activityLog->bo_deffered_at = date('Y-m-d H:i:s');
+					$activityLog->bo_deffered_by_id = Auth::id();
+				} elseif (Auth::user()->activity_approval_level_id == 2) {
+					// L2
+					$activityLog->l2_deffered_at = date('Y-m-d H:i:s');
+					$activityLog->l2_deffered_by_id = Auth::id();
+				} elseif (Auth::user()->activity_approval_level_id == 3) {
+					// L3
+					$activityLog->l3_deffered_at = date('Y-m-d H:i:s');
+					$activityLog->l3_deffered_by_id = Auth::id();
+				} elseif (Auth::user()->activity_approval_level_id == 4) {
+					// L4
+					$activityLog->l4_deffered_at = date('Y-m-d H:i:s');
+					$activityLog->l4_deffered_by_id = Auth::id();
+				}
 			}
 			$activityLog->updated_by_id = Auth::id();
 			$activityLog->updated_at = Carbon::now();
@@ -3032,8 +3048,8 @@ class ActivityController extends Controller {
 				notify2($noty_message_template, $asp_user, config('constants.alert_type.red'), $number);
 			}
 
-			// L1 APPROVAL AND STATUS IS BO Rejected - Waiting for Call Center Clarification
-			if (Auth::user()->activity_approval_level_id == 1 && $request->activityStatusId == 28 && $activity->case && $activity->case->callcenter) {
+			// L1 / L2 / L3 / L4 APPROVAL AND STATUS IS Rejected - Waiting for Call Center Clarification
+			if (in_array(Auth::user()->activity_approval_level_id, [1, 2, 3, 4]) && $request->activityStatusId == 28 && $activity->case && $activity->case->callcenter) {
 				//SENT EMAIL NOTIFICATION TO CALL CENTER L1 USER
 				if (!empty($activity->case->callcenter->l1_user_email)) {
 					$arr['subject'] = "Re: Waiting For Call Center Clarification - Ticket No: " . $request->case_number;
@@ -3116,7 +3132,7 @@ class ActivityController extends Controller {
 				'service_type_id',
 			])
 				->where('id', $request->activity_id)
-				->where('status_id', 28) //BO Rejected - Waiting for Call Center Clarification
+				->where('status_id', 28) //Rejected - Waiting for Call Center Clarification
 				->first();
 
 			if (!$activity) {
@@ -4468,7 +4484,7 @@ class ActivityController extends Controller {
 		} else if (Entrust::can('cc-deferred-activities')) {
 			if (Auth::user()->cc) {
 				$activities->where('cases.call_center_id', Auth::user()->cc->id)
-					->where('activities.status_id', 28); //BO Rejected - Waiting for Call Center Clarification
+					->where('activities.status_id', 28); //Rejected - Waiting for Call Center Clarification
 			} else {
 				return Datatables::of([])->make(true);
 			}

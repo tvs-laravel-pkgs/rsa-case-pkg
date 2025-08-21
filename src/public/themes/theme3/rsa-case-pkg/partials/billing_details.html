@@ -587,27 +587,52 @@
     </div>
 </div><!-- Modal -->
 <!-- Modal -->
-<div class="modal fade uploadMsg modal-bo" id="reject-modal" role="dialog" ng-if="$ctrl.data.activityApprovalLevel != 1">
-    <div class="modal-dialog">
-        <div class="modal-content txt-center">
+<div class="modal fade asp_for_find" id="reject-modal" role="dialog" ng-if="$ctrl.data.activityApprovalLevel != 1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><img src="{{$ctrl.data.style_modal_close_image_url}}"></button>
+                <h4 class="modal-title">Defer Activity</h4>
             </div>
+            <div class="alert alert-danger" style="display: none;"></div>
             <div class="modal-body">
                 <form novalidate id="defer_form" method="post" name="$ctrl.differFormNotLevelOne">
                     <input type="hidden" name="_token" value="{{ $ctrl.csrf }}" />
                     <input type="hidden" name="activity_id" id="activity_id" value="{{$ctrl.data.id}}">
-                    <img class="uploadMsg-img" src="{{$ctrl.data.style_question_image_url}}">
-                    <h2 class="uploadMsg-title">Defer Activity</h2>
                     <input name="defer_to" type="hidden" value="{{config('constants.ticket_statuses.'.$defer_to)}}">
-                    <textarea name="defer_reason" ng-model="$ctrl.defer_reason" value="{{$ctrl.defer_reason}}" rows='5' class="form-control" autocomplete="off" placeholder="Enter Reason" ng-required="true"></textarea>
-                    <div ng-show="$ctrl.differFormNotLevelOne.$submitted || $ctrl.differFormNotLevelOne.defer_reason.$touched">
-                        <span style="color:red" ng-show="$ctrl.differFormNotLevelOne.defer_reason.$error.required">Differ reason is required.</span>
-                    </div>
                     <input type="hidden" value="{{$ctrl.data.bo_comments}}" ng-model="$ctrl.data.bo_comments">
                     <input type="hidden" value="{{$ctrl.data.deduction_reason}}" ng-model="$ctrl.data.deduction_reason">
-                    <div class="clearfix"></div>
-                    <button class="btn btn-primary yellow differ_btn" type="btn" ng-click="differ(22)">Confirm</button>
+                    <div class="approvalModal-wrapper">
+                        <div class="viewData-threeColumn--wrapper">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                <label>Reason<sup class="req">*</sup></label>
+                                                <textarea name="defer_reason" ng-model="$ctrl.defer_reason" value="{{$ctrl.defer_reason}}" rows='5' class="form-control" autocomplete="off" placeholder="Enter Reason" ng-required="true"></textarea>
+                                                <div ng-show="$ctrl.differFormNotLevelOne.$submitted || $ctrl.differFormNotLevelOne.defer_reason.$touched">
+                                                    <span style="color:red" ng-show="$ctrl.differFormNotLevelOne.defer_reason.$error.required">Defer reason is required.</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                Click Here
+                                                <button type="button" ng-click="differ(22)" class="blue approve-btn differ_btn">Rejected - Waiting for L1 Individual Verification</button>
+                                            </div><!-- Field -->
+                                        </div><!-- Column -->
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                Click Here
+                                                <button type="button" class="blue approve-btn differ_btn" ng-click="differ(28)">Rejected - Waiting for Call Center Clarification</button>
+                                            </div><!-- Field -->
+                                        </div><!-- Column -->
+                                    </div>
+                                </div><!-- row -->
+                            </div><!-- Column -->
+                        </div><!-- Row -->
+                    </div>
                 </form>
             </div>
         </div>
@@ -651,7 +676,7 @@
                                         <div class="col-sm-6">
                                             <div class="input-text form-group">
                                                 Click Here
-                                                <button type="button" class="blue approve-btn differ_btn" ng-click="differ(28)">BO Rejected - Waiting for Call Center Clarification</button>
+                                                <button type="button" class="blue approve-btn differ_btn" ng-click="differ(28)">Rejected - Waiting for Call Center Clarification</button>
                                             </div><!-- Field -->
                                         </div><!-- Column -->
                                     </div>

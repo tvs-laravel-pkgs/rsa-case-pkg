@@ -29,12 +29,16 @@ class ActivityLog extends Model {
 		return $this->belongsTo('App\User', 'asp_data_filled_by_id');
 	}
 
-	public function boDefferedBy() {
-		return $this->belongsTo('App\User', 'bo_deffered_by_id');
+	public function defferedToCcBy() {
+		return $this->belongsTo('App\User', 'deferred_to_cc_by_id');
 	}
 
 	public function ccClarifiedBy() {
 		return $this->belongsTo('App\User', 'cc_clarified_by_id');
+	}
+
+	public function boDefferedBy() {
+		return $this->belongsTo('App\User', 'bo_deffered_by_id');
 	}
 
 	public function boApprovedBy() {

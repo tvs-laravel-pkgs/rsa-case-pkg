@@ -1365,10 +1365,12 @@ class ActivityController extends Controller {
 			$importedBy = "";
 			$aspDataFilledAt = "";
 			$aspDataFilledBy = "";
-			$boDefferedAt = "";
-			$boDefferedBy = "";
+			$defferedToCcAt = "";
+			$defferedToCcBy = "";
 			$ccClarifiedAt = "";
 			$ccClarifiedBy = "";
+			$boDefferedAt = "";
+			$boDefferedBy = "";
 			$boApprovedAt = "";
 			$boApprovedBy = "";
 			$l2DefferedAt = "";
@@ -1402,17 +1404,23 @@ class ActivityController extends Controller {
 				if (!empty($activity_data->log->asp_data_filled_by_id)) {
 					$aspDataFilledBy = $activity_data->log->aspDataFilledBy ? ($activity_data->log->aspDataFilledBy->name . ' - ' . $activity_data->log->aspDataFilledBy->username) : '';
 				}
-				if (!empty($activity_data->log->bo_deffered_at)) {
-					$boDefferedAt = $activity_data->log->bo_deffered_at;
+				if (!empty($activity_data->log->deferred_to_cc_at)) {
+					$defferedToCcAt = $activity_data->log->deferred_to_cc_at;
 				}
-				if (!empty($activity_data->log->bo_deffered_by_id)) {
-					$boDefferedBy = $activity_data->log->boDefferedBy ? ($activity_data->log->boDefferedBy->name . ' - ' . $activity_data->log->boDefferedBy->username) : '';
+				if (!empty($activity_data->log->deferred_to_cc_by_id)) {
+					$defferedToCcBy = $activity_data->log->defferedToCcBy ? ($activity_data->log->defferedToCcBy->name . ' - ' . $activity_data->log->defferedToCcBy->username) : '';
 				}
 				if (!empty($activity_data->log->cc_clarified_at)) {
 					$ccClarifiedAt = $activity_data->log->cc_clarified_at;
 				}
 				if (!empty($activity_data->log->cc_clarified_by_id)) {
 					$ccClarifiedBy = $activity_data->log->ccClarifiedBy ? ($activity_data->log->ccClarifiedBy->name . ' - ' . $activity_data->log->ccClarifiedBy->username) : '';
+				}
+				if (!empty($activity_data->log->bo_deffered_at)) {
+					$boDefferedAt = $activity_data->log->bo_deffered_at;
+				}
+				if (!empty($activity_data->log->bo_deffered_by_id)) {
+					$boDefferedBy = $activity_data->log->boDefferedBy ? ($activity_data->log->boDefferedBy->name . ' - ' . $activity_data->log->boDefferedBy->username) : '';
 				}
 				if (!empty($activity_data->log->bo_approved_at)) {
 					$boApprovedAt = $activity_data->log->bo_approved_at;
@@ -1502,10 +1510,12 @@ class ActivityController extends Controller {
 			$this->data['activities']['importedBy'] = $importedBy;
 			$this->data['activities']['aspDataFilledAt'] = $aspDataFilledAt;
 			$this->data['activities']['aspDataFilledBy'] = $aspDataFilledBy;
-			$this->data['activities']['boDefferedAt'] = $boDefferedAt;
-			$this->data['activities']['boDefferedBy'] = $boDefferedBy;
+			$this->data['activities']['defferedToCcAt'] = $defferedToCcAt;
+			$this->data['activities']['defferedToCcBy'] = $defferedToCcBy;
 			$this->data['activities']['ccClarifiedAt'] = $ccClarifiedAt;
 			$this->data['activities']['ccClarifiedBy'] = $ccClarifiedBy;
+			$this->data['activities']['boDefferedAt'] = $boDefferedAt;
+			$this->data['activities']['boDefferedBy'] = $boDefferedBy;
 			$this->data['activities']['boApprovedAt'] = $boApprovedAt;
 			$this->data['activities']['boApprovedBy'] = $boApprovedBy;
 			$this->data['activities']['l2DefferedAt'] = $l2DefferedAt;
@@ -5076,6 +5086,7 @@ class ActivityController extends Controller {
 				->join('asps', 'asps.id', 'activities.asp_id')
 				->leftjoin('activity_logs', 'activity_logs.activity_id', 'activities.id')
 				->leftjoin('users as ccClarifiedUser', 'ccClarifiedUser.id', 'activity_logs.cc_clarified_by_id')
+				->leftjoin('users as deferredToCcUser', 'deferredToCcUser.id', 'activity_logs.deferred_to_cc_by_id')
 			;
 			if (!empty($statusIds)) {
 				$activityReports->whereIn('activities.status_id', $statusIds);
@@ -5302,9 +5313,11 @@ class ActivityController extends Controller {
 				DB::raw('COALESCE(activity_reports.asp_data_filled_by, "--") as aspDataFilledBy'),
 				DB::raw('COALESCE(activity_reports.duration_between_asp_data_filled_and_l1_deffered, "--") as durationBetweenAspDataFilledAndL1Deffered'),
 
+				DB::raw('DATE_FORMAT(activity_logs.deferred_to_cc_at, "%d-%m-%Y %H:%i:%s") as deferredToCcDate'),
+				DB::raw('COALESCE(deferredToCcUser.username, "--") as deferredToCcBy'),
 				DB::raw('DATE_FORMAT(activity_logs.cc_clarified_at, "%d-%m-%Y %H:%i:%s") as ccClarifiedDate'),
 				DB::raw('COALESCE(ccClarifiedUser.username, "--") as ccClarifiedBy'),
-				DB::raw('COALESCE(activity_logs.duration_between_cc_clarified_and_l1_deffered, "--") as durationBetweenCcClarifiedAndL1Deffered'),
+				DB::raw('COALESCE(activity_logs.duration_between_cc_clarified_and_deferred_to_cc, "--") as durationBetweenCcClarifiedAndDefferedToCc'),
 
 				DB::raw('DATE_FORMAT(activity_reports.l1_deffered_date, "%d-%m-%Y %H:%i:%s") as l1DefferedDate'),
 				DB::raw('COALESCE(activity_reports.l1_deffered_by, "--") as l1DefferedBy'),
@@ -5812,9 +5825,11 @@ class ActivityController extends Controller {
 					'ASP Data Filled By',
 					'Duration Between ASP Data Filled and L1 deferred',
 
+					'Deferred To CC',
+					'Deferred To CC By',
 					'CC Clarified',
 					'CC Clarified By',
-					'Duration Between CC Clarified and L1 deferred',
+					'Duration Between CC Clarified and deferred to CC',
 
 					'L1 Deferred',
 					'L1 Deferred By',
@@ -6132,9 +6147,11 @@ class ActivityController extends Controller {
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->aspDataFilledBy;
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAspDataFilledAndL1Deffered;
 
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->deferredToCcDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->deferredToCcBy;
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->ccClarifiedDate;
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->ccClarifiedBy;
-						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenCcClarifiedAndL1Deffered;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenCcClarifiedAndDefferedToCc;
 
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedDate;
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedBy;

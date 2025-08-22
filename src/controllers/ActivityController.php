@@ -948,15 +948,8 @@ class ActivityController extends Controller {
 			}
 			if ($cc_clarification_attachments->isNotEmpty()) {
 				foreach ($cc_clarification_attachments as $key => $cc_clarification_attachment) {
-					if ($hasccServiceType) {
-						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $ccServiceType->id . '/' . $cc_clarification_attachment->attachment_file_name)) {
-							$cc_clarification_attachment_url[$key] = aspTicketAttachmentImage($cc_clarification_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $ccServiceType->id);
-						}
-					}
-					if ($hasaspServiceType) {
-						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $aspServiceType->id . '/' . $cc_clarification_attachment->attachment_file_name)) {
-							$cc_clarification_attachment_url[$key] = aspTicketAttachmentImage($cc_clarification_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $aspServiceType->id);
-						}
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/cc-clarification-attachments/' . $cc_clarification_attachment->attachment_file_name)) {
+						$cc_clarification_attachment_url[$key] = ccClarificationAttachmentUrl($cc_clarification_attachment->attachment_file_name, $activity_status_id);
 					}
 				}
 			}
@@ -3209,7 +3202,7 @@ class ActivityController extends Controller {
 			$activity->save();
 
 			if (isset($request->cc_clarification_attachments) && !empty($request->cc_clarification_attachments)) {
-				$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
+				$destination = ccClarificationAttachmentPath($activity->id);
 				Storage::makeDirectory($destination, 0777);
 
 				//REMOVE EXISTING ATTACHMENT
@@ -3218,7 +3211,7 @@ class ActivityController extends Controller {
 					->get();
 				if ($getAttachments->isNotEmpty()) {
 					foreach ($getAttachments as $getAttachmentKey => $getAttachmentVal) {
-						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $getAttachmentVal->attachment_file_name)) {
+						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/cc-clarification-attachments/' . $getAttachmentVal->attachment_file_name)) {
 							unlink(storage_path('app/' . $destination . '/' . $getAttachmentVal->attachment_file_name));
 						}
 						$getAttachmentVal->delete();
@@ -3228,7 +3221,7 @@ class ActivityController extends Controller {
 				foreach ($request->cc_clarification_attachments as $key => $value) {
 					if ($request->hasFile("cc_clarification_attachments.$key")) {
 						$extension = $request->file("cc_clarification_attachments.$key")->getClientOriginalExtension();
-						$filename = "cc_attachment_" . time() . "_" . $key . "." . $extension;
+						$filename = time() . "_" . $key . "." . $extension;
 						$status = $request->file("cc_clarification_attachments.$key")->storeAs($destination, $filename);
 						Attachment::create([
 							'entity_type' => config('constants.entity_types.CC_CLARIFICATION_ATTACHMENT'),

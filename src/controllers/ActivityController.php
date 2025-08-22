@@ -3228,8 +3228,8 @@ class ActivityController extends Controller {
 				foreach ($request->cc_clarification_attachments as $key => $value) {
 					if ($request->hasFile("cc_clarification_attachments.$key")) {
 						$extension = $request->file("cc_clarification_attachments.$key")->getClientOriginalExtension();
-						$filename = "cc_clarification_attachment_" . $key . '.' . $extension;
-						$request->file("cc_clarification_attachments.$key")->storeAs($destination, $filename);
+						$filename = "cc_attachment_" . time() . "_" . $key . "." . $extension;
+						$status = $request->file("cc_clarification_attachments.$key")->storeAs($destination, $filename);
 						Attachment::create([
 							'entity_type' => config('constants.entity_types.CC_CLARIFICATION_ATTACHMENT'),
 							'entity_id' => $activity->id,

@@ -486,39 +486,77 @@ app.component('billingDetails', {
                         }
                     }
 
-                    $scope.updateCcClarification = function() {
-                        if ($scope.ccClarificationForm.$valid) {
+                    const form_id = '#cc-clarification-form';
+                    jQuery(form_id).validate({
+                        ignore: '',
+                        rules: {
+                            'activity_id': {
+                                required: true,
+                            },
+                            'cc_clarification': {
+                                required: true,
+                            },
+                            'cc_clarification_attachments[]': {
+                                extension: "jpg|jpeg|png",
+                            },
+                        },
+                        messages: {
+                            'activity_id': {
+                                required: "Activity ID is required",
+                            },
+                            'cc_clarification': {
+                                required: "Clarification is required",
+                            },
+                            'cc_clarification_attachments[]': {
+                                extension: "Please upload attachment in jpg, jpeg, png formats",
+                            },
+                        },
+                        errorPlacement: function(error, element) {
+                            if (element.attr('name') == 'cc_clarification_attachments[]') {
+                                error.appendTo($('.cc_clarification_attachment_error'));
+                            } else {
+                                error.insertAfter(element)
+                            }
+                        },
+                        submitHandler: function(form) {
+                            const formData = new FormData($(form_id)[0]);
                             $('.update_clarification_btn').button('loading');
                             if ($(".loader-type-2").hasClass("loader-hide")) {
                                 $(".loader-type-2").removeClass("loader-hide");
                             }
-                            $http.post(
-                                laravel_routes['updateCcClarificationForDeferredActivity'], {
-                                    activity_id: self.data.id,
-                                    cc_clarification: self.cc_clarification,
-                                }
-                            ).then(function(response) {
-                                $(".loader-type-2").addClass("loader-hide");
-                                $('.update_clarification_btn').button('reset');
-
-                                if (!response.data.success) {
-                                    let errors = '';
-                                    for (var i in response.data.errors) {
-                                        errors += '<li>' + response.data.errors[i] + '</li>';
+                            $.ajax({
+                                    url: laravel_routes['updateCcClarificationForDeferredActivity'],
+                                    method: "POST",
+                                    data: formData,
+                                    processData: false,
+                                    contentType: false,
+                                })
+                                .done(function(res) {
+                                    $(".loader-type-2").addClass("loader-hide");
+                                    $('.update_clarification_btn').button('reset');
+                                    if (!res.success) {
+                                        let errors = '';
+                                        for (const i in res.errors) {
+                                            errors += '<li>' + res.errors[i] + '</li>';
+                                        }
+                                        custom_noty('error', errors);
+                                        return;
+                                    } else {
+                                        $("#update-cc-clarification-modal").modal("hide");
+                                        custom_noty('success', res.message);
+                                        setTimeout(function() {
+                                            $location.path('/rsa-case-pkg/deferred-activity/list');
+                                            $scope.$apply();
+                                        }, 1000);
                                     }
-                                    custom_noty('error', errors);
-                                    return;
-                                } else {
-                                    $("#update-cc-clarification-modal").modal("hide");
-                                    custom_noty('success', response.data.message);
-                                    setTimeout(function() {
-                                        $location.path('/rsa-case-pkg/deferred-activity/list');
-                                        $scope.$apply();
-                                    }, 1000);
-                                }
-                            });
-                        }
-                    }
+                                })
+                                .fail(function(xhr) {
+                                    $(".loader-type-2").addClass("loader-hide");
+                                    $('.update_clarification_btn').button('reset');
+                                    custom_noty('error', 'Something went wrong at server');
+                                });
+                        },
+                    });
 
                     $scope.getServiceTypeRateCardDetail = () => {
                         if (self.data.boServiceTypeId && self.data.asp_id) {

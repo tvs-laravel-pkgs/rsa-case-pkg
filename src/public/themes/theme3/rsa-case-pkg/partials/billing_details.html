@@ -332,6 +332,15 @@
                                     <a target="_blank" href="{{$ctrl.data.otherAttachmentTwoUrl}}">{{$ctrl.data.otherAttachmentTwo.attachment_file_name}}</a>
                                 </td>
                             </tr>
+                            <tr ng-show="$ctrl.data.cc_clarification_attachment_url.length > 0">
+                                <th scope="row">CC Clarification Attachments</th>
+                                <td colspan="{{$ctrl.data.span_value}}">
+                                    <div ng-repeat="(index,cc_clarification_attachment) in $ctrl.data.cc_clarification_attachments">
+                                        <a target="_blank" href="{{$ctrl.data.cc_clarification_attachment_url[index]}}">{{cc_clarification_attachment.attachment_file_name}}</a>,
+                                        <img height="80px" weight="80px" src="{{$ctrl.data.cc_clarification_attachment_url[index]}}">
+                                    </div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                     <div class="row" style="border: 1px solid #e1e1e1;padding: 10px 15px;margin: 0 auto;">
@@ -364,12 +373,12 @@
                             <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.exceptional_reason"></p>
                         </div>
                     </div>
-                    <h3 class="mt-30 mb-20">Rate Card Info</h3>
-                    <ul class="rate-card-info-list">
+                    <h3 class="mt-30 mb-20" ng-hide="$ctrl.hasPermission('cc-deferred-activities')">Rate Card Info</h3>
+                    <ul class="rate-card-info-list" ng-hide="$ctrl.hasPermission('cc-deferred-activities')">
                         <li class="rate-card-info-list-item">Paid To : <span class="orange-txt"> {{$ctrl.data.paid_to}}</span></li>
                         <li class="rate-card-info-list-item">Payment Mode: <span class="orange-txt">{{$ctrl.data.payment_mode}}</span></li>
                     </ul>
-                    <div class="table-responsive">
+                    <div class="table-responsive" ng-hide="$ctrl.hasPermission('cc-deferred-activities')">
                         <table class="table table-bordered table-wide style-normal">
                             <thead>
                                 <tr class="warning">
@@ -409,7 +418,7 @@
                         </table>
                     </div>
                     <!-- @if(!empty($approved_view)) -->
-                    <div class="table-responsive">
+                    <div class="table-responsive" ng-hide="$ctrl.hasPermission('cc-deferred-activities')">
                         <table class="table table-bordered table-wide style-normal">
                             <thead>
                                 <tr>
@@ -462,15 +471,15 @@
                                     </td>
                                 </tr>
                                 <!-- <tr ng-if="$ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 1 || $ctrl.data.activityApprovalLevel == 3)">
-    <td colspan="2">
-        <textarea name="bo_comments" ng-model="$ctrl.data.bo_comments" class="form-control" value="" placeholder="Enter Comments" rows="3"></textarea>
-    </td>
-</tr>
-<tr ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))">
-    <td colspan="2" class="text-left">
-        Comments : {{$ctrl.data.bo_comments ? $ctrl.data.bo_comments : 'N/A'}}
-    </td>
-</tr> -->
+                                    <td colspan="2">
+                                        <textarea name="bo_comments" ng-model="$ctrl.data.bo_comments" class="form-control" value="" placeholder="Enter Comments" rows="3"></textarea>
+                                    </td>
+                                </tr>
+                                <tr ng-if="$ctrl.data.verification == 0 || ($ctrl.data.verification == 1 && ($ctrl.data.activityApprovalLevel == 2 || $ctrl.data.activityApprovalLevel == 4))">
+                                    <td colspan="2" class="text-left">
+                                        Comments : {{$ctrl.data.bo_comments ? $ctrl.data.bo_comments : 'N/A'}}
+                                    </td>
+                                </tr> -->
                                 <tr class="warning">
                                     <td>Payout Amount</td>
                                     <td>
@@ -497,20 +506,20 @@
                             <ul class="inline-btns">
                                 <li>
                                     <a class="btn btn-primary" data-toggle="modal" data-target="#backstep-case">
-                                        Backstep
+                                        BACKSTEP
                                     </a>
                                 </li>
                             </ul>
                         </div>
                     </div>
                 </div>
-                <div class="table-data-footer" ng-show="$ctrl.hasPermission('cc-deferred-activities')">
+                <div class="table-data-footer" ng-show="$ctrl.hasPermission('cc-deferred-activities')" style="margin-top: 20px;">
                     <div class="row">
                         <div class="col-md-offset-6 col-md-6 text-right">
                             <ul class="inline-btns">
                                 <li>
                                     <a class="btn btn-primary" data-toggle="modal" data-target="#update-cc-clarification-modal">
-                                        Update
+                                        UPDATE
                                     </a>
                                 </li>
                             </ul>
@@ -578,27 +587,52 @@
     </div>
 </div><!-- Modal -->
 <!-- Modal -->
-<div class="modal fade uploadMsg modal-bo" id="reject-modal" role="dialog" ng-if="$ctrl.data.activityApprovalLevel != 1">
-    <div class="modal-dialog">
-        <div class="modal-content txt-center">
+<div class="modal fade asp_for_find" id="reject-modal" role="dialog" ng-if="$ctrl.data.activityApprovalLevel != 1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><img src="{{$ctrl.data.style_modal_close_image_url}}"></button>
+                <h4 class="modal-title">Defer Activity</h4>
             </div>
+            <div class="alert alert-danger" style="display: none;"></div>
             <div class="modal-body">
                 <form novalidate id="defer_form" method="post" name="$ctrl.differFormNotLevelOne">
                     <input type="hidden" name="_token" value="{{ $ctrl.csrf }}" />
                     <input type="hidden" name="activity_id" id="activity_id" value="{{$ctrl.data.id}}">
-                    <img class="uploadMsg-img" src="{{$ctrl.data.style_question_image_url}}">
-                    <h2 class="uploadMsg-title">Defer Activity</h2>
                     <input name="defer_to" type="hidden" value="{{config('constants.ticket_statuses.'.$defer_to)}}">
-                    <textarea name="defer_reason" ng-model="$ctrl.defer_reason" value="{{$ctrl.defer_reason}}" rows='5' class="form-control" autocomplete="off" placeholder="Enter Reason" ng-required="true"></textarea>
-                    <div ng-show="$ctrl.differFormNotLevelOne.$submitted || $ctrl.differFormNotLevelOne.defer_reason.$touched">
-                        <span style="color:red" ng-show="$ctrl.differFormNotLevelOne.defer_reason.$error.required">Differ reason is required.</span>
-                    </div>
                     <input type="hidden" value="{{$ctrl.data.bo_comments}}" ng-model="$ctrl.data.bo_comments">
                     <input type="hidden" value="{{$ctrl.data.deduction_reason}}" ng-model="$ctrl.data.deduction_reason">
-                    <div class="clearfix"></div>
-                    <button class="btn btn-primary yellow differ_btn" type="btn" ng-click="differ(22)">Confirm</button>
+                    <div class="approvalModal-wrapper">
+                        <div class="viewData-threeColumn--wrapper">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                <label>Reason<sup class="req">*</sup></label>
+                                                <textarea name="defer_reason" ng-model="$ctrl.defer_reason" value="{{$ctrl.defer_reason}}" rows='5' class="form-control" autocomplete="off" placeholder="Enter Reason" ng-required="true"></textarea>
+                                                <div ng-show="$ctrl.differFormNotLevelOne.$submitted || $ctrl.differFormNotLevelOne.defer_reason.$touched">
+                                                    <span style="color:red" ng-show="$ctrl.differFormNotLevelOne.defer_reason.$error.required">Defer reason is required.</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                Click Here
+                                                <button type="button" ng-click="differ(22)" class="blue approve-btn differ_btn">Rejected - Waiting for L1 Individual Verification</button>
+                                            </div><!-- Field -->
+                                        </div><!-- Column -->
+                                        <div class="col-sm-6">
+                                            <div class="input-text form-group">
+                                                Click Here
+                                                <button type="button" class="blue approve-btn differ_btn" ng-click="differ(28)">Rejected - Waiting for Call Center Clarification</button>
+                                            </div><!-- Field -->
+                                        </div><!-- Column -->
+                                    </div>
+                                </div><!-- row -->
+                            </div><!-- Column -->
+                        </div><!-- Row -->
+                    </div>
                 </form>
             </div>
         </div>
@@ -642,7 +676,7 @@
                                         <div class="col-sm-6">
                                             <div class="input-text form-group">
                                                 Click Here
-                                                <button type="button" class="blue approve-btn differ_btn" ng-click="differ(28)">BO Rejected - Waiting for Call Center Clarification</button>
+                                                <button type="button" class="blue approve-btn differ_btn" ng-click="differ(28)">Rejected - Waiting for Call Center Clarification</button>
                                             </div><!-- Field -->
                                         </div><!-- Column -->
                                     </div>
@@ -706,7 +740,7 @@
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><img src="{{$ctrl.data.style_modal_close_image_url}}"></button>
             </div>
-            <form novalidate id="cc-clarification-form" method="post" name="ccClarificationForm">
+            <form id="cc-clarification-form" enctype="multipart-formdata">
                 <input type="hidden" name="_token" value="{{ $ctrl.csrf }}" />
                 <input type="hidden" name="activity_id" ng-model="$ctrl.data.id" value="{{$ctrl.data.id}}">
                 <div class="modal-body">
@@ -714,13 +748,22 @@
                     <h2 class="uploadMsg-title">
                         Update Clarification
                     </h2>
-                    <textarea name="cc_clarification" ng-model="$ctrl.cc_clarification" value="{{$ctrl.cc_clarification}}" rows="5" class="form-control" autocomplete="off" placeholder="Enter Clarification" id='cc_clarification' required></textarea>
-                    <div ng-show="ccClarificationForm.$submitted || ccClarificationForm.cc_clarification.$touched">
-                        <span style="color:red" ng-show="ccClarificationForm.cc_clarification.$error.required">Clarification is required.</span>
-                    </div>
+                    <textarea name="cc_clarification" ng-model="$ctrl.cc_clarification" rows="5" class="form-control" autocomplete="off" placeholder="Enter Clarification"></textarea>
+                    <div class="input-text" style="margin-top: 20px;">
+                        <div class="input-group">
+                            <input type="text" class="form-control" readonly placeholder="Select File">
+                            <span class="input-group-btn">
+                                <span class="btn btn-file">
+                                    Browse
+                                    <input name="cc_clarification_attachments[]" type="file" multiple="multiple" class="form-control" autocomplete='off' ng-model="$ctrl.cc_clarification_attachments" />
+                                </span>
+                            </span>
+                        </div>
+                        <div class="cc_clarification_attachment_error"></div>
+                    </div><!-- Field -->
                     <div class="clearfix"></div>
                     <div class="custom-row">
-                        <button class="btn btn-primary yellow update_clarification_btn mt-20" type="btn" ng-click="updateCcClarification()">Submit</button>
+                        <button class="btn btn-primary yellow update_clarification_btn mt-20" type="submit">Submit</button>
                     </div>
                 </div>
             </form>

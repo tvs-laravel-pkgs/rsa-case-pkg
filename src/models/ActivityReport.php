@@ -313,11 +313,11 @@ class ActivityReport extends Model {
 						$activityReport->duration_between_asp_data_filled_and_l1_deffered = ($daysBtwDataEntryAndL1Deffered > 1) ? ($daysBtwDataEntryAndL1Deffered . ' Days') : ($daysBtwDataEntryAndL1Deffered . ' Day');
 					}
 
-					// DURATION BETWEEN CC CLARIFIED AND L1 DEFFERED
-					if (!empty(checkDateTimeAndReturnValidDateTimeVal($activity->log->cc_clarified_at)) && !empty(checkDateTimeAndReturnValidDateTimeVal($activity->log->bo_deffered_at))) {
-						$daysBtwCcClarifiedAndL1Deffered = daysBetweenTwoDates($activity->log->cc_clarified_at, $activity->log->bo_deffered_at);
-						$totalDays += $daysBtwCcClarifiedAndL1Deffered;
-						$activity->log->duration_between_cc_clarified_and_l1_deffered = ($daysBtwCcClarifiedAndL1Deffered > 1) ? ($daysBtwCcClarifiedAndL1Deffered . ' Days') : ($daysBtwCcClarifiedAndL1Deffered . ' Day');
+					// DURATION BETWEEN CC CLARIFIED AND DEFERRED TO CC
+					if (!empty(checkDateTimeAndReturnValidDateTimeVal($activity->log->cc_clarified_at)) && !empty(checkDateTimeAndReturnValidDateTimeVal($activity->log->deferred_to_cc_at))) {
+						$daysBtwCcClarifiedAndDefferedToCc = daysBetweenTwoDates($activity->log->cc_clarified_at, $activity->log->deferred_to_cc_at);
+						$totalDays += $daysBtwCcClarifiedAndDefferedToCc;
+						$activity->log->duration_between_cc_clarified_and_deferred_to_cc = ($daysBtwCcClarifiedAndDefferedToCc > 1) ? ($daysBtwCcClarifiedAndDefferedToCc . ' Days') : ($daysBtwCcClarifiedAndDefferedToCc . ' Day');
 						$activity->log->save();
 					}
 

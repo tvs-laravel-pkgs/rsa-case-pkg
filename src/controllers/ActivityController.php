@@ -195,10 +195,15 @@ class ActivityController extends Controller {
 				$status_id = 1;
 				$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24, 25, 26];
 
-				$action = '<div class="dataTable-actions" style="min-width: 125px;">
+				// IF IT IS ASP AND STATUS IS Rejected - Waiting for Call Center Clarification THEN DO NOT PROVIDE VIEW OPTION
+				if (Entrust::can('view-own-activities') && $activity->status_id == 28) {
+					$action = "";
+				} else {
+					$action = '<div class="dataTable-actions" style="min-width: 125px;">
 				<a href="#!/rsa-case-pkg/activity-status/' . $status_id . '/view/' . $activity->id . '">
 					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
 					            </a>';
+				}
 				if (($activity->status_id == 2 || $activity->status_id == 4 || $activity->status_id == 15 || $activity->status_id == 16 || $activity->status_id == 17) && Entrust::can('delete-activities')) {
 					$action .= '<a onclick="angular.element(this).scope().deleteConfirm(' . $activity->id . ')" href="javascript:void(0)">
 						                <i class="fa fa-trash dataTable-icon--trash cl-delete" data-cl-id =' . $activity->id . ' aria-hidden="true"></i>
@@ -882,6 +887,7 @@ class ActivityController extends Controller {
 				->first();
 			$this->data['activities']['km_travelled_attachments'] = $km_travelled_attachments = Attachment::where([['entity_id', '=', $activity_status_id], ['entity_type', '=', 16]])->get();
 			$this->data['activities']['other_charges_attachments'] = $other_charges_attachments = Attachment::where([['entity_id', '=', $activity_status_id], ['entity_type', '=', 17]])->get();
+			$this->data['activities']['cc_clarification_attachments'] = $cc_clarification_attachments = Attachment::where([['entity_id', '=', $activity_status_id], ['entity_type', '=', config('constants.entity_types.CC_CLARIFICATION_ATTACHMENT')]])->get();
 
 			$ccServiceTypeValue = ActivityDetail::where('activity_id', $activity_status_id)
 				->where('key_id', 153)
@@ -905,7 +911,7 @@ class ActivityController extends Controller {
 				}
 			}
 
-			$other_charges_attachment_url = $km_travelled_attachment_url = [];
+			$other_charges_attachment_url = $km_travelled_attachment_url = $cc_clarification_attachment_url = [];
 			if ($km_travelled_attachments->isNotEmpty()) {
 				foreach ($km_travelled_attachments as $key => $km_travelled_attachment) {
 					if ($hasccServiceType) {
@@ -940,8 +946,23 @@ class ActivityController extends Controller {
 					// }
 				}
 			}
+			if ($cc_clarification_attachments->isNotEmpty()) {
+				foreach ($cc_clarification_attachments as $key => $cc_clarification_attachment) {
+					if ($hasccServiceType) {
+						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $ccServiceType->id . '/' . $cc_clarification_attachment->attachment_file_name)) {
+							$cc_clarification_attachment_url[$key] = aspTicketAttachmentImage($cc_clarification_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $ccServiceType->id);
+						}
+					}
+					if ($hasaspServiceType) {
+						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/asp-' . $activity->asp->id . '/service-' . $aspServiceType->id . '/' . $cc_clarification_attachment->attachment_file_name)) {
+							$cc_clarification_attachment_url[$key] = aspTicketAttachmentImage($cc_clarification_attachment->attachment_file_name, $activity_status_id, $activity->asp->id, $aspServiceType->id);
+						}
+					}
+				}
+			}
 			$this->data['activities']['km_travelled_attachment_url'] = $km_travelled_attachment_url;
 			$this->data['activities']['other_charges_attachment_url'] = $other_charges_attachment_url;
+			$this->data['activities']['cc_clarification_attachment_url'] = $cc_clarification_attachment_url;
 			$this->data['activities']['activityApprovalLevel'] = $activityApprovalLevel;
 
 			$vehiclePickupAttachment = Attachment::where([
@@ -1344,10 +1365,12 @@ class ActivityController extends Controller {
 			$importedBy = "";
 			$aspDataFilledAt = "";
 			$aspDataFilledBy = "";
-			$boDefferedAt = "";
-			$boDefferedBy = "";
+			$defferedToCcAt = "";
+			$defferedToCcBy = "";
 			$ccClarifiedAt = "";
 			$ccClarifiedBy = "";
+			$boDefferedAt = "";
+			$boDefferedBy = "";
 			$boApprovedAt = "";
 			$boApprovedBy = "";
 			$l2DefferedAt = "";
@@ -1381,17 +1404,23 @@ class ActivityController extends Controller {
 				if (!empty($activity_data->log->asp_data_filled_by_id)) {
 					$aspDataFilledBy = $activity_data->log->aspDataFilledBy ? ($activity_data->log->aspDataFilledBy->name . ' - ' . $activity_data->log->aspDataFilledBy->username) : '';
 				}
-				if (!empty($activity_data->log->bo_deffered_at)) {
-					$boDefferedAt = $activity_data->log->bo_deffered_at;
+				if (!empty($activity_data->log->deferred_to_cc_at)) {
+					$defferedToCcAt = $activity_data->log->deferred_to_cc_at;
 				}
-				if (!empty($activity_data->log->bo_deffered_by_id)) {
-					$boDefferedBy = $activity_data->log->boDefferedBy ? ($activity_data->log->boDefferedBy->name . ' - ' . $activity_data->log->boDefferedBy->username) : '';
+				if (!empty($activity_data->log->deferred_to_cc_by_id)) {
+					$defferedToCcBy = $activity_data->log->defferedToCcBy ? ($activity_data->log->defferedToCcBy->name . ' - ' . $activity_data->log->defferedToCcBy->username) : '';
 				}
 				if (!empty($activity_data->log->cc_clarified_at)) {
 					$ccClarifiedAt = $activity_data->log->cc_clarified_at;
 				}
 				if (!empty($activity_data->log->cc_clarified_by_id)) {
 					$ccClarifiedBy = $activity_data->log->ccClarifiedBy ? ($activity_data->log->ccClarifiedBy->name . ' - ' . $activity_data->log->ccClarifiedBy->username) : '';
+				}
+				if (!empty($activity_data->log->bo_deffered_at)) {
+					$boDefferedAt = $activity_data->log->bo_deffered_at;
+				}
+				if (!empty($activity_data->log->bo_deffered_by_id)) {
+					$boDefferedBy = $activity_data->log->boDefferedBy ? ($activity_data->log->boDefferedBy->name . ' - ' . $activity_data->log->boDefferedBy->username) : '';
 				}
 				if (!empty($activity_data->log->bo_approved_at)) {
 					$boApprovedAt = $activity_data->log->bo_approved_at;
@@ -1481,10 +1510,12 @@ class ActivityController extends Controller {
 			$this->data['activities']['importedBy'] = $importedBy;
 			$this->data['activities']['aspDataFilledAt'] = $aspDataFilledAt;
 			$this->data['activities']['aspDataFilledBy'] = $aspDataFilledBy;
-			$this->data['activities']['boDefferedAt'] = $boDefferedAt;
-			$this->data['activities']['boDefferedBy'] = $boDefferedBy;
+			$this->data['activities']['defferedToCcAt'] = $defferedToCcAt;
+			$this->data['activities']['defferedToCcBy'] = $defferedToCcBy;
 			$this->data['activities']['ccClarifiedAt'] = $ccClarifiedAt;
 			$this->data['activities']['ccClarifiedBy'] = $ccClarifiedBy;
+			$this->data['activities']['boDefferedAt'] = $boDefferedAt;
+			$this->data['activities']['boDefferedBy'] = $boDefferedBy;
 			$this->data['activities']['boApprovedAt'] = $boApprovedAt;
 			$this->data['activities']['boApprovedBy'] = $boApprovedBy;
 			$this->data['activities']['l2DefferedAt'] = $l2DefferedAt;
@@ -2878,7 +2909,7 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			// STATUS IS BO Rejected - Waiting for Call Center Clarification AND CALL CENTER IS INACTIVE
+			// STATUS IS Rejected - Waiting for Call Center Clarification AND CALL CENTER IS INACTIVE
 			if ($request->activityStatusId == 28 && $activity->case && !$activity->case->callcenter) {
 				return response()->json([
 					'success' => false,
@@ -2912,13 +2943,16 @@ class ActivityController extends Controller {
 				} else {
 					$deferReason = "L1 Approver : " . makeUrltoLinkInString($request->defer_reason);
 				}
-				$activity->service_type_changed_on_level = NULL;
-				$activity->l1_changed_service_type_id = NULL;
-				$activity->l2_changed_service_type_id = NULL;
-				$activity->l3_changed_service_type_id = NULL;
-				$activity->km_changed_on_level = NULL;
-				$activity->not_collected_amount_changed_on_level = NULL;
-				$activity->collected_amount_changed_on_level = NULL;
+				// IF THE STATUS IS NOT REJECTED - WAITING FOR CALL CENTER CLARIFICATION
+				if ($request->activityStatusId != 28) {
+					$activity->service_type_changed_on_level = NULL;
+					$activity->l1_changed_service_type_id = NULL;
+					$activity->l2_changed_service_type_id = NULL;
+					$activity->l3_changed_service_type_id = NULL;
+					$activity->km_changed_on_level = NULL;
+					$activity->not_collected_amount_changed_on_level = NULL;
+					$activity->collected_amount_changed_on_level = NULL;
+				}
 			} elseif (Auth::user()->activity_approval_level_id == 2) {
 				// L2
 				if (!empty($deferReason)) {
@@ -2926,7 +2960,10 @@ class ActivityController extends Controller {
 				} else {
 					$deferReason = "L2 Approver : " . makeUrltoLinkInString($request->defer_reason);
 				}
-				$activity->l2_changed_service_type_id = NULL;
+				// IF THE STATUS IS NOT REJECTED - WAITING FOR CALL CENTER CLARIFICATION
+				if ($request->activityStatusId != 28) {
+					$activity->l2_changed_service_type_id = NULL;
+				}
 			} elseif (Auth::user()->activity_approval_level_id == 3) {
 				// L3
 				if (!empty($deferReason)) {
@@ -2934,7 +2971,10 @@ class ActivityController extends Controller {
 				} else {
 					$deferReason = "L3 Approver : " . makeUrltoLinkInString($request->defer_reason);
 				}
-				$activity->l3_changed_service_type_id = NULL;
+				// IF THE STATUS IS NOT REJECTED - WAITING FOR CALL CENTER CLARIFICATION
+				if ($request->activityStatusId != 28) {
+					$activity->l3_changed_service_type_id = NULL;
+				}
 			} elseif (Auth::user()->activity_approval_level_id == 4) {
 				// L4
 				if (!empty($deferReason)) {
@@ -2959,23 +2999,30 @@ class ActivityController extends Controller {
 			$activityLog = ActivityLog::firstOrNew([
 				'activity_id' => $activity->id,
 			]);
-			//L1
-			if (Auth::user()->activity_approval_level_id == 1) {
-				$activityLog->bo_deffered_at = date('Y-m-d H:i:s');
-				$activityLog->bo_deffered_by_id = Auth::id();
-				$activityLog->bo_deffered_cc_l2_user_escalated_at = null;
-			} elseif (Auth::user()->activity_approval_level_id == 2) {
-				// L2
-				$activityLog->l2_deffered_at = date('Y-m-d H:i:s');
-				$activityLog->l2_deffered_by_id = Auth::id();
-			} elseif (Auth::user()->activity_approval_level_id == 3) {
-				// L3
-				$activityLog->l3_deffered_at = date('Y-m-d H:i:s');
-				$activityLog->l3_deffered_by_id = Auth::id();
-			} elseif (Auth::user()->activity_approval_level_id == 4) {
-				// L4
-				$activityLog->l4_deffered_at = date('Y-m-d H:i:s');
-				$activityLog->l4_deffered_by_id = Auth::id();
+
+			// IF THE STATUS IS REJECTED - WAITING FOR CALL CENTER CLARIFICATION
+			if ($request->activityStatusId == 28) {
+				$activityLog->deferred_to_cc_at = date('Y-m-d H:i:s');
+				$activityLog->deferred_to_cc_by_id = Auth::id();
+				$activityLog->deferred_to_cc_l2_user_escalated_at = null;
+			} else {
+				//L1
+				if (Auth::user()->activity_approval_level_id == 1) {
+					$activityLog->bo_deffered_at = date('Y-m-d H:i:s');
+					$activityLog->bo_deffered_by_id = Auth::id();
+				} elseif (Auth::user()->activity_approval_level_id == 2) {
+					// L2
+					$activityLog->l2_deffered_at = date('Y-m-d H:i:s');
+					$activityLog->l2_deffered_by_id = Auth::id();
+				} elseif (Auth::user()->activity_approval_level_id == 3) {
+					// L3
+					$activityLog->l3_deffered_at = date('Y-m-d H:i:s');
+					$activityLog->l3_deffered_by_id = Auth::id();
+				} elseif (Auth::user()->activity_approval_level_id == 4) {
+					// L4
+					$activityLog->l4_deffered_at = date('Y-m-d H:i:s');
+					$activityLog->l4_deffered_by_id = Auth::id();
+				}
 			}
 			$activityLog->updated_by_id = Auth::id();
 			$activityLog->updated_at = Carbon::now();
@@ -3011,8 +3058,8 @@ class ActivityController extends Controller {
 				notify2($noty_message_template, $asp_user, config('constants.alert_type.red'), $number);
 			}
 
-			// L1 APPROVAL AND STATUS IS BO Rejected - Waiting for Call Center Clarification
-			if (Auth::user()->activity_approval_level_id == 1 && $request->activityStatusId == 28 && $activity->case && $activity->case->callcenter) {
+			// L1 / L2 / L3 / L4 APPROVAL AND STATUS IS Rejected - Waiting for Call Center Clarification
+			if (in_array(Auth::user()->activity_approval_level_id, [1, 2, 3, 4]) && $request->activityStatusId == 28 && $activity->case && $activity->case->callcenter) {
 				//SENT EMAIL NOTIFICATION TO CALL CENTER L1 USER
 				if (!empty($activity->case->callcenter->l1_user_email)) {
 					$arr['subject'] = "Re: Waiting For Call Center Clarification - Ticket No: " . $request->case_number;
@@ -3092,9 +3139,10 @@ class ActivityController extends Controller {
 				'cc_clarification',
 				'asp_id',
 				'case_id',
+				'service_type_id',
 			])
 				->where('id', $request->activity_id)
-				->where('status_id', 28) //BO Rejected - Waiting for Call Center Clarification
+				->where('status_id', 28) //Rejected - Waiting for Call Center Clarification
 				->first();
 
 			if (!$activity) {
@@ -3119,6 +3167,23 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
+
+			if (isset($request->cc_clarification_attachments) && !empty($request->cc_clarification_attachments)) {
+				foreach ($request->cc_clarification_attachments as $key => $value) {
+					if ($request->hasFile("cc_clarification_attachments.$key")) {
+						$extension = $request->file("cc_clarification_attachments.$key")->getClientOriginalExtension();
+						if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
+							return response()->json([
+								'success' => false,
+								'errors' => [
+									'Please upload attachment in jpg, jpeg, png formats',
+								],
+							]);
+						}
+					}
+				}
+			}
+
 		} catch (\Exception $e) {
 			return response()->json([
 				'success' => false,
@@ -3142,6 +3207,37 @@ class ActivityController extends Controller {
 			$activity->updated_at = Carbon::now();
 			$activity->updated_by_id = Auth::user()->id;
 			$activity->save();
+
+			if (isset($request->cc_clarification_attachments) && !empty($request->cc_clarification_attachments)) {
+				$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
+				Storage::makeDirectory($destination, 0777);
+
+				//REMOVE EXISTING ATTACHMENT
+				$getAttachments = Attachment::where('entity_id', $activity->id)
+					->where('entity_type', config('constants.entity_types.CC_CLARIFICATION_ATTACHMENT'))
+					->get();
+				if ($getAttachments->isNotEmpty()) {
+					foreach ($getAttachments as $getAttachmentKey => $getAttachmentVal) {
+						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $getAttachmentVal->attachment_file_name)) {
+							unlink(storage_path('app/' . $destination . '/' . $getAttachmentVal->attachment_file_name));
+						}
+						$getAttachmentVal->delete();
+					}
+				}
+				// SAVE ATTACHMENTS
+				foreach ($request->cc_clarification_attachments as $key => $value) {
+					if ($request->hasFile("cc_clarification_attachments.$key")) {
+						$extension = $request->file("cc_clarification_attachments.$key")->getClientOriginalExtension();
+						$filename = "cc_clarification_attachment_" . $key . '.' . $extension;
+						$request->file("cc_clarification_attachments.$key")->storeAs($destination, $filename);
+						Attachment::create([
+							'entity_type' => config('constants.entity_types.CC_CLARIFICATION_ATTACHMENT'),
+							'entity_id' => $activity->id,
+							'attachment_file_name' => $filename,
+						]);
+					}
+				}
+			}
 
 			$activityLog->cc_clarified_at = date('Y-m-d H:i:s');
 			$activityLog->cc_clarified_by_id = Auth::id();
@@ -4398,7 +4494,7 @@ class ActivityController extends Controller {
 		} else if (Entrust::can('cc-deferred-activities')) {
 			if (Auth::user()->cc) {
 				$activities->where('cases.call_center_id', Auth::user()->cc->id)
-					->where('activities.status_id', 28); //BO Rejected - Waiting for Call Center Clarification
+					->where('activities.status_id', 28); //Rejected - Waiting for Call Center Clarification
 			} else {
 				return Datatables::of([])->make(true);
 			}
@@ -4990,6 +5086,7 @@ class ActivityController extends Controller {
 				->join('asps', 'asps.id', 'activities.asp_id')
 				->leftjoin('activity_logs', 'activity_logs.activity_id', 'activities.id')
 				->leftjoin('users as ccClarifiedUser', 'ccClarifiedUser.id', 'activity_logs.cc_clarified_by_id')
+				->leftjoin('users as deferredToCcUser', 'deferredToCcUser.id', 'activity_logs.deferred_to_cc_by_id')
 			;
 			if (!empty($statusIds)) {
 				$activityReports->whereIn('activities.status_id', $statusIds);
@@ -5216,9 +5313,11 @@ class ActivityController extends Controller {
 				DB::raw('COALESCE(activity_reports.asp_data_filled_by, "--") as aspDataFilledBy'),
 				DB::raw('COALESCE(activity_reports.duration_between_asp_data_filled_and_l1_deffered, "--") as durationBetweenAspDataFilledAndL1Deffered'),
 
+				DB::raw('DATE_FORMAT(activity_logs.deferred_to_cc_at, "%d-%m-%Y %H:%i:%s") as deferredToCcDate'),
+				DB::raw('COALESCE(deferredToCcUser.username, "--") as deferredToCcBy'),
 				DB::raw('DATE_FORMAT(activity_logs.cc_clarified_at, "%d-%m-%Y %H:%i:%s") as ccClarifiedDate'),
 				DB::raw('COALESCE(ccClarifiedUser.username, "--") as ccClarifiedBy'),
-				DB::raw('COALESCE(activity_logs.duration_between_cc_clarified_and_l1_deffered, "--") as durationBetweenCcClarifiedAndL1Deffered'),
+				DB::raw('COALESCE(activity_logs.duration_between_cc_clarified_and_deferred_to_cc, "--") as durationBetweenCcClarifiedAndDefferedToCc'),
 
 				DB::raw('DATE_FORMAT(activity_reports.l1_deffered_date, "%d-%m-%Y %H:%i:%s") as l1DefferedDate'),
 				DB::raw('COALESCE(activity_reports.l1_deffered_by, "--") as l1DefferedBy'),
@@ -5726,9 +5825,11 @@ class ActivityController extends Controller {
 					'ASP Data Filled By',
 					'Duration Between ASP Data Filled and L1 deferred',
 
+					'Deferred To CC',
+					'Deferred To CC By',
 					'CC Clarified',
 					'CC Clarified By',
-					'Duration Between CC Clarified and L1 deferred',
+					'Duration Between CC Clarified and deferred to CC',
 
 					'L1 Deferred',
 					'L1 Deferred By',
@@ -6046,9 +6147,11 @@ class ActivityController extends Controller {
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->aspDataFilledBy;
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAspDataFilledAndL1Deffered;
 
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->deferredToCcDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->deferredToCcBy;
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->ccClarifiedDate;
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->ccClarifiedBy;
-						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenCcClarifiedAndL1Deffered;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenCcClarifiedAndDefferedToCc;
 
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedDate;
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedBy;
@@ -6761,7 +6864,7 @@ class ActivityController extends Controller {
 				if (Auth::check()) {
 					if (!empty(Auth::user()->activity_approval_level_id)) {
 						//L1 AND ASP Completed Data Entry - Waiting for L1 Bulk / Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Bulk / Individual Verification AND BO Rejected - Waiting for L1 Bulk / Individual Verification
-						if (Auth::user()->activity_approval_level_id == 1 && ($activity->status_id == 5 || $activity->status_id == 6 || $activity->status_id == 8 || $activity->status_id == 9 || $activity->status_id == 22)) {
+						if (Auth::user()->activity_approval_level_id == 1 && ($activity->status_id == 5 || $activity->status_id == 6 || $activity->status_id == 8 || $activity->status_id == 9 || $activity->status_id == 22 || $activity->status_id == 29)) {
 							$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
 						} elseif (Auth::user()->activity_approval_level_id == 2 && ($activity->status_id == 18 || $activity->status_id == 19)) {
 							// L2 AND Waiting for L2 Bulk / Individual Verification

@@ -6864,7 +6864,7 @@ class ActivityController extends Controller {
 				if (Auth::check()) {
 					if (!empty(Auth::user()->activity_approval_level_id)) {
 						//L1 AND ASP Completed Data Entry - Waiting for L1 Bulk / Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Bulk / Individual Verification AND BO Rejected - Waiting for L1 Bulk / Individual Verification
-						if (Auth::user()->activity_approval_level_id == 1 && ($activity->status_id == 5 || $activity->status_id == 6 || $activity->status_id == 8 || $activity->status_id == 9 || $activity->status_id == 22)) {
+						if (Auth::user()->activity_approval_level_id == 1 && ($activity->status_id == 5 || $activity->status_id == 6 || $activity->status_id == 8 || $activity->status_id == 9 || $activity->status_id == 22 || $activity->status_id == 29)) {
 							$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
 						} elseif (Auth::user()->activity_approval_level_id == 2 && ($activity->status_id == 18 || $activity->status_id == 19)) {
 							// L2 AND Waiting for L2 Bulk / Individual Verification

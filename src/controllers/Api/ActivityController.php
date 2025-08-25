@@ -459,24 +459,36 @@ class ActivityController extends Controller {
 					} else {
 						// IN NEW CRM - WE ARE UPDATING THE ACTIVITY STATUS HENCE WE ARE ALLOWED
 						if (!isset($request->isFromNewCrm)) {
+							// EXISTING LOGIC
 							//IF IT IS IN NOT ELIGIBLE FOR PAYOUT STATUS
-							if ($activityExist->status_id == 15 || $activityExist->status_id == 16) {
-								$api_error = $errors[] = 'Activity update will not be allowed. Case is not eligible for payout';
-							} else {
-								$api_error = $errors[] = 'Activity update will not be allowed. Case is under payment process';
-							}
+							// if ($activityExist->status_id == 15 || $activityExist->status_id == 16) {
+							// 	$api_error = $errors[] = 'Activity update will not be allowed. Case is not eligible for payout';
+							// } else {
+							// 	$api_error = $errors[] = 'Activity update will not be allowed. Case is under payment process';
+							// }
+
+							// //SAVE ACTIVITY API LOG
+
+							// saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+							// DB::commit();
+
+							// return response()->json([
+							// 	'success' => false,
+							// 	'error' => 'Validation Error',
+							// 	'errors' => [
+							// 		$api_error,
+							// 	],
+							// ], $this->successStatus);
+
+							// NEW LOGIC - SRIRAM SIR TOLD US DISABLE THE EXISTING LOGIC AND SEND A RESPONSE AS SUCCESS WITH BELOW MENTIONED MESSAGE SINCE IT IS AGAIN HITTING FROM THE CRM DUE TO THE ERROR
 
 							//SAVE ACTIVITY API LOG
-
-							saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+							saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 120);
 							DB::commit();
-
 							return response()->json([
-								'success' => false,
-								'error' => 'Validation Error',
-								'errors' => [
-									$api_error,
-								],
+								'success' => true,
+								'message' => 'The activity may be updated, but the payment will not be processed.',
+								'activity' => $activityExist,
 							], $this->successStatus);
 						} else {
 							$activity = $activityExist;

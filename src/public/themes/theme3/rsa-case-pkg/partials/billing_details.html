@@ -332,7 +332,7 @@
                                     <a target="_blank" href="{{$ctrl.data.otherAttachmentTwoUrl}}">{{$ctrl.data.otherAttachmentTwo.attachment_file_name}}</a>
                                 </td>
                             </tr>
-                            <tr ng-show="$ctrl.data.cc_clarification_attachment_url.length > 0">
+                            <tr ng-show="!$ctrl.hasPermission('view-own-activities') && $ctrl.data.cc_clarification_attachment_url.length > 0">
                                 <th scope="row">CC Clarification Attachments</th>
                                 <td colspan="{{$ctrl.data.span_value}}">
                                     <div ng-repeat="(index,cc_clarification_attachment) in $ctrl.data.cc_clarification_attachments">
@@ -363,11 +363,11 @@
                             <h4>ASP Resolve Comments</h4>
                             <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.asp_resolve_comments"></p>
                         </div>
-                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="$ctrl.data.cc_clarification">
+                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && $ctrl.data.cc_clarification">
                             <h4>CC Clarifications</h4>
                             <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.cc_clarification"></p>
                         </div>
-                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('view-own-activities') && !$ctrl.hasPermission('own-rm-asp-activities') && $ctrl.data.exceptional_reason">
+                        <div class="col-xs-12 col-sm-6 col-md-6" ng-show="!$ctrl.hasPermission('own-rm-asp-activities') && $ctrl.data.exceptional_reason">
                             <h4>Exceptional Reason</h4>
                             <p style="word-wrap: break-word;max-height: 100px;overflow: auto;" ng-bind-html="$ctrl.data.exceptional_reason"></p>
                         </div>

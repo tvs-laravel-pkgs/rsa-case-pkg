@@ -3165,11 +3165,12 @@ class ActivityController extends Controller {
 				foreach ($request->cc_clarification_attachments as $key => $value) {
 					if ($request->hasFile("cc_clarification_attachments.$key")) {
 						$extension = $request->file("cc_clarification_attachments.$key")->getClientOriginalExtension();
-						if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
+						$allowedExtensions = ["jpg", "jpeg", "png", "pdf", "mp3", "wav", "aac", "mp4", "avi", "mov", "mkv"];
+						if (!in_array($extension, $allowedExtensions)) {
 							return response()->json([
 								'success' => false,
 								'errors' => [
-									'Please upload attachment in jpg, jpeg, png formats',
+									'Please upload attachments in jpg, jpeg, png, pdf, mp3, wav, aac, mp4, avi, mov, mkv formats',
 								],
 							]);
 						}
@@ -3191,9 +3192,9 @@ class ActivityController extends Controller {
 		try {
 			$cc_clarification = $activity->cc_clarification;
 			if (!empty($cc_clarification)) {
-				$cc_clarification .= nl2br("<hr>" . makeUrltoLinkInString($request->cc_clarification));
+				$cc_clarification .= nl2br("<hr>" . date("d-m-Y g:i A") . " : " . makeUrltoLinkInString($request->cc_clarification));
 			} else {
-				$cc_clarification = makeUrltoLinkInString($request->cc_clarification);
+				$cc_clarification = date("d-m-Y g:i A") . " : " . makeUrltoLinkInString($request->cc_clarification);
 			}
 			$activity->cc_clarification = $cc_clarification;
 			$activity->status_id = 29; //Call Center Clarification Completed - Waiting for L1 Individual Verification
@@ -3205,23 +3206,24 @@ class ActivityController extends Controller {
 				$destination = ccClarificationAttachmentPath($activity->id);
 				Storage::makeDirectory($destination, 0777);
 
-				//REMOVE EXISTING ATTACHMENT
-				$getAttachments = Attachment::where('entity_id', $activity->id)
-					->where('entity_type', config('constants.entity_types.CC_CLARIFICATION_ATTACHMENT'))
-					->get();
-				if ($getAttachments->isNotEmpty()) {
-					foreach ($getAttachments as $getAttachmentKey => $getAttachmentVal) {
-						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/cc-clarification-attachments/' . $getAttachmentVal->attachment_file_name)) {
-							unlink(storage_path('app/' . $destination . '/' . $getAttachmentVal->attachment_file_name));
-						}
-						$getAttachmentVal->delete();
-					}
-				}
+				// Hyder from business team instructed us to retain the attachments that were previously uploaded; therefore, they have been disabled.
+				// REMOVE EXISTING ATTACHMENT
+				// $getAttachments = Attachment::where('entity_id', $activity->id)
+				// 	->where('entity_type', config('constants.entity_types.CC_CLARIFICATION_ATTACHMENT'))
+				// 	->get();
+				// if ($getAttachments->isNotEmpty()) {
+				// 	foreach ($getAttachments as $getAttachmentKey => $getAttachmentVal) {
+				// 		if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/cc-clarification-attachments/' . $getAttachmentVal->attachment_file_name)) {
+				// 			unlink(storage_path('app/' . $destination . '/' . $getAttachmentVal->attachment_file_name));
+				// 		}
+				// 		$getAttachmentVal->delete();
+				// 	}
+				// }
 				// SAVE ATTACHMENTS
 				foreach ($request->cc_clarification_attachments as $key => $value) {
 					if ($request->hasFile("cc_clarification_attachments.$key")) {
 						$extension = $request->file("cc_clarification_attachments.$key")->getClientOriginalExtension();
-						$filename = time() . "_" . $key . "." . $extension;
+						$filename = date('d-m-Y-H-i-s') . "-" . $key . "." . $extension;
 						$status = $request->file("cc_clarification_attachments.$key")->storeAs($destination, $filename);
 						Attachment::create([
 							'entity_type' => config('constants.entity_types.CC_CLARIFICATION_ATTACHMENT'),
@@ -6830,7 +6832,7 @@ class ActivityController extends Controller {
 					} elseif ($activity->status_id == 11) {
 						//Waiting for Invoice Generation by ASP
 						$url = '#!/rsa-case-pkg/approved-activity/list';
-					} elseif ($activity->status_id == 15 || $activity->status_id == 16 || $activity->status_id == 27) {
+					} elseif ($activity->status_id == 15 || $activity->status_id == 16 || $activity->status_id == 27 || $activity->status_id == 28) {
 						//Not Eligible for Payout || Own Patrol Activity - Not Eligible for Payout || LAPSED
 						$url = '';
 					}

@@ -336,8 +336,7 @@
                                 <th scope="row">CC Clarification Attachments</th>
                                 <td colspan="{{$ctrl.data.span_value}}">
                                     <div ng-repeat="(index,cc_clarification_attachment) in $ctrl.data.cc_clarification_attachments">
-                                        <a target="_blank" href="{{$ctrl.data.cc_clarification_attachment_url[index]}}">{{cc_clarification_attachment.attachment_file_name}}</a>,
-                                        <img height="80px" weight="80px" src="{{$ctrl.data.cc_clarification_attachment_url[index]}}">
+                                        <a target="_blank" href="{{$ctrl.data.cc_clarification_attachment_url[index]}}">{{cc_clarification_attachment.attachment_file_name}}</a>
                                     </div>
                                 </td>
                             </tr>

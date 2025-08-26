@@ -497,7 +497,7 @@ app.component('billingDetails', {
                                 required: true,
                             },
                             'cc_clarification_attachments[]': {
-                                extension: "jpg|jpeg|png",
+                                extension: "jpg|jpeg|png|pdf|mp3|wav|aac|mp4|avi|mov|mkv",
                             },
                         },
                         messages: {
@@ -508,7 +508,7 @@ app.component('billingDetails', {
                                 required: "Clarification is required",
                             },
                             'cc_clarification_attachments[]': {
-                                extension: "Please upload attachment in jpg, jpeg, png formats",
+                                extension: "Please upload attachments in jpg, jpeg, png, pdf, mp3, wav, aac, mp4, avi, mov, mkv formats",
                             },
                         },
                         errorPlacement: function(error, element) {

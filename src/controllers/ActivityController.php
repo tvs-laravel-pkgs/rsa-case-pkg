@@ -3058,7 +3058,7 @@ class ActivityController extends Controller {
 					$arr['subject'] = "Re: Waiting For Call Center Clarification - Ticket No: " . $request->case_number;
 					$arr['title'] = "Call Center Clarification Notification";
 					$arr['name'] = "User";
-					$arr['content'] = 'The ticket is waiting for call center clarification. Kindly check and provide clarity.';
+					$arr['content'] = 'The ticket is waiting for call center clarification. Kindly check and provide clarity within 24 hours.';
 					$arr['to_mail_id'] = $activity->case->callcenter->l1_user_email;
 					$arr['company_header'] = view('partials/email-noty-company-header')->render();
 					$arr['view_path'] = 'emails.notification-email';

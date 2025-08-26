@@ -4449,8 +4449,8 @@ class ActivityController extends Controller {
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
+			->leftjoin('activity_logs', 'activity_logs.activity_id', 'activities.id')
 			->groupBy('activities.id')
-			->orderBy('cases.date', 'DESC')
 		;
 
 		if ($request->get('ticket_date')) {
@@ -4486,10 +4486,13 @@ class ActivityController extends Controller {
 				$activities->where('users.id', Auth::id())
 					->where('activities.status_id', 7); //BO Rejected - Waiting for ASP Data Re-Entry
 			}
+			$activities->orderBy('cases.date', 'DESC');
 		} else if (Entrust::can('cc-deferred-activities')) {
 			if (Auth::user()->cc) {
 				$activities->where('cases.call_center_id', Auth::user()->cc->id)
-					->where('activities.status_id', 28); //Rejected - Waiting for Call Center Clarification
+					->where('activities.status_id', 28) //Rejected - Waiting for Call Center Clarification
+					->orderBy('activity_logs.deferred_to_cc_at', 'DESC')
+				;
 			} else {
 				return Datatables::of([])->make(true);
 			}

@@ -29,6 +29,8 @@ Route::group(['namespace' => 'Abs\RsaCasePkg', 'middleware' => ['web'], 'prefix'
 		Route::post('activity-status/towing-images-required/update', 'ActivityController@towingImagesRequiredUpdated')->name('activityTowingImagesRequiredUpdated');
 		Route::post('activity-status/not-eligible-for-payout/move', 'ActivityController@moveToNotEligibleForPayout')->name('moveToNotEligibleForPayout');
 
+		Route::post('/activity-deferred/update-cc-clarification', 'ActivityController@updateCcClarification')->name('updateCcClarificationForDeferredActivity');
+
 		//ACTIVITY SEARCH
 		Route::post('/activity-search/get-list', 'ActivityController@getSearchList')->name('getActivitySearchList');
 

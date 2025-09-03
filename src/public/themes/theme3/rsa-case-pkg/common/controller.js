@@ -279,7 +279,7 @@ app.component('billingDetails', {
         this.$onInit = function() {
             $scope.$watch('$ctrl.data', function(selfData) {
                 if (selfData) {
-                    console.log(selfData);
+                    // console.log(selfData);
                     self.hasPermission = HelperService.hasPermission;
                     self.activity_back_asp_update_route = activity_back_asp_update;
                     self.backstepReason = '';
@@ -439,9 +439,17 @@ app.component('billingDetails', {
                             });
                         }
                     }
-                    $scope.differ = function() {
-                        if ($scope.differForm.$valid) {
-                            $('.differ_btn').button('loading');
+
+                    $scope.differ = (activityStatusId) => {
+                        if (!self.defer_reason) {
+                            custom_noty('error', 'Defer reason is required');
+                            return;
+                        }
+                        const form = self.data.activityApprovalLevel == 1 ? self.differFormLevelOne : self.differFormNotLevelOne;
+                        if (form.$valid) {
+                            if (self.data.activityApprovalLevel != 1) {
+                                $('.differ_btn').button('loading');
+                            }
                             if ($(".loader-type-2").hasClass("loader-hide")) {
                                 $(".loader-type-2").removeClass("loader-hide");
                             }
@@ -452,19 +460,15 @@ app.component('billingDetails', {
                                     bo_comments: self.data.bo_comments,
                                     deduction_reason: self.data.deduction_reason,
                                     case_number: self.data.number,
-                                    /*bo_km_travelled : self.data.bo_km_travelled,
-                                    raw_asp_collected : self.data.raw_asp_collected,
-                                    raw_asp_not_collected : self.data.raw_asp_not_collected,
-                                    bo_deduction : self.data.bo_deduction,
-                                    bo_po_amount : self.data.bo_po_amount,
-                                    bo_net_amount : self.data.bo_net_amount,
-                                    bo_amount : self.data.bo_amount,*/
+                                    activityStatusId: activityStatusId,
                                 }
                             ).then(function(response) {
                                 $(".loader-type-2").addClass("loader-hide");
-                                $('.differ_btn').button('reset');
+                                if (self.data.activityApprovalLevel != 1) {
+                                    $('.differ_btn').button('reset');
+                                }
                                 if (!response.data.success) {
-                                    var errors = '';
+                                    let errors = '';
                                     for (var i in response.data.errors) {
                                         errors += '<li>' + response.data.errors[i] + '</li>';
                                     }
@@ -481,6 +485,78 @@ app.component('billingDetails', {
                             });
                         }
                     }
+
+                    const form_id = '#cc-clarification-form';
+                    jQuery(form_id).validate({
+                        ignore: '',
+                        rules: {
+                            'activity_id': {
+                                required: true,
+                            },
+                            'cc_clarification': {
+                                required: true,
+                            },
+                            'cc_clarification_attachments[]': {
+                                extension: "jpg|jpeg|png|pdf|mp3|wav|aac|mp4|avi|mov|mkv",
+                            },
+                        },
+                        messages: {
+                            'activity_id': {
+                                required: "Activity ID is required",
+                            },
+                            'cc_clarification': {
+                                required: "Clarification is required",
+                            },
+                            'cc_clarification_attachments[]': {
+                                extension: "Please upload attachments in jpg, jpeg, png, pdf, mp3, wav, aac, mp4, avi, mov, mkv formats",
+                            },
+                        },
+                        errorPlacement: function(error, element) {
+                            if (element.attr('name') == 'cc_clarification_attachments[]') {
+                                error.appendTo($('.cc_clarification_attachment_error'));
+                            } else {
+                                error.insertAfter(element)
+                            }
+                        },
+                        submitHandler: function(form) {
+                            const formData = new FormData($(form_id)[0]);
+                            $('.update_clarification_btn').button('loading');
+                            if ($(".loader-type-2").hasClass("loader-hide")) {
+                                $(".loader-type-2").removeClass("loader-hide");
+                            }
+                            $.ajax({
+                                    url: laravel_routes['updateCcClarificationForDeferredActivity'],
+                                    method: "POST",
+                                    data: formData,
+                                    processData: false,
+                                    contentType: false,
+                                })
+                                .done(function(res) {
+                                    $(".loader-type-2").addClass("loader-hide");
+                                    $('.update_clarification_btn').button('reset');
+                                    if (!res.success) {
+                                        let errors = '';
+                                        for (const i in res.errors) {
+                                            errors += '<li>' + res.errors[i] + '</li>';
+                                        }
+                                        custom_noty('error', errors);
+                                        return;
+                                    } else {
+                                        $("#update-cc-clarification-modal").modal("hide");
+                                        custom_noty('success', res.message);
+                                        setTimeout(function() {
+                                            $location.path('/rsa-case-pkg/deferred-activity/list');
+                                            $scope.$apply();
+                                        }, 1000);
+                                    }
+                                })
+                                .fail(function(xhr) {
+                                    $(".loader-type-2").addClass("loader-hide");
+                                    $('.update_clarification_btn').button('reset');
+                                    custom_noty('error', 'Something went wrong at server');
+                                });
+                        },
+                    });
 
                     $scope.getServiceTypeRateCardDetail = () => {
                         if (self.data.boServiceTypeId && self.data.asp_id) {

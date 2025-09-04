@@ -1928,6 +1928,14 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'asp-unclaimed-tickets',
 				'display_name' => 'ASP Unclaimed Tickets',
 			],
+
+			//CALL CENTER DEFERRED ACTIVITIES
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'cc-deferred-activities',
+				'display_name' => 'Call Center Deferred Activities',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

@@ -620,7 +620,7 @@ app.component('activityStatusView', {
                 $('#viewData-threeColumn--wrapperasp').slideToggle();
             });
 
-            self.style_modal_close_image_url = style_modal_close_image_url;
+            self.data.style_modal_close_image_url = style_modal_close_image_url;
             self.closingMinDate = moment();
 
             var form_id = '#case_submission_closing_date_form';

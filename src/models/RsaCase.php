@@ -82,6 +82,10 @@ class RsaCase extends Model {
 		return $this->belongsTo('App\Client', 'client_id');
 	}
 
+	public function clientWithTrashed() {
+		return $this->belongsTo('App\Client', 'client_id')->withTrashed();
+	}
+
 	public function eligibilityType() {
 		return $this->belongsTo('App\Entity', 'eligibility_type_id');
 	}

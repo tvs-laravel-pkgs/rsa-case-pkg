@@ -8,6 +8,7 @@ use Abs\RsaCasePkg\ActivityLog;
 use Abs\RsaCasePkg\ActivityPortalStatus;
 use Abs\RsaCasePkg\ActivityRatecard;
 use Abs\RsaCasePkg\ActivityReport;
+use Abs\RsaCasePkg\ActivityReportSync;
 use Abs\RsaCasePkg\ActivityStatus;
 use App\Asp;
 use App\AspServiceType;
@@ -18,6 +19,7 @@ use App\Config;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\MapMyIndiaController;
 use App\Invoices;
+use App\Mail\NotificationEmail;
 use App\ServiceType;
 use App\StateUser;
 use App\User;
@@ -27,6 +29,7 @@ use DB;
 use Entrust;
 use Excel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Image;
@@ -192,10 +195,15 @@ class ActivityController extends Controller {
 				$status_id = 1;
 				$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24, 25, 26];
 
-				$action = '<div class="dataTable-actions" style="min-width: 125px;">
+				// IF IT IS ASP AND STATUS IS Rejected - Waiting for Call Center Clarification THEN DO NOT PROVIDE VIEW OPTION
+				if (Entrust::can('view-own-activities') && $activity->status_id == 28) {
+					$action = "";
+				} else {
+					$action = '<div class="dataTable-actions" style="min-width: 125px;">
 				<a href="#!/rsa-case-pkg/activity-status/' . $status_id . '/view/' . $activity->id . '">
 					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
 					            </a>';
+				}
 				if (($activity->status_id == 2 || $activity->status_id == 4 || $activity->status_id == 15 || $activity->status_id == 16 || $activity->status_id == 17) && Entrust::can('delete-activities')) {
 					$action .= '<a onclick="angular.element(this).scope().deleteConfirm(' . $activity->id . ')" href="javascript:void(0)">
 						                <i class="fa fa-trash dataTable-icon--trash cl-delete" data-cl-id =' . $activity->id . ' aria-hidden="true"></i>
@@ -293,7 +301,10 @@ class ActivityController extends Controller {
 				$activity->save();
 
 				//SAVE ACTIVITY REPORT FOR DASHBOARD
-				ActivityReport::saveReport($activity->id);
+				$activityReportSync = new ActivityReportSync();
+				$activityReportSync->activity_id = $activity->id;
+				$activityReportSync->sync_status = 0; // NOT SYNCED
+				$activityReportSync->save();
 
 				if ($activity) {
 					//log message
@@ -328,7 +339,10 @@ class ActivityController extends Controller {
 				$activity->save();
 
 				//SAVE ACTIVITY REPORT FOR DASHBOARD
-				ActivityReport::saveReport($activity->id);
+				$activityReportSync = new ActivityReportSync();
+				$activityReportSync->activity_id = $activity->id;
+				$activityReportSync->sync_status = 0; // NOT SYNCED
+				$activityReportSync->save();
 
 				if ($activity) {
 					//log message
@@ -363,7 +377,10 @@ class ActivityController extends Controller {
 				$activity->save();
 
 				//SAVE ACTIVITY REPORT FOR DASHBOARD
-				ActivityReport::saveReport($activity->id);
+				$activityReportSync = new ActivityReportSync();
+				$activityReportSync->activity_id = $activity->id;
+				$activityReportSync->sync_status = 0; // NOT SYNCED
+				$activityReportSync->save();
 
 				if ($activity) {
 					//log message
@@ -629,7 +646,7 @@ class ActivityController extends Controller {
 			if (!empty(Auth::user()->activity_approval_level_id)) {
 				//L1
 				if (Auth::user()->activity_approval_level_id == 1) {
-					$activities->whereIn('activities.status_id', [6, 9, 22]); //ASP Completed Data Entry - Waiting for L1 Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Individual Verification AND BO Rejected - Waiting for L1 Individual Verification
+					$activities->whereIn('activities.status_id', [6, 9, 22, 29]); //ASP Completed Data Entry - Waiting for L1 Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Individual Verification AND Rejected - Waiting for L1 Individual Verification AND Call Center Clarification Completed - Waiting for L1 Individual Verification
 				} elseif (Auth::user()->activity_approval_level_id == 2) {
 					// L2
 					$activities->where('activities.status_id', 19); //Waiting for L2 Individual Verification
@@ -667,7 +684,7 @@ class ActivityController extends Controller {
 			$activityApprovalLevel = '';
 			$activity_data = Activity::findOrFail($activity_status_id);
 			if ($view_type_id == 2) {
-				if (!$activity_data || ($activity_data && $activity_data->status_id != 5 && $activity_data->status_id != 6 && $activity_data->status_id != 8 && $activity_data->status_id != 9 && $activity_data->status_id != 18 && $activity_data->status_id != 19 && $activity_data->status_id != 20 && $activity_data->status_id != 21 && $activity_data->status_id != 22 && $activity_data->status_id != 23 && $activity_data->status_id != 24)) {
+				if (!$activity_data || ($activity_data && $activity_data->status_id != 5 && $activity_data->status_id != 6 && $activity_data->status_id != 8 && $activity_data->status_id != 9 && $activity_data->status_id != 18 && $activity_data->status_id != 19 && $activity_data->status_id != 20 && $activity_data->status_id != 21 && $activity_data->status_id != 22 && $activity_data->status_id != 23 && $activity_data->status_id != 24 && $activity_data->status_id != 29)) {
 					return response()->json([
 						'success' => false,
 						'errors' => [
@@ -766,6 +783,7 @@ class ActivityController extends Controller {
 					'activities.defer_reason as defer_reason',
 					'activities.general_remarks',
 					'activities.asp_resolve_comments',
+					'activities.cc_clarification',
 					'activities.is_exceptional_check as is_exceptional_check',
 					'activities.service_type_changed_on_level',
 					'activities.km_changed_on_level',
@@ -869,6 +887,7 @@ class ActivityController extends Controller {
 				->first();
 			$this->data['activities']['km_travelled_attachments'] = $km_travelled_attachments = Attachment::where([['entity_id', '=', $activity_status_id], ['entity_type', '=', 16]])->get();
 			$this->data['activities']['other_charges_attachments'] = $other_charges_attachments = Attachment::where([['entity_id', '=', $activity_status_id], ['entity_type', '=', 17]])->get();
+			$this->data['activities']['cc_clarification_attachments'] = $cc_clarification_attachments = Attachment::where([['entity_id', '=', $activity_status_id], ['entity_type', '=', config('constants.entity_types.CC_CLARIFICATION_ATTACHMENT')]])->get();
 
 			$ccServiceTypeValue = ActivityDetail::where('activity_id', $activity_status_id)
 				->where('key_id', 153)
@@ -892,7 +911,7 @@ class ActivityController extends Controller {
 				}
 			}
 
-			$other_charges_attachment_url = $km_travelled_attachment_url = [];
+			$other_charges_attachment_url = $km_travelled_attachment_url = $cc_clarification_attachment_url = [];
 			if ($km_travelled_attachments->isNotEmpty()) {
 				foreach ($km_travelled_attachments as $key => $km_travelled_attachment) {
 					if ($hasccServiceType) {
@@ -927,8 +946,16 @@ class ActivityController extends Controller {
 					// }
 				}
 			}
+			if ($cc_clarification_attachments->isNotEmpty()) {
+				foreach ($cc_clarification_attachments as $key => $cc_clarification_attachment) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity_status_id . '/cc-clarification-attachments/' . $cc_clarification_attachment->attachment_file_name)) {
+						$cc_clarification_attachment_url[$key] = ccClarificationAttachmentUrl($cc_clarification_attachment->attachment_file_name, $activity_status_id);
+					}
+				}
+			}
 			$this->data['activities']['km_travelled_attachment_url'] = $km_travelled_attachment_url;
 			$this->data['activities']['other_charges_attachment_url'] = $other_charges_attachment_url;
+			$this->data['activities']['cc_clarification_attachment_url'] = $cc_clarification_attachment_url;
 			$this->data['activities']['activityApprovalLevel'] = $activityApprovalLevel;
 
 			$vehiclePickupAttachment = Attachment::where([
@@ -1331,6 +1358,10 @@ class ActivityController extends Controller {
 			$importedBy = "";
 			$aspDataFilledAt = "";
 			$aspDataFilledBy = "";
+			$defferedToCcAt = "";
+			$defferedToCcBy = "";
+			$ccClarifiedAt = "";
+			$ccClarifiedBy = "";
 			$boDefferedAt = "";
 			$boDefferedBy = "";
 			$boApprovedAt = "";
@@ -1365,6 +1396,18 @@ class ActivityController extends Controller {
 				}
 				if (!empty($activity_data->log->asp_data_filled_by_id)) {
 					$aspDataFilledBy = $activity_data->log->aspDataFilledBy ? ($activity_data->log->aspDataFilledBy->name . ' - ' . $activity_data->log->aspDataFilledBy->username) : '';
+				}
+				if (!empty($activity_data->log->deferred_to_cc_at)) {
+					$defferedToCcAt = $activity_data->log->deferred_to_cc_at;
+				}
+				if (!empty($activity_data->log->deferred_to_cc_by_id)) {
+					$defferedToCcBy = $activity_data->log->defferedToCcBy ? ($activity_data->log->defferedToCcBy->name . ' - ' . $activity_data->log->defferedToCcBy->username) : '';
+				}
+				if (!empty($activity_data->log->cc_clarified_at)) {
+					$ccClarifiedAt = $activity_data->log->cc_clarified_at;
+				}
+				if (!empty($activity_data->log->cc_clarified_by_id)) {
+					$ccClarifiedBy = $activity_data->log->ccClarifiedBy ? ($activity_data->log->ccClarifiedBy->name . ' - ' . $activity_data->log->ccClarifiedBy->username) : '';
 				}
 				if (!empty($activity_data->log->bo_deffered_at)) {
 					$boDefferedAt = $activity_data->log->bo_deffered_at;
@@ -1460,6 +1503,10 @@ class ActivityController extends Controller {
 			$this->data['activities']['importedBy'] = $importedBy;
 			$this->data['activities']['aspDataFilledAt'] = $aspDataFilledAt;
 			$this->data['activities']['aspDataFilledBy'] = $aspDataFilledBy;
+			$this->data['activities']['defferedToCcAt'] = $defferedToCcAt;
+			$this->data['activities']['defferedToCcBy'] = $defferedToCcBy;
+			$this->data['activities']['ccClarifiedAt'] = $ccClarifiedAt;
+			$this->data['activities']['ccClarifiedBy'] = $ccClarifiedBy;
 			$this->data['activities']['boDefferedAt'] = $boDefferedAt;
 			$this->data['activities']['boDefferedBy'] = $boDefferedBy;
 			$this->data['activities']['boApprovedAt'] = $boApprovedAt;
@@ -1613,18 +1660,8 @@ class ActivityController extends Controller {
 
 	public function approveActivity(Request $request) {
 		// dd($request->all());
-		DB::beginTransaction();
-		try {
-			if (Auth::check()) {
-				if (empty(Auth::user()->activity_approval_level_id)) {
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							'User is not valid for Verification',
-						],
-					]);
-				}
-			} else {
+		if (Auth::check()) {
+			if (empty(Auth::user()->activity_approval_level_id)) {
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -1632,176 +1669,187 @@ class ActivityController extends Controller {
 					],
 				]);
 			}
+		} else {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'User is not valid for Verification',
+				],
+			]);
+		}
 
-			if (empty($request->exceptional_reason)) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Exceptional reason is required',
-					],
-				]);
-			}
+		if (empty($request->exceptional_reason)) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Exceptional reason is required',
+				],
+			]);
+		}
 
-			// Check if the first character is a special character
-			if (isset($request->bo_comments) && !empty($request->bo_comments) && !preg_match('/^[^=]/', $request->bo_comments)) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Equal symbol (=) is not allowed as the first character for comments!',
-					],
-				]);
-			}
+		// Check if the first character is a special character
+		if (isset($request->bo_comments) && !empty($request->bo_comments) && !preg_match('/^[^=]/', $request->bo_comments)) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Equal symbol (=) is not allowed as the first character for comments!',
+				],
+			]);
+		}
 
-			// Check if the first character is a special character
-			if (isset($request->deduction_reason) && !empty($request->deduction_reason) && !preg_match('/^[^=]/', $request->deduction_reason)) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Equal symbol (=) is not allowed as the first character for deduction reason!',
-					],
-				]);
-			}
+		// Check if the first character is a special character
+		if (isset($request->deduction_reason) && !empty($request->deduction_reason) && !preg_match('/^[^=]/', $request->deduction_reason)) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Equal symbol (=) is not allowed as the first character for deduction reason!',
+				],
+			]);
+		}
 
-			// Check if the first character is a special character
-			if (isset($request->exceptional_reason) && !empty($request->exceptional_reason) && !preg_match('/^[^=]/', $request->exceptional_reason)) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Equal symbol (=) is not allowed as the first character for exceptional reason!',
-					],
-				]);
-			}
+		// Check if the first character is a special character
+		if (isset($request->exceptional_reason) && !empty($request->exceptional_reason) && !preg_match('/^[^=]/', $request->exceptional_reason)) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Equal symbol (=) is not allowed as the first character for exceptional reason!',
+				],
+			]);
+		}
 
-			if ($request->boServiceTypeId == '') {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Service is required',
-					],
-				]);
-			}
+		if ($request->boServiceTypeId == '') {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Service is required',
+				],
+			]);
+		}
 
-			if ($request->bo_km_travelled !== '' && $request->bo_km_travelled <= 0) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'KM Travelled should be greater than zero',
-					],
-				]);
-			}
+		if ($request->bo_km_travelled !== '' && $request->bo_km_travelled <= 0) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'KM Travelled should be greater than zero',
+				],
+			]);
+		}
 
-			if ($request->bo_km_travelled !== 0 && $request->bo_km_travelled === '') {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'KM Travelled is required',
-					],
-				]);
-			}
+		if ($request->bo_km_travelled !== 0 && $request->bo_km_travelled === '') {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'KM Travelled is required',
+				],
+			]);
+		}
 
-			if ($request->bo_not_collected !== 0 && $request->bo_not_collected === '') {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Charges not collected is required',
-					],
-				]);
-			}
+		if ($request->bo_not_collected !== 0 && $request->bo_not_collected === '') {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Charges not collected is required',
+				],
+			]);
+		}
 
-			if ($request->bo_border_charges !== 0 && $request->bo_border_charges === '') {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Border Charges is required',
-					],
-				]);
-			}
+		if ($request->bo_border_charges !== 0 && $request->bo_border_charges === '') {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Border Charges is required',
+				],
+			]);
+		}
 
-			if ($request->bo_green_tax_charges !== 0 && $request->bo_green_tax_charges === '') {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Green Tax Charges is required',
-					],
-				]);
-			}
+		if ($request->bo_green_tax_charges !== 0 && $request->bo_green_tax_charges === '') {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Green Tax Charges is required',
+				],
+			]);
+		}
 
-			if ($request->bo_toll_charges !== 0 && $request->bo_toll_charges === '') {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Toll Charges is required',
-					],
-				]);
-			}
+		if ($request->bo_toll_charges !== 0 && $request->bo_toll_charges === '') {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Toll Charges is required',
+				],
+			]);
+		}
 
-			if ($request->bo_eatable_items_charges !== 0 && $request->bo_eatable_items_charges === '') {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Eatable Items Charges is required',
-					],
-				]);
-			}
+		if ($request->bo_eatable_items_charges !== 0 && $request->bo_eatable_items_charges === '') {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Eatable Items Charges is required',
+				],
+			]);
+		}
 
-			if ($request->bo_fuel_charges !== 0 && $request->bo_fuel_charges === '') {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Fuel Charges is required',
-					],
-				]);
-			}
+		if ($request->bo_fuel_charges !== 0 && $request->bo_fuel_charges === '') {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Fuel Charges is required',
+				],
+			]);
+		}
 
-			if ($request->bo_collected !== 0 && $request->bo_collected === '') {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Charges collected is required',
-					],
-				]);
-			}
+		if ($request->bo_collected !== 0 && $request->bo_collected === '') {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Charges collected is required',
+				],
+			]);
+		}
 
-			if ($request->bo_net_amount <= 0) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Payout amount should be greater than zero',
-					],
-				]);
-			}
+		if ($request->bo_net_amount <= 0) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Payout amount should be greater than zero',
+				],
+			]);
+		}
 
-			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24, 5, 8, 18, 20, 23])
-				->where('id', $request->activity_id)
-				->first();
-			if (!$activity) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Activity not found',
-					],
-				]);
-			}
+		$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24, 5, 8, 18, 20, 23, 29])
+			->where('id', $request->activity_id)
+			->first();
+		if (!$activity) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Activity not found',
+				],
+			]);
+		}
 
-			$asp_km_travelled = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 154]])->first();
-			if (!$asp_km_travelled) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Activity ASP KM not found',
-					],
-				]);
-			}
+		$asp_km_travelled = ActivityDetail::where([['activity_id', '=', $activity->id], ['key_id', '=', 154]])->first();
+		if (!$asp_km_travelled) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Activity ASP KM not found',
+				],
+			]);
+		}
 
-			//CHECK BO KM > ASP KM
-			if ($request->bo_km_travelled > $asp_km_travelled->value) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Final KM should be less than or equal to ASP KM',
-					],
-				]);
-			}
+		//CHECK BO KM > ASP KM
+		if ($request->bo_km_travelled > $asp_km_travelled->value) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Final KM should be less than or equal to ASP KM',
+				],
+			]);
+		}
+
+		DB::beginTransaction();
+		try {
 
 			$isServiceTypeChanged = false;
 			$isKmTravelledChanged = false;
@@ -1885,6 +1933,7 @@ class ActivityController extends Controller {
 
 			$saveActivityRatecardResponse = $activity->saveActivityRatecard();
 			if (!$saveActivityRatecardResponse['success']) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -2273,7 +2322,10 @@ class ActivityController extends Controller {
 			$activityLog->save();
 
 			//SAVE ACTIVITY REPORT FOR DASHBOARD
-			ActivityReport::saveReport($activity->id);
+			$activityReportSync = new ActivityReportSync();
+			$activityReportSync->activity_id = $activity->id;
+			$activityReportSync->sync_status = 0; // NOT SYNCED
+			$activityReportSync->save();
 
 			DB::commit();
 			return response()->json([
@@ -2733,7 +2785,10 @@ class ActivityController extends Controller {
 					$activityLog->save();
 
 					//SAVE ACTIVITY REPORT FOR DASHBOARD
-					ActivityReport::saveReport($activity->id);
+					$activityReportSync = new ActivityReportSync();
+					$activityReportSync->activity_id = $activity->id;
+					$activityReportSync->sync_status = 0; // NOT SYNCED
+					$activityReportSync->save();
 
 				} else {
 					return response()->json([
@@ -2784,9 +2839,9 @@ class ActivityController extends Controller {
 	}
 
 	public function saveActivityDiffer(Request $request) {
-		DB::beginTransaction();
+		// dd($request->all());
+		// VALIDATION WITHOUT TRANSACTION
 		try {
-
 			if (Auth::check()) {
 				if (empty(Auth::user()->activity_approval_level_id)) {
 					return response()->json([
@@ -2820,6 +2875,11 @@ class ActivityController extends Controller {
 					'string',
 					'regex:/^[^=]/',
 				],
+				'activityStatusId' => [
+					'required',
+					'integer',
+					'exists:activity_portal_statuses,id',
+				],
 			], $errorMessages);
 
 			if ($validator->fails()) {
@@ -2829,7 +2889,7 @@ class ActivityController extends Controller {
 				]);
 			}
 
-			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24, 5, 8, 18, 20, 23])
+			$activity = Activity::whereIn('status_id', [6, 9, 19, 21, 22, 24, 5, 8, 18, 20, 23, 29])
 				->where('id', $request->activity_id)
 				->first();
 
@@ -2842,45 +2902,74 @@ class ActivityController extends Controller {
 				]);
 			}
 
+			// STATUS IS Rejected - Waiting for Call Center Clarification AND CALL CENTER IS INACTIVE
+			if ($request->activityStatusId == 28 && $activity->case && !$activity->case->callcenter) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Call center is inactive',
+					],
+				]);
+			}
+		} catch (\Exception $e) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
+		}
+
+		// MAIN FUNCTION WITH TRANSACTION
+		DB::beginTransaction();
+		try {
 			$eligleForAspReEntry = false;
 			$deferReason = $activity->defer_reason;
 			//L1
 			if (Auth::user()->activity_approval_level_id == 1) {
-				$activityStatusId = 7; //BO Rejected - Waiting for ASP Data Re-Entry
-				$eligleForAspReEntry = true;
+				// IF STATUS IS BO Rejected - Waiting for ASP Data Re-Entry
+				if ($request->activityStatusId == 7) {
+					$eligleForAspReEntry = true;
+				}
 				if (!empty($deferReason)) {
 					$deferReason .= nl2br("<hr> L1 Approver : " . makeUrltoLinkInString($request->defer_reason));
 				} else {
 					$deferReason = "L1 Approver : " . makeUrltoLinkInString($request->defer_reason);
 				}
-				$activity->service_type_changed_on_level = NULL;
-				$activity->l1_changed_service_type_id = NULL;
-				$activity->l2_changed_service_type_id = NULL;
-				$activity->l3_changed_service_type_id = NULL;
-				$activity->km_changed_on_level = NULL;
-				$activity->not_collected_amount_changed_on_level = NULL;
-				$activity->collected_amount_changed_on_level = NULL;
+				// IF THE STATUS IS NOT REJECTED - WAITING FOR CALL CENTER CLARIFICATION
+				if ($request->activityStatusId != 28) {
+					$activity->service_type_changed_on_level = NULL;
+					$activity->l1_changed_service_type_id = NULL;
+					$activity->l2_changed_service_type_id = NULL;
+					$activity->l3_changed_service_type_id = NULL;
+					$activity->km_changed_on_level = NULL;
+					$activity->not_collected_amount_changed_on_level = NULL;
+					$activity->collected_amount_changed_on_level = NULL;
+				}
 			} elseif (Auth::user()->activity_approval_level_id == 2) {
 				// L2
-				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
 				if (!empty($deferReason)) {
 					$deferReason .= nl2br("<hr> L2 Approver : " . makeUrltoLinkInString($request->defer_reason));
 				} else {
 					$deferReason = "L2 Approver : " . makeUrltoLinkInString($request->defer_reason);
 				}
-				$activity->l2_changed_service_type_id = NULL;
+				// IF THE STATUS IS NOT REJECTED - WAITING FOR CALL CENTER CLARIFICATION
+				if ($request->activityStatusId != 28) {
+					$activity->l2_changed_service_type_id = NULL;
+				}
 			} elseif (Auth::user()->activity_approval_level_id == 3) {
 				// L3
-				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
 				if (!empty($deferReason)) {
 					$deferReason .= nl2br("<hr> L3 Approver : " . makeUrltoLinkInString($request->defer_reason));
 				} else {
 					$deferReason = "L3 Approver : " . makeUrltoLinkInString($request->defer_reason);
 				}
-				$activity->l3_changed_service_type_id = NULL;
+				// IF THE STATUS IS NOT REJECTED - WAITING FOR CALL CENTER CLARIFICATION
+				if ($request->activityStatusId != 28) {
+					$activity->l3_changed_service_type_id = NULL;
+				}
 			} elseif (Auth::user()->activity_approval_level_id == 4) {
 				// L4
-				$activityStatusId = 22; //BO Rejected - Waiting for L1 Individual Verification
 				if (!empty($deferReason)) {
 					$deferReason .= nl2br("<hr> L4 Approver : " . makeUrltoLinkInString($request->defer_reason));
 				} else {
@@ -2889,11 +2978,13 @@ class ActivityController extends Controller {
 			}
 
 			$activity->defer_reason = $deferReason;
-			$activity->bo_comments = isset($request->bo_comments) ? $request->bo_comments : NULL;
-			$activity->deduction_reason = isset($request->deduction_reason) ? $request->deduction_reason : NULL;
-			if (isset($activityStatusId)) {
-				$activity->status_id = $activityStatusId;
+			if (isset($request->bo_comments) && !empty($request->bo_comments)) {
+				$activity->bo_comments = $request->bo_comments;
 			}
+			if (isset($request->deduction_reason) && !empty($request->deduction_reason)) {
+				$activity->deduction_reason = $request->deduction_reason;
+			}
+			$activity->status_id = $request->activityStatusId;
 			$activity->updated_at = Carbon::now();
 			$activity->updated_by_id = Auth::user()->id;
 			$activity->save();
@@ -2901,29 +2992,42 @@ class ActivityController extends Controller {
 			$activityLog = ActivityLog::firstOrNew([
 				'activity_id' => $activity->id,
 			]);
-			//L1
-			if (Auth::user()->activity_approval_level_id == 1) {
-				$activityLog->bo_deffered_at = date('Y-m-d H:i:s');
-				$activityLog->bo_deffered_by_id = Auth::id();
-			} elseif (Auth::user()->activity_approval_level_id == 2) {
-				// L2
-				$activityLog->l2_deffered_at = date('Y-m-d H:i:s');
-				$activityLog->l2_deffered_by_id = Auth::id();
-			} elseif (Auth::user()->activity_approval_level_id == 3) {
-				// L3
-				$activityLog->l3_deffered_at = date('Y-m-d H:i:s');
-				$activityLog->l3_deffered_by_id = Auth::id();
-			} elseif (Auth::user()->activity_approval_level_id == 4) {
-				// L4
-				$activityLog->l4_deffered_at = date('Y-m-d H:i:s');
-				$activityLog->l4_deffered_by_id = Auth::id();
+
+			// IF THE STATUS IS REJECTED - WAITING FOR CALL CENTER CLARIFICATION
+			if ($request->activityStatusId == 28) {
+				$activityLog->deferred_to_cc_at = date('Y-m-d H:i:s');
+				$activityLog->deferred_to_cc_by_id = Auth::id();
+				$activityLog->deferred_to_cc_l2_user_escalated_at = null;
+			} else {
+				//L1
+				if (Auth::user()->activity_approval_level_id == 1) {
+					$activityLog->bo_deffered_at = date('Y-m-d H:i:s');
+					$activityLog->bo_deffered_by_id = Auth::id();
+				} elseif (Auth::user()->activity_approval_level_id == 2) {
+					// L2
+					$activityLog->l2_deffered_at = date('Y-m-d H:i:s');
+					$activityLog->l2_deffered_by_id = Auth::id();
+				} elseif (Auth::user()->activity_approval_level_id == 3) {
+					// L3
+					$activityLog->l3_deffered_at = date('Y-m-d H:i:s');
+					$activityLog->l3_deffered_by_id = Auth::id();
+				} elseif (Auth::user()->activity_approval_level_id == 4) {
+					// L4
+					$activityLog->l4_deffered_at = date('Y-m-d H:i:s');
+					$activityLog->l4_deffered_by_id = Auth::id();
+				}
 			}
 			$activityLog->updated_by_id = Auth::id();
 			$activityLog->updated_at = Carbon::now();
 			$activityLog->save();
 
 			//SAVE ACTIVITY REPORT FOR DASHBOARD
-			ActivityReport::saveReport($activity->id);
+			$activityReportSync = new ActivityReportSync();
+			$activityReportSync->activity_id = $activity->id;
+			$activityReportSync->sync_status = 0; // NOT SYNCED
+			$activityReportSync->save();
+
+			DB::commit();
 
 			//Saving log record
 			if ($eligleForAspReEntry) {
@@ -2940,19 +3044,237 @@ class ActivityController extends Controller {
 				$array = [$request->case_number];
 				sendSMS2($sms_message, $mobile_number, $array, NULL);
 
-				//sending notification to all BO users
+				//SEND NOTIFICATION TO ASP USER
 				$asp_user = $activity->asp->user_id;
 				$noty_message_template = 'BO_DEFERRED';
 				$number = [$request->case_number];
 				notify2($noty_message_template, $asp_user, config('constants.alert_type.red'), $number);
 			}
 
-			DB::commit();
+			// L1 / L2 / L3 / L4 APPROVAL AND STATUS IS Rejected - Waiting for Call Center Clarification
+			if (in_array(Auth::user()->activity_approval_level_id, [1, 2, 3, 4]) && $request->activityStatusId == 28 && $activity->case && $activity->case->callcenter) {
+				//SENT EMAIL NOTIFICATION TO CALL CENTER L1 USER
+				if (!empty($activity->case->callcenter->l1_user_email)) {
+					$arr['subject'] = "Re: Waiting For Call Center Clarification - Ticket No: " . $request->case_number;
+					$arr['title'] = "Call Center Clarification Notification";
+					$arr['name'] = "User";
+					$arr['content'] = 'The ticket is waiting for call center clarification. Kindly check and provide clarity within 24 hours.';
+					$arr['to_mail_id'] = $activity->case->callcenter->l1_user_email;
+					$arr['company_header'] = view('partials/email-noty-company-header')->render();
+					$arr['view_path'] = 'emails.notification-email';
+					$MailInstance = new NotificationEmail($arr);
+					try {
+						$Mail = Mail::send($MailInstance);
+					} catch (\Exception $e) {
+
+					}
+				}
+
+				$log_status = config('rsa.LOG_STATUES_TEMPLATES.BO_DEFERED_DONE');
+				$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.CC_CLARIFICATION_WAIT');
+				logActivity3(config('constants.entity_types.ticket'), $activity->id, [
+					'Status' => $log_status,
+					'Waiting for' => $log_waiting,
+				], 361);
+
+				//SEND NOTIFICATION TO CALL CENTER USER
+				if (!empty($activity->case->callcenter->user_id)) {
+					notify2("WAITING_FOR_CALL_CENTER_CLARIFICATION", $activity->case->callcenter->user_id, config('constants.alert_type.red'), [$request->case_number]);
+				}
+			}
+
 			return response()->json([
 				'success' => true,
 				'message' => 'Activity deferred successfully.',
 			]);
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
+		}
+	}
 
+	public function updateCcClarification(Request $request) {
+		// dd($request->all());
+		// VALIDATION WITHOUT TRANSACTION
+		try {
+
+			$errorMessages = [
+				'cc_clarification.regex' => "Equal symbol (=) is not allowed as the first character for defer reason!",
+			];
+
+			$validator = Validator::make($request->all(), [
+				'activity_id' => [
+					'required',
+					'integer',
+					'exists:activities,id',
+				],
+				'cc_clarification' => [
+					'required',
+					'string',
+					'regex:/^[^=]/',
+				],
+			], $errorMessages);
+
+			if ($validator->fails()) {
+				return response()->json([
+					'success' => false,
+					'errors' => $validator->errors()->all(),
+				]);
+			}
+
+			$activity = Activity::select([
+				'id',
+				'cc_clarification',
+				'asp_id',
+				'case_id',
+				'service_type_id',
+			])
+				->where('id', $request->activity_id)
+				->where('status_id', 28) //Rejected - Waiting for Call Center Clarification
+				->first();
+
+			if (!$activity) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Activity not found',
+					],
+				]);
+			}
+
+			$activityLog = ActivityLog::select([
+				'id',
+			])
+				->where('activity_id', $activity->id)
+				->first();
+			if (!$activityLog) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Activity log not found',
+					],
+				]);
+			}
+
+			if (isset($request->cc_clarification_attachments) && !empty($request->cc_clarification_attachments)) {
+				foreach ($request->cc_clarification_attachments as $key => $value) {
+					if ($request->hasFile("cc_clarification_attachments.$key")) {
+						$extension = $request->file("cc_clarification_attachments.$key")->getClientOriginalExtension();
+						$allowedExtensions = ["jpg", "jpeg", "png", "pdf", "mp3", "wav", "aac", "mp4", "avi", "mov", "mkv"];
+						if (!in_array($extension, $allowedExtensions)) {
+							return response()->json([
+								'success' => false,
+								'errors' => [
+									'Please upload attachments in jpg, jpeg, png, pdf, mp3, wav, aac, mp4, avi, mov, mkv formats',
+								],
+							]);
+						}
+					}
+				}
+			}
+
+		} catch (\Exception $e) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					$e->getMessage() . '. Line:' . $e->getLine() . '. File:' . $e->getFile(),
+				],
+			]);
+		}
+
+		// MAIN FUNCTION WITH TRANSACTION
+		DB::beginTransaction();
+		try {
+			$cc_clarification = $activity->cc_clarification;
+			if (!empty($cc_clarification)) {
+				$cc_clarification .= nl2br("<hr>" . date("d-m-Y g:i A") . " : " . makeUrltoLinkInString($request->cc_clarification));
+			} else {
+				$cc_clarification = date("d-m-Y g:i A") . " : " . makeUrltoLinkInString($request->cc_clarification);
+			}
+			$activity->cc_clarification = $cc_clarification;
+			$activity->status_id = 29; //Call Center Clarification Completed - Waiting for L1 Individual Verification
+			$activity->updated_at = Carbon::now();
+			$activity->updated_by_id = Auth::user()->id;
+			$activity->save();
+
+			if (isset($request->cc_clarification_attachments) && !empty($request->cc_clarification_attachments)) {
+				$destination = ccClarificationAttachmentPath($activity->id);
+				Storage::makeDirectory($destination, 0777);
+
+				// Hyder from business team instructed us to retain the attachments that were previously uploaded; therefore, they have been disabled.
+				// REMOVE EXISTING ATTACHMENT
+				// $getAttachments = Attachment::where('entity_id', $activity->id)
+				// 	->where('entity_type', config('constants.entity_types.CC_CLARIFICATION_ATTACHMENT'))
+				// 	->get();
+				// if ($getAttachments->isNotEmpty()) {
+				// 	foreach ($getAttachments as $getAttachmentKey => $getAttachmentVal) {
+				// 		if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/cc-clarification-attachments/' . $getAttachmentVal->attachment_file_name)) {
+				// 			unlink(storage_path('app/' . $destination . '/' . $getAttachmentVal->attachment_file_name));
+				// 		}
+				// 		$getAttachmentVal->delete();
+				// 	}
+				// }
+				// SAVE ATTACHMENTS
+				foreach ($request->cc_clarification_attachments as $key => $value) {
+					if ($request->hasFile("cc_clarification_attachments.$key")) {
+						$extension = $request->file("cc_clarification_attachments.$key")->getClientOriginalExtension();
+						$filename = date('d-m-Y-H-i-s') . "-" . $key . "." . $extension;
+						$status = $request->file("cc_clarification_attachments.$key")->storeAs($destination, $filename);
+						Attachment::create([
+							'entity_type' => config('constants.entity_types.CC_CLARIFICATION_ATTACHMENT'),
+							'entity_id' => $activity->id,
+							'attachment_file_name' => $filename,
+						]);
+					}
+				}
+			}
+
+			$activityLog->cc_clarified_at = date('Y-m-d H:i:s');
+			$activityLog->cc_clarified_by_id = Auth::id();
+			$activityLog->updated_by_id = Auth::id();
+			$activityLog->updated_at = Carbon::now();
+			$activityLog->save();
+
+			//SAVE ACTIVITY REPORT FOR DASHBOARD
+			$activityReportSync = new ActivityReportSync();
+			$activityReportSync->activity_id = $activity->id;
+			$activityReportSync->sync_status = 0; // NOT SYNCED
+			$activityReportSync->save();
+
+			DB::commit();
+
+			$log_status = config('rsa.LOG_STATUES_TEMPLATES.CC_CLARIFICATION_DONE');
+			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.CC_CLARIFICATION_DONE');
+			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
+				'Status' => $log_status,
+				'Waiting for' => $log_waiting,
+			], 361);
+
+			//SEND NOTIFICATION TO ASP USER
+			$state_id = $activity->asp->state_id;
+			$bo_users = DB::table('state_user')
+				->join('users', 'users.id', 'state_user.user_id')
+				->where('state_user.state_id', $state_id)
+				->where('users.role_id', 6) //BO
+				->where('users.activity_approval_level_id', 1) //L1
+				->pluck('state_user.user_id');
+			$noty_message_template = 'CALL_CENTER_CLARIFICATION_DONE';
+			$ticket_number = [$activity->case->number];
+			if (!empty($bo_users)) {
+				foreach ($bo_users as $bo_user_id) {
+					notify2($noty_message_template, $bo_user_id, config('constants.alert_type.blue'), $ticket_number);
+				}
+			}
+
+			return response()->json([
+				'success' => true,
+				'message' => 'Clarification updated successfully.',
+			]);
 		} catch (\Exception $e) {
 			DB::rollBack();
 			return response()->json([
@@ -3381,223 +3703,224 @@ class ActivityController extends Controller {
 
 	public function updateActivity(Request $request) {
 		// dd($request->all());
+		$activity = Activity::whereIn('status_id', [2, 4, 7, 17])
+			->where('id', $request->activity_id)
+			->first();
+		if (!$activity) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Activity not found',
+				],
+			]);
+		}
+
+		if (floatval($request->km_travelled) <= 0) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'KM travelled should be greater than zero',
+				],
+			]);
+		}
+
+		// Check if the first character is a special character
+		if (isset($request->remarks_not_collected) && !empty($request->remarks_not_collected) && !preg_match('/^[^=]/', $request->remarks_not_collected)) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Equal symbol (=) is not allowed as the first character for remarks for charges not collected!',
+				],
+			]);
+		}
+
+		if (isset($request->general_remarks) && !empty($request->general_remarks) && !preg_match('/^[^=]/', $request->general_remarks)) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Equal symbol (=) is not allowed as the first character for general remarks!',
+				],
+			]);
+		}
+
+		if (isset($request->comments) && !empty($request->comments) && !preg_match('/^[^=]/', $request->comments)) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Equal symbol (=) is not allowed as the first character for resolve comments!',
+				],
+			]);
+		}
+
+		$enteredServiceType = ServiceType::select([
+			'id',
+			'service_group_id',
+		])
+			->where('id', $request->asp_service_type_id)
+			->first();
+		if (!$enteredServiceType) {
+			return response()->json([
+				'success' => false,
+				'errors' => [
+					'Service not found',
+				],
+			]);
+		}
+		$checkTowingAttachmentMandatory = false;
+		//TOWING GROUP
+		if ($enteredServiceType->service_group_id == 3 && $activity->is_towing_attachments_mandatory == 1 && $activity->financeStatus && $activity->financeStatus->po_eligibility_type_id == 340) {
+			$towingImagesMandatoryEffectiveDate = config('rsa.TOWING_IMAGES_MANDATORY_EFFECTIVE_DATE');
+			if (date('Y-m-d', strtotime($activity->case->date)) >= $towingImagesMandatoryEffectiveDate) {
+				$checkTowingAttachmentMandatory = true;
+			}
+		}
+		if ($checkTowingAttachmentMandatory) {
+			// Vehicle Pickup image
+			if (!isset($request->vehiclePickupAttachExist) && (!isset($request->vehicle_pickup_attachment) || (isset($request->vehicle_pickup_attachment) && empty($request->vehicle_pickup_attachment)))) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Please Upload Vehicle Pickup image',
+					],
+				]);
+			}
+			// Vehicle Pickup image
+			if (!isset($request->vehicleDropAttachExist) && (!isset($request->vehicle_drop_attachment) || (isset($request->vehicle_drop_attachment) && empty($request->vehicle_drop_attachment)))) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Please Upload Vehicle Drop image',
+					],
+				]);
+			}
+			// Vehicle Pickup image
+			if (!isset($request->inventoryJobSheetAttachExist) && (!isset($request->inventory_job_sheet_attachment) || (isset($request->inventory_job_sheet_attachment) && empty($request->inventory_job_sheet_attachment)))) {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Please Upload Inventory Job Sheet image',
+					],
+				]);
+			}
+		}
+
+		if (isset($request->vehicle_pickup_attachment) && !empty($request->vehicle_pickup_attachment)) {
+			$extension = $request->file("vehicle_pickup_attachment")->getClientOriginalExtension();
+			if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Please Upload Vehicle Pickup image in jpeg, png, jpg formats',
+					],
+				]);
+			}
+		}
+
+		if (isset($request->vehicle_drop_attachment) && !empty($request->vehicle_drop_attachment)) {
+			$extension = $request->file("vehicle_drop_attachment")->getClientOriginalExtension();
+			if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Please Upload Vehicle Drop image in jpeg, png, jpg formats',
+					],
+				]);
+			}
+		}
+
+		if (isset($request->inventory_job_sheet_attachment) && !empty($request->inventory_job_sheet_attachment)) {
+			$extension = $request->file("inventory_job_sheet_attachment")->getClientOriginalExtension();
+			if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
+				return response()->json([
+					'success' => false,
+					'errors' => [
+						'Please Upload Inventory Job Sheet image in jpeg, png, jpg formats',
+					],
+				]);
+			}
+		}
+
+		$range_limit = $waiting_charge_per_hour = 0;
+		$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
+		Storage::makeDirectory($destination, 0777);
+
+		//MAP ATTACHMENTS REMOVAL
+		if (isset($request->update_attach_km_map_id) && !empty($request->update_attach_km_map_id)) {
+			$update_attach_km_map_ids = json_decode($request->update_attach_km_map_id, true);
+			$removeMapAttachments = Attachment::whereIn('id', $update_attach_km_map_ids)
+				->get();
+			if ($removeMapAttachments->isNotEmpty()) {
+				foreach ($removeMapAttachments as $removeMapAttachmentKey => $removeMapAttachment) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeMapAttachment->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $removeMapAttachment->attachment_file_name));
+					}
+					$removeMapAttachment->delete();
+				}
+			}
+		}
+
+		//OTHER ATTACHMENTS REMOVAL
+		if (isset($request->update_attach_other_id) && !empty($request->update_attach_other_id)) {
+			$update_attach_other_ids = json_decode($request->update_attach_other_id, true);
+			$removeOtherAttachments = Attachment::whereIn('id', $update_attach_other_ids)
+				->get();
+			if ($removeOtherAttachments->isNotEmpty()) {
+				foreach ($removeOtherAttachments as $removeOtherAttachmentKey => $removeOtherAttachment) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeOtherAttachment->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $removeOtherAttachment->attachment_file_name));
+					}
+					$removeOtherAttachment->delete();
+				}
+			}
+		}
+
+		//VEHICLE PICKUP ATTACHMENTS REMOVAL
+		if (isset($request->vehiclePickupAttachRemovelIds) && !empty($request->vehiclePickupAttachRemovelIds)) {
+			$vehiclePickupAttachRemovelIds = json_decode($request->vehiclePickupAttachRemovelIds, true);
+			$removeVehiclePickupAttachments = Attachment::whereIn('id', $vehiclePickupAttachRemovelIds)
+				->get();
+			if ($removeVehiclePickupAttachments->isNotEmpty()) {
+				foreach ($removeVehiclePickupAttachments as $removeVehiclePickupAttachmentKey => $removeVehiclePickupAttachment) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeVehiclePickupAttachment->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $removeVehiclePickupAttachment->attachment_file_name));
+					}
+					$removeVehiclePickupAttachment->delete();
+				}
+			}
+		}
+
+		//VEHICLE DROP ATTACHMENTS REMOVAL
+		if (isset($request->vehicleDropAttachRemovelIds) && !empty($request->vehicleDropAttachRemovelIds)) {
+			$vehicleDropAttachRemovelIds = json_decode($request->vehicleDropAttachRemovelIds, true);
+			$removeVehicleDropAttachments = Attachment::whereIn('id', $vehicleDropAttachRemovelIds)
+				->get();
+			if ($removeVehicleDropAttachments->isNotEmpty()) {
+				foreach ($removeVehicleDropAttachments as $removeVehicleDropAttachmentKey => $removeVehicleDropAttachment) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeVehicleDropAttachment->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $removeVehicleDropAttachment->attachment_file_name));
+					}
+					$removeVehicleDropAttachment->delete();
+				}
+			}
+		}
+
+		//INVENTORY JOB SHEET ATTACHMENTS REMOVAL
+		if (isset($request->inventoryJobSheetAttachRemovelIds) && !empty($request->inventoryJobSheetAttachRemovelIds)) {
+			$inventoryJobSheetAttachRemovelIds = json_decode($request->inventoryJobSheetAttachRemovelIds, true);
+			$removeInventoryJobSheetAttachments = Attachment::whereIn('id', $inventoryJobSheetAttachRemovelIds)
+				->get();
+			if ($removeInventoryJobSheetAttachments->isNotEmpty()) {
+				foreach ($removeInventoryJobSheetAttachments as $removeInventoryJobSheetAttachmentKey => $removeInventoryJobSheetAttachment) {
+					if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeInventoryJobSheetAttachment->attachment_file_name)) {
+						unlink(storage_path('app/' . $destination . '/' . $removeInventoryJobSheetAttachment->attachment_file_name));
+					}
+					$removeInventoryJobSheetAttachment->delete();
+				}
+			}
+		}
+
 		DB::beginTransaction();
 		try {
-			$activity = Activity::whereIn('status_id', [2, 4, 7, 17])
-				->where('id', $request->activity_id)
-				->first();
-			if (!$activity) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Activity not found',
-					],
-				]);
-			}
-
-			if (floatval($request->km_travelled) <= 0) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'KM travelled should be greater than zero',
-					],
-				]);
-			}
-
-			// Check if the first character is a special character
-			if (isset($request->remarks_not_collected) && !empty($request->remarks_not_collected) && !preg_match('/^[^=]/', $request->remarks_not_collected)) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Equal symbol (=) is not allowed as the first character for remarks for charges not collected!',
-					],
-				]);
-			}
-
-			if (isset($request->general_remarks) && !empty($request->general_remarks) && !preg_match('/^[^=]/', $request->general_remarks)) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Equal symbol (=) is not allowed as the first character for general remarks!',
-					],
-				]);
-			}
-
-			if (isset($request->comments) && !empty($request->comments) && !preg_match('/^[^=]/', $request->comments)) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Equal symbol (=) is not allowed as the first character for resolve comments!',
-					],
-				]);
-			}
-
-			$enteredServiceType = ServiceType::select([
-				'id',
-				'service_group_id',
-			])
-				->where('id', $request->asp_service_type_id)
-				->first();
-			if (!$enteredServiceType) {
-				return response()->json([
-					'success' => false,
-					'errors' => [
-						'Service not found',
-					],
-				]);
-			}
-			$checkTowingAttachmentMandatory = false;
-			//TOWING GROUP
-			if ($enteredServiceType->service_group_id == 3 && $activity->is_towing_attachments_mandatory == 1 && $activity->financeStatus && $activity->financeStatus->po_eligibility_type_id == 340) {
-				$towingImagesMandatoryEffectiveDate = config('rsa.TOWING_IMAGES_MANDATORY_EFFECTIVE_DATE');
-				if (date('Y-m-d', strtotime($activity->case->date)) >= $towingImagesMandatoryEffectiveDate) {
-					$checkTowingAttachmentMandatory = true;
-				}
-			}
-			if ($checkTowingAttachmentMandatory) {
-				// Vehicle Pickup image
-				if (!isset($request->vehiclePickupAttachExist) && (!isset($request->vehicle_pickup_attachment) || (isset($request->vehicle_pickup_attachment) && empty($request->vehicle_pickup_attachment)))) {
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							'Please Upload Vehicle Pickup image',
-						],
-					]);
-				}
-				// Vehicle Pickup image
-				if (!isset($request->vehicleDropAttachExist) && (!isset($request->vehicle_drop_attachment) || (isset($request->vehicle_drop_attachment) && empty($request->vehicle_drop_attachment)))) {
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							'Please Upload Vehicle Drop image',
-						],
-					]);
-				}
-				// Vehicle Pickup image
-				if (!isset($request->inventoryJobSheetAttachExist) && (!isset($request->inventory_job_sheet_attachment) || (isset($request->inventory_job_sheet_attachment) && empty($request->inventory_job_sheet_attachment)))) {
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							'Please Upload Inventory Job Sheet image',
-						],
-					]);
-				}
-			}
-
-			if (isset($request->vehicle_pickup_attachment) && !empty($request->vehicle_pickup_attachment)) {
-				$extension = $request->file("vehicle_pickup_attachment")->getClientOriginalExtension();
-				if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							'Please Upload Vehicle Pickup image in jpeg, png, jpg formats',
-						],
-					]);
-				}
-			}
-
-			if (isset($request->vehicle_drop_attachment) && !empty($request->vehicle_drop_attachment)) {
-				$extension = $request->file("vehicle_drop_attachment")->getClientOriginalExtension();
-				if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							'Please Upload Vehicle Drop image in jpeg, png, jpg formats',
-						],
-					]);
-				}
-			}
-
-			if (isset($request->inventory_job_sheet_attachment) && !empty($request->inventory_job_sheet_attachment)) {
-				$extension = $request->file("inventory_job_sheet_attachment")->getClientOriginalExtension();
-				if ($extension != 'jpeg' && $extension != 'jpg' && $extension != 'png') {
-					return response()->json([
-						'success' => false,
-						'errors' => [
-							'Please Upload Inventory Job Sheet image in jpeg, png, jpg formats',
-						],
-					]);
-				}
-			}
-
-			$range_limit = $waiting_charge_per_hour = 0;
-			$destination = aspTicketAttachmentPath($activity->id, $activity->asp_id, $activity->service_type_id);
-			Storage::makeDirectory($destination, 0777);
-
-			//MAP ATTACHMENTS REMOVAL
-			if (isset($request->update_attach_km_map_id) && !empty($request->update_attach_km_map_id)) {
-				$update_attach_km_map_ids = json_decode($request->update_attach_km_map_id, true);
-				$removeMapAttachments = Attachment::whereIn('id', $update_attach_km_map_ids)
-					->get();
-				if ($removeMapAttachments->isNotEmpty()) {
-					foreach ($removeMapAttachments as $removeMapAttachmentKey => $removeMapAttachment) {
-						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeMapAttachment->attachment_file_name)) {
-							unlink(storage_path('app/' . $destination . '/' . $removeMapAttachment->attachment_file_name));
-						}
-						$removeMapAttachment->delete();
-					}
-				}
-			}
-
-			//OTHER ATTACHMENTS REMOVAL
-			if (isset($request->update_attach_other_id) && !empty($request->update_attach_other_id)) {
-				$update_attach_other_ids = json_decode($request->update_attach_other_id, true);
-				$removeOtherAttachments = Attachment::whereIn('id', $update_attach_other_ids)
-					->get();
-				if ($removeOtherAttachments->isNotEmpty()) {
-					foreach ($removeOtherAttachments as $removeOtherAttachmentKey => $removeOtherAttachment) {
-						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeOtherAttachment->attachment_file_name)) {
-							unlink(storage_path('app/' . $destination . '/' . $removeOtherAttachment->attachment_file_name));
-						}
-						$removeOtherAttachment->delete();
-					}
-				}
-			}
-
-			//VEHICLE PICKUP ATTACHMENTS REMOVAL
-			if (isset($request->vehiclePickupAttachRemovelIds) && !empty($request->vehiclePickupAttachRemovelIds)) {
-				$vehiclePickupAttachRemovelIds = json_decode($request->vehiclePickupAttachRemovelIds, true);
-				$removeVehiclePickupAttachments = Attachment::whereIn('id', $vehiclePickupAttachRemovelIds)
-					->get();
-				if ($removeVehiclePickupAttachments->isNotEmpty()) {
-					foreach ($removeVehiclePickupAttachments as $removeVehiclePickupAttachmentKey => $removeVehiclePickupAttachment) {
-						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeVehiclePickupAttachment->attachment_file_name)) {
-							unlink(storage_path('app/' . $destination . '/' . $removeVehiclePickupAttachment->attachment_file_name));
-						}
-						$removeVehiclePickupAttachment->delete();
-					}
-				}
-			}
-
-			//VEHICLE DROP ATTACHMENTS REMOVAL
-			if (isset($request->vehicleDropAttachRemovelIds) && !empty($request->vehicleDropAttachRemovelIds)) {
-				$vehicleDropAttachRemovelIds = json_decode($request->vehicleDropAttachRemovelIds, true);
-				$removeVehicleDropAttachments = Attachment::whereIn('id', $vehicleDropAttachRemovelIds)
-					->get();
-				if ($removeVehicleDropAttachments->isNotEmpty()) {
-					foreach ($removeVehicleDropAttachments as $removeVehicleDropAttachmentKey => $removeVehicleDropAttachment) {
-						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeVehicleDropAttachment->attachment_file_name)) {
-							unlink(storage_path('app/' . $destination . '/' . $removeVehicleDropAttachment->attachment_file_name));
-						}
-						$removeVehicleDropAttachment->delete();
-					}
-				}
-			}
-
-			//INVENTORY JOB SHEET ATTACHMENTS REMOVAL
-			if (isset($request->inventoryJobSheetAttachRemovelIds) && !empty($request->inventoryJobSheetAttachRemovelIds)) {
-				$inventoryJobSheetAttachRemovelIds = json_decode($request->inventoryJobSheetAttachRemovelIds, true);
-				$removeInventoryJobSheetAttachments = Attachment::whereIn('id', $inventoryJobSheetAttachRemovelIds)
-					->get();
-				if ($removeInventoryJobSheetAttachments->isNotEmpty()) {
-					foreach ($removeInventoryJobSheetAttachments as $removeInventoryJobSheetAttachmentKey => $removeInventoryJobSheetAttachment) {
-						if (Storage::disk('asp-data-entry-attachment-folder')->exists('/attachments/ticket/asp/ticket-' . $activity->id . '/asp-' . $activity->asp_id . '/service-' . $activity->service_type_id . '/' . $removeInventoryJobSheetAttachment->attachment_file_name)) {
-							unlink(storage_path('app/' . $destination . '/' . $removeInventoryJobSheetAttachment->attachment_file_name));
-						}
-						$removeInventoryJobSheetAttachment->delete();
-					}
-				}
-			}
 			$cc_service_type_exist = ActivityDetail::where('activity_id', $activity->id)
 				->where('key_id', 153)
 				->first();
@@ -3725,6 +4048,7 @@ class ActivityController extends Controller {
 					$km_difference = $asp_km - $mis_km;
 					if ($km_difference > $five_percentage_difference) {
 						if (!isset($request->km_attachment_exist) && empty($request->map_attachment)) {
+							DB::rollBack();
 							return response()->json([
 								'success' => false,
 								'errors' => [
@@ -3770,6 +4094,7 @@ class ActivityController extends Controller {
 			//LOGIC SAID BY CLIENT
 			if (floatval($asp_other) >= 31) {
 				if (!isset($request->other_attachment_exist) && empty($request->other_attachment)) {
+					DB::rollBack();
 					return response()->json([
 						'success' => false,
 						'errors' => [
@@ -3778,6 +4103,7 @@ class ActivityController extends Controller {
 					]);
 				}
 				if (empty($request->remarks_not_collected)) {
+					DB::rollBack();
 					return response()->json([
 						'success' => false,
 						'errors' => [
@@ -3882,6 +4208,7 @@ class ActivityController extends Controller {
 
 			$saveActivityRatecardResponse = $activity->saveActivityRatecard();
 			if (!$saveActivityRatecardResponse['success']) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -3947,6 +4274,7 @@ class ActivityController extends Controller {
 
 			$response = getActivityKMPrices($activity->serviceType, $activity->asp, $activity->data_src_id, $activity->case->date);
 			if (!$response['success']) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -4029,14 +4357,6 @@ class ActivityController extends Controller {
 			$bo_invoice_amount->value = $invoice_amount;
 			$bo_invoice_amount->save();
 
-			//log message
-			$log_status = config('rsa.LOG_STATUES_TEMPLATES.ASP_DATA_ENTRY_DONE');
-			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ASP_DATA_ENTRY_DONE');
-			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
-				'Status' => $log_status,
-				'Waiting for' => $log_waiting,
-			], 361);
-
 			$activity_log = ActivityLog::firstOrNew([
 				'activity_id' => $activity->id,
 			]);
@@ -4046,7 +4366,20 @@ class ActivityController extends Controller {
 			$activity_log->save();
 
 			//SAVE ACTIVITY REPORT FOR DASHBOARD
-			ActivityReport::saveReport($activity->id);
+			$activityReportSync = new ActivityReportSync();
+			$activityReportSync->activity_id = $activity->id;
+			$activityReportSync->sync_status = 0; // NOT SYNCED
+			$activityReportSync->save();
+
+			DB::commit();
+
+			//log message
+			$log_status = config('rsa.LOG_STATUES_TEMPLATES.ASP_DATA_ENTRY_DONE');
+			$log_waiting = config('rsa.LOG_WAITING_FOR_TEMPLATES.ASP_DATA_ENTRY_DONE');
+			logActivity3(config('constants.entity_types.ticket'), $activity->id, [
+				'Status' => $log_status,
+				'Waiting for' => $log_waiting,
+			], 361);
 
 			$sendApprovalNotification = config('rsa.SEND_APPROVAL_NOTIFICATION');
 			if ($sendNoty && $sendApprovalNotification) {
@@ -4079,7 +4412,6 @@ class ActivityController extends Controller {
 					}
 				}
 			}
-			DB::commit();
 			return response()->json(['success' => true]);
 		} catch (\Exception $e) {
 			DB::rollBack();
@@ -4102,7 +4434,6 @@ class ActivityController extends Controller {
 			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
 			'asps.asp_code',
 			'service_types.name as sub_service',
-			// 'activity_asp_statuses.name as asp_status',
 			'activity_finance_statuses.name as finance_status',
 			'activity_portal_statuses.name as status',
 			'activity_statuses.name as activity_status',
@@ -4115,23 +4446,11 @@ class ActivityController extends Controller {
 			->leftjoin('clients', 'clients.id', 'cases.client_id')
 			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
-		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
-			->where(function ($q) {
-				// FINANCE ADMIN
-				if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
-					$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
-					$aspIds[] = Auth::user()->asp->id;
-					$q->whereIn('asps.id', $aspIds);
-				} else {
-					$q->where('users.id', Auth::id());
-				}
-			})
-			->where('activities.status_id', 7) //BO Rejected - Waiting for ASP Data Re-Entry
+			->leftjoin('activity_logs', 'activity_logs.activity_id', 'activities.id')
 			->groupBy('activities.id')
-			->orderBy('cases.date', 'DESC')
 		;
 
 		if ($request->get('ticket_date')) {
@@ -4146,14 +4465,8 @@ class ActivityController extends Controller {
 		if ($request->get('service_type_id')) {
 			$activities->where('activities.service_type_id', $request->get('service_type_id'));
 		}
-		// if ($request->get('asp_status_id')) {
-		// 	$activities->where('activities.status_id', $request->get('asp_status_id'));
-		// }
 		if ($request->get('finance_status_id')) {
 			$activities->where('activities.finance_status_id', $request->get('finance_status_id'));
-		}
-		if ($request->get('status_id')) {
-			$activities->where('activities.status_id', $request->get('status_id'));
 		}
 		if ($request->get('activity_status_id')) {
 			$activities->where('activities.activity_status_id', $request->get('activity_status_id'));
@@ -4162,12 +4475,44 @@ class ActivityController extends Controller {
 			$activities->where('cases.client_id', $request->get('client_id'));
 		}
 
+		if (Entrust::can('asp-deferred-activities')) {
+			// ASP FINANCE ADMIN
+			if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
+				$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+				$aspIds[] = Auth::user()->asp->id;
+				$activities->whereIn('asps.id', $aspIds)
+					->where('activities.status_id', 7); //BO Rejected - Waiting for ASP Data Re-Entry
+			} else {
+				$activities->where('users.id', Auth::id())
+					->where('activities.status_id', 7); //BO Rejected - Waiting for ASP Data Re-Entry
+			}
+			$activities->orderBy('cases.date', 'DESC');
+		} else if (Entrust::can('cc-deferred-activities')) {
+			if (Auth::user()->cc) {
+				$activities->where('cases.call_center_id', Auth::user()->cc->id)
+					->where('activities.status_id', 28) //Rejected - Waiting for Call Center Clarification
+					->orderBy('activity_logs.deferred_to_cc_at', 'DESC')
+				;
+			} else {
+				return Datatables::of([])->make(true);
+			}
+		} else {
+			return Datatables::of([])->make(true);
+		}
+
 		return Datatables::of($activities)
 			->addColumn('action', function ($activity) {
+				$url = '';
+				if (Entrust::can('asp-deferred-activities')) {
+					$url = "#!/rsa-case-pkg/deferred-activity/update/" . $activity->id;
+				} else if (Entrust::can('cc-deferred-activities')) {
+					$url = "#!/rsa-case-pkg/activity-status/1/view/" . $activity->id;
+				}
 				$action = '<div class="dataTable-actions ">
-				<a href="#!/rsa-case-pkg/deferred-activity/update/' . $activity->id . '">
+								<a href=' . $url . '>
 					                <i class="fa fa-pencil dataTable-icon--edit" aria-hidden="true"></i>
-					            </a></div>';
+					            </a>
+				            </div>';
 				return $action;
 			})
 			->make(true);
@@ -4340,6 +4685,7 @@ class ActivityController extends Controller {
 						$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
 						$aspIds[] = Auth::user()->asp->id;
 						if (!in_array($activity->asp_id, $aspIds)) {
+							DB::rollBack();
 							return response()->json([
 								'success' => false,
 								'error' => 'ASP not matched for activity ID ' . $activity->crm_activity_id,
@@ -4348,6 +4694,7 @@ class ActivityController extends Controller {
 					} else {
 						//CHECK ASP MATCHES WITH ACTIVITY ASP
 						if ($activity->asp_id != $asp->id) {
+							DB::rollBack();
 							return response()->json([
 								'success' => false,
 								'error' => 'ASP not matched for activity ID ' . $activity->crm_activity_id,
@@ -4356,6 +4703,7 @@ class ActivityController extends Controller {
 					}
 					//CHECK IF INVOICE ALREADY CREATED FOR ACTIVITY
 					if (!empty($activity->invoice_id)) {
+						DB::rollBack();
 						return response()->json([
 							'success' => false,
 							'error' => 'Invoice already created for activity ' . $activity->crm_activity_id,
@@ -4364,6 +4712,7 @@ class ActivityController extends Controller {
 
 					//EXCEPT(Case Closed - Waiting for ASP to Generate Invoice AND Waiting for Invoice Generation by ASP)
 					if ($activity->status_id != 1 && $activity->status_id != 11) {
+						DB::rollBack();
 						return response()->json([
 							'success' => false,
 							'error' => 'ASP not accepted / case not closed for activity ID ' . $activity->crm_activity_id,
@@ -4384,12 +4733,14 @@ class ActivityController extends Controller {
 					}
 				}
 			} else {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'error' => 'Activity not found',
 				]);
 			}
 			if ($aug21ToNov21caseExist && $afterDec21caseExist) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'error' => "August'21 to November'21 cases should be separately invoiced. Cases done from 1st December 2021 should be invoiced separately for INP Payment",
@@ -4399,12 +4750,14 @@ class ActivityController extends Controller {
 			//SELF INVOICE
 			if ($asp->has_gst && !$asp->is_auto_invoice) {
 				if (!$request->invoice_no) {
+					DB::rollBack();
 					return response()->json([
 						'success' => false,
 						'error' => 'Invoice number is required',
 					]);
 				}
 				if (!$request->inv_date) {
+					DB::rollBack();
 					return response()->json([
 						'success' => false,
 						'error' => 'Invoice date is required',
@@ -4412,6 +4765,7 @@ class ActivityController extends Controller {
 				}
 
 				if (Str::length($request->invoice_no) > 20) {
+					DB::rollBack();
 					return response()->json([
 						'success' => false,
 						'error' => 'The invoice number may not be greater than 20 characters',
@@ -4422,6 +4776,7 @@ class ActivityController extends Controller {
 				$invoiceNumberfirstLetter = substr(trim($request->invoice_no), 0, 1);
 				if (is_numeric($invoiceNumberfirstLetter)) {
 					if ($invoiceNumberfirstLetter == 0) {
+						DB::rollBack();
 						return response()->json([
 							'success' => false,
 							'error' => 'Invoice number should not start with zero',
@@ -4431,6 +4786,7 @@ class ActivityController extends Controller {
 
 				//SPECIAL CHARACTERS NOT ALLOWED AT PREFIX
 				if (!preg_match("/^[A-Za-z0-9]{1}/", $request->invoice_no)) {
+					DB::rollBack();
 					return response()->json([
 						'success' => false,
 						'error' => 'Special characters are not allowed at the beginning of the invoice number',
@@ -4439,6 +4795,7 @@ class ActivityController extends Controller {
 
 				//SPECIAL CHARACTERS NOT ALLOWED AT SUFFIX
 				if (!preg_match("/[A-Za-z0-9]{1}$/", $request->invoice_no)) {
+					DB::rollBack();
 					return response()->json([
 						'success' => false,
 						'error' => 'Special characters are not allowed at the end of the invoice number',
@@ -4446,6 +4803,7 @@ class ActivityController extends Controller {
 				}
 
 				if (isset($request->irn) && !empty($request->irn) && strlen($request->irn) != '64') {
+					DB::rollBack();
 					return response()->json([
 						'success' => false,
 						'error' => 'Please enter at least 64 characters for IRN',
@@ -4465,6 +4823,7 @@ class ActivityController extends Controller {
 
 			$invoice_c = Invoices::createInvoice($asp, $request->crm_activity_ids, $invoice_no, $irn, $invoice_date, $value, false);
 			if (!$invoice_c['success']) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'error' => $invoice_c['message'],
@@ -4508,6 +4867,7 @@ class ActivityController extends Controller {
 			], $error_messages);
 
 			if ($validator->fails()) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'errors' => $validator->errors()->all(),
@@ -4516,6 +4876,7 @@ class ActivityController extends Controller {
 
 			$activity = Activity::find($r->activity_id);
 			if (!$activity) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -4536,7 +4897,10 @@ class ActivityController extends Controller {
 			}
 
 			//SAVE ACTIVITY REPORT FOR DASHBOARD
-			ActivityReport::saveReport($activity->id);
+			$activityReportSync = new ActivityReportSync();
+			$activityReportSync->activity_id = $activity->id;
+			$activityReportSync->sync_status = 0; // NOT SYNCED
+			$activityReportSync->save();
 
 			DB::commit();
 			return response()->json([
@@ -4576,6 +4940,7 @@ class ActivityController extends Controller {
 			], $errorMessages);
 
 			if ($validator->fails()) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'errors' => $validator->errors()->all(),
@@ -4586,6 +4951,7 @@ class ActivityController extends Controller {
 				->where('id', $request->activity_id)
 				->first();
 			if (!$activity) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -4606,7 +4972,10 @@ class ActivityController extends Controller {
 			$activity->save();
 
 			//SAVE ACTIVITY REPORT FOR DASHBOARD
-			ActivityReport::saveReport($activity->id);
+			$activityReportSync = new ActivityReportSync();
+			$activityReportSync->activity_id = $activity->id;
+			$activityReportSync->sync_status = 0; // NOT SYNCED
+			$activityReportSync->save();
 
 			DB::commit();
 
@@ -4643,6 +5012,7 @@ class ActivityController extends Controller {
 			]);
 
 			if ($validator->fails()) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'errors' => $validator->errors()->all(),
@@ -4655,7 +5025,10 @@ class ActivityController extends Controller {
 			$activity->save();
 
 			//SAVE ACTIVITY REPORT FOR DASHBOARD
-			ActivityReport::saveReport($activity->id);
+			$activityReportSync = new ActivityReportSync();
+			$activityReportSync->activity_id = $activity->id;
+			$activityReportSync->sync_status = 0; // NOT SYNCED
+			$activityReportSync->save();
 
 			DB::commit();
 			return response()->json([
@@ -4708,7 +5081,11 @@ class ActivityController extends Controller {
 
 			$activityReports = ActivityReport::join('activities', 'activities.id', 'activity_reports.activity_id')
 				->join('cases', 'cases.id', 'activities.case_id')
-				->join('asps', 'asps.id', 'activities.asp_id');
+				->join('asps', 'asps.id', 'activities.asp_id')
+				->leftjoin('activity_logs', 'activity_logs.activity_id', 'activities.id')
+				->leftjoin('users as ccClarifiedUser', 'ccClarifiedUser.id', 'activity_logs.cc_clarified_by_id')
+				->leftjoin('users as deferredToCcUser', 'deferredToCcUser.id', 'activity_logs.deferred_to_cc_by_id')
+			;
 			if (!empty($statusIds)) {
 				$activityReports->whereIn('activities.status_id', $statusIds);
 			}
@@ -4817,6 +5194,7 @@ class ActivityController extends Controller {
 				DB::raw('COALESCE(activity_reports.deduction_reason, "--") as deductionReason'),
 				DB::raw('COALESCE(activity_reports.defer_reason, "--") as deferReason'),
 				DB::raw('COALESCE(activity_reports.asp_resolve_comments, "--") as aspResolveComments'),
+				DB::raw('COALESCE(activities.cc_clarification, "--") as ccClarification'),
 				DB::raw('COALESCE(activity_reports.is_exceptional, "--") as isExceptional'),
 				DB::raw('COALESCE(activity_reports.exceptional_reason, "--") as exceptionalReason'),
 				DB::raw('COALESCE(activity_reports.invoice_number, "--") as invoiceNumber'),
@@ -4932,6 +5310,13 @@ class ActivityController extends Controller {
 				DB::raw('DATE_FORMAT(activity_reports.asp_data_filled_date, "%d-%m-%Y %H:%i:%s") as aspDataFilledDate'),
 				DB::raw('COALESCE(activity_reports.asp_data_filled_by, "--") as aspDataFilledBy'),
 				DB::raw('COALESCE(activity_reports.duration_between_asp_data_filled_and_l1_deffered, "--") as durationBetweenAspDataFilledAndL1Deffered'),
+
+				DB::raw('DATE_FORMAT(activity_logs.deferred_to_cc_at, "%d-%m-%Y %H:%i:%s") as deferredToCcDate'),
+				DB::raw('COALESCE(deferredToCcUser.username, "--") as deferredToCcBy'),
+				DB::raw('DATE_FORMAT(activity_logs.cc_clarified_at, "%d-%m-%Y %H:%i:%s") as ccClarifiedDate'),
+				DB::raw('COALESCE(ccClarifiedUser.username, "--") as ccClarifiedBy'),
+				DB::raw('COALESCE(activity_logs.duration_between_cc_clarified_and_deferred_to_cc, "--") as durationBetweenCcClarifiedAndDefferedToCc'),
+
 				DB::raw('DATE_FORMAT(activity_reports.l1_deffered_date, "%d-%m-%Y %H:%i:%s") as l1DefferedDate'),
 				DB::raw('COALESCE(activity_reports.l1_deffered_by, "--") as l1DefferedBy'),
 				DB::raw('COALESCE(activity_reports.duration_between_asp_data_filled_and_l1_approved, "--") as durationBetweenAspDataFilledAndL1Approved'),
@@ -5226,6 +5611,7 @@ class ActivityController extends Controller {
 					'Deduction Reason',
 					'Deferred Reason',
 					'ASP Resolve Comments',
+					'CC Clarification',
 					'Invoice Number',
 					'Invoice Date',
 					'Invoice Status',
@@ -5315,6 +5701,7 @@ class ActivityController extends Controller {
 					'Deduction Reason',
 					'Deferred Reason',
 					'ASP Resolve Comments',
+					'CC Clarification',
 					'Is Exceptional',
 					'Exceptional Reason',
 					'Invoice Number',
@@ -5434,31 +5821,38 @@ class ActivityController extends Controller {
 					'Duration Between Import and ASP Data Filled',
 					'ASP Data Filled',
 					'ASP Data Filled By',
-					'Duration Between ASP Data Filled and L1 deffered',
+					'Duration Between ASP Data Filled and L1 deferred',
+
+					'Deferred To CC',
+					'Deferred To CC By',
+					'CC Clarified',
+					'CC Clarified By',
+					'Duration Between CC Clarified and deferred to CC',
+
 					'L1 Deferred',
 					'L1 Deferred By',
 					'Duration Between ASP Data Filled and L1 approved',
 					'L1 Approved',
 					'L1 Approved By',
 					'Duration Between L1 approved and Invoice generated',
-					'Duration Between L1 approved and L2 deffered',
+					'Duration Between L1 approved and L2 deferred',
 					'L2 Deferred',
 					'L2 Deferred By',
 					'Duration Between L1 approved and L2 approved',
 					'L2 Approved',
 					'L2 Approved By',
 					'Duration Between L2 approved and Invoice generated',
-					'Duration Between L1 approved and L3 deffered',
-					'Duration Between L2 approved and L3 deffered',
+					'Duration Between L1 approved and L3 deferred',
+					'Duration Between L2 approved and L3 deferred',
 					'L3 Deferred',
 					'L3 Deferred By',
 					'Duration Between L2 approved and L3 approved',
 					'L3 Approved',
 					'L3 Approved By',
 					'Duration Between L3 approved and Invoice generated',
-					'Duration Between L1 approved and L4 deffered',
-					'Duration Between L2 approved and L4 deffered',
-					'Duration Between L3 approved and L4 deffered',
+					'Duration Between L1 approved and L4 deferred',
+					'Duration Between L2 approved and L4 deferred',
+					'Duration Between L3 approved and L4 deferred',
 					'L4 Deferred',
 					'L4 Deferred By',
 					'Duration Between L3 approved and L4 approved',
@@ -5539,6 +5933,7 @@ class ActivityController extends Controller {
 							$activityReportVal->deductionReason,
 							$activityReportVal->deferReason,
 							$activityReportVal->aspResolveComments,
+							$activityReportVal->ccClarification,
 							$activityReportVal->invoiceNumber,
 							$activityReportVal->invoiceDate,
 							$activityReportVal->invoiceStatus,
@@ -5628,6 +6023,7 @@ class ActivityController extends Controller {
 							$activityReportVal->deductionReason,
 							$activityReportVal->deferReason,
 							$activityReportVal->aspResolveComments,
+							$activityReportVal->ccClarification,
 							$activityReportVal->isExceptional,
 							$activityReportVal->exceptionalReason,
 							$activityReportVal->invoiceNumber,
@@ -5748,6 +6144,13 @@ class ActivityController extends Controller {
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->aspDataFilledDate;
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->aspDataFilledBy;
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAspDataFilledAndL1Deffered;
+
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->deferredToCcDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->deferredToCcBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->ccClarifiedDate;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->ccClarifiedBy;
+						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenCcClarifiedAndDefferedToCc;
+
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedDate;
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->l1DefferedBy;
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->durationBetweenAspDataFilledAndL1Approved;
@@ -5924,6 +6327,7 @@ class ActivityController extends Controller {
 			$activity = Activity::withTrashed()->whereIn('status_id', [17, 26]) // ONHOLD / ASP COMPLETED DATA ENTRY - WAITING FOR CALL CENTER DATA ENTRY
 				->find($activityId);
 			if (!$activity) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'errors' => [
@@ -6027,7 +6431,10 @@ class ActivityController extends Controller {
 			]);
 
 			//SAVE ACTIVITY REPORT FOR DASHBOARD
-			ActivityReport::saveReport($activity->id);
+			$activityReportSync = new ActivityReportSync();
+			$activityReportSync->activity_id = $activity->id;
+			$activityReportSync->sync_status = 0; // NOT SYNCED
+			$activityReportSync->save();
 
 			DB::commit();
 			return response()->json([
@@ -6269,7 +6676,7 @@ class ActivityController extends Controller {
 					'submission_closing_date',
 				]);
 			},
-			'case.client' => function ($query) {
+			'case.clientWithTrashed' => function ($query) {
 				$query->select([
 					'id',
 					DB::raw('COALESCE(name, "--") as name'),
@@ -6428,7 +6835,7 @@ class ActivityController extends Controller {
 					} elseif ($activity->status_id == 11) {
 						//Waiting for Invoice Generation by ASP
 						$url = '#!/rsa-case-pkg/approved-activity/list';
-					} elseif ($activity->status_id == 15 || $activity->status_id == 16 || $activity->status_id == 27) {
+					} elseif ($activity->status_id == 15 || $activity->status_id == 16 || $activity->status_id == 27 || $activity->status_id == 28) {
 						//Not Eligible for Payout || Own Patrol Activity - Not Eligible for Payout || LAPSED
 						$url = '';
 					}
@@ -6455,7 +6862,7 @@ class ActivityController extends Controller {
 				if (Auth::check()) {
 					if (!empty(Auth::user()->activity_approval_level_id)) {
 						//L1 AND ASP Completed Data Entry - Waiting for L1 Bulk / Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Bulk / Individual Verification AND BO Rejected - Waiting for L1 Bulk / Individual Verification
-						if (Auth::user()->activity_approval_level_id == 1 && ($activity->status_id == 5 || $activity->status_id == 6 || $activity->status_id == 8 || $activity->status_id == 9 || $activity->status_id == 22)) {
+						if (Auth::user()->activity_approval_level_id == 1 && ($activity->status_id == 5 || $activity->status_id == 6 || $activity->status_id == 8 || $activity->status_id == 9 || $activity->status_id == 22 || $activity->status_id == 29)) {
 							$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
 						} elseif (Auth::user()->activity_approval_level_id == 2 && ($activity->status_id == 18 || $activity->status_id == 19)) {
 							// L2 AND Waiting for L2 Bulk / Individual Verification

@@ -78,7 +78,7 @@ app.component('activitySearchForm', {
                         { data: 'finance_status.name', searchable: true },
                         { data: 'status.name', searchable: true },
                         { data: 'activity_status.name', searchable: true },
-                        { data: 'case.client.name', searchable: true },
+                        { data: 'case.client_with_trashed.name', searchable: true },
                         { data: 'case.callcenter.name', searchable: true },
                     ],
                     ordering: false,

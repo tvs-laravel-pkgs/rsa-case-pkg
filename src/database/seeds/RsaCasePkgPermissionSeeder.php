@@ -1610,6 +1610,14 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'display_name' => 'Unbilled Auto Invoice Cron Log',
 			],
 
+			//ORACLE SYNC LOG
+			[
+				'display_order' => 999,
+				'parent' => null,
+				'name' => 'oracle-sync-log',
+				'display_name' => 'Oracle Sync Log',
+			],
+
 			//DISCOUNT REASONS
 			[
 				'display_order' => 999,
@@ -1919,6 +1927,14 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'parent' => null,
 				'name' => 'asp-unclaimed-tickets',
 				'display_name' => 'ASP Unclaimed Tickets',
+			],
+
+			//CALL CENTER DEFERRED ACTIVITIES
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'cc-deferred-activities',
+				'display_name' => 'Call Center Deferred Activities',
 			],
 		];
 		Permission::createFromArrays($permissions);

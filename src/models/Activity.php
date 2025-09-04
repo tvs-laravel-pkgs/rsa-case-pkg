@@ -67,6 +67,7 @@ class Activity extends Model {
 		'remarks',
 		'manual_uploading_remarks',
 		'asp_resolve_comments',
+		'cc_clarification',
 		'deduction_reason',
 		'bo_comments',
 		'defer_reason',
@@ -1041,6 +1042,11 @@ class Activity extends Model {
 					if (strtolower($record['status']) == "on hold") {
 						$record['status'] = "In Progress";
 					}
+
+					if (strtolower($record['status']) == "pre-close") {
+						$record['status'] = "Closed";
+					}
+
 					$case_status = CaseStatus::where('name', $record['status'])->where('company_id', 1)->first();
 					if (!$case_status) {
 						$status['errors'][] = 'Case status is invalid';

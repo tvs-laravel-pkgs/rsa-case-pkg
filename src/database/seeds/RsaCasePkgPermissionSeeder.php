@@ -1439,6 +1439,12 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'edit-failed-direct-sale-transaction',
 				'display_name' => 'Edit failed direct sale transaction',
 			],
+			[
+				'display_order' => 6,
+				'parent' => 'sales_data_upload',
+				'name' => 'repush-failed-direct-sale-transaction',
+				'display_name' => 'Re-push failed direct sale transaction',
+			],
 
 			//QUERY LOG
 			[

@@ -887,6 +887,7 @@ class ActivityController extends Controller {
 		try {
 			$validator = Validator::make($request->all(), [
 				'asp_code' => 'required|string|exists:asps,asp_code',
+				'asp_codes' => 'nullable|array',
 				"offset" => 'nullable|numeric',
 				"limit" => 'nullable|numeric',
 			]);
@@ -909,9 +910,43 @@ class ActivityController extends Controller {
 				'asp_code',
 				DB::raw('IF(has_gst && !is_auto_invoice, false, true) as is_auto_invoice'),
 			])
-				->where([
-					'asp_code' => $request->asp_code,
-				])->first();
+				->where('asp_code', $request->asp_code)
+				->first();
+
+			if (!$asp) {
+				$errors[] = 'ASP not found';
+				saveApiLog(105, NULL, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => $errors,
+				], $this->successStatus);
+			}
+
+			$aspIds[] = $asp->id;
+
+			if (isset($request->asp_codes) && !empty($request->asp_codes)) {
+				$asps = Asp::select([
+					'id',
+					'asp_code',
+				])
+					->whereIn('asp_code', $request->asp_codes)
+					->get();
+				if ($asps->isEmpty()) {
+					$errors[] = 'ASP not found';
+					saveApiLog(105, NULL, $request->all(), $errors, NULL, 121);
+					DB::commit();
+
+					return response()->json([
+						'success' => false,
+						'error' => 'Validation Error',
+						'errors' => $errors,
+					], $this->successStatus);
+				}
+				$aspIds = $asps->pluck('id')->toArray();
+			}
 
 			$invoiceable_activities = Activity::select(
 				DB::raw('CAST(activities.crm_activity_id as UNSIGNED) as crm_activity_id'),
@@ -946,7 +981,9 @@ class ActivityController extends Controller {
 				->whereIn('activities.status_id', [11, 1]) //Waiting for Invoice Generation by ASP OR Case Closed - Waiting for ASP to Generate Invoice
 				->where('cases.status_id', 4) //case closed
 				->where('activities.data_src_id', '!=', 262) //NOT BO MANUAL
-				->where('activities.asp_id', $asp->id);
+			// ->where('activities.asp_id', $asp->id)
+				->whereIn('activities.asp_id', $aspIds)
+			;
 
 			if (isset($request->offset)) {
 				$invoiceable_activities->offset($request->offset);

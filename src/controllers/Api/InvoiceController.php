@@ -60,7 +60,21 @@ class InvoiceController extends Controller {
 			}
 
 			//GET ASP
-			$asp = ASP::where('asp_code', $request->asp_code)->first();
+			$asp = Asp::where('asp_code', $request->asp_code)->first();
+			if (!$asp) {
+				//CREATE INVOICE API LOG
+				$errors[] = 'ASP not found';
+				saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						'ASP not found',
+					],
+				], $this->successStatus);
+			}
 
 			$activities = Activity::select(
 				'invoice_id',
@@ -77,20 +91,41 @@ class InvoiceController extends Controller {
 			$afterDec21caseExist = false;
 			if ($activities->isNotEmpty()) {
 				foreach ($activities as $key => $activity) {
-					//CHECK ASP MATCHES WITH ACTIVITY ASP
-					if ($activity->asp_id != $asp->id) {
-						//CREATE INVOICE API LOG
-						$errors[] = 'ASP not matched for activity ID ' . $activity->crm_activity_id;
-						saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
-						DB::commit();
+					//FINANCE ADMIN
+					if ($asp->is_finance_admin == 1) {
+						//CHECK ASP MATCHES WITH ACTIVITY ASP
+						$aspIds = Asp::where('finance_admin_id', $asp->id)->pluck('id')->toArray();
+						$aspIds[] = $asp->id;
+						if (!in_array($activity->asp_id, $aspIds)) {
+							//CREATE INVOICE API LOG
+							$errors[] = 'ASP not matched for activity ID ' . $activity->crm_activity_id;
+							saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
+							DB::commit();
 
-						return response()->json([
-							'success' => false,
-							'error' => 'Validation Error',
-							'errors' => [
-								'ASP not matched for activity ID ' . $activity->crm_activity_id,
-							],
-						], $this->successStatus);
+							return response()->json([
+								'success' => false,
+								'error' => 'Validation Error',
+								'errors' => [
+									'ASP not matched for activity ID ' . $activity->crm_activity_id,
+								],
+							], $this->successStatus);
+						}
+					} else {
+						//CHECK ASP MATCHES WITH ACTIVITY ASP
+						if ($activity->asp_id != $asp->id) {
+							//CREATE INVOICE API LOG
+							$errors[] = 'ASP not matched for activity ID ' . $activity->crm_activity_id;
+							saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
+							DB::commit();
+
+							return response()->json([
+								'success' => false,
+								'error' => 'Validation Error',
+								'errors' => [
+									'ASP not matched for activity ID ' . $activity->crm_activity_id,
+								],
+							], $this->successStatus);
+						}
 					}
 					//CHECK IF INVOICE ALREADY CREATED FOR ACTIVITY
 					if (!empty($activity->invoice_id)) {

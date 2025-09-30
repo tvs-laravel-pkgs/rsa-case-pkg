@@ -60,7 +60,21 @@ class InvoiceController extends Controller {
 			}
 
 			//GET ASP
-			$asp = ASP::where('asp_code', $request->asp_code)->first();
+			$asp = Asp::where('asp_code', $request->asp_code)->first();
+			if (!$asp) {
+				//CREATE INVOICE API LOG
+				$errors[] = 'ASP not found';
+				saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						'ASP not found',
+					],
+				], $this->successStatus);
+			}
 
 			$activities = Activity::select(
 				'invoice_id',
@@ -77,20 +91,41 @@ class InvoiceController extends Controller {
 			$afterDec21caseExist = false;
 			if ($activities->isNotEmpty()) {
 				foreach ($activities as $key => $activity) {
-					//CHECK ASP MATCHES WITH ACTIVITY ASP
-					if ($activity->asp_id != $asp->id) {
-						//CREATE INVOICE API LOG
-						$errors[] = 'ASP not matched for activity ID ' . $activity->crm_activity_id;
-						saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
-						DB::commit();
+					//FINANCE ADMIN
+					if ($asp->is_finance_admin == 1) {
+						//CHECK ASP MATCHES WITH ACTIVITY ASP
+						$aspIds = Asp::where('finance_admin_id', $asp->id)->pluck('id')->toArray();
+						$aspIds[] = $asp->id;
+						if (!in_array($activity->asp_id, $aspIds)) {
+							//CREATE INVOICE API LOG
+							$errors[] = 'ASP not matched for activity ID ' . $activity->crm_activity_id;
+							saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
+							DB::commit();
 
-						return response()->json([
-							'success' => false,
-							'error' => 'Validation Error',
-							'errors' => [
-								'ASP not matched for activity ID ' . $activity->crm_activity_id,
-							],
-						], $this->successStatus);
+							return response()->json([
+								'success' => false,
+								'error' => 'Validation Error',
+								'errors' => [
+									'ASP not matched for activity ID ' . $activity->crm_activity_id,
+								],
+							], $this->successStatus);
+						}
+					} else {
+						//CHECK ASP MATCHES WITH ACTIVITY ASP
+						if ($activity->asp_id != $asp->id) {
+							//CREATE INVOICE API LOG
+							$errors[] = 'ASP not matched for activity ID ' . $activity->crm_activity_id;
+							saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
+							DB::commit();
+
+							return response()->json([
+								'success' => false,
+								'error' => 'Validation Error',
+								'errors' => [
+									'ASP not matched for activity ID ' . $activity->crm_activity_id,
+								],
+							], $this->successStatus);
+						}
 					}
 					//CHECK IF INVOICE ALREADY CREATED FOR ACTIVITY
 					if (!empty($activity->invoice_id)) {
@@ -399,6 +434,7 @@ class InvoiceController extends Controller {
 		try {
 			$validator = Validator::make($request->all(), [
 				'asp_code' => 'required|string|exists:asps,asp_code',
+				'asp_codes' => 'nullable|array',
 				'offset' => 'nullable|numeric',
 				'limit' => 'nullable|numeric',
 			]);
@@ -417,7 +453,47 @@ class InvoiceController extends Controller {
 			}
 
 			//GET ASP
-			$asp = Asp::where('asp_code', $request->asp_code)->first();
+			$asp = Asp::select([
+				'id',
+				'asp_code',
+			])
+				->where('asp_code', $request->asp_code)
+				->first();
+
+			if (!$asp) {
+				$errors[] = 'ASP not found';
+				saveApiLog(107, NULL, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => $errors,
+				], $this->successStatus);
+			}
+
+			$aspIds[] = $asp->id;
+
+			if (isset($request->asp_codes) && !empty($request->asp_codes)) {
+				$asps = Asp::select([
+					'id',
+					'asp_code',
+				])
+					->whereIn('asp_code', $request->asp_codes)
+					->get();
+				if ($asps->isEmpty()) {
+					$errors[] = 'ASP not found';
+					saveApiLog(105, NULL, $request->all(), $errors, NULL, 121);
+					DB::commit();
+
+					return response()->json([
+						'success' => false,
+						'error' => 'Validation Error',
+						'errors' => $errors,
+					], $this->successStatus);
+				}
+				$aspIds = $asps->pluck('id')->toArray();
+			}
 
 			$invoices = Invoices::
 				select(
@@ -434,7 +510,8 @@ class InvoiceController extends Controller {
 				'asps.workshop_name as workshop_name',
 				'asps.asp_code as asp_code'
 			)
-				->where('activities.asp_id', '=', $asp->id)
+			// ->where('activities.asp_id', '=', $asp->id)
+				->whereIn('activities.asp_id', $aspIds)
 			// ->where('Invoices.flow_current_status', 'Waiting for Batch Generation')
 				->join('asps', 'Invoices.asp_id', '=', 'asps.id')
 				->leftjoin('invoice_statuses', 'invoice_statuses.id', '=', 'Invoices.status_id')

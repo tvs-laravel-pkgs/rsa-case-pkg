@@ -5135,7 +5135,14 @@ class ActivityController extends Controller {
 						})
 						->orwhere(function ($query) use ($range1, $range2) {
 							$query->whereRaw('DATE(activity_reports.payment_completed_date) between "' . $range1 . '" and "' . $range2 . '"');
-						});
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_logs.deferred_to_cc_at) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+						->orwhere(function ($query) use ($range1, $range2) {
+							$query->whereRaw('DATE(activity_logs.cc_clarified_at) between "' . $range1 . '" and "' . $range2 . '"');
+						})
+					;
 				});
 			} elseif ($request->filter_by == 'invoiceDate') {
 				$activityReports->whereRaw('DATE(activity_reports.invoice_date) between "' . $range1 . '" and "' . $range2 . '"');
@@ -5499,7 +5506,14 @@ class ActivityController extends Controller {
 									})
 									->orwhere(function ($query) use ($range1, $range2) {
 										$query->whereRaw('DATE(activity_reports.payment_completed_date) between "' . $range1 . '" and "' . $range2 . '"');
-									});
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_logs.deferred_to_cc_at) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+									->orwhere(function ($query) use ($range1, $range2) {
+										$query->whereRaw('DATE(activity_logs.cc_clarified_at) between "' . $range1 . '" and "' . $range2 . '"');
+									})
+								;
 							});
 						} elseif ($request->filter_by == 'invoiceDate') {
 							$activitiesSummaryCountQuery->whereRaw('DATE(activity_reports.invoice_date) between "' . $range1 . '" and "' . $range2 . '"');

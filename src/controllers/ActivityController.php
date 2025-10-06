@@ -5458,6 +5458,7 @@ class ActivityController extends Controller {
 							'activity_reports.id',
 						])
 							->join('activities', 'activities.id', 'activity_reports.activity_id')
+							->leftjoin('activity_logs', 'activity_logs.activity_id', 'activities.id')
 							->join('cases', 'cases.id', 'activities.case_id')
 							->where('activities.status_id', $statusId);
 

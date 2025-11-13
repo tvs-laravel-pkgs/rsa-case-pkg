@@ -151,6 +151,8 @@ class RsaCase extends Model {
 				;
 			})
 			->where('status_id', '!=', 3) //OTHER THAN CANCELLED
+			->orderBy('number', 'desc')
+			->limit(15)
 			->get();
 		return response()->json($list);
 	}

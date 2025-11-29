@@ -228,6 +228,91 @@
                                                             {{activity.total_value | number : 2}}
                                                         </td>
                                                     </tr>
+                                                    <tr>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th ng-if="$ctrl.asp.tax_calculation_method"></th>
+                                                        <th></th>
+                                                        <th ng-repeat="(index, tax) in $ctrl.activities[0].taxes"></th>
+                                                        <th ng-if="!$ctrl.asp.tax_calculation_method"></th>
+                                                        <th class="text-right" style="font-weight: 700;">Taxable Value</th>
+                                                        <th class="text-right" style="font-weight: 700;">{{$ctrl.taxable_value | number : 2}}</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th ng-if="$ctrl.asp.tax_calculation_method"></th>
+                                                        <th></th>
+                                                        <th ng-repeat="(index, tax) in $ctrl.activities[0].taxes"></th>
+                                                        <th ng-if="!$ctrl.asp.tax_calculation_method"></th>
+                                                        <th class="text-right" style="font-weight: 700;">CGST</th>
+                                                        <th class="text-right">{{$ctrl.total_cgst | number : 2}}</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th ng-if="$ctrl.asp.tax_calculation_method"></th>
+                                                        <th></th>
+                                                        <th ng-repeat="(index, tax) in $ctrl.activities[0].taxes"></th>
+                                                        <th ng-if="!$ctrl.asp.tax_calculation_method"></th>
+                                                        <th class="text-right" style="font-weight: 700;">SGST</th>
+                                                        <th class="text-right">{{$ctrl.total_sgst | number : 2}}</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th ng-if="$ctrl.asp.tax_calculation_method"></th>
+                                                        <th></th>
+                                                        <th ng-repeat="(index, tax) in $ctrl.activities[0].taxes"></th>
+                                                        <th ng-if="!$ctrl.asp.tax_calculation_method"></th>
+                                                        <th class="text-right" style="font-weight: 700;">IGST</th>
+                                                        <th class="text-right">{{$ctrl.total_igst | number : 2}}</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th></th>
+                                                        <th ng-if="$ctrl.asp.tax_calculation_method"></th>
+                                                        <th></th>
+                                                        <th ng-repeat="(index, tax) in $ctrl.activities[0].taxes"></th>
+                                                        <th ng-if="!$ctrl.asp.tax_calculation_method"></th>
+                                                        <th class="text-right" style="font-weight: 700;">Total Invoice Amount</th>
+                                                        <th class="text-right" style="font-weight: 700;">{{$ctrl.invoice_amount}}</th>
+                                                    </tr>
                                                 </tbody>
                                             </table>
                                         </div><!-- Responsive -->

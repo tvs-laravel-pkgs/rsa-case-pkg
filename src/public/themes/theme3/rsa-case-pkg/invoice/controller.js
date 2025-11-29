@@ -277,6 +277,10 @@ app.component('invoiceView', {
             self.invoice_vouchers_amount = response.data.invoice_vouchers_amount;
             self.invoice_vouchers = response.data.invoice_vouchers;
             self.company_invoice_address = response.data.company_invoice_address;
+            self.taxable_value = response.data.taxable_value !== undefined && response.data.taxable_value !== null ? parseFloat(response.data.taxable_value) : 0;
+            self.total_cgst = response.data.total_cgst !== undefined && response.data.total_cgst !== null ? parseFloat(response.data.total_cgst) : 0;
+            self.total_sgst = response.data.total_sgst !== undefined && response.data.total_sgst !== null ? parseFloat(response.data.total_sgst) : 0;
+            self.total_igst = response.data.total_igst !== undefined && response.data.total_igst !== null ? parseFloat(response.data.total_igst) : 0;
 
             if (self.asp.tax_calculation_method == '1') {
                 self.asp.tax_calculation_method = true;

@@ -293,6 +293,11 @@ app.component('invoiceView', {
                     "bLengthChange": false,
                     "bRetrieve": true,
                     "paginate": false,
+                    ordering: false,
+                    'paging': false,
+                    'searching': false,
+                    'info': false,
+                    'length': false,
                     "oLanguage": { "sZeroRecords": "", "sEmptyTable": "" },
                 });
             }, 1000);

@@ -278,6 +278,35 @@ app.component('invoiceView', {
             self.invoice_vouchers = response.data.invoice_vouchers;
             self.company_invoice_address = response.data.company_invoice_address;
 
+            // Totals for table footer
+            self.total_net_amount = 0;
+            self.total_invoice_amount = 0;
+            self.total_collect_amount = 0;
+            self.total_not_collect_amount = 0;
+            self.total_tax_amounts = {};
+
+            if (self.activities && self.activities.length) {
+                angular.forEach(self.activities, function(activity) {
+                    self.total_collect_amount += parseFloat(activity.collect_value) || 0;
+                    self.total_not_collect_amount += parseFloat(activity.not_collect_value) || 0;
+                    self.total_net_amount += parseFloat(activity.net_value) || 0;
+                    self.total_invoice_amount += parseFloat(activity.total_value) || 0;
+
+                    if (activity.taxes && activity.taxes.length) {
+                        angular.forEach(activity.taxes, function(tax) {
+                            var tax_name = tax.tax_name;
+                            if (!tax_name) {
+                                return;
+                            }
+                            if (typeof(self.total_tax_amounts[tax_name]) == 'undefined') {
+                                self.total_tax_amounts[tax_name] = 0;
+                            }
+                            self.total_tax_amounts[tax_name] += parseFloat(tax.amount) || 0;
+                        });
+                    }
+                });
+            }
+
             if (self.asp.tax_calculation_method == '1') {
                 self.asp.tax_calculation_method = true;
             } else {

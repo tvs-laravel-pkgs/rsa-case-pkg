@@ -237,6 +237,34 @@
                                                             {{activity.total_value | number : 2}}
                                                         </td>
                                                     </tr>
+                                                    <tr ng-if="$ctrl.activities.length" class="active" style="font-weight: 700 !important;">
+                                                        <td>Total</td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td class="text-right"></td>
+                                                        <td class="text-right"></td>
+                                                        <td class="text-right">
+                                                            {{ $ctrl.total_collect_amount | number : 2 }}
+                                                        </td>
+                                                        <td ng-if="$ctrl.asp.tax_calculation_method" class="text-right">
+                                                            {{ $ctrl.total_not_collect_amount | number : 2 }}
+                                                        </td>
+                                                        <td class="text-right">
+                                                            {{ $ctrl.total_net_amount | number : 2 }}
+                                                        </td>
+                                                        <td class="text-right" ng-repeat="(index, tax) in $ctrl.activities[0].taxes">
+                                                            {{ ($ctrl.total_tax_amounts[tax.tax_name] ? $ctrl.total_tax_amounts[tax.tax_name] : 0) | number : 2 }}
+                                                        </td>
+                                                        <td ng-if="!$ctrl.asp.tax_calculation_method" class="text-right">
+                                                            {{ $ctrl.total_not_collect_amount | number : 2 }}
+                                                        </td>
+                                                        <td class="text-right">
+                                                            {{ $ctrl.total_invoice_amount | number : 2 }}
+                                                        </td>
+                                                    </tr>
                                                 </tbody>
                                             </table>
                                         </div><!-- Responsive -->

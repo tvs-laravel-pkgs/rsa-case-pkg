@@ -462,6 +462,11 @@ class ActivityController extends Controller {
 			'call_centers.name as call_center',
 			DB::raw('COALESCE(bo_km_travelled.value, "--") as boKmTravelled'),
 			DB::raw('COALESCE(bo_payout_amount.value, "--") as boPayoutAmount'),
+			'activities.status_id',
+			'activity_logs.asp_data_filled_at',
+			'activity_logs.bo_approved_at',
+			'activity_logs.l2_approved_at',
+			'activity_logs.l3_approved_at',
 		])
 			->leftJoin('activity_details as bo_km_travelled', function ($join) {
 				$join->on('bo_km_travelled.activity_id', 'activities.id')
@@ -482,6 +487,7 @@ class ActivityController extends Controller {
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
+			->leftJoin('activity_logs', 'activity_logs.activity_id', 'activities.id')
 		// ->where('activities.asp_accepted_cc_details', '!=', 1)
 		// ->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
@@ -547,6 +553,21 @@ class ActivityController extends Controller {
 		}
 
 		return Datatables::of($activities)
+			->addColumn('due_days', function ($row) {
+				if (in_array($row->status_id, [5, 8]) && !empty($row->asp_data_filled_at)) {
+					return Carbon::parse($row->asp_data_filled_at)->diffInDays(Carbon::now(), false);
+				}
+				if ($row->status_id == 18 && !empty($row->bo_approved_at)) {
+					return Carbon::parse($row->bo_approved_at)->diffInDays(Carbon::now(), false);
+				}
+				if ($row->status_id == 20 && !empty($row->l2_approved_at)) {
+					return Carbon::parse($row->l2_approved_at)->diffInDays(Carbon::now(), false);
+				}
+				if ($row->status_id == 23 && !empty($row->l3_approved_at)) {
+					return Carbon::parse($row->l3_approved_at)->diffInDays(Carbon::now(), false);
+				}
+				return null;
+			})
 			->filterColumn('asp', function ($query, $keyword) {
 				$sql = "CONCAT(asps.asp_code,' / ',asps.workshop_name)  like ?";
 				$query->whereRaw($sql, ["%{$keyword}%"]);
@@ -583,6 +604,15 @@ class ActivityController extends Controller {
 			'call_centers.name as call_center',
 			DB::raw('COALESCE(bo_km_travelled.value, "--") as boKmTravelled'),
 			DB::raw('COALESCE(bo_payout_amount.value, "--") as boPayoutAmount'),
+			'activities.status_id',
+			'activity_logs.asp_data_filled_at',
+			'activity_logs.cc_clarified_at',
+			'activity_logs.l2_deffered_at',
+			'activity_logs.l3_deffered_at',
+			'activity_logs.l4_deffered_at',
+			'activity_logs.bo_approved_at',
+			'activity_logs.l2_approved_at',
+			'activity_logs.l3_approved_at',
 		])
 			->leftJoin('activity_details as bo_km_travelled', function ($join) {
 				$join->on('bo_km_travelled.activity_id', 'activities.id')
@@ -603,6 +633,7 @@ class ActivityController extends Controller {
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
+			->leftJoin('activity_logs', 'activity_logs.activity_id', 'activities.id')
 		// ->where('activities.asp_accepted_cc_details', '!=', 1)
 		// ->orderBy('cases.date', 'DESC')
 			->groupBy('activities.id')
@@ -665,8 +696,37 @@ class ActivityController extends Controller {
 		} else {
 			$activities->whereNull('activities.status_id');
 		}
-
+		
 		return Datatables::of($activities)
+			->addColumn('due_days', function ($row) {
+				if (in_array($row->status_id, [6, 9]) && !empty($row->asp_data_filled_at)) {
+					return Carbon::parse($row->asp_data_filled_at)->diffInDays(Carbon::now(), false);
+				}
+				if ($row->status_id == 29 && !empty($row->cc_clarified_at)) {
+					return Carbon::parse($row->cc_clarified_at)->diffInDays(Carbon::now(), false);
+				}
+				if ($row->status_id == 22) {
+					$dates = array_filter([
+						$row->l2_deffered_at ?? null,
+						$row->l3_deffered_at ?? null,
+						$row->l4_deffered_at ?? null,
+					]);
+					if (!empty($dates)) {
+						$mostRecent = max(array_map(function ($d) { return Carbon::parse($d)->timestamp; }, $dates));
+						return Carbon::createFromTimestamp($mostRecent)->diffInDays(Carbon::now(), false);
+					}
+				}
+				if ($row->status_id == 19 && !empty($row->bo_approved_at)) {
+					return Carbon::parse($row->bo_approved_at)->diffInDays(Carbon::now(), false);
+				}
+				if ($row->status_id == 21 && !empty($row->l2_approved_at)) {
+					return Carbon::parse($row->l2_approved_at)->diffInDays(Carbon::now(), false);
+				}
+				if ($row->status_id == 24 && !empty($row->l3_approved_at)) {
+					return Carbon::parse($row->l3_approved_at)->diffInDays(Carbon::now(), false);
+				}
+				return null;
+			})
 			->filterColumn('asp', function ($query, $keyword) {
 				$sql = "CONCAT(asps.asp_code,' / ',asps.workshop_name)  like ?";
 				$query->whereRaw($sql, ["%{$keyword}%"]);

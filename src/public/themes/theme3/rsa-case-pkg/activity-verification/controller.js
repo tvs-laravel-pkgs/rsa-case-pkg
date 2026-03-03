@@ -35,6 +35,7 @@ app.component('activityVerificationList', {
                 { data: 'client', name: 'clients.name', searchable: true },
                 // { data: 'call_center', name: 'call_centers.name', searchable: true },
                 { data: 'boPayoutAmount', searchable: false },
+                { data: 'due_days', searchable: false },
             ];
 
             var activities_verification_below_40_dt_config = JSON.parse(JSON.stringify(dt_config));
@@ -187,6 +188,7 @@ app.component('activityVerificationList', {
                 { data: 'client', name: 'clients.name', searchable: true },
                 // { data: 'call_center', name: 'call_centers.name', searchable: true },
                 { data: 'boPayoutAmount', searchable: false },
+                { data: 'due_days', searchable: false },
             ];
 
             var activities_verification_above_40_dt_config = JSON.parse(JSON.stringify(dt_config));

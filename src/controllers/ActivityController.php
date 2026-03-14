@@ -83,17 +83,19 @@ class ActivityController extends Controller {
 		$from_date = $periods['start_date'];
 		$end_date = $periods['end_date'];
 
-		$activities = Activity::select([
+		$needsUserJoin = !Entrust::can('view-all-activities') && Entrust::can('view-own-activities');
+
+		$activities = DB::table('activities')->select([
 			'activities.id',
 			'activities.crm_activity_id',
 			'activities.is_towing_attachments_mandatory',
 			'activities.status_id as status_id',
 			'activities.number as activity_number',
-			DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
+			'cases.date as case_date',
 			'cases.number',
-			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
-			// 'asps.asp_code',
-			DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
+			'cases.vehicle_registration_number',
+			'asps.asp_code',
+			'asps.workshop_name',
 			'service_types.name as sub_service',
 			'service_types.service_group_id',
 			// 'activity_asp_statuses.name as asp_status',
@@ -104,13 +106,7 @@ class ActivityController extends Controller {
 			'configs.name as source',
 			'call_centers.name as call_center',
 		])
-			->where(function ($query) use ($from_date, $end_date) {
-				if (!empty($from_date) && !empty($end_date)) {
-					$query->whereRaw('DATE(cases.date) between "' . $from_date . '" and "' . $end_date . '"');
-				}
-			})
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
-			->leftjoin('users', 'users.id', 'asps.user_id')
 			->leftjoin('cases', 'cases.id', 'activities.case_id')
 			->leftjoin('clients', 'clients.id', 'cases.client_id')
 			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
@@ -120,9 +116,18 @@ class ActivityController extends Controller {
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
+			->whereNull('activities.deleted_at')
 			->orderBy('cases.date', 'DESC')
-			->groupBy('activities.id')
 		;
+
+		if ($needsUserJoin) {
+			$activities->leftjoin('users', 'users.id', 'asps.user_id');
+		}
+
+		if (!empty($from_date) && !empty($end_date)) {
+			$activities->where('cases.date', '>=', $from_date . ' 00:00:00')
+				->where('cases.date', '<=', $end_date . ' 23:59:59');
+		}
 
 		// if ($request->get('ticket_date')) {
 		// 	$activities->whereRaw('DATE_FORMAT(cases.date,"%d-%m-%Y") =  "' . $request->get('ticket_date') . '"');
@@ -186,17 +191,38 @@ class ActivityController extends Controller {
 				$activities->whereIn('asps.id', $aspIds);
 			}
 		}
+
+		$canViewOwn = Entrust::can('view-own-activities');
+		$canDelete = Entrust::can('delete-activities');
+		$canBackstep = Entrust::can('backstep-activity');
+		$canTowingImages = Entrust::can('towing-images-required-for-activities');
+		$canNotEligible = Entrust::can('move-activity-to-not-eligible-payout');
+		$canReleaseOnhold = Entrust::can('release-onhold-case');
+		$notEligibleIcon = $canNotEligible ? asset('public/img/content/table/noteligible.svg') : '';
+		$onholdCaseReleaseIcon = $canReleaseOnhold ? asset('public/img/content/table/release.svg') : '';
+		$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24, 25, 26];
+
 		return Datatables::of($activities)
-			->filterColumn('asp', function ($query, $keyword) {
-				$sql = "CONCAT(asps.asp_code,' / ',asps.workshop_name)  like ?";
-				$query->whereRaw($sql, ["%{$keyword}%"]);
+			->editColumn('case_date', function ($activity) {
+				return $activity->case_date ? date('d-m-Y H:i:s', strtotime($activity->case_date)) : '';
 			})
-			->addColumn('action', function ($activity) {
+			->editColumn('vehicle_registration_number', function ($activity) {
+				return $activity->vehicle_registration_number ?: '--';
+			})
+			->addColumn('asp', function ($activity) {
+				return ($activity->asp_code ? $activity->asp_code : '') . ' / ' . ($activity->workshop_name ? $activity->workshop_name : '');
+			})
+			->filterColumn('asp', function ($query, $keyword) {
+				$query->where(function ($q) use ($keyword) {
+					$q->where('asps.asp_code', 'LIKE', "%{$keyword}%")
+						->orWhere('asps.workshop_name', 'LIKE', "%{$keyword}%");
+				});
+			})
+			->addColumn('action', function ($activity) use ($canViewOwn, $canDelete, $canBackstep, $canTowingImages, $canNotEligible, $canReleaseOnhold, $notEligibleIcon, $onholdCaseReleaseIcon, $return_status_ids) {
 				$status_id = 1;
-				$return_status_ids = [5, 6, 8, 9, 11, 1, 7, 18, 19, 20, 21, 22, 23, 24, 25, 26];
 
 				// IF IT IS ASP AND STATUS IS Rejected - Waiting for Call Center Clarification THEN DO NOT PROVIDE VIEW OPTION
-				if (Entrust::can('view-own-activities') && $activity->status_id == 28) {
+				if ($canViewOwn && $activity->status_id == 28) {
 					$action = "";
 				} else {
 					$action = '<div class="dataTable-actions" style="min-width: 125px;">
@@ -204,31 +230,31 @@ class ActivityController extends Controller {
 					                <i class="fa fa-eye dataTable-icon--view" aria-hidden="true"></i>
 					            </a>';
 				}
-				if (($activity->status_id == 2 || $activity->status_id == 4 || $activity->status_id == 15 || $activity->status_id == 16 || $activity->status_id == 17) && Entrust::can('delete-activities')) {
+				if (($activity->status_id == 2 || $activity->status_id == 4 || $activity->status_id == 15 || $activity->status_id == 16 || $activity->status_id == 17) && $canDelete) {
 					$action .= '<a onclick="angular.element(this).scope().deleteConfirm(' . $activity->id . ')" href="javascript:void(0)">
 						                <i class="fa fa-trash dataTable-icon--trash cl-delete" data-cl-id =' . $activity->id . ' aria-hidden="true"></i>
 						            </a>';
 				}
 
-				if (Entrust::can('backstep-activity') && in_array($activity->status_id, $return_status_ids)) {
-					$activityDetail = new Activity;
-					$activityDetail->id = $activity->id;
-					$activityDetail->status_id = $activity->status_id;
-					$activityDetail->activity_number = $activity->activity_number;
+				if ($canBackstep && in_array($activity->status_id, $return_status_ids)) {
+					$activityJson = json_encode([
+						'id' => $activity->id,
+						'status_id' => $activity->status_id,
+						'activity_number' => $activity->activity_number,
+					]);
 
-					$action .= "<a href='javascript:void(0)' onclick='angular.element(this).scope().backConfirm(" . $activityDetail . ")' class='ticket_back_button'><i class='fa fa-arrow-left dataTable-icon--edit-1' data-cl-id =" . $activity->id . " aria-hidden='true'></i></a>";
+					$action .= "<a href='javascript:void(0)' onclick='angular.element(this).scope().backConfirm(" . htmlspecialchars($activityJson, ENT_QUOTES) . ")' class='ticket_back_button'><i class='fa fa-arrow-left dataTable-icon--edit-1' data-cl-id =" . $activity->id . " aria-hidden='true'></i></a>";
 				}
 
 				//IF ASP DATA ENTRY OR REENTRY & TOWING SERVICE GROUP
-				if (($activity->status_id == 2 || $activity->status_id == 7) && $activity->service_group_id == 3 && Entrust::can('towing-images-required-for-activities')) {
+				if (($activity->status_id == 2 || $activity->status_id == 7) && $activity->service_group_id == 3 && $canTowingImages) {
 					$action .= '<a onclick="angular.element(this).scope().towingImageRequiredBtn(' . $activity->id . ',' . $activity->is_towing_attachments_mandatory . ')" href="javascript:void(0)">
 										<i class="dataTable-icon--edit-1" data-cl-id =' . $activity->id . ' aria-hidden="true"><img class="" src="resources/assets/images/edit-note.svg"></i>
 						            </a>';
 				}
 
 				//MOVE CASE TO NOT ELIGIBLE FOR PAYOUT
-				if (Entrust::can('move-activity-to-not-eligible-payout')) {
-					$notEligibleIcon = asset('public/img/content/table/noteligible.svg');
+				if ($canNotEligible) {
 					if ($activity->status_id != 15 && $activity->status_id != 16 && $activity->status_id != 12 && $activity->status_id != 13 && $activity->status_id != 14) {
 						$action .= '<a href="javascript:;" onclick="angular.element(this).scope().moveToNotEligibleForPayout(' . $activity->id . ')" title="Move To Not Eligible">
                 						<img src="' . $notEligibleIcon . '" alt="Move To Not Eligible" class="img-responsive">
@@ -237,8 +263,7 @@ class ActivityController extends Controller {
 				}
 
 				//RELEASE ON HOLD / ASP COMPLETED DATA ENTRY - WAITING FOR CALL CENTER DATA ENTRY CASES
-				if (Entrust::can('release-onhold-case')) {
-					$onholdCaseReleaseIcon = asset('public/img/content/table/release.svg');
+				if ($canReleaseOnhold) {
 					if ($activity->status_id == 17 || $activity->status_id == 26) {
 						$action .= '<a href="javascript:;" onclick="angular.element(this).scope().releaseOnHoldCase(' . $activity->id . ')" title="Release On Hold Case">
                 						<img src="' . $onholdCaseReleaseIcon . '" alt="Release On Hold Case" class="img-responsive">

@@ -467,16 +467,15 @@ class ActivityController extends Controller {
 	}
 
 	public function getBulkVerificationList(Request $request) {
-		$activities = Activity::select([
+		$activities = DB::table('activities')->select([
 			'activities.id',
 			'activities.crm_activity_id',
 			'activities.number as activity_number',
-			// DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
-			DB::raw('DATE_FORMAT(cases.date,"%Y-%m-%d %H:%i:%s") as case_date'),
+			'cases.date as case_date',
 			'cases.number',
-			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
-			DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
-			// 'asps.asp_code',
+			'cases.vehicle_registration_number',
+			'asps.asp_code',
+			'asps.workshop_name',
 			'service_types.name as sub_service',
 			// 'activity_asp_statuses.name as asp_status',
 			'activity_finance_statuses.name as finance_status',
@@ -485,8 +484,8 @@ class ActivityController extends Controller {
 			'configs.name as source',
 			'clients.name as client',
 			'call_centers.name as call_center',
-			DB::raw('COALESCE(bo_km_travelled.value, "--") as boKmTravelled'),
-			DB::raw('COALESCE(bo_payout_amount.value, "--") as boPayoutAmount'),
+			'bo_km_travelled.value as boKmTravelled',
+			'bo_payout_amount.value as boPayoutAmount',
 			'activities.status_id',
 			'activity_logs.asp_data_filled_at',
 			'activity_logs.bo_approved_at',
@@ -502,7 +501,6 @@ class ActivityController extends Controller {
 					->where('bo_payout_amount.key_id', 182); //BO PAYOUT AMOUNT
 			})
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
-			->leftjoin('users', 'users.id', 'asps.user_id')
 			->leftjoin('cases', 'cases.id', 'activities.case_id')
 			->leftjoin('clients', 'clients.id', 'cases.client_id')
 			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
@@ -515,11 +513,13 @@ class ActivityController extends Controller {
 			->leftJoin('activity_logs', 'activity_logs.activity_id', 'activities.id')
 		// ->where('activities.asp_accepted_cc_details', '!=', 1)
 		// ->orderBy('cases.date', 'DESC')
-			->groupBy('activities.id')
+			->whereNull('activities.deleted_at')
 		;
 
 		if ($request->get('ticket_date')) {
-			$activities->whereRaw('DATE_FORMAT(cases.date,"%d-%m-%Y") =  "' . $request->get('ticket_date') . '"');
+			$ticketDate = date('Y-m-d', strtotime(str_replace('/', '-', $request->get('ticket_date'))));
+			$activities->where('cases.date', '>=', $ticketDate . ' 00:00:00')
+				->where('cases.date', '<=', $ticketDate . ' 23:59:59');
 		}
 		if ($request->get('call_center_id')) {
 			$activities->where('cases.call_center_id', $request->get('call_center_id'));
@@ -578,6 +578,21 @@ class ActivityController extends Controller {
 		}
 
 		return Datatables::of($activities)
+			->editColumn('case_date', function ($row) {
+				return $row->case_date ? date('d-m-Y H:i:s', strtotime($row->case_date)) : '';
+			})
+			->editColumn('vehicle_registration_number', function ($row) {
+				return $row->vehicle_registration_number ?: '--';
+			})
+			->addColumn('asp', function ($row) {
+				return ($row->asp_code ?: '') . ' / ' . ($row->workshop_name ?: '');
+			})
+			->editColumn('boKmTravelled', function ($row) {
+				return $row->boKmTravelled ?: '--';
+			})
+			->editColumn('boPayoutAmount', function ($row) {
+				return $row->boPayoutAmount ?: '--';
+			})
 			->addColumn('due_days', function ($row) {
 				if (in_array($row->status_id, [5, 8]) && !empty($row->asp_data_filled_at)) {
 					return Carbon::parse($row->asp_data_filled_at)->diffInDays(Carbon::now(), false);
@@ -594,8 +609,10 @@ class ActivityController extends Controller {
 				return null;
 			})
 			->filterColumn('asp', function ($query, $keyword) {
-				$sql = "CONCAT(asps.asp_code,' / ',asps.workshop_name)  like ?";
-				$query->whereRaw($sql, ["%{$keyword}%"]);
+				$query->where(function ($q) use ($keyword) {
+					$q->where('asps.asp_code', 'LIKE', "%{$keyword}%")
+						->orWhere('asps.workshop_name', 'LIKE', "%{$keyword}%");
+				});
 			})
 			->setRowAttr([
 				'id' => function ($activities) {
@@ -609,16 +626,15 @@ class ActivityController extends Controller {
 	}
 
 	public function getIndividualVerificationList(Request $request) {
-		$activities = Activity::select([
+		$activities = DB::table('activities')->select([
 			'activities.id',
 			'activities.crm_activity_id',
 			'activities.number as activity_number',
-			// DB::raw('DATE_FORMAT(cases.date,"%d-%m-%Y %H:%i:%s") as case_date'),
-			DB::raw('DATE_FORMAT(cases.date,"%Y-%m-%d %H:%i:%s") as case_date'),
+			'cases.date as case_date',
 			'cases.number',
-			DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
-			DB::raw('CONCAT(asps.asp_code," / ",asps.workshop_name) as asp'),
-			// 'asps.asp_code',
+			'cases.vehicle_registration_number',
+			'asps.asp_code',
+			'asps.workshop_name',
 			'service_types.name as sub_service',
 			// 'activity_asp_statuses.name as asp_status',
 			'activity_finance_statuses.name as finance_status',
@@ -627,8 +643,8 @@ class ActivityController extends Controller {
 			'configs.name as source',
 			'clients.name as client',
 			'call_centers.name as call_center',
-			DB::raw('COALESCE(bo_km_travelled.value, "--") as boKmTravelled'),
-			DB::raw('COALESCE(bo_payout_amount.value, "--") as boPayoutAmount'),
+			'bo_km_travelled.value as boKmTravelled',
+			'bo_payout_amount.value as boPayoutAmount',
 			'activities.status_id',
 			'activity_logs.asp_data_filled_at',
 			'activity_logs.cc_clarified_at',
@@ -648,7 +664,6 @@ class ActivityController extends Controller {
 					->where('bo_payout_amount.key_id', 182); //BO PAYOUT AMOUNT
 			})
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
-			->leftjoin('users', 'users.id', 'asps.user_id')
 			->leftjoin('cases', 'cases.id', 'activities.case_id')
 			->leftjoin('clients', 'clients.id', 'cases.client_id')
 			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
@@ -661,11 +676,13 @@ class ActivityController extends Controller {
 			->leftJoin('activity_logs', 'activity_logs.activity_id', 'activities.id')
 		// ->where('activities.asp_accepted_cc_details', '!=', 1)
 		// ->orderBy('cases.date', 'DESC')
-			->groupBy('activities.id')
+			->whereNull('activities.deleted_at')
 		;
 
 		if ($request->get('ticket_date')) {
-			$activities->whereRaw('DATE_FORMAT(cases.date,"%d-%m-%Y") =  "' . $request->get('ticket_date') . '"');
+			$ticketDate = date('Y-m-d', strtotime(str_replace('/', '-', $request->get('ticket_date'))));
+			$activities->where('cases.date', '>=', $ticketDate . ' 00:00:00')
+				->where('cases.date', '<=', $ticketDate . ' 23:59:59');
 		}
 		if ($request->get('call_center_id')) {
 			$activities->where('cases.call_center_id', $request->get('call_center_id'));
@@ -723,6 +740,21 @@ class ActivityController extends Controller {
 		}
 		
 		return Datatables::of($activities)
+			->editColumn('case_date', function ($row) {
+				return $row->case_date ? date('d-m-Y H:i:s', strtotime($row->case_date)) : '';
+			})
+			->editColumn('vehicle_registration_number', function ($row) {
+				return $row->vehicle_registration_number ?: '--';
+			})
+			->addColumn('asp', function ($row) {
+				return ($row->asp_code ?: '') . ' / ' . ($row->workshop_name ?: '');
+			})
+			->editColumn('boKmTravelled', function ($row) {
+				return $row->boKmTravelled ?: '--';
+			})
+			->editColumn('boPayoutAmount', function ($row) {
+				return $row->boPayoutAmount ?: '--';
+			})
 			->addColumn('due_days', function ($row) {
 				if (in_array($row->status_id, [6, 9]) && !empty($row->asp_data_filled_at)) {
 					return Carbon::parse($row->asp_data_filled_at)->diffInDays(Carbon::now(), false);
@@ -753,8 +785,10 @@ class ActivityController extends Controller {
 				return null;
 			})
 			->filterColumn('asp', function ($query, $keyword) {
-				$sql = "CONCAT(asps.asp_code,' / ',asps.workshop_name)  like ?";
-				$query->whereRaw($sql, ["%{$keyword}%"]);
+				$query->where(function ($q) use ($keyword) {
+					$q->where('asps.asp_code', 'LIKE', "%{$keyword}%")
+						->orWhere('asps.workshop_name', 'LIKE', "%{$keyword}%");
+				});
 			})
 			->setRowAttr([
 				'id' => function ($activities) {

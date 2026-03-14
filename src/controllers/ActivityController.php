@@ -39,27 +39,31 @@ use Yajra\Datatables\Datatables;
 class ActivityController extends Controller {
 
 	public function getFilterData() {
-		if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities')) {
-			$activityPortalStatusList = ActivityPortalStatus::select('name', 'id')->whereNotIn('id', [2, 4, 15, 16, 17, 25, 27])->get();
-		} else {
-			$activityPortalStatusList = ActivityPortalStatus::select('name', 'id')->get();
+		$isExportOwnRole = Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities');
+
+		$activityPortalStatusQuery = DB::table('activity_portal_statuses')->select('name', 'id');
+		if ($isExportOwnRole) {
+			$activityPortalStatusQuery->whereNotIn('id', [2, 4, 15, 16, 17, 25, 27]);
 		}
+		$activityPortalStatusList = $activityPortalStatusQuery->get();
+
+		$clientList = $clients->map(function ($c) {
+			return ['id' => $c->id, 'name' => $c->name];
+		})->prepend(['id' => '', 'name' => 'Select Client']);
+		$exportClientList = $clients->map(function ($c) {
+			return ['id' => $c->id, 'name' => $c->name, 'status' => $c->deleted_at === null ? 'Active' : 'Inactive'];
+		});
 
 		$this->data['extras'] = [
-			'call_center_list' => collect(CallCenter::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Call Center']),
-			'service_type_list' => collect(ServiceType::select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Sub Service']),
-			'finance_status_list' => collect(ActivityFinanceStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Finance Status']),
-			'portal_status_list' => collect($activityPortalStatusList),
+			'call_center_list' => DB::table('call_centers')->select('name', 'id')->get()->prepend(['id' => '', 'name' => 'Select Call Center']),
+			'service_type_list' => DB::table('service_types')->select('name', 'id')->get()->prepend(['id' => '', 'name' => 'Select Sub Service']),
+			'finance_status_list' => DB::table('activity_finance_statuses')->select('name', 'id')->where('company_id', 1)->get()->prepend(['id' => '', 'name' => 'Select Finance Status']),
+			'portal_status_list' => $activityPortalStatusList,
 			'status_list' => collect($activityPortalStatusList)->prepend(['id' => '', 'name' => 'Select Portal Status']),
-			'activity_status_list' => collect(ActivityStatus::select('name', 'id')->where('company_id', 1)->get())->prepend(['id' => '', 'name' => 'Select Activity Status']),
-			'client_list' => collect(Client::withTrashed()->select('name', 'id')->get())->prepend(['id' => '', 'name' => 'Select Client']),
-			'export_client_list' => collect(Client::withTrashed()->select([
-				'id',
-				'name',
-				DB::raw('IF(deleted_at IS NULL,"Active","Inactive") as status'),
-			])
-					->get()),
-			'asp_list' => collect(Asp::select('name', 'asp_code', 'id')->get()),
+			'activity_status_list' => DB::table('activity_statuses')->select('name', 'id')->where('company_id', 1)->get()->prepend(['id' => '', 'name' => 'Select Activity Status']),
+			'client_list' => $clientList,
+			'export_client_list' => $exportClientList,
+			// 'asp_list' => DB::table('asps')->select('name', 'asp_code', 'id')->whereNull('deleted_at')->get(),
 			'exportFilterByList' => [
 				['id' => '', 'name' => 'Select Filter By'],
 				['id' => 'general', 'name' => 'General'],
@@ -69,11 +73,7 @@ class ActivityController extends Controller {
 			],
 		];
 		$this->data['auth_user_details'] = Auth::user();
-		$isAspRole = false;
-		if (Entrust::hasRole('asp')) {
-			$isAspRole = true;
-		}
-		$this->data['isAspRole'] = $isAspRole;
+		$this->data['isAspRole'] = Entrust::hasRole('asp');
 		return response()->json($this->data);
 	}
 

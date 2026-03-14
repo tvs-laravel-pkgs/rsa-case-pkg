@@ -47,6 +47,7 @@ class ActivityController extends Controller {
 		}
 		$activityPortalStatusList = $activityPortalStatusQuery->get();
 
+		$clients = DB::table('clients')->select('id', 'name', 'deleted_at')->get();
 		$clientList = $clients->map(function ($c) {
 			return ['id' => $c->id, 'name' => $c->name];
 		})->prepend(['id' => '', 'name' => 'Select Client']);

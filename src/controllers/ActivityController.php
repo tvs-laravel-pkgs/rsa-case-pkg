@@ -118,7 +118,7 @@ class ActivityController extends Controller {
 			->leftjoin('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
 			->leftjoin('activity_statuses', 'activity_statuses.id', 'activities.activity_status_id')
 			->whereNull('activities.deleted_at')
-			->orderBy('cases.date', 'DESC')
+			->orderBy('activities.id', 'DESC')
 		;
 
 		if ($needsUserJoin) {

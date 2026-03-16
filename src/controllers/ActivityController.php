@@ -468,6 +468,35 @@ class ActivityController extends Controller {
 	}
 
 	public function getBulkVerificationList(Request $request) {
+		// Resolve permission and status filters once
+		$stateIds = null;
+		if (!Entrust::can('verify-all-activities') && Entrust::can('verify-mapped-activities')) {
+			$stateIds = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
+		}
+
+		$approvalLevel = Auth::check() ? Auth::user()->activity_approval_level_id : null;
+		$bulkStatusMap = [1 => [5, 8], 2 => [18], 3 => [20], 4 => [23]];
+
+		// Closure to apply common permission + status filters to any query
+		$applyCommonFilters = function ($query, $addAspJoin = false) use ($stateIds, $approvalLevel, $bulkStatusMap) {
+			if ($stateIds !== null) {
+				if ($addAspJoin) {
+					$query->leftjoin('asps', 'asps.id', 'activities.asp_id');
+				}
+				$query->whereIn('asps.state_id', $stateIds);
+			}
+			if (!empty($approvalLevel) && isset($bulkStatusMap[$approvalLevel])) {
+				$query->whereIn('activities.status_id', $bulkStatusMap[$approvalLevel]);
+			} else {
+				$query->whereNull('activities.status_id');
+			}
+		};
+
+		// Lightweight count query (activities table + minimal JOINs for permissions)
+		$countQuery = DB::table('activities')->whereNull('activities.deleted_at');
+		$applyCommonFilters($countQuery, true);
+		$totalRecords = $countQuery->count();
+
 		$activities = DB::table('activities')->select([
 			'activities.id',
 			'activities.crm_activity_id',
@@ -482,9 +511,9 @@ class ActivityController extends Controller {
 			'activity_finance_statuses.name as finance_status',
 			'activity_portal_statuses.name as status',
 			'activity_statuses.name as activity_status',
-			'configs.name as source',
+			// 'configs.name as source',
 			'clients.name as client',
-			'call_centers.name as call_center',
+			// 'call_centers.name as call_center',
 			'bo_km_travelled.value as boKmTravelled',
 			'bo_payout_amount.value as boPayoutAmount',
 			'activities.status_id',
@@ -511,9 +540,9 @@ class ActivityController extends Controller {
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('cases', 'cases.id', 'activities.case_id')
 			->leftjoin('clients', 'clients.id', 'cases.client_id')
-			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
+			// ->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
-			->leftjoin('configs', 'configs.id', 'activities.data_src_id')
+			// ->leftjoin('configs', 'configs.id', 'activities.data_src_id')
 		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
@@ -530,7 +559,8 @@ class ActivityController extends Controller {
 				->where('cases.date', '<=', $ticketDate . ' 23:59:59');
 		}
 		if ($request->get('call_center_id')) {
-			$activities->where('cases.call_center_id', $request->get('call_center_id'));
+			$activities->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
+				->where('cases.call_center_id', $request->get('call_center_id'));
 		}
 		if ($request->get('case_number')) {
 			$activities->where('cases.number', 'LIKE', '%' . $request->get('case_number') . '%');
@@ -554,38 +584,11 @@ class ActivityController extends Controller {
 			$activities->where('cases.client_id', $request->get('client_id'));
 		}
 
-		if (!Entrust::can('verify-all-activities')) {
-			if (Entrust::can('verify-mapped-activities')) {
-				$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
-				$activities->whereIn('asps.state_id', $states);
-			}
-		}
-
-		if (Auth::check()) {
-			if (!empty(Auth::user()->activity_approval_level_id)) {
-				//L1
-				if (Auth::user()->activity_approval_level_id == 1) {
-					$activities->whereIn('activities.status_id', [5, 8]); //ASP Completed Data Entry - Waiting for L1 Bulk Verification AND ASP Data Re-Entry Completed - Waiting for L1 Bulk Verification
-				} elseif (Auth::user()->activity_approval_level_id == 2) {
-					// L2
-					$activities->where('activities.status_id', 18); //Waiting for L2 Bulk Verification
-				} elseif (Auth::user()->activity_approval_level_id == 3) {
-					// L3
-					$activities->where('activities.status_id', 20); //Waiting for L3 Bulk Verification
-				} elseif (Auth::user()->activity_approval_level_id == 4) {
-					// L4
-					$activities->where('activities.status_id', 23); //Waiting for L4 Bulk Verification
-				} else {
-					$activities->whereNull('activities.status_id');
-				}
-			} else {
-				$activities->whereNull('activities.status_id');
-			}
-		} else {
-			$activities->whereNull('activities.status_id');
-		}
+		// Reuse same closure — asps already joined in data query
+		$applyCommonFilters($activities);
 
 		return Datatables::of($activities)
+			->setTotalRecords($totalRecords)
 			->editColumn('case_date', function ($row) {
 				return $row->case_date ? date('d-m-Y H:i:s', strtotime($row->case_date)) : '';
 			})
@@ -635,6 +638,35 @@ class ActivityController extends Controller {
 	}
 
 	public function getIndividualVerificationList(Request $request) {
+		// Resolve permission and status filters once
+		$stateIds = null;
+		if (!Entrust::can('verify-all-activities') && Entrust::can('verify-mapped-activities')) {
+			$stateIds = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
+		}
+
+		$approvalLevel = Auth::check() ? Auth::user()->activity_approval_level_id : null;
+		$individualStatusMap = [1 => [6, 9, 22, 29], 2 => [19], 3 => [21], 4 => [24]];
+
+		// Closure to apply common permission + status filters to any query
+		$applyCommonFilters = function ($query, $addAspJoin = false) use ($stateIds, $approvalLevel, $individualStatusMap) {
+			if ($stateIds !== null) {
+				if ($addAspJoin) {
+					$query->leftjoin('asps', 'asps.id', 'activities.asp_id');
+				}
+				$query->whereIn('asps.state_id', $stateIds);
+			}
+			if (!empty($approvalLevel) && isset($individualStatusMap[$approvalLevel])) {
+				$query->whereIn('activities.status_id', $individualStatusMap[$approvalLevel]);
+			} else {
+				$query->whereNull('activities.status_id');
+			}
+		};
+
+		// Lightweight count query (activities table + minimal JOINs for permissions)
+		$countQuery = DB::table('activities')->whereNull('activities.deleted_at');
+		$applyCommonFilters($countQuery, true);
+		$totalRecords = $countQuery->count();
+
 		$activities = DB::table('activities')->select([
 			'activities.id',
 			'activities.crm_activity_id',
@@ -649,9 +681,9 @@ class ActivityController extends Controller {
 			'activity_finance_statuses.name as finance_status',
 			'activity_portal_statuses.name as status',
 			'activity_statuses.name as activity_status',
-			'configs.name as source',
+			// 'configs.name as source',
 			'clients.name as client',
-			'call_centers.name as call_center',
+			// 'call_centers.name as call_center',
 			'bo_km_travelled.value as boKmTravelled',
 			'bo_payout_amount.value as boPayoutAmount',
 			'activities.status_id',
@@ -688,9 +720,9 @@ class ActivityController extends Controller {
 			->leftjoin('asps', 'asps.id', 'activities.asp_id')
 			->leftjoin('cases', 'cases.id', 'activities.case_id')
 			->leftjoin('clients', 'clients.id', 'cases.client_id')
-			->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
+			// ->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
 			->leftjoin('service_types', 'service_types.id', 'activities.service_type_id')
-			->leftjoin('configs', 'configs.id', 'activities.data_src_id')
+			// ->leftjoin('configs', 'configs.id', 'activities.data_src_id')
 		// ->leftjoin('activity_asp_statuses', 'activity_asp_statuses.id', 'activities.asp_status_id')
 			->leftjoin('activity_finance_statuses', 'activity_finance_statuses.id', 'activities.finance_status_id')
 			->join('activity_portal_statuses', 'activity_portal_statuses.id', 'activities.status_id')
@@ -707,7 +739,8 @@ class ActivityController extends Controller {
 				->where('cases.date', '<=', $ticketDate . ' 23:59:59');
 		}
 		if ($request->get('call_center_id')) {
-			$activities->where('cases.call_center_id', $request->get('call_center_id'));
+			$activities->leftjoin('call_centers', 'call_centers.id', 'cases.call_center_id')
+				->where('cases.call_center_id', $request->get('call_center_id'));
 		}
 		if ($request->get('case_number')) {
 			$activities->where('cases.number', 'LIKE', '%' . $request->get('case_number') . '%');
@@ -731,37 +764,11 @@ class ActivityController extends Controller {
 			$activities->where('cases.client_id', $request->get('client_id'));
 		}
 
-		if (!Entrust::can('verify-all-activities')) {
-			if (Entrust::can('verify-mapped-activities')) {
-				$states = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
-				$activities->whereIn('asps.state_id', $states);
-			}
-		}
-		if (Auth::check()) {
-			if (!empty(Auth::user()->activity_approval_level_id)) {
-				//L1
-				if (Auth::user()->activity_approval_level_id == 1) {
-					$activities->whereIn('activities.status_id', [6, 9, 22, 29]); //ASP Completed Data Entry - Waiting for L1 Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Individual Verification AND Rejected - Waiting for L1 Individual Verification AND Call Center Clarification Completed - Waiting for L1 Individual Verification
-				} elseif (Auth::user()->activity_approval_level_id == 2) {
-					// L2
-					$activities->where('activities.status_id', 19); //Waiting for L2 Individual Verification
-				} elseif (Auth::user()->activity_approval_level_id == 3) {
-					// L3
-					$activities->where('activities.status_id', 21); //Waiting for L3 Individual Verification
-				} elseif (Auth::user()->activity_approval_level_id == 4) {
-					// L4
-					$activities->where('activities.status_id', 24); //Waiting for L4 Individual Verification
-				} else {
-					$activities->whereNull('activities.status_id');
-				}
-			} else {
-				$activities->whereNull('activities.status_id');
-			}
-		} else {
-			$activities->whereNull('activities.status_id');
-		}
-		
+		// Reuse same closure — asps already joined in data query
+		$applyCommonFilters($activities);
+
 		return Datatables::of($activities)
+			->setTotalRecords($totalRecords)
 			->editColumn('case_date', function ($row) {
 				return $row->case_date ? date('d-m-Y H:i:s', strtotime($row->case_date)) : '';
 			})

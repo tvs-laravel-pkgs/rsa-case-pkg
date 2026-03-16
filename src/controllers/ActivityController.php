@@ -492,6 +492,13 @@ class ActivityController extends Controller {
 			'activity_logs.bo_approved_at',
 			'activity_logs.l2_approved_at',
 			'activity_logs.l3_approved_at',
+			DB::raw("DATEDIFF(NOW(), CASE
+				WHEN activities.status_id IN (5, 8) THEN activity_logs.asp_data_filled_at
+				WHEN activities.status_id = 18 THEN activity_logs.bo_approved_at
+				WHEN activities.status_id = 20 THEN activity_logs.l2_approved_at
+				WHEN activities.status_id = 23 THEN activity_logs.l3_approved_at
+				ELSE NULL
+			END) as due_days_sort"),
 		])
 			->leftJoin('activity_details as bo_km_travelled', function ($join) {
 				$join->on('bo_km_travelled.activity_id', 'activities.id')
@@ -609,6 +616,7 @@ class ActivityController extends Controller {
 				}
 				return null;
 			})
+			->orderColumn('due_days', 'due_days_sort $1')
 			->filterColumn('asp', function ($query, $keyword) {
 				$query->where(function ($q) use ($keyword) {
 					$q->where('asps.asp_code', 'LIKE', "%{$keyword}%")
@@ -655,6 +663,19 @@ class ActivityController extends Controller {
 			'activity_logs.bo_approved_at',
 			'activity_logs.l2_approved_at',
 			'activity_logs.l3_approved_at',
+			DB::raw("DATEDIFF(NOW(), CASE
+				WHEN activities.status_id IN (6, 9) THEN activity_logs.asp_data_filled_at
+				WHEN activities.status_id = 29 THEN activity_logs.cc_clarified_at
+				WHEN activities.status_id = 22 THEN GREATEST(
+					COALESCE(activity_logs.l2_deffered_at, '1970-01-01'),
+					COALESCE(activity_logs.l3_deffered_at, '1970-01-01'),
+					COALESCE(activity_logs.l4_deffered_at, '1970-01-01')
+				)
+				WHEN activities.status_id = 19 THEN activity_logs.bo_approved_at
+				WHEN activities.status_id = 21 THEN activity_logs.l2_approved_at
+				WHEN activities.status_id = 24 THEN activity_logs.l3_approved_at
+				ELSE NULL
+			END) as due_days_sort"),
 		])
 			->leftJoin('activity_details as bo_km_travelled', function ($join) {
 				$join->on('bo_km_travelled.activity_id', 'activities.id')
@@ -785,6 +806,7 @@ class ActivityController extends Controller {
 				}
 				return null;
 			})
+			->orderColumn('due_days', 'due_days_sort $1')
 			->filterColumn('asp', function ($query, $keyword) {
 				$query->where(function ($q) use ($keyword) {
 					$q->where('asps.asp_code', 'LIKE', "%{$keyword}%")

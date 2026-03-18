@@ -831,7 +831,23 @@ class ActivityController extends Controller {
 	public function viewActivityStatus($view_type_id = NULL, $activity_status_id) {
 		try {
 			$activityApprovalLevel = '';
-			$activity_data = Activity::findOrFail($activity_status_id);
+			$activity_data = Activity::with([
+				'log.importedBy',
+				'log.aspDataFilledBy',
+				'log.defferedToCcBy',
+				'log.ccClarifiedBy',
+				'log.boDefferedBy',
+				'log.boApprovedBy',
+				'log.l2DefferedBy',
+				'log.l2ApprovedBy',
+				'log.l3DefferedBy',
+				'log.l3ApprovedBy',
+				'log.l4DefferedBy',
+				'log.l4ApprovedBy',
+				'log.invoiceGeneratedBy',
+				'log.axaptaGeneratedBy',
+				'case',
+			])->findOrFail($activity_status_id);
 			if ($view_type_id == 2) {
 				if (!$activity_data || ($activity_data && $activity_data->status_id != 5 && $activity_data->status_id != 6 && $activity_data->status_id != 8 && $activity_data->status_id != 9 && $activity_data->status_id != 18 && $activity_data->status_id != 19 && $activity_data->status_id != 20 && $activity_data->status_id != 21 && $activity_data->status_id != 22 && $activity_data->status_id != 23 && $activity_data->status_id != 24 && $activity_data->status_id != 29)) {
 					return response()->json([
@@ -1034,13 +1050,24 @@ class ActivityController extends Controller {
 				->groupBy('activities.id')
 				->where('activities.id', $activity_status_id)
 				->first();
-			$this->data['activities']['km_travelled_attachments'] = $km_travelled_attachments = Attachment::where([['entity_id', '=', $activity_status_id], ['entity_type', '=', 16]])->get();
-			$this->data['activities']['other_charges_attachments'] = $other_charges_attachments = Attachment::where([['entity_id', '=', $activity_status_id], ['entity_type', '=', 17]])->get();
-			$this->data['activities']['cc_clarification_attachments'] = $cc_clarification_attachments = Attachment::where([['entity_id', '=', $activity_status_id], ['entity_type', '=', config('constants.entity_types.CC_CLARIFICATION_ATTACHMENT')]])->get();
+			$ccClarificationEntityType = config('constants.entity_types.CC_CLARIFICATION_ATTACHMENT');
+			$singleAttachmentTypes = [18, 19, 20, 24, 25];
+			$allAttachmentsList = Attachment::where('entity_id', $activity_status_id)
+				->whereIn('entity_type', array_merge([16, 17, $ccClarificationEntityType], $singleAttachmentTypes))
+				->get();
+			$km_travelled_attachments = $allAttachmentsList->where('entity_type', 16)->values();
+			$other_charges_attachments = $allAttachmentsList->where('entity_type', 17)->values();
+			$cc_clarification_attachments = $allAttachmentsList->where('entity_type', $ccClarificationEntityType)->values();
+			$this->data['activities']['km_travelled_attachments'] = $km_travelled_attachments;
+			$this->data['activities']['other_charges_attachments'] = $other_charges_attachments;
+			$this->data['activities']['cc_clarification_attachments'] = $cc_clarification_attachments;
 
-			$ccServiceTypeValue = ActivityDetail::where('activity_id', $activity_status_id)
-				->where('key_id', 153)
-				->first();
+			// Fetch all activity details for this activity in one query
+			$allActivityDetails = ActivityDetail::where('activity_id', $activity_status_id)
+				->get()
+				->keyBy('key_id');
+
+			$ccServiceTypeValue = $allActivityDetails->get(153);
 			$hasccServiceType = false;
 			if ($ccServiceTypeValue) {
 				$ccServiceType = ServiceType::where('name', $ccServiceTypeValue->value)->first();
@@ -1049,9 +1076,7 @@ class ActivityController extends Controller {
 				}
 			}
 
-			$aspServiceTypeValue = ActivityDetail::where('activity_id', $activity_status_id)
-				->where('key_id', 157)
-				->first();
+			$aspServiceTypeValue = $allActivityDetails->get(157);
 			$hasaspServiceType = false;
 			if ($aspServiceTypeValue) {
 				$aspServiceType = ServiceType::where('name', $aspServiceTypeValue->value)->first();
@@ -1107,11 +1132,7 @@ class ActivityController extends Controller {
 			$this->data['activities']['cc_clarification_attachment_url'] = $cc_clarification_attachment_url;
 			$this->data['activities']['activityApprovalLevel'] = $activityApprovalLevel;
 
-			$vehiclePickupAttachment = Attachment::where([
-				'entity_id' => $activity_status_id,
-				'entity_type' => 18,
-			])
-				->first();
+			$vehiclePickupAttachment = $allAttachmentsList->where('entity_type', 18)->first();
 			$vehiclePickupAttachmentUrl = '';
 			if ($vehiclePickupAttachment) {
 				if ($hasccServiceType) {
@@ -1129,11 +1150,7 @@ class ActivityController extends Controller {
 			$this->data['activities']['vehiclePickupAttachment'] = $vehiclePickupAttachment;
 			$this->data['activities']['vehiclePickupAttachmentUrl'] = $vehiclePickupAttachmentUrl;
 
-			$vehicleDropAttachment = Attachment::where([
-				'entity_id' => $activity_status_id,
-				'entity_type' => 19,
-			])
-				->first();
+			$vehicleDropAttachment = $allAttachmentsList->where('entity_type', 19)->first();
 			$vehicleDropAttachmentUrl = '';
 			if ($vehicleDropAttachment) {
 				if ($hasccServiceType) {
@@ -1150,11 +1167,7 @@ class ActivityController extends Controller {
 			$this->data['activities']['vehicleDropAttachment'] = $vehicleDropAttachment;
 			$this->data['activities']['vehicleDropAttachmentUrl'] = $vehicleDropAttachmentUrl;
 
-			$inventoryJobSheetAttachment = Attachment::where([
-				'entity_id' => $activity_status_id,
-				'entity_type' => 20,
-			])
-				->first();
+			$inventoryJobSheetAttachment = $allAttachmentsList->where('entity_type', 20)->first();
 			$inventoryJobSheetAttachmentUrl = '';
 			if ($inventoryJobSheetAttachment) {
 				if ($hasccServiceType) {
@@ -1171,11 +1184,7 @@ class ActivityController extends Controller {
 			$this->data['activities']['inventoryJobSheetAttachment'] = $inventoryJobSheetAttachment;
 			$this->data['activities']['inventoryJobSheetAttachmentUrl'] = $inventoryJobSheetAttachmentUrl;
 
-			$otherAttachmentOne = Attachment::where([
-				'entity_id' => $activity_status_id,
-				'entity_type' => 24,
-			])
-				->first();
+			$otherAttachmentOne = $allAttachmentsList->where('entity_type', 24)->first();
 			$otherAttachmentOneUrl = '';
 			if ($otherAttachmentOne) {
 				if ($hasccServiceType) {
@@ -1192,11 +1201,7 @@ class ActivityController extends Controller {
 			$this->data['activities']['otherAttachmentOne'] = $otherAttachmentOne;
 			$this->data['activities']['otherAttachmentOneUrl'] = $otherAttachmentOneUrl;
 
-			$otherAttachmentTwo = Attachment::where([
-				'entity_id' => $activity_status_id,
-				'entity_type' => 25,
-			])
-				->first();
+			$otherAttachmentTwo = $allAttachmentsList->where('entity_type', 25)->first();
 			$otherAttachmentTwoUrl = '';
 			if ($otherAttachmentTwo) {
 				if ($hasccServiceType) {
@@ -1214,10 +1219,14 @@ class ActivityController extends Controller {
 			$this->data['activities']['otherAttachmentTwoUrl'] = $otherAttachmentTwoUrl;
 
 			$key_list = [153, 157, 161, 158, 159, 160, 154, 155, 156, 170, 174, 180, 298, 179, 176, 172, 173, 182, 171, 175, 181];
+			$keyListConfigs = Config::whereIn('id', $key_list)->get()->keyBy('id');
 			foreach ($key_list as $keyw) {
-				$var_key = Config::where('id', $keyw)->first();
+				$var_key = $keyListConfigs->get($keyw);
+				if (!$var_key) {
+					continue;
+				}
 				$key_name = str_replace(" ", "_", strtolower($var_key->name));
-				$var_key_val = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $var_key->id)->first();
+				$var_key_val = $allActivityDetails->get($var_key->id);
 				$raw_key_name = 'raw_' . $key_name;
 				if (strpos($key_name, 'amount') || strpos($key_name, 'collected') || strcmp("amount", $key_name) == 0) {
 					$this->data['activities'][$key_name] = $var_key_val ? (!empty($var_key_val->value) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($var_key_val->value, 2))) : 0) : 0;
@@ -1226,7 +1235,6 @@ class ActivityController extends Controller {
 					$this->data['activities'][$key_name] = $var_key_val ? (!empty($var_key_val->value) ? $var_key_val->value : 0) : 0;
 					$this->data['activities'][$raw_key_name] = $var_key_val ? (!empty($var_key_val->value) ? $var_key_val->value : 0) : 0;
 				}
-
 			}
 
 			/*$this->data['activities']['invoice_activities'] = Activity::with(['case','serviceType','activityDetail'])->where('invoice_id',$activity->invoice_id)->get();*/
@@ -1373,7 +1381,7 @@ class ActivityController extends Controller {
 
 			$configs = Config::where('entity_type_id', 23)->get();
 			foreach ($configs as $config) {
-				$detail = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', $config->id)->first();
+				$detail = $allActivityDetails->get($config->id);
 				if (strpos($config->name, '_charges') || strpos($config->name, '_amount')) {
 
 					$this->data['activities'][$config->name] = $detail ? (!empty($detail->value) ? preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", str_replace(",", "", number_format($detail->value, 2))) : '0.00') : '0.00';
@@ -1400,12 +1408,8 @@ class ActivityController extends Controller {
 			$is_km_travelled_eligible = true;
 			$is_not_collected_eligible = true;
 			$is_collected_eligible = true;
-			$cc_service_type = ActivityDetail::where('activity_id', $activity_status_id)
-				->where('key_id', 153)
-				->first();
-			$asp_service_type = ActivityDetail::where('activity_id', $activity_status_id)
-				->where('key_id', 157)
-				->first();
+			$cc_service_type = $allActivityDetails->get(153);
+			$asp_service_type = $allActivityDetails->get(157);
 			if ($cc_service_type && $asp_service_type) {
 				//Service Type
 				if ($cc_service_type->value != $asp_service_type->value) {
@@ -1420,12 +1424,8 @@ class ActivityController extends Controller {
 					} else {
 						$range_limit = 0;
 					}
-					$cc_km_travelled = ActivityDetail::where('activity_id', $activity_status_id)
-						->where('key_id', 280)
-						->first();
-					$asp_km_travelled = ActivityDetail::where('activity_id', $activity_status_id)
-						->where('key_id', 154)
-						->first();
+					$cc_km_travelled = $allActivityDetails->get(280);
+					$asp_km_travelled = $allActivityDetails->get(154);
 					if ($cc_km_travelled && $asp_km_travelled) {
 						$mis_km = floatval($cc_km_travelled->value);
 						$asp_km = floatval($asp_km_travelled->value);
@@ -1455,18 +1455,10 @@ class ActivityController extends Controller {
 				$is_km_travelled_eligible = false;
 			}
 
-			$cc_collected = ActivityDetail::where('activity_id', $activity_status_id)
-				->where('key_id', 281)
-				->first();
-			$cc_not_collected = ActivityDetail::where('activity_id', $activity_status_id)
-				->where('key_id', 282)
-				->first();
-			$asp_collected = ActivityDetail::where('activity_id', $activity_status_id)
-				->where('key_id', 155)
-				->first();
-			$asp_not_collected = ActivityDetail::where('activity_id', $activity_status_id)
-				->where('key_id', 156)
-				->first();
+			$cc_collected = $allActivityDetails->get(281);
+			$cc_not_collected = $allActivityDetails->get(282);
+			$asp_collected = $allActivityDetails->get(155);
+			$asp_not_collected = $allActivityDetails->get(156);
 
 			//Not Collected Amount
 			if ($cc_not_collected && $asp_not_collected) {
@@ -1490,15 +1482,14 @@ class ActivityController extends Controller {
 				$is_collected_eligible = false;
 			}
 
-			$activityInfo = Activity::find($activity->id);
-			if (!empty($activityInfo->case->submission_closing_date)) {
-				$submission_closing_date = date('d-m-Y H:i:s', strtotime($activityInfo->case->submission_closing_date));
+			if (!empty($activity_data->case->submission_closing_date)) {
+				$submission_closing_date = date('d-m-Y H:i:s', strtotime($activity_data->case->submission_closing_date));
 			} else {
-				$submission_closing_date = date('d-m-Y H:i:s', strtotime("+3 months", strtotime($activityInfo->case->created_at)));
+				$submission_closing_date = date('d-m-Y H:i:s', strtotime("+3 months", strtotime($activity_data->case->created_at)));
 			}
 
 			$is_case_lapsed = false;
-			$case_lapsed_date = date('Y-m-d H:i:s', strtotime("+3 months", strtotime($activityInfo->case->created_at)));
+			$case_lapsed_date = date('Y-m-d H:i:s', strtotime("+3 months", strtotime($activity_data->case->created_at)));
 			if (date('Y-m-d H:i:s') > $case_lapsed_date) {
 				$is_case_lapsed = true;
 			}
@@ -1625,7 +1616,7 @@ class ActivityController extends Controller {
 
 			$serviceTypes = Activity::getAspServiceTypesByAmendment($activity->asp_id, $caseDate, $isMobile);
 			$boServiceTypeId = '';
-			$boServiceTypeData = ActivityDetail::where('activity_id', $activity_status_id)->where('key_id', 161)->first();
+			$boServiceTypeData = $allActivityDetails->get(161);
 			if ($boServiceTypeData) {
 				$boServiceType = ServiceType::where('name', $boServiceTypeData->value)->first();
 				if ($boServiceType) {

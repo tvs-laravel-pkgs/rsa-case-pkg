@@ -6816,157 +6816,111 @@ class ActivityController extends Controller {
 			return Datatables::of([])->make(true);
 		}
 
-		$activities = Activity::with([
-			'case' => function ($query) {
-				$query->select([
-					'id',
-					'client_id',
-					'call_center_id',
-					DB::raw('DATE_FORMAT(date,"%d-%m-%Y %H:%i:%s") as case_date'),
-					'number as case_number',
-					DB::raw('COALESCE(csr, "--") as csr'),
-					DB::raw('COALESCE(vehicle_registration_number, "--") as vehicle_registration_number'),
-					DB::raw('COALESCE(vin_no, "--") as vin'),
-					'created_at',
-					'submission_closing_date',
-				]);
-			},
-			'case.clientWithTrashed' => function ($query) {
-				$query->select([
-					'id',
-					DB::raw('COALESCE(name, "--") as name'),
-				]);
-			},
-			'case.callcenter' => function ($query) {
-				$query->select([
-					'id',
-					DB::raw('COALESCE(name, "--") as name'),
-				]);
-			},
-			'asp' => function ($query) {
-				$query->select([
-					'id',
-					DB::raw('CONCAT(asp_code," / ",workshop_name) as name'),
-					'user_id',
-				]);
-			},
-			'asp.user' => function ($query) {
-				$query->select([
-					'id',
-				]);
-			},
-			'serviceType' => function ($query) {
-				$query->select([
-					'id',
-					DB::raw('COALESCE(name, "--") as name'),
-				]);
-			},
-			'financeStatus' => function ($query) {
-				$query->select([
-					'id',
-					DB::raw('COALESCE(name, "--") as name'),
-				]);
-			},
-			'status' => function ($query) {
-				$query->select([
-					'id',
-					DB::raw('COALESCE(name, "--") as name'),
-				]);
-			},
-			'activityStatus' => function ($query) {
-				$query->select([
-					'id',
-					DB::raw('COALESCE(name, "--") as name'),
-				]);
-			},
-		])
-			->select([
-				'id',
-				'invoice_id as invoiceId',
-				'crm_activity_id',
-				'case_id',
-				'status_id',
-				'asp_id',
-				'service_type_id',
-				'finance_status_id',
-				'activity_status_id',
-				'created_at',
-			])
-		;
+		$needsUserJoin = !Entrust::can('all-asp-activity-search') && Entrust::can('own-asp-activity-search')
+			&& !(Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1);
 
-		if (!empty($request->mobileNumber)) {
-			$activities->whereHas('case', function ($query) use ($request) {
-				$query->where('customer_contact_number', $request->mobileNumber);
-			});
-		} else if (!empty($request->caseNumber)) {
-			$activities->whereHas('case', function ($query) use ($request) {
-				$query->where('number', $request->caseNumber);
-			});
-		} else if (!empty($request->vehicleRegistrationNumber)) {
-			$activities->whereHas('case', function ($query) use ($request) {
-				$query->where('vehicle_registration_number', $request->vehicleRegistrationNumber);
-			});
-		} else if (!empty($request->vin)) {
-			$activities->whereHas('case', function ($query) use ($request) {
-				$query->where('vin_no', $request->vin);
-			});
-		} else if (!empty($request->csr)) {
-			$activities->whereHas('case', function ($query) use ($request) {
-				$query->where('csr', $request->csr);
-			});
-		} else if (!empty($request->crmActivityId)) {
-			$activities->where('crm_activity_id', $request->crmActivityId);
+		$activities = DB::table('activities')
+			->select([
+				'activities.id',
+				'activities.invoice_id as invoiceId',
+				'activities.crm_activity_id',
+				'activities.status_id',
+				DB::raw('DATE_FORMAT(cases.date, "%d-%m-%Y %H:%i:%s") as case_date'),
+				'cases.number as case_number',
+				DB::raw('COALESCE(cases.csr, "--") as csr'),
+				DB::raw('COALESCE(cases.vehicle_registration_number, "--") as vehicle_registration_number'),
+				DB::raw('COALESCE(cases.vin_no, "--") as vin'),
+				'asps.asp_code',
+				'asps.workshop_name',
+				DB::raw('COALESCE(service_types.name, "--") as sub_service'),
+				DB::raw('COALESCE(activity_finance_statuses.name, "--") as finance_status'),
+				DB::raw('COALESCE(activity_portal_statuses.name, "--") as status'),
+				DB::raw('COALESCE(activity_statuses.name, "--") as activity_status'),
+				DB::raw('COALESCE(clients.name, "--") as client'),
+				DB::raw('COALESCE(call_centers.name, "--") as call_center'),
+				'cases.created_at as case_created_at',
+				'cases.submission_closing_date',
+			])
+			->join('cases', 'cases.id', '=', 'activities.case_id')
+			->leftJoin('asps', 'asps.id', '=', 'activities.asp_id')
+			->leftJoin('clients', 'clients.id', '=', 'cases.client_id')
+			->leftJoin('call_centers', 'call_centers.id', '=', 'cases.call_center_id')
+			->leftJoin('service_types', 'service_types.id', '=', 'activities.service_type_id')
+			->leftJoin('activity_finance_statuses', 'activity_finance_statuses.id', '=', 'activities.finance_status_id')
+			->leftJoin('activity_portal_statuses', 'activity_portal_statuses.id', '=', 'activities.status_id')
+			->leftJoin('activity_statuses', 'activity_statuses.id', '=', 'activities.activity_status_id')
+			->whereNull('activities.deleted_at');
+
+		if ($needsUserJoin) {
+			$activities->leftJoin('users', 'users.id', '=', 'asps.user_id');
 		}
 
+		// Search filters — only one field is active at a time (enforced by frontend)
+		if (!empty($request->crmActivityId)) {
+			$activities->where('activities.crm_activity_id', $request->crmActivityId);
+		} elseif (!empty($request->caseNumber)) {
+			$activities->where('cases.number', $request->caseNumber);
+		} elseif (!empty($request->mobileNumber)) {
+			$activities->where('cases.customer_contact_number', $request->mobileNumber);
+		} elseif (!empty($request->vehicleRegistrationNumber)) {
+			$activities->where('cases.vehicle_registration_number', $request->vehicleRegistrationNumber);
+		} elseif (!empty($request->vin)) {
+			$activities->where('cases.vin_no', $request->vin);
+		} elseif (!empty($request->csr)) {
+			$activities->where('cases.csr', $request->csr);
+		}
+
+		// Authorization filters
 		if (!Entrust::can('all-asp-activity-search')) {
 
 			//BACK OFFICE
 			if (Entrust::can('mapped-state-asp-activity-search')) {
 				$stateIds = StateUser::where('user_id', '=', Auth::user()->id)->pluck('state_id')->toArray();
-				$activities->whereHas('asp', function ($query) use ($stateIds) {
-					$query->whereIn('state_id', $stateIds);
-				});
+				$activities->whereIn('asps.state_id', $stateIds);
 			} elseif (Entrust::can('own-asp-activity-search')) {
 				// ASP || ASP FINANCE ADMIN
 				if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
 					$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
 					$aspIds[] = Auth::user()->asp->id;
-					$activities->whereHas('asp', function ($query) use ($aspIds) {
-						$query->whereIn('id', $aspIds);
-					});
+					$activities->whereIn('asps.id', $aspIds);
 				} else {
-					$authUserId = Auth::user()->id;
-					$activities->whereHas('asp.user', function ($query) use ($authUserId) {
-						$query->where('id', $authUserId); // OWN ASP USER ID
-					});
+					$activities->where('users.id', Auth::user()->id);
 				}
 			} elseif (Entrust::can('own-rm-asp-activity-search')) {
 				// REGIONAL MANAGER
 				$aspIds = Asp::where('regional_manager_id', Auth::user()->id)->pluck('id')->toArray();
-				$activities->whereHas('asp', function ($query) use ($aspIds) {
-					$query->whereIn('id', $aspIds);
-				});
+				$activities->whereIn('asps.id', $aspIds);
 			} elseif (Entrust::can('own-zm-asp-activity-search')) {
 				// ZONAL MANAGER
 				$aspIds = Asp::where('zm_id', Auth::user()->id)->pluck('id')->toArray();
-				$activities->whereHas('asp', function ($query) use ($aspIds) {
-					$query->whereIn('id', $aspIds);
-				});
+				$activities->whereIn('asps.id', $aspIds);
 			} elseif (Entrust::can('own-nm-asp-activity-search')) {
 				// NATIONAL MANAGER
 				$aspIds = Asp::where('nm_id', Auth::user()->id)->pluck('id')->toArray();
-				$activities->whereHas('asp', function ($query) use ($aspIds) {
-					$query->whereIn('id', $aspIds);
-				});
+				$activities->whereIn('asps.id', $aspIds);
 			} else {
-				$activities->whereNull('asp_id');
+				$activities->whereNull('activities.asp_id');
 			}
 		}
 
-		$activities->orderBy('created_at', 'DESC');
+		$activities->orderBy('activities.id', 'DESC');
+
+		$canOwnAsp = Entrust::can('own-asp-activity-search');
+		$canRmSearch = Entrust::can('own-rm-asp-activity-search');
+		$canZmSearch = Entrust::can('own-zm-asp-activity-search');
+		$authUser = Auth::user();
 
 		return Datatables::of($activities)
-			->addColumn('action', function ($activity) {
+			->addColumn('asp', function ($activity) {
+				return ($activity->asp_code ? $activity->asp_code : '') . ' / ' . ($activity->workshop_name ? $activity->workshop_name : '');
+			})
+			->filterColumn('asps.asp_code', function ($query, $keyword) {
+				$query->where(function ($q) use ($keyword) {
+					$q->where('asps.asp_code', 'LIKE', "%{$keyword}%")
+						->orWhere('asps.workshop_name', 'LIKE', "%{$keyword}%");
+				});
+			})
+			->addColumn('action', function ($activity) use ($canOwnAsp, $canRmSearch, $canZmSearch, $authUser) {
 				// VIEW PAGE FOR OTHER STATUSES
 				$url = '#!/rsa-case-pkg/activity-status/1/view/' . $activity->id;
 
@@ -6974,14 +6928,14 @@ class ActivityController extends Controller {
 				$threeMonthsBefore = date('Y-m-d H:i:s', strtotime("-3 months", strtotime($today)));
 
 				// ASP || ASP FINANCE ADMIN
-				if (Entrust::can('own-asp-activity-search')) {
+				if ($canOwnAsp) {
 					//ASP Rejected CC Details - Waiting for ASP Data Entry || On Hold
 					if ($activity->status_id == 2 || $activity->status_id == 4 || $activity->status_id == 17) {
 						$url = '';
 						//CASE WITH EXTENSION
-						if (!empty($activity->case->submission_closing_date) && Carbon::parse($activity->case->submission_closing_date)->format('Y-m-d H:i:s') >= $today) {
+						if (!empty($activity->submission_closing_date) && Carbon::parse($activity->submission_closing_date)->format('Y-m-d H:i:s') >= $today) {
 							$url = '#!/rsa-case-pkg/new-activity/update-details/' . $activity->id;
-						} else if (Carbon::parse($activity->case->created_at)->format('Y-m-d H:i:s') >= $threeMonthsBefore) {
+						} elseif (Carbon::parse($activity->case_created_at)->format('Y-m-d H:i:s') >= $threeMonthsBefore) {
 							$url = '#!/rsa-case-pkg/new-activity/update-details/' . $activity->id;
 						}
 					} elseif ($activity->status_id == 7) {
@@ -6997,7 +6951,7 @@ class ActivityController extends Controller {
 				}
 
 				// RM || ZM
-				if (Entrust::can('own-rm-asp-activity-search') || Entrust::can('own-zm-asp-activity-search')) {
+				if ($canRmSearch || $canZmSearch) {
 					//ASP Rejected CC Details - Waiting for ASP Data Entry || On Hold
 					if ($activity->status_id == 2 || $activity->status_id == 4 || $activity->status_id == 17) {
 						$url = '';
@@ -7014,21 +6968,22 @@ class ActivityController extends Controller {
 				}
 
 				// APPROVER
-				if (Auth::check()) {
-					if (!empty(Auth::user()->activity_approval_level_id)) {
-						//L1 AND ASP Completed Data Entry - Waiting for L1 Bulk / Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Bulk / Individual Verification AND BO Rejected - Waiting for L1 Bulk / Individual Verification
-						if (Auth::user()->activity_approval_level_id == 1 && ($activity->status_id == 5 || $activity->status_id == 6 || $activity->status_id == 8 || $activity->status_id == 9 || $activity->status_id == 22 || $activity->status_id == 29)) {
-							$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
-						} elseif (Auth::user()->activity_approval_level_id == 2 && ($activity->status_id == 18 || $activity->status_id == 19)) {
-							// L2 AND Waiting for L2 Bulk / Individual Verification
-							$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
-						} elseif (Auth::user()->activity_approval_level_id == 3 && ($activity->status_id == 20 || $activity->status_id == 21)) {
-							// L3 AND Waiting for L3 Bulk / Individual Verification
-							$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
-						} elseif (Auth::user()->activity_approval_level_id == 4 && ($activity->status_id == 23 || $activity->status_id == 24)) {
-							// L4 AND Waiting for L4 Bulk / Individual Verification
-							$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
-						}
+				if ($authUser && !empty($authUser->activity_approval_level_id)) {
+					$approvalLevel = $authUser->activity_approval_level_id;
+					$statusId = $activity->status_id;
+					
+					//L1 AND ASP Completed Data Entry - Waiting for L1 Bulk / Individual Verification AND ASP Data Re-Entry Completed - Waiting for L1 Bulk / Individual Verification AND BO Rejected - Waiting for L1 Bulk / Individual Verification
+					if ($approvalLevel == 1 && in_array($statusId, [5, 6, 8, 9, 22, 29])) {
+						$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
+					} elseif ($approvalLevel == 2 && in_array($statusId, [18, 19])) {
+						// L2 AND Waiting for L2 Bulk / Individual Verification
+						$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
+					} elseif ($approvalLevel == 3 && in_array($statusId, [20, 21])) {
+						// L3 AND Waiting for L3 Bulk / Individual Verification
+						$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
+					} elseif ($approvalLevel == 4 && in_array($statusId, [23, 24])) {
+						// L4 AND Waiting for L4 Bulk / Individual Verification
+						$url = '#!/rsa-case-pkg/activity-verification/2/view/' . $activity->id;
 					}
 				}
 

@@ -806,7 +806,7 @@ class Activity extends Model {
 								}),
 						],
 						'vehicle_registration_number' => 'nullable|max:20',
-						'vin_no' => 'nullable|max:20',
+						'vin_no' => 'nullable|max:25',
 						'membership_type' => 'nullable|string|max:191',
 						'membership_number' => 'nullable|max:50',
 						'subject' => [

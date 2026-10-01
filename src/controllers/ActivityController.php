@@ -5219,78 +5219,79 @@ class ActivityController extends Controller {
 			$aspAxaptaCodes = !empty($request->aspAxaptaCodes) ? json_decode($request->aspAxaptaCodes) : [];
 			$clientIds = !empty($request->client_ids) ? explode(',', $request->client_ids) : null;
 
-			$activityReports = ActivityReport::join('activities', 'activities.id', 'activity_reports.activity_id')
+			$dateFrom = $range1 . ' 00:00:00';
+			$dateTo = $range2 . ' 23:59:59';
+
+			// Date filter shared by the export and summary queries. Columns are compared directly against the range so that their indexes are used.
+			$applyDateFilter = function ($query) use ($request, $range1, $range2, $dateFrom, $dateTo) {
+				if ($request->filter_by == 'general') {
+					$query->whereBetween('cases.date', [$dateFrom, $dateTo]);
+				} elseif ($request->filter_by == 'activity') {
+					// An OR across these columns cannot use their indexes, so each column is matched separately and the ids are combined with UNION
+					$activityDateColumns = [
+						'imported_date',
+						'asp_data_filled_date',
+						'l1_deffered_date',
+						'l1_approved_date',
+						'l2_deffered_date',
+						'l2_approved_date',
+						'l3_deffered_date',
+						'l3_approved_date',
+						'l4_deffered_date',
+						'l4_approved_date',
+						'invoice_generated_date',
+						'axapta_generated_date',
+						'payment_completed_date',
+					];
+					$activityDateFilterQuery = null;
+					foreach ($activityDateColumns as $activityDateColumn) {
+						$activityDateColumnQuery = DB::table('activity_reports')
+							->select('id')
+							->whereBetween($activityDateColumn, [$dateFrom, $dateTo]);
+						if ($activityDateFilterQuery) {
+							$activityDateFilterQuery->union($activityDateColumnQuery);
+						} else {
+							$activityDateFilterQuery = $activityDateColumnQuery;
+						}
+					}
+					foreach (['deferred_to_cc_at', 'cc_clarified_at'] as $activityLogDateColumn) {
+						$activityDateFilterQuery->union(
+							DB::table('activity_logs')
+								->join('activity_reports', 'activity_reports.activity_id', 'activity_logs.activity_id')
+								->select('activity_reports.id')
+								->whereBetween('activity_logs.' . $activityLogDateColumn, [$dateFrom, $dateTo])
+						);
+					}
+					$query->join(DB::raw('(' . $activityDateFilterQuery->toSql() . ') as activityDateFilter'), 'activityDateFilter.id', 'activity_reports.id')
+						->addBinding($activityDateFilterQuery->getBindings(), 'join');
+				} elseif ($request->filter_by == 'invoiceDate') {
+					$query->whereBetween('activity_reports.invoice_date', [$range1, $range2]);
+				} elseif ($request->filter_by == 'transactionDate') {
+					$query->whereBetween('activity_reports.transaction_date', [$range1, $range2]);
+				}
+			};
+
+			// Filtered query that only resolves the matching ids
+			$activityReports = DB::table('activity_reports')
+				->join('activities', 'activities.id', 'activity_reports.activity_id')
+				->join('cases', 'cases.id', 'activities.case_id')
+				->join('asps', 'asps.id', 'activities.asp_id')
+				->whereNull('activity_reports.deleted_at');
+			if (!empty($statusIds)) {
+				$activityReports->whereIn('activities.status_id', $statusIds);
+			}
+			$applyDateFilter($activityReports);
+
+			// Data query, executed per chunk of the resolved ids
+			$activityReportsDataQuery = DB::table('activity_reports')
+				->join('activities', 'activities.id', 'activity_reports.activity_id')
 				->join('cases', 'cases.id', 'activities.case_id')
 				->join('asps', 'asps.id', 'activities.asp_id')
 				->leftjoin('activity_logs', 'activity_logs.activity_id', 'activities.id')
 				->leftjoin('users as ccClarifiedUser', 'ccClarifiedUser.id', 'activity_logs.cc_clarified_by_id')
 				->leftjoin('users as deferredToCcUser', 'deferredToCcUser.id', 'activity_logs.deferred_to_cc_by_id')
 			;
-			if (!empty($statusIds)) {
-				$activityReports->whereIn('activities.status_id', $statusIds);
-			}
-
-			if ($request->filter_by == 'general') {
-				$activityReports->where(function ($q) use ($range1, $range2) {
-					$q->whereDate('cases.date', '>=', $range1)
-						->whereDate('cases.date', '<=', $range2);
-				});
-			} elseif ($request->filter_by == 'activity') {
-				$activityReports->where(function ($q) use ($range1, $range2) {
-					$q->where(function ($query) use ($range1, $range2) {
-						$query->whereRaw('DATE(activity_reports.imported_date) between "' . $range1 . '" and "' . $range2 . '"');
-					})
-						->orwhere(function ($query) use ($range1, $range2) {
-							$query->whereRaw('DATE(activity_reports.asp_data_filled_date) between "' . $range1 . '" and "' . $range2 . '"');
-						})
-						->orwhere(function ($query) use ($range1, $range2) {
-							$query->whereRaw('DATE(activity_reports.l1_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
-						})
-						->orwhere(function ($query) use ($range1, $range2) {
-							$query->whereRaw('DATE(activity_reports.l1_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
-						})
-						->orwhere(function ($query) use ($range1, $range2) {
-							$query->whereRaw('DATE(activity_reports.l2_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
-						})
-						->orwhere(function ($query) use ($range1, $range2) {
-							$query->whereRaw('DATE(activity_reports.l2_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
-						})
-						->orwhere(function ($query) use ($range1, $range2) {
-							$query->whereRaw('DATE(activity_reports.l3_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
-						})
-						->orwhere(function ($query) use ($range1, $range2) {
-							$query->whereRaw('DATE(activity_reports.l3_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
-						})
-						->orwhere(function ($query) use ($range1, $range2) {
-							$query->whereRaw('DATE(activity_reports.l4_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
-						})
-						->orwhere(function ($query) use ($range1, $range2) {
-							$query->whereRaw('DATE(activity_reports.l4_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
-						})
-						->orwhere(function ($query) use ($range1, $range2) {
-							$query->whereRaw('DATE(activity_reports.invoice_generated_date) between "' . $range1 . '" and "' . $range2 . '"');
-						})
-						->orwhere(function ($query) use ($range1, $range2) {
-							$query->whereRaw('DATE(activity_reports.axapta_generated_date) between "' . $range1 . '" and "' . $range2 . '"');
-						})
-						->orwhere(function ($query) use ($range1, $range2) {
-							$query->whereRaw('DATE(activity_reports.payment_completed_date) between "' . $range1 . '" and "' . $range2 . '"');
-						})
-						->orwhere(function ($query) use ($range1, $range2) {
-							$query->whereRaw('DATE(activity_logs.deferred_to_cc_at) between "' . $range1 . '" and "' . $range2 . '"');
-						})
-						->orwhere(function ($query) use ($range1, $range2) {
-							$query->whereRaw('DATE(activity_logs.cc_clarified_at) between "' . $range1 . '" and "' . $range2 . '"');
-						})
-					;
-				});
-			} elseif ($request->filter_by == 'invoiceDate') {
-				$activityReports->whereRaw('DATE(activity_reports.invoice_date) between "' . $range1 . '" and "' . $range2 . '"');
-			} elseif ($request->filter_by == 'transactionDate') {
-				$activityReports->whereRaw('DATE(activity_reports.transaction_date) between "' . $range1 . '" and "' . $range2 . '"');
-			}
-
-			$activityReports->select([
+			$activityReportsDataQuery->select([
 				'activity_reports.id',
 				'activity_reports.activity_id as activityId',
 				DB::raw('COALESCE(activity_reports.case_number, "--") as caseNumber'),
@@ -5571,8 +5572,8 @@ class ActivityController extends Controller {
 					$activityReports = $activityReports->whereIn('asps.id', $aspIds);
 				}
 			}
-			$activitesTotalCount = $activityReports;
-			$totalCount = $activitesTotalCount->groupBy('activity_reports.id')->get()->count();
+			$activityReportIds = $activityReports->orderBy('activity_reports.id')->pluck('activity_reports.id')->toArray();
+			$totalCount = count($activityReportIds);
 			if ($totalCount == 0) {
 				return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
 					'errors' => [
@@ -5591,139 +5592,88 @@ class ActivityController extends Controller {
 					'name',
 				])
 					->get();
+
+				// Counts of all the selected statuses are resolved in a single query grouped by status
+				$activitiesSummaryCountQuery = DB::table('activity_reports')
+					->join('activities', 'activities.id', 'activity_reports.activity_id')
+					->join('cases', 'cases.id', 'activities.case_id')
+					->whereNull('activity_reports.deleted_at')
+					->whereIn('activities.status_id', $statusIds);
+				$applyDateFilter($activitiesSummaryCountQuery);
+
+				// if (!empty($request->get('asp_id'))) {
+				// 	if (Entrust::can('export-own-activities')) {
+				// 		// ASP FINANCE ADMIN
+				// 		if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
+				// 			$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+				// 			$aspIds[] = Auth::user()->asp->id;
+				// 			$activitiesSummaryCountQuery->whereIn('activities.asp_id', $aspIds);
+				// 		} else {
+				// 			$activitiesSummaryCountQuery->where('activities.asp_id', $request->get('asp_id'));
+				// 		}
+				// 	} else {
+				// 		$activitiesSummaryCountQuery->where('activities.asp_id', $request->get('asp_id'));
+				// 	}
+				// }
+
+				if (Entrust::can('export-own-activities') && Auth::user()->asp) {
+					// ASP FINANCE ADMIN
+					if (Auth::user()->asp->is_finance_admin == 1) {
+						$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
+						$aspIds[] = Auth::user()->asp->id;
+						$activitiesSummaryCountQuery->whereIn('activities.asp_id', $aspIds);
+					} else {
+						$activitiesSummaryCountQuery->where('activities.asp_id', Auth::user()->asp->id);
+					}
+				} else if (!empty($aspAxaptaCodes)) {
+					$aspIds = Asp::whereIn('axpta_code', $aspAxaptaCodes)->pluck('id')->toArray();
+					$activitiesSummaryCountQuery->whereIn('activities.asp_id', $aspIds);
+				}
+
+				if (!empty($clientIds)) {
+					$activitiesSummaryCountQuery->whereIn('cases.client_id', $clientIds);
+				}
+				if (!empty($request->get('ticket'))) {
+					$activitiesSummaryCountQuery->where('cases.number', $request->get('ticket'));
+				}
+				if (!Entrust::can('view-all-activities')) {
+					if (Entrust::can('view-mapped-state-activities')) {
+						$stateIds = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
+						$activitiesSummaryCountQuery->join('asps', 'activities.asp_id', '=', 'asps.id')
+							->whereIn('asps.state_id', $stateIds);
+					}
+					if (Entrust::can('export-own-rm-asp-activities')) {
+						$aspIds = Asp::where('regional_manager_id', Auth::user()->id)->pluck('id')->toArray();
+						$activitiesSummaryCountQuery->join('asps', 'activities.asp_id', '=', 'asps.id')
+							->whereIn('asps.id', $aspIds);
+					}
+					if (Entrust::can('export-own-zm-asp-activities')) {
+						$aspIds = Asp::where('zm_id', Auth::user()->id)->pluck('id')->toArray();
+						$activitiesSummaryCountQuery->join('asps', 'activities.asp_id', '=', 'asps.id')
+							->whereIn('asps.id', $aspIds);
+					}
+					if (Entrust::can('export-own-nm-asp-activities')) {
+						$aspIds = Asp::where('nm_id', Auth::user()->id)->pluck('id')->toArray();
+						$activitiesSummaryCountQuery->join('asps', 'activities.asp_id', '=', 'asps.id')
+							->whereIn('asps.id', $aspIds);
+					}
+				}
+
+				$activitySummaryCounts = $activitiesSummaryCountQuery
+					->groupBy('activities.status_id')
+					->select([
+						'activities.status_id',
+						DB::raw('COUNT(*) as count'),
+					])
+					->get()
+					->pluck('count', 'status_id');
+
 				foreach ($statusIds as $statusKey => $statusId) {
 					$activityPortalStatus = $activityPortalStatuses->where('id', $statusId)->first();
 					if ($activityPortalStatus) {
-						$activitiesSummaryCountQuery = ActivityReport::select([
-							'activity_reports.id',
-						])
-							->join('activities', 'activities.id', 'activity_reports.activity_id')
-							->leftjoin('activity_logs', 'activity_logs.activity_id', 'activities.id')
-							->join('cases', 'cases.id', 'activities.case_id')
-							->where('activities.status_id', $statusId);
-
-						if ($request->filter_by == 'general') {
-							$activitiesSummaryCountQuery->where(function ($q) use ($range1, $range2) {
-								$q->whereDate('cases.date', '>=', $range1)
-									->whereDate('cases.date', '<=', $range2);
-							});
-						} elseif ($request->filter_by == 'activity') {
-							$activitiesSummaryCountQuery->where(function ($q) use ($range1, $range2) {
-								$q->where(function ($query) use ($range1, $range2) {
-									$query->whereRaw('DATE(activity_reports.imported_date) between "' . $range1 . '" and "' . $range2 . '"');
-								})
-									->orwhere(function ($query) use ($range1, $range2) {
-										$query->whereRaw('DATE(activity_reports.asp_data_filled_date) between "' . $range1 . '" and "' . $range2 . '"');
-									})
-									->orwhere(function ($query) use ($range1, $range2) {
-										$query->whereRaw('DATE(activity_reports.l1_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
-									})
-									->orwhere(function ($query) use ($range1, $range2) {
-										$query->whereRaw('DATE(activity_reports.l1_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
-									})
-									->orwhere(function ($query) use ($range1, $range2) {
-										$query->whereRaw('DATE(activity_reports.l2_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
-									})
-									->orwhere(function ($query) use ($range1, $range2) {
-										$query->whereRaw('DATE(activity_reports.l2_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
-									})
-									->orwhere(function ($query) use ($range1, $range2) {
-										$query->whereRaw('DATE(activity_reports.l3_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
-									})
-									->orwhere(function ($query) use ($range1, $range2) {
-										$query->whereRaw('DATE(activity_reports.l3_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
-									})
-									->orwhere(function ($query) use ($range1, $range2) {
-										$query->whereRaw('DATE(activity_reports.l4_deffered_date) between "' . $range1 . '" and "' . $range2 . '"');
-									})
-									->orwhere(function ($query) use ($range1, $range2) {
-										$query->whereRaw('DATE(activity_reports.l4_approved_date) between "' . $range1 . '" and "' . $range2 . '"');
-									})
-									->orwhere(function ($query) use ($range1, $range2) {
-										$query->whereRaw('DATE(activity_reports.invoice_generated_date) between "' . $range1 . '" and "' . $range2 . '"');
-									})
-									->orwhere(function ($query) use ($range1, $range2) {
-										$query->whereRaw('DATE(activity_reports.axapta_generated_date) between "' . $range1 . '" and "' . $range2 . '"');
-									})
-									->orwhere(function ($query) use ($range1, $range2) {
-										$query->whereRaw('DATE(activity_reports.payment_completed_date) between "' . $range1 . '" and "' . $range2 . '"');
-									})
-									->orwhere(function ($query) use ($range1, $range2) {
-										$query->whereRaw('DATE(activity_logs.deferred_to_cc_at) between "' . $range1 . '" and "' . $range2 . '"');
-									})
-									->orwhere(function ($query) use ($range1, $range2) {
-										$query->whereRaw('DATE(activity_logs.cc_clarified_at) between "' . $range1 . '" and "' . $range2 . '"');
-									})
-								;
-							});
-						} elseif ($request->filter_by == 'invoiceDate') {
-							$activitiesSummaryCountQuery->whereRaw('DATE(activity_reports.invoice_date) between "' . $range1 . '" and "' . $range2 . '"');
-						} elseif ($request->filter_by == 'transactionDate') {
-							$activitiesSummaryCountQuery->whereRaw('DATE(activity_reports.transaction_date) between "' . $range1 . '" and "' . $range2 . '"');
-						}
-
-						// if (!empty($request->get('asp_id'))) {
-						// 	if (Entrust::can('export-own-activities')) {
-						// 		// ASP FINANCE ADMIN
-						// 		if (Auth::user()->asp && Auth::user()->asp->is_finance_admin == 1) {
-						// 			$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
-						// 			$aspIds[] = Auth::user()->asp->id;
-						// 			$activitiesSummaryCountQuery->whereIn('activities.asp_id', $aspIds);
-						// 		} else {
-						// 			$activitiesSummaryCountQuery->where('activities.asp_id', $request->get('asp_id'));
-						// 		}
-						// 	} else {
-						// 		$activitiesSummaryCountQuery->where('activities.asp_id', $request->get('asp_id'));
-						// 	}
-						// }
-
-						if (Entrust::can('export-own-activities') && Auth::user()->asp) {
-							// ASP FINANCE ADMIN
-							if (Auth::user()->asp->is_finance_admin == 1) {
-								$aspIds = Asp::where('finance_admin_id', Auth::user()->asp->id)->pluck('id')->toArray();
-								$aspIds[] = Auth::user()->asp->id;
-								$activitiesSummaryCountQuery->whereIn('activities.asp_id', $aspIds);
-							} else {
-								$activitiesSummaryCountQuery->where('activities.asp_id', Auth::user()->asp->id);
-							}
-						} else if (!empty($aspAxaptaCodes)) {
-							$aspIds = Asp::whereIn('axpta_code', $aspAxaptaCodes)->pluck('id')->toArray();
-							$activitiesSummaryCountQuery->whereIn('activities.asp_id', $aspIds);
-						}
-
-						if (!empty($clientIds)) {
-							$activitiesSummaryCountQuery->whereIn('cases.client_id', $clientIds);
-						}
-						if (!empty($request->get('ticket'))) {
-							$activitiesSummaryCountQuery->where('cases.number', $request->get('ticket'));
-						}
-						if (!Entrust::can('view-all-activities')) {
-							if (Entrust::can('view-mapped-state-activities')) {
-								$stateIds = StateUser::where('user_id', '=', Auth::id())->pluck('state_id')->toArray();
-								$activitiesSummaryCountQuery->join('asps', 'activities.asp_id', '=', 'asps.id')
-									->whereIn('asps.state_id', $stateIds);
-							}
-							if (Entrust::can('export-own-rm-asp-activities')) {
-								$aspIds = Asp::where('regional_manager_id', Auth::user()->id)->pluck('id')->toArray();
-								$activitiesSummaryCountQuery->join('asps', 'activities.asp_id', '=', 'asps.id')
-									->whereIn('asps.id', $aspIds);
-							}
-							if (Entrust::can('export-own-zm-asp-activities')) {
-								$aspIds = Asp::where('zm_id', Auth::user()->id)->pluck('id')->toArray();
-								$activitiesSummaryCountQuery->join('asps', 'activities.asp_id', '=', 'asps.id')
-									->whereIn('asps.id', $aspIds);
-							}
-							if (Entrust::can('export-own-nm-asp-activities')) {
-								$aspIds = Asp::where('nm_id', Auth::user()->id)->pluck('id')->toArray();
-								$activitiesSummaryCountQuery->join('asps', 'activities.asp_id', '=', 'asps.id')
-									->whereIn('asps.id', $aspIds);
-							}
-						}
-
-						$activitySummaryCount = $activitiesSummaryCountQuery->groupBy('activity_reports.id')->get()->count();
 						$summary[] = [
 							$activityPortalStatus->name,
-							$activitySummaryCount,
+							$activitySummaryCounts->get((int) $statusId, 0),
 						];
 					}
 				}
@@ -6039,12 +5989,18 @@ class ActivityController extends Controller {
 			$activityReportHeaders = array_merge($activityReportHeaders, $rateCardHeaders);
 
 			$activityReportAllData = [];
-			$activityReports->groupBy('activity_reports.id')->chunk(5000, function ($activityReportValues) use (&$activityReportAllData) {
+			$canDisplayAspNumber = Entrust::can('display-asp-number-in-activities');
+			$isOwnActivitiesExport = Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities');
+			foreach (array_chunk($activityReportIds, 5000) as $activityReportIdsChunk) {
+				$activityReportValues = (clone $activityReportsDataQuery)
+					->whereIn('activity_reports.id', $activityReportIdsChunk)
+					->orderBy('activity_reports.id')
+					->get();
 				$activityReportDetails = [];
 				foreach ($activityReportValues as $activityReportKey => $activityReportVal) {
 
 					if (!empty($activityReportVal->aspContactNumber)) {
-						if (Entrust::can('display-asp-number-in-activities')) {
+						if ($canDisplayAspNumber) {
 							$aspContactNumber = $activityReportVal->aspContactNumber;
 						} else {
 							$aspContactNumber = maskPhoneNumber($activityReportVal->aspContactNumber);
@@ -6053,7 +6009,7 @@ class ActivityController extends Controller {
 						$aspContactNumber = "--";
 					}
 
-					if (Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities')) {
+					if ($isOwnActivitiesExport) {
 						$activityReportDetails[] = [
 							$activityReportVal->activityId,
 							$activityReportVal->caseNumber,
@@ -6291,7 +6247,7 @@ class ActivityController extends Controller {
 						];
 					}
 
-					if (!Entrust::can('export-own-activities') && !Entrust::can('export-own-rm-asp-activities') && !Entrust::can('export-own-zm-asp-activities')) {
+					if (!$isOwnActivitiesExport) {
 
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->importedDate;
 						$activityReportDetails[$activityReportKey][] = $activityReportVal->importedBy;
@@ -6355,7 +6311,7 @@ class ActivityController extends Controller {
 					$activityReportDetails[$activityReportKey][] = $activityReportVal->adjustment;
 				}
 				$activityReportAllData = array_merge($activityReportAllData, $activityReportDetails);
-			});
+			}
 
 			Excel::create('Activity Status Report', function ($excel) use ($summary, $activityReportHeaders, $activityReportAllData, $statusIds, $summaryPeriod) {
 				$excel->sheet('Summary', function ($sheet) use ($summary, $statusIds, $summaryPeriod) {
@@ -6390,7 +6346,8 @@ class ActivityController extends Controller {
 						$row->setFontSize(10);
 						$row->setFontWeight('bold');
 					});
-					$sheet->setAutoSize(true);
+					// Column autosizing measures every cell, which is too slow for large exports. Passing false also skips the default autosize from config.
+					$sheet->setAutoSize(false);
 				});
 			})->export('xlsx');
 

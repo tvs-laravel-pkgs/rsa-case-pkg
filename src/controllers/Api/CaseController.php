@@ -130,7 +130,7 @@ class CaseController extends Controller {
 							$query->whereNull('deleted_at');
 						}),
 				],
-				'vehicle_registration_number' => 'nullable|string|max:11',
+				'vehicle_registration_number' => 'nullable|string|max:20',
 				'vin_no' => 'nullable|string|max:25',
 				'membership_type' => 'nullable|string|max:191',
 				'membership_number' => 'nullable|string|max:50',

@@ -1281,6 +1281,15 @@ class Activity extends Model {
 							}
 						}
 
+						//VALIDATE ASP SERVICE PRICE BEFORE SAVING TO AVOID ROLLBACK OF INSERTED RECORDS
+                        if ($activity_save_eligible && $finance_status->po_eligibility_type_id != 342) {
+                        	$aspServicePriceResponse = getActivityKMPrices($service_type, $asp, $dataSourceId, $case->date);
+                        	if (!$aspServicePriceResponse['success']) {
+                        		$status['errors'][] = $aspServicePriceResponse['error'];
+                        		$activity_save_eligible = false;
+                        	}
+                        }
+
 						if ($activity_save_eligible) {
 							$activity->fill($record);
 

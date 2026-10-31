@@ -5988,7 +5988,8 @@ class ActivityController extends Controller {
 			];
 			$activityReportHeaders = array_merge($activityReportHeaders, $rateCardHeaders);
 
-			$activityReportAllData = [];
+			// Data rows are streamed to a temporary file instead of being held in memory by PHPExcel
+			$activityReportRowsWriter = new StreamingXlsxSheetWriter(2, storage_path('exports'));
 			$canDisplayAspNumber = Entrust::can('display-asp-number-in-activities');
 			$isOwnActivitiesExport = Entrust::can('export-own-activities') || Entrust::can('export-own-rm-asp-activities') || Entrust::can('export-own-zm-asp-activities');
 			foreach (array_chunk($activityReportIds, 5000) as $activityReportIdsChunk) {
@@ -6310,10 +6311,14 @@ class ActivityController extends Controller {
 					$activityReportDetails[$activityReportKey][] = $activityReportVal->adjustmentType;
 					$activityReportDetails[$activityReportKey][] = $activityReportVal->adjustment;
 				}
-				$activityReportAllData = array_merge($activityReportAllData, $activityReportDetails);
+				foreach ($activityReportDetails as $activityReportDetail) {
+					$activityReportRowsWriter->addRow($activityReportDetail);
+				}
 			}
 
-			Excel::create('Activity Status Report', function ($excel) use ($summary, $activityReportHeaders, $activityReportAllData, $statusIds, $summaryPeriod) {
+			// Stored under a unique name so that concurrent exports do not overwrite each other
+			$exportFile = Excel::create('activity-status-report-' . str_replace('.', '', uniqid('', true)), function ($excel) use ($summary, $activityReportHeaders, $statusIds, $summaryPeriod) {
+				$excel->setTitle('Activity Status Report');
 				$excel->sheet('Summary', function ($sheet) use ($summary, $statusIds, $summaryPeriod) {
 					$sheet->fromArray($summary, NULL, 'A1');
 					$sheet->row(1, $summaryPeriod);
@@ -6338,8 +6343,8 @@ class ActivityController extends Controller {
 					});
 				});
 
-				$excel->sheet('Activity Informations', function ($sheet) use ($activityReportHeaders, $activityReportAllData) {
-					$sheet->fromArray($activityReportAllData, NULL, 'A1');
+				$excel->sheet('Activity Informations', function ($sheet) use ($activityReportHeaders) {
+					// Only the header row is built here, the data rows are spliced in after the file is saved
 					$sheet->row(1, $activityReportHeaders);
 					$sheet->row(1, function ($row) {
 						$row->setBackground('#CCC9C9');
@@ -6349,9 +6354,22 @@ class ActivityController extends Controller {
 					// Column autosizing measures every cell, which is too slow for large exports. Passing false also skips the default autosize from config.
 					$sheet->setAutoSize(false);
 				});
-			})->export('xlsx');
+			})->store('xlsx', storage_path('exports'), true);
 
-			return redirect()->back()->with(['success' => 'exported!']);
+			try {
+				// 'Activity Informations' is the second sheet of the workbook
+				$activityReportRowsWriter->writeIntoWorkbook($exportFile['full'], 'xl/worksheets/sheet2.xml');
+			} catch (\Exception $e) {
+				@unlink($exportFile['full']);
+				throw $e;
+			}
+
+			return response()->download($exportFile['full'], 'Activity Status Report.xlsx', [
+				'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+				'Expires' => 'Mon, 26 Jul 1997 05:00:00 GMT',
+				'Cache-Control' => 'cache, must-revalidate',
+				'Pragma' => 'public',
+			])->deleteFileAfterSend(true);
 		} catch (\Exception $e) {
 			return redirect('/#!/rsa-case-pkg/activity-status/list')->with([
 				'errors' => [

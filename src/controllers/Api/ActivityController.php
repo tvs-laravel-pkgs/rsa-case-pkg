@@ -518,6 +518,25 @@ class ActivityController extends Controller {
 			])->first();
 			$activity->finance_status_id = $finance_status->id;
 
+			//VALIDATE ASP SERVICE PRICE BEFORE SAVING TO AVOID ROLLBACK OF INSERTED RECORDS ON CRM RETRIES
+			if ($finance_status->po_eligibility_type_id != 342) {
+				$aspServicePriceResponse = getActivityKMPrices($service_type, $asp, $data_src->id, $case->date);
+				if (!$aspServicePriceResponse['success']) {
+					//SAVE ACTIVITY API LOG
+					DB::rollBack();
+					$errors[] = $aspServicePriceResponse['error'];
+					saveApiLog(103, $request->crm_activity_id, $request->all(), $errors, NULL, 121);
+
+					return response()->json([
+						'success' => false,
+						'error' => 'Validation Error',
+						'errors' => [
+							$aspServicePriceResponse['error'],
+						],
+					], $this->successStatus);
+				}
+			}
+
 			$activity->asp_id = $asp->id;
 			$activity->case_id = $case->id;
 			$activity->service_type_id = $service_type->id;

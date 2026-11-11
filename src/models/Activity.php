@@ -2655,6 +2655,54 @@ class Activity extends Model {
 		sendWhatsappSMS($this->id, 1201, $inputRequests);
 	}
 
+	public function sendPlatformFeeNotEnabledWhatsappSms() {
+		//TEMPLATE TO BE CONFIGURED AFTER APPROVAL BY BUSINESS TEAM
+		$templateId = config('rsa.PLATFORM_FEE_NOT_ENABLED_WHATSAPP_TEMPLATE_ID');
+		if (empty($templateId)) {
+			return;
+		}
+
+		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
+		$aspWhatsAppNumber = $this->asp->whatsapp_number;
+		$activityNumber = $this->crm_activity_id;
+
+		$senderNumber = config('constants')['whatsapp_api_sender'];
+
+		$bodyParameterValues = new \stdClass();
+		$bodyParameterValues->{'0'} = $aspName;
+		$bodyParameterValues->{'1'} = $activityNumber;
+
+		$inputRequests = [
+			"message" => [
+				"channel" => "WABA",
+				"content" => [
+					"preview_url" => false,
+					"type" => "MEDIA_TEMPLATE",
+					"mediaTemplate" => [
+						"templateId" => $templateId,
+						"bodyParameterValues" => $bodyParameterValues,
+					],
+				],
+				"recipient" => [
+					"to" => "91" . $aspWhatsAppNumber,
+					"recipient_type" => "individual",
+				],
+				"sender" => [
+					"from" => $senderNumber,
+				],
+				"preferences" => [
+					"webHookDNId" => "1001",
+				],
+			],
+			"metaData" => [
+				"version" => "v1.0.9",
+			],
+		];
+
+		//SEND WHATSAPP SMS
+		sendWhatsappSMS($this->id, 1514, $inputRequests); //PLATFORM FEE NOT ENABLED
+	}
+
 	public function sendActivityCancelledWhatsappSms() {
 		$aspName = !empty($this->asp->name) ? $this->asp->name : '--';
 		$aspWhatsAppNumber = $this->asp->whatsapp_number;
@@ -3065,6 +3113,17 @@ class Activity extends Model {
 			$data['activities'] = $activities;
 			$data['invoice_amount'] = number_format($activity_detail->invoice_amount, 2);
 			$data['invoice_amount_in_word'] = getIndianCurrency($activity_detail->invoice_amount);
+
+			//PLATFORM FEE (DISPLAY ONLY)
+			$data['platform_fee_ack_pending'] = $asp->isPlatformFeeAckPending() ? true : false;
+			$data['platform_fee_applicable'] = ($asp->enable_platform_fee || $data['platform_fee_ack_pending']) ? true : false;
+			if ($data['platform_fee_applicable']) {
+				$platformFee = Invoices::calculatePlatformFee($activity_detail->invoice_amount);
+				$data['platform_fee_percentage'] = $platformFee['percentage'];
+				$data['platform_fee_amount'] = number_format($platformFee['amount'], 2);
+				$data['net_payable_amount'] = number_format(floatval($activity_detail->invoice_amount) - $platformFee['amount'], 2);
+			}
+
 			$data['asp'] = $asp;
 			$data['inv_no'] = generateInvoiceNumber();
 			$data['inv_date'] = date("d-m-Y");

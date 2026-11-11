@@ -1959,11 +1959,17 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 			[
 				'display_order' => 2,
 				'parent' => 'asp-platform-fee-invoices',
+				'name' => 'view-only-state-asp-platform-fee-invoices',
+				'display_name' => 'Only State Mapped',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'asp-platform-fee-invoices',
 				'name' => 'view-only-own-asp-platform-fee-invoices',
 				'display_name' => 'Only Own',
 			],
 			[
-				'display_order' => 3,
+				'display_order' => 4,
 				'parent' => 'asp-platform-fee-invoices',
 				'name' => 'oracle-export-asp-platform-fee-invoices',
 				'display_name' => 'Oracle Export',
@@ -1985,11 +1991,17 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 			[
 				'display_order' => 2,
 				'parent' => 'asp-platform-fee-credit-notes',
+				'name' => 'view-only-state-asp-platform-fee-credit-notes',
+				'display_name' => 'Only State Mapped',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'asp-platform-fee-credit-notes',
 				'name' => 'view-only-own-asp-platform-fee-credit-notes',
 				'display_name' => 'Only Own',
 			],
 			[
-				'display_order' => 3,
+				'display_order' => 4,
 				'parent' => 'asp-platform-fee-credit-notes',
 				'name' => 'oracle-export-asp-platform-fee-credit-notes',
 				'display_name' => 'Oracle Export',

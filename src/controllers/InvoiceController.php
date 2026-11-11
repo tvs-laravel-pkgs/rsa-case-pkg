@@ -10,6 +10,7 @@ use App\Http\Controllers\SoapController;
 use App\Invoices;
 use App\InvoiceVoucher;
 use App\Oracle\ApInvoiceExport;
+use App\Services\AspPlatformFeeService;
 use App\StateUser;
 use Auth;
 use DB;
@@ -354,14 +355,35 @@ class InvoiceController extends Controller {
 
 	public function cancel(Request $request) {
 		// dd($request->all());
+		DB::beginTransaction();
 		try {
 			if (empty($request->invoiceIds)) {
+				DB::rollBack();
 				return response()->json([
 					'success' => false,
 					'errors' => [
 						'Please select atleast one invoice',
 					],
 				]);
+			}
+
+			//PLATFORM FEE CREDIT NOTE FOR THE CANCELLED INVOICES (INCLUDING E-CREDIT NOTE). IF IT FAILS THE INVOICE IS NOT CANCELLED.
+			$platformFeeCreditNoteIds = [];
+			$platformFeeInvoiceIds = Invoices::whereIn('id', $request->invoiceIds)
+				->whereNotNull('platform_fee_invoice_id')
+				->pluck('platform_fee_invoice_id');
+			foreach ($platformFeeInvoiceIds as $platformFeeInvoiceId) {
+				$creditNoteResponse = AspPlatformFeeService::generateCreditNote($platformFeeInvoiceId);
+				if (!$creditNoteResponse['success']) {
+					DB::rollBack();
+					return response()->json([
+						'success' => false,
+						'errors' => [
+							$creditNoteResponse['error'],
+						],
+					]);
+				}
+				$platformFeeCreditNoteIds[] = $creditNoteResponse['credit_note_id'];
 			}
 
 			$invoiceActivities = Activity::select([
@@ -384,10 +406,18 @@ class InvoiceController extends Controller {
 			}
 
 			Invoices::whereIn('id', $request->invoiceIds)->delete();
+			DB::commit();
+
+			//PLATFORM FEE CREDIT NOTE PDF AFTER COMMIT
+			foreach ($platformFeeCreditNoteIds as $platformFeeCreditNoteId) {
+				AspPlatformFeeService::generatePdfSafely($platformFeeCreditNoteId);
+			}
+
 			return response()->json([
 				'success' => true,
 			]);
 		} catch (\Exception $e) {
+			DB::rollBack();
 			return response()->json([
 				'success' => false,
 				'errors' => [

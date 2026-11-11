@@ -20,6 +20,7 @@ use App\CronLog;
 use App\Http\Controllers\Controller;
 use App\Invoices;
 use App\ServiceType;
+use App\Services\AspPlatformFeeService;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
@@ -1357,6 +1358,23 @@ class ActivityController extends Controller {
 									], $this->successStatus);
 								}
 
+								//EXISTING ASP MUST ACKNOWLEDGE THE PLATFORM FEE IN THE WEB PORTAL BEFORE GENERATING INVOICES FROM WHATSAPP
+								if ($activity->asp && $activity->asp->isPlatformFeeAckPending()) {
+									$activity->sendPlatformFeeNotEnabledWhatsappSms();
+
+									//UPDATE WEBHOOK STATUS
+									$whatsappWebhookResponse->status = 'Failed';
+									$whatsappWebhookResponse->errors = 'Platform fee is not yet enabled for the ASP';
+									$whatsappWebhookResponse->save();
+									DB::commit();
+									return response()->json([
+										'success' => false,
+										'errors' => [
+											'Platform fee is not yet enabled for the ASP',
+										],
+									], $this->successStatus);
+								}
+
 								//GENERATE INVOICE NUMBER
 								$invoiceNumber = generateInvoiceNumber();
 								$invoiceDate = new Carbon();
@@ -1388,6 +1406,11 @@ class ActivityController extends Controller {
 							$whatsappWebhookResponse->status = 'Completed';
 							$whatsappWebhookResponse->save();
 							DB::commit();
+
+							//PLATFORM FEE INVOICE PDF AFTER COMMIT
+							if (isset($createInvoiceResponse['platform_fee_invoice_id'])) {
+								AspPlatformFeeService::generatePdfSafely($createInvoiceResponse['platform_fee_invoice_id']);
+							}
 							return response()->json([
 								'success' => true,
 							], $this->successStatus);

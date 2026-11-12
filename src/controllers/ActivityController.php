@@ -21,6 +21,7 @@ use App\Http\Controllers\MapMyIndiaController;
 use App\Invoices;
 use App\Mail\NotificationEmail;
 use App\ServiceType;
+use App\Services\AspPlatformFeeService;
 use App\StateUser;
 use App\User;
 use Auth;
@@ -4961,7 +4962,8 @@ class ActivityController extends Controller {
 				$irn = NULL;
 			}
 
-			$invoice_c = Invoices::createInvoice($asp, $request->crm_activity_ids, $invoice_no, $irn, $invoice_date, $value, false);
+			$platformFeeAcknowledged = isset($request->platform_fee_acknowledged) && $request->platform_fee_acknowledged == 1;
+			$invoice_c = Invoices::createInvoice($asp, $request->crm_activity_ids, $invoice_no, $irn, $invoice_date, $value, false, null, $platformFeeAcknowledged);
 			if (!$invoice_c['success']) {
 				DB::rollBack();
 				return response()->json([
@@ -4971,6 +4973,9 @@ class ActivityController extends Controller {
 			}
 
 			DB::commit();
+
+			//PLATFORM FEE INVOICE PDF AFTER COMMIT
+			AspPlatformFeeService::generatePdfSafely($invoice_c['platform_fee_invoice_id']);
 
 			if ($invoice_c['success']) {
 				return response()->json([

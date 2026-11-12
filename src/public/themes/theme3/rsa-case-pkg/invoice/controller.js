@@ -277,6 +277,10 @@ app.component('invoiceView', {
             self.invoice_vouchers_amount = response.data.invoice_vouchers_amount;
             self.invoice_vouchers = response.data.invoice_vouchers;
             self.company_invoice_address = response.data.company_invoice_address;
+            self.platform_fee_applicable = response.data.platform_fee_applicable;
+            self.platform_fee_percentage = response.data.platform_fee_percentage;
+            self.platform_fee_amount = response.data.platform_fee_amount;
+            self.net_payable_amount = response.data.net_payable_amount;
 
             // Totals for table footer
             self.total_net_amount = 0;

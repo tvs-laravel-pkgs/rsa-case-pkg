@@ -1942,6 +1942,70 @@ class RsaCasePkgPermissionSeeder extends Seeder {
 				'name' => 'cc-deferred-activities',
 				'display_name' => 'Call Center Deferred Activities',
 			],
+
+			//ASP PLATFORM FEE INVOICES
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'asp-platform-fee-invoices',
+				'display_name' => 'ASP Platform Fee Invoices',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'asp-platform-fee-invoices',
+				'name' => 'view-all-asp-platform-fee-invoices',
+				'display_name' => 'View All',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'asp-platform-fee-invoices',
+				'name' => 'view-only-state-asp-platform-fee-invoices',
+				'display_name' => 'Only State Mapped',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'asp-platform-fee-invoices',
+				'name' => 'view-only-own-asp-platform-fee-invoices',
+				'display_name' => 'Only Own',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'asp-platform-fee-invoices',
+				'name' => 'oracle-export-asp-platform-fee-invoices',
+				'display_name' => 'Oracle Export',
+			],
+
+			//ASP PLATFORM FEE CREDIT NOTES
+			[
+				'display_order' => 99,
+				'parent' => null,
+				'name' => 'asp-platform-fee-credit-notes',
+				'display_name' => 'ASP Platform Fee Credit Notes',
+			],
+			[
+				'display_order' => 1,
+				'parent' => 'asp-platform-fee-credit-notes',
+				'name' => 'view-all-asp-platform-fee-credit-notes',
+				'display_name' => 'View All',
+			],
+			[
+				'display_order' => 2,
+				'parent' => 'asp-platform-fee-credit-notes',
+				'name' => 'view-only-state-asp-platform-fee-credit-notes',
+				'display_name' => 'Only State Mapped',
+			],
+			[
+				'display_order' => 3,
+				'parent' => 'asp-platform-fee-credit-notes',
+				'name' => 'view-only-own-asp-platform-fee-credit-notes',
+				'display_name' => 'Only Own',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'asp-platform-fee-credit-notes',
+				'name' => 'oracle-export-asp-platform-fee-credit-notes',
+				'display_name' => 'Oracle Export',
+			],
 		];
 		Permission::createFromArrays($permissions);
 	}

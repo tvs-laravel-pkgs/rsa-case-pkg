@@ -5,6 +5,7 @@ use Abs\RsaCasePkg\Activity;
 use App\Asp;
 use App\Http\Controllers\Controller;
 use App\Invoices;
+use App\Services\AspPlatformFeeService;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
@@ -72,6 +73,22 @@ class InvoiceController extends Controller {
 					'error' => 'Validation Error',
 					'errors' => [
 						'ASP not found',
+					],
+				], $this->successStatus);
+			}
+
+			//EXISTING ASP MUST ACKNOWLEDGE THE PLATFORM FEE IN THE WEB PORTAL BEFORE GENERATING INVOICES FROM THE APP
+			if ($asp->isPlatformFeeAckPending()) {
+				//CREATE INVOICE API LOG
+				$errors[] = config('rsa.PLATFORM_FEE_NOT_ENABLED_APP_MESSAGE');
+				saveApiLog(106, NULL, $request->all(), $errors, NULL, 121);
+				DB::commit();
+
+				return response()->json([
+					'success' => false,
+					'error' => 'Validation Error',
+					'errors' => [
+						config('rsa.PLATFORM_FEE_NOT_ENABLED_APP_MESSAGE'),
 					],
 				], $this->successStatus);
 			}
@@ -395,6 +412,9 @@ class InvoiceController extends Controller {
 			saveApiLog(106, NULL, $request->all(), $errors, NULL, 120);
 
 			DB::commit();
+
+			//PLATFORM FEE INVOICE PDF AFTER COMMIT
+			AspPlatformFeeService::generatePdfSafely($invoice_c['platform_fee_invoice_id']);
 			if (isset($request->from) && $request->from == "VDM") {
 				if ($invoice_c['success']) {
 					return response()->json([

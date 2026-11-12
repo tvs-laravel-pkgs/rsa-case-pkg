@@ -1,3 +1,46 @@
+<style>
+    /* PLATFORM FEE SUMMARY */
+    .pf-summary {
+        float: right;
+        width: 100%;
+        max-width: 400px;
+        padding: 4px 18px;
+        border: 1px solid #e3e8ef;
+        border-radius: 6px;
+        background: #fafbfc;
+    }
+    .pf-summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 9px 0;
+        font-family: 'titilliumWeb';
+        font-size: 15px;
+        color: #333;
+    }
+    .pf-summary-row + .pf-summary-row {
+        border-top: 1px dashed #e3e8ef;
+    }
+    .pf-summary-value {
+        font-family: 'titilliumWeb-bold';
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+    .pf-summary-deduction .pf-summary-value {
+        color: #e0563f;
+    }
+    .pf-summary-row.pf-summary-total {
+        border-top: 1px solid #cfd8e3;
+    }
+    .pf-summary-total .pf-summary-label {
+        font-family: 'titilliumWeb-bold';
+        font-size: 16px;
+    }
+    .pf-summary-total .pf-summary-value {
+        font-size: 24px;
+        color: #1fbf84;
+    }
+</style>
 <div class="col-xs-12 col-sm-12">
     <div class="mobile-breadcrumbs-wrapper">
         <ul class="mobile-breadcrumbs-group list-inline">
@@ -266,11 +309,26 @@
                                                 <div class="amountinwords">{{$ctrl.invoice_amount_in_word}}</div>
                                             </div><!-- Column -->
                                             <div class="col-sm-6">
-                                                <div class="netamount text-right">
+                                                <div ng-if="!$ctrl.platform_fee_applicable" class="netamount text-right">
                                                     <span><b>Final Invoice Amount:</b></span>&nbsp;&nbsp;&nbsp;&nbsp;
                                                     <span class="amount">
                                                         <i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.invoice_amount}}
                                                     </span>
+                                                </div>
+                                                <!-- PLATFORM FEE SUMMARY -->
+                                                <div ng-if="$ctrl.platform_fee_applicable" class="pf-summary">
+                                                    <div class="pf-summary-row">
+                                                        <span class="pf-summary-label">Final Invoice Amount</span>
+                                                        <span class="pf-summary-value"><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.invoice_amount}}</span>
+                                                    </div>
+                                                    <div class="pf-summary-row pf-summary-deduction">
+                                                        <span class="pf-summary-label">Platform Fee – {{$ctrl.platform_fee_percentage | number : 2}}%</span>
+                                                        <span class="pf-summary-value">- <i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.platform_fee_amount}}</span>
+                                                    </div>
+                                                    <div class="pf-summary-row pf-summary-total">
+                                                        <span class="pf-summary-label">Net Payable</span>
+                                                        <span class="pf-summary-value"><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.net_payable_amount}}</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div><!-- Row -->

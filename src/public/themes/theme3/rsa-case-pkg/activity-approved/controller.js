@@ -211,6 +211,11 @@ app.component('approvedActivityInvoicePreview', {
             self.signature_attachment = response.data.signature_attachment;
             self.signature_attachment_path = response.data.signature_attachment_path;
             self.new_company_invoice_address = response.data.new_company_invoice_address;
+            self.platform_fee_ack_pending = response.data.platform_fee_ack_pending;
+            self.platform_fee_applicable = response.data.platform_fee_applicable;
+            self.platform_fee_percentage = response.data.platform_fee_percentage;
+            self.platform_fee_amount = response.data.platform_fee_amount;
+            self.net_payable_amount = response.data.net_payable_amount;
 
             if (self.asp.tax_calculation_method == '1') {
                 self.asp.tax_calculation_method = true;
@@ -313,6 +318,9 @@ app.component('approvedActivityInvoicePreview', {
                     irn: {
                         minlength: 64,
                         maxlength: 64,
+                    },
+                    platform_fee_acknowledged: {
+                        required: true,
                     }
                 },
                 messages: {
@@ -321,6 +329,9 @@ app.component('approvedActivityInvoicePreview', {
                     },
                     inv_date: {
                         required: 'Invoice date is required',
+                    },
+                    platform_fee_acknowledged: {
+                        required: "Please select 'Platform Fee Must Be Included' to proceed with invoice generation.",
                     },
                 },
                 submitHandler: function(form) {

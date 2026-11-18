@@ -318,15 +318,19 @@
                                                 <!-- PLATFORM FEE SUMMARY -->
                                                 <div ng-if="$ctrl.platform_fee_applicable" class="pf-summary">
                                                     <div class="pf-summary-row">
-                                                        <span class="pf-summary-label">Final Invoice Amount</span>
-                                                        <span class="pf-summary-value"><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.invoice_amount}}</span>
+                                                        <span class="pf-summary-label">Taxable Value</span>
+                                                        <span class="pf-summary-value"><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.platform_fee_taxable_value}}</span>
+                                                    </div>
+                                                    <div ng-if="$ctrl.platform_fee_show_gst" class="pf-summary-row">
+                                                        <span class="pf-summary-label">GST {{$ctrl.platform_fee_gst_percentage}}%</span>
+                                                        <span class="pf-summary-value"><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.platform_fee_gst_amount}}</span>
                                                     </div>
                                                     <div class="pf-summary-row pf-summary-deduction">
-                                                        <span class="pf-summary-label">Platform Fee – {{$ctrl.platform_fee_percentage | number : 2}}%</span>
+                                                        <span class="pf-summary-label">Platform Fee with GST {{$ctrl.platform_fee_percentage | number : 2}}%</span>
                                                         <span class="pf-summary-value">- <i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.platform_fee_amount}}</span>
                                                     </div>
                                                     <div class="pf-summary-row pf-summary-total">
-                                                        <span class="pf-summary-label">Net Payable</span>
+                                                        <span class="pf-summary-label">Net Payable Value</span>
                                                         <span class="pf-summary-value"><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.net_payable_amount}}</span>
                                                     </div>
                                                 </div>

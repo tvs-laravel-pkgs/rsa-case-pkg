@@ -281,6 +281,10 @@ app.component('invoiceView', {
             self.platform_fee_percentage = response.data.platform_fee_percentage;
             self.platform_fee_amount = response.data.platform_fee_amount;
             self.net_payable_amount = response.data.net_payable_amount;
+            self.platform_fee_taxable_value = response.data.platform_fee_taxable_value;
+            self.platform_fee_show_gst = response.data.platform_fee_show_gst;
+            self.platform_fee_gst_amount = response.data.platform_fee_gst_amount;
+            self.platform_fee_gst_percentage = response.data.platform_fee_gst_percentage;
 
             // Totals for table footer
             self.total_net_amount = 0;

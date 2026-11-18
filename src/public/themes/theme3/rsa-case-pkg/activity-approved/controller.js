@@ -216,6 +216,10 @@ app.component('approvedActivityInvoicePreview', {
             self.platform_fee_percentage = response.data.platform_fee_percentage;
             self.platform_fee_amount = response.data.platform_fee_amount;
             self.net_payable_amount = response.data.net_payable_amount;
+            self.platform_fee_taxable_value = response.data.platform_fee_taxable_value;
+            self.platform_fee_show_gst = response.data.platform_fee_show_gst;
+            self.platform_fee_gst_amount = response.data.platform_fee_gst_amount;
+            self.platform_fee_gst_percentage = response.data.platform_fee_gst_percentage;
 
             if (self.asp.tax_calculation_method == '1') {
                 self.asp.tax_calculation_method = true;
@@ -304,6 +308,14 @@ app.component('approvedActivityInvoicePreview', {
             var form_id = form_ids = '#invoice-create-form';
             var v = jQuery(form_ids).validate({
                 ignore: "",
+                errorPlacement: function(error, element) {
+                    //PLATFORM FEE ACKNOWLEDGEMENT ERROR BELOW THE CHECKBOX TEXT
+                    if (element.attr('name') == 'platform_fee_acknowledged') {
+                        error.insertAfter(element.closest('label'));
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
                 rules: {
                     invoice_no: {
                         required: true,
@@ -331,7 +343,7 @@ app.component('approvedActivityInvoicePreview', {
                         required: 'Invoice date is required',
                     },
                     platform_fee_acknowledged: {
-                        required: "Please select 'Platform Fee Must Be Included' to proceed with invoice generation.",
+                        required: 'Please accept the platform service fee arrangement to proceed with invoice generation.',
                     },
                 },
                 submitHandler: function(form) {

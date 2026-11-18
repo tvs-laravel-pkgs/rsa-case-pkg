@@ -40,6 +40,43 @@
         font-size: 24px;
         color: #1fbf84;
     }
+    /* PLATFORM FEE ACKNOWLEDGEMENT */
+    .pf-ack-notice {
+        margin-bottom: 20px;
+        padding: 16px 18px;
+        border: 1px solid #b9d3f5;
+        border-radius: 6px;
+        background: #f3f8ff;
+        font-family: 'titilliumWeb';
+        font-size: 15px;
+        color: #333;
+    }
+    .pf-ack-notice-title {
+        margin: 0 0 10px;
+        font-family: 'titilliumWeb-bold';
+        font-size: 16px;
+        color: #1d4f91;
+    }
+    .pf-ack-notice p {
+        margin: 0 0 10px;
+    }
+    .pf-ack-notice .pf-ack-consent {
+        margin: 2px 0 0;
+        padding-top: 12px;
+        border-top: 1px solid #b9d3f5;
+    }
+    .pf-ack-notice .pf-ack-consent label {
+        font-family: 'titilliumWeb-bold';
+        font-weight: normal;
+        cursor: pointer;
+    }
+    .pf-ack-notice .pf-ack-consent label.error {
+        display: block;
+        margin: 6px 0 0 22px;
+        font-family: 'titilliumWeb';
+        font-size: 14px;
+        cursor: default;
+    }
 </style>
 <div class="col-xs-12 col-sm-12">
     <div class="mobile-breadcrumbs-wrapper">
@@ -327,15 +364,19 @@
                                                 <!-- PLATFORM FEE SUMMARY -->
                                                 <div ng-if="$ctrl.platform_fee_applicable" class="pf-summary">
                                                     <div class="pf-summary-row">
-                                                        <span class="pf-summary-label">Net Amount</span>
-                                                        <span class="pf-summary-value"><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.invoice_amount}}</span>
+                                                        <span class="pf-summary-label">Taxable Value</span>
+                                                        <span class="pf-summary-value"><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.platform_fee_taxable_value}}</span>
+                                                    </div>
+                                                    <div ng-if="$ctrl.platform_fee_show_gst" class="pf-summary-row">
+                                                        <span class="pf-summary-label">GST {{$ctrl.platform_fee_gst_percentage}}%</span>
+                                                        <span class="pf-summary-value"><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.platform_fee_gst_amount}}</span>
                                                     </div>
                                                     <div class="pf-summary-row pf-summary-deduction">
-                                                        <span class="pf-summary-label">Platform Fee – {{$ctrl.platform_fee_percentage | number : 2}}%</span>
+                                                        <span class="pf-summary-label">Platform Fee with GST {{$ctrl.platform_fee_percentage | number : 2}}%</span>
                                                         <span class="pf-summary-value">- <i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.platform_fee_amount}}</span>
                                                     </div>
                                                     <div class="pf-summary-row pf-summary-total">
-                                                        <span class="pf-summary-label">Net Payable</span>
+                                                        <span class="pf-summary-label">Net Payable Value</span>
                                                         <span class="pf-summary-value"><i class="fa fa-inr" aria-hidden="true"></i> {{$ctrl.net_payable_amount}}</span>
                                                     </div>
                                                 </div>
@@ -359,6 +400,22 @@
                     </div>
                     <div class="clearfix"></div>
                 </div><!-- View Data Wrapper-->
+                <!-- PLATFORM FEE ACKNOWLEDGEMENT -->
+                <div ng-if="$ctrl.platform_fee_ack_pending" class="row">
+                    <div class="col-xs-12">
+                        <div class="pf-ack-notice">
+                            <h4 class="pf-ack-notice-title">Platform Service Fee</h4>
+                            <p>A platform service fee of 1% (one percent) shall be applicable on the net value of services rendered by the Vendor through the TVS ASPL platform, excluding GST and other applicable statutory taxes. TVS Automobile Solutions Private Limited ("TVS ASPL") shall be entitled to deduct and adjust the applicable platform service fee from the amounts payable to the Vendor.</p>
+                            <p>Submission of invoices and continuation of services through the TVS ASPL platform shall be subject to the Vendor's acceptance of the above fee arrangement.</p>
+                            <div class="pf-ack-consent">
+                                <label for="platform_fee_acknowledged">
+                                    <input type="checkbox" id="platform_fee_acknowledged" name="platform_fee_acknowledged" value="1">
+                                    I have read and accept the above platform service fee arrangement.
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-xs-12 col-sm-4">
                         <div class="input-text form-group">
@@ -377,12 +434,6 @@
                         </div><!-- Field -->
                     </div><!-- Column-->
                     <div class="col-xs-12 col-sm-8 text-right">
-                        <div ng-if="$ctrl.platform_fee_ack_pending" class="input-text form-group">
-                            <label for="platform_fee_acknowledged">
-                                <input type="checkbox" id="platform_fee_acknowledged" name="platform_fee_acknowledged" value="1">
-                                Platform Fee Must Be Included
-                            </label>
-                        </div>
                         <div class="input-text form-group">
                             <label style="opacity: 0;">Button</label>
                             <button type="submit" class="approve-btn preview-batch" id="submitId">Submit</button>

@@ -3092,7 +3092,9 @@ class Activity extends Model {
 
 			//GET INVOICE AMOUNT FROM ACTIVITY DETAIL
 			$activity_detail = self::select(
-				DB::raw('SUM(bo_invoice_amount.value) as invoice_amount')
+				DB::raw('SUM(bo_invoice_amount.value) as invoice_amount'),
+				//TAXABLE VALUE (INVOICE AMOUNT EXCLUDING GST) FOR PLATFORM FEE
+				DB::raw('SUM(COALESCE(bo_invoice_amount.value, 0) - COALESCE((SELECT bo_tax_amount.value FROM activity_details as bo_tax_amount WHERE bo_tax_amount.activity_id = activities.id AND bo_tax_amount.key_id = 179 ORDER BY bo_tax_amount.id ASC LIMIT 1), 0)) as taxable_amount') //BO TAX AMOUNT (SUBQUERY TO AVOID DUPLICATING THE INVOICE AMOUNT ROWS)
 			)
 				->leftjoin('activity_details as bo_invoice_amount', function ($join) {
 					$join->on('bo_invoice_amount.activity_id', 'activities.id')
@@ -3118,10 +3120,15 @@ class Activity extends Model {
 			$data['platform_fee_ack_pending'] = $asp->isPlatformFeeAckPending() ? true : false;
 			$data['platform_fee_applicable'] = ($asp->enable_platform_fee || $data['platform_fee_ack_pending']) ? true : false;
 			if ($data['platform_fee_applicable']) {
-				$platformFee = Invoices::calculatePlatformFee($activity_detail->invoice_amount);
+				$platformFee = Invoices::calculatePlatformFee($activity_detail->taxable_amount);
 				$data['platform_fee_percentage'] = $platformFee['percentage'];
 				$data['platform_fee_amount'] = number_format($platformFee['amount'], 2);
 				$data['net_payable_amount'] = number_format(floatval($activity_detail->invoice_amount) - $platformFee['amount'], 2);
+				//PLATFORM FEE SPLITUP (TAXABLE VALUE + GST - PLATFORM FEE = NET PAYABLE)
+				$data['platform_fee_taxable_value'] = number_format(floatval($activity_detail->taxable_amount), 2);
+				$data['platform_fee_show_gst'] = $asp->has_gst ? true : false;
+				$data['platform_fee_gst_amount'] = number_format(floatval($activity_detail->invoice_amount) - floatval($activity_detail->taxable_amount), 2);
+				$data['platform_fee_gst_percentage'] = floatval($activities->max('total_tax_perc_value'));
 			}
 
 			$data['asp'] = $asp;
